@@ -1,9 +1,9 @@
 flask
-flask_talisman
 flask_sqlalchemy
 flask_login
 flask_migrate
 flask_wtf
+gunicorn
 pip-compile
 pymysql
 sqlalchemy
