@@ -1,4 +1,6 @@
 .idea/
 .vscode/
+mysql/
+.env
 .DS_Store
 *.log
