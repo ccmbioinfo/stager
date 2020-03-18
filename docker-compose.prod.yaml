@@ -1,0 +1,27 @@
+version: "2"
+
+services:
+  app:
+    build: flask
+    image: ccmbio/st2020
+    environment:
+      FLASK_ENV: production
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql
+    command: gunicorn --bind 0.0.0.0:5000 --preload --workers 1 --threads 2 wsgi:app
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./react/build:/var/www/sample-tracker/react/build
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/nginx/certs
+#     - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - app
+    command: nginx -g "daemon off;"

@@ -1,6 +1,8 @@
 .idea/
 .vscode/
 mysql/
+nginx/certs/
+nginx/logs
 .env
 .DS_Store
 *.log
