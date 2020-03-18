@@ -1,0 +1,10 @@
+flask
+flask_talisman
+flask_sqlalchemy
+flask_login
+flask_migrate
+flask_wtf
+pip-compile
+pymysql
+sqlalchemy
+werkzeug
