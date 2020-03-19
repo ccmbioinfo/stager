@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 from flask_login import UserMixin
@@ -23,10 +24,15 @@ class Family(db.Model):
     family_id = db.Column(db.Integer, primary_key=True)
     # Family.FamilyID
     family_codename = db.Column(db.String(50), nullable=False, unique=True)
+    created = db.Column(db.DateTime, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     participants = db.relationship('participant', backref='family_id', lazy='dynamic')
 
 
-class Gender(Enum):
+
+class Sex(Enum):
     Male = 'Male'
     Female = 'Female'
     Other = 'Other'
@@ -43,19 +49,30 @@ class Participant(db.Model):
     # Sample.SampleName
     participant_codename = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender
-    gender = db.Column(db.Enum(Gender), nullable=False)
+    sex = db.Column(db.Enum(Sex), nullable=False)
     # Sample.SampleType
     participant_type = db.Column(db.Enum(ParticipantType), nullable=False)
     # Sample.AffectedStatus
     affected = db.Column(db.Boolean, nullable=False)
     notes = db.Column(db.Text)
-    notes_last_modified = db.Column(db.DateTime)
-    notes_last_author = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
+    created = db.Column(db.DateTime, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     tissue_samples = db.relationship('tissue_sample', backref='participant_id', lazy='dynamic')
 
 
 class TissueSampleType(Enum):
-    Blood = 'Blood'
+    Blood = 'Blood'  # BLO
+    Saliva = 'Saliva'  # SAL
+    Lymphocyte = 'Lymphocyte'  # LYM
+    Fibroblast = 'Fibroblast'  # FIB
+    Muscle = 'Muscle'  # MUS
+    Skin = 'Skin'  # SKI
+    Urine = 'Urine'  # URI
+    Plasma = 'Plasma'  # PLA
+    Unknown = 'Unknown'  # UNK
+    Kidney = 'Kidney'  # KID
 
 
 class TissueProcessing(Enum):
@@ -72,6 +89,11 @@ class TissueSample(db.Model):
     tissue_processing = db.Column(db.Enum(TissueProcessing))
     # Dataset.SolvedStatus
     solved = db.Column(db.Boolean)
+    notes = db.Column(db.Text)
+    created = db.Column(db.DateTime, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     datasets = db.relationship('dataset', backref='tissue_sample_id', lazy='dynamic')
 
 
@@ -134,10 +156,6 @@ class Dataset(db.Model):
     entered_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     # Dataset.Notes
     notes = db.Column(db.Text)
-    # Dataset.NotesLastUpdatedDate
-    notes_last_modified = db.Column(db.DateTime)
-    # Dataset.NotesLastUpdatedBy
-    notes_last_author = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
     # RNASeqDataset.Condition (name TBD)
     condition = db.Column(db.Enum(DatasetCondition), nullable=False)
     extraction_protocol = db.Column(db.Enum(DatasetExtractionProtocol), nullable=False)
@@ -153,6 +171,12 @@ class Dataset(db.Model):
     # Uploaders.UploadCenter
     sequencing_centre = db.Column(db.String(100), nullable=False)
     batch_id = db.Column(db.String(50))
+    created = db.Column(db.DateTime, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    # Dataset.NotesLastUpdatedDate
+    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    # Dataset.NotesLastUpdatedBy
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
 
     discriminator = db.Column(db.Enum(DatasetDiscriminator))
     __mapper_args__ = {
@@ -200,17 +224,17 @@ class Analysis(db.Model):
     qsub_id = db.Column(db.Integer)
     # Analysis.ResultsDirectory
     result_hpf_path = db.Column(db.String(500))
-    # AnalysisStatus.UpdateDate
-    last_updated = db.Column(db.DateTime, nullable=False)
-    # AnalysisStatus.UpdateUser
-    last_updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
+    assignee = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    requester = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     # Analysis.RequestedDate
-    requested = db.Column(db.DateTime)
+    requested = db.Column(db.DateTime, nullable=False)
     started = db.Column(db.DateTime)
     finished = db.Column(db.DateTime)
     notes = db.Column(db.Text)
-    notes_last_modified = db.Column(db.DateTime)
-    notes_last_author = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
+    # AnalysisStatus.UpdateDate
+    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    # AnalysisStatus.UpdateUser
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
 
 
 class Pipeline(db.Model):
