@@ -31,7 +31,6 @@ class Family(db.Model):
     participants = db.relationship('participant', backref='family_id', lazy='dynamic')
 
 
-
 class Sex(Enum):
     Male = 'Male'
     Female = 'Female'
