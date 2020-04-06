@@ -4,7 +4,6 @@ flask_login
 flask_migrate
 flask_wtf
 gunicorn
-pip-compile
-pymysql
+pymysql[rsa]
 sqlalchemy
 werkzeug
