@@ -1,26 +1,54 @@
 import React from 'react';
+import {BrowserRouter, Switch, Route, Link} from 'react-router-dom';
+import {Nav, Navbar, NavItem} from 'react-bootstrap';
 import logo from './logo.svg';
+import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Navbar bg="dark">
+                <Navbar.Brand>
+                    <Link to="/">ST2020</Link>
+                </Navbar.Brand>
+                <Nav className="flex-grow-1">
+                    <NavItem>
+                        <Link to="/search">Search</Link>
+                    </NavItem>
+                </Nav>
+                <Nav>
+                    <NavItem>
+                        <Link to="/signin">Sign in</Link>
+                    </NavItem>
+                </Nav>
+            </Navbar>
+            <Switch>
+                <Route path="/search">
+                    <p className="lead">Search stub</p>
+                </Route>
+                <Route path="/signin">
+                    <p className="lead">Login stub</p>
+                </Route>
+                <Route path="/">
+                    <div className="App">
+                        <header className="App-header">
+                            <img src={logo} className="App-logo" alt="logo"/>
+                            <p>
+                                Edit <code>src/App.tsx</code> and save to reload.
+                            </p>
+                            <a
+                                className="App-link"
+                                href="https://reactjs.org"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Learn React
+                            </a>
+                        </header>
+                    </div>
+                </Route>
+            </Switch>
+        </BrowserRouter>
+    );
 }
-
-export default App;
