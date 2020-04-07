@@ -5,6 +5,8 @@ import logo from './logo.svg';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css';
 
+import LoginForm from './login/Login';
+
 export default function App() {
     return (
         <BrowserRouter>
@@ -28,7 +30,7 @@ export default function App() {
                     <p className="lead">Search stub</p>
                 </Route>
                 <Route path="/signin">
-                    <p className="lead">Login stub</p>
+                   <LoginForm authenticated={false} />
                 </Route>
                 <Route path="/">
                     <div className="App">
