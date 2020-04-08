@@ -28,7 +28,7 @@ class Family(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    participants = db.relationship('participant', backref='family_id', lazy='dynamic')
+    participants = db.relationship('Participant', backref='family', lazy='dynamic')
 
 
 class Sex(Enum):
@@ -45,6 +45,7 @@ class ParticipantType(Enum):
 
 class Participant(db.Model):
     participant_id = db.Column(db.Integer, primary_key=True)
+    family_id = db.Column(db.Integer, db.ForeignKey('family.family_id'), nullable=False)
     # Sample.SampleName
     participant_codename = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender
@@ -58,7 +59,7 @@ class Participant(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    tissue_samples = db.relationship('tissue_sample', backref='participant_id', lazy='dynamic')
+    tissue_samples = db.relationship('TissueSample', backref='participant', lazy='dynamic')
 
 
 class TissueSampleType(Enum):
@@ -81,6 +82,7 @@ class TissueProcessing(Enum):
 
 class TissueSample(db.Model):
     tissue_sample_id = db.Column(db.Integer, primary_key=True)
+    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     extraction_date = db.Column(db.Date)
     # Sample.TissueType
     tissue_sample_type = db.Column(db.Enum(TissueSampleType), nullable=False)
@@ -93,7 +95,7 @@ class TissueSample(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    datasets = db.relationship('dataset', backref='tissue_sample_id', lazy='dynamic')
+    datasets = db.relationship('Dataset', backref='tissue_sample', lazy='dynamic')
 
 
 class DatasetDiscriminator(Enum):
@@ -143,6 +145,7 @@ datasets_analyses_table = db.Table(
 
 class Dataset(db.Model):
     __tablename__ = DatasetDiscriminator.Dataset.value
+    tissue_sample_id = db.Column(db.Integer, db.ForeignKey('tissue_sample.tissue_sample_id'), nullable=False)
     # Dataset.DatasetID
     dataset_id = db.Column(db.Integer, primary_key=True)
     # Dataset.DatasetType
@@ -183,7 +186,7 @@ class Dataset(db.Model):
         'polymorphic_on': discriminator
     }
 
-    analyses = db.relationship('analysis', secondary=datasets_analyses_table, backref='datasets', lazy='dynamic')
+    analyses = db.relationship('Analysis', secondary=datasets_analyses_table, backref='datasets', lazy='dynamic')
 
 
 class RNASeqDataset(Dataset):
