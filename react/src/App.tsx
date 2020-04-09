@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {BrowserRouter, Switch, Route, Link} from 'react-router-dom';
 import {Nav, Navbar, NavItem} from 'react-bootstrap';
 import logo from './logo.svg';
@@ -8,6 +8,7 @@ import './App.css';
 import LoginForm from './login/Login';
 
 export default function App() {
+    const [authenticated, setAuthenticated] = useState(false);
     return (
         <BrowserRouter>
             <Navbar bg="dark">
@@ -30,7 +31,7 @@ export default function App() {
                     <p className="lead">Search stub</p>
                 </Route>
                 <Route path="/signin">
-                   <LoginForm authenticated={false} />
+                   <LoginForm authenticated={authenticated} setAuthenticated={setAuthenticated} />
                 </Route>
                 <Route path="/">
                     <div className="App">
