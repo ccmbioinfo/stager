@@ -3,12 +3,23 @@ import json
 from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
 
-from app import app, login, models
+from app import app, db, login, models
 
 
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
+
+
+if len(db.session.query(models.User).all()) == 0:
+    default_admin = models.User(
+        username=app.config.get('DEFAULT_ADMIN'),
+        email=app.config.get('DEFAULT_ADMIN_EMAIL')
+    )
+    default_admin.set_password(app.config.get('DEFAULT_PASSWORD'))
+    db.session.add(default_admin)
+    db.session.commit()
+    print("Created default user " + default_admin)
 
 
 @app.route('/api/login', methods=['POST'])
