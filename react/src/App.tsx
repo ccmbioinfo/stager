@@ -22,7 +22,7 @@ export default function App() {
                 </Nav>
                 <Nav>
                     <NavItem>
-                        <Link to="/signin">Sign in</Link>
+                        <Link to="/auth">{authenticated ? "Sign out" : "Sign in"}</Link>
                     </NavItem>
                 </Nav>
             </Navbar>
@@ -30,7 +30,7 @@ export default function App() {
                 <Route path="/search">
                     <p className="lead">Search stub</p>
                 </Route>
-                <Route path="/signin">
+                <Route path="/auth">
                    <LoginForm authenticated={authenticated} setAuthenticated={setAuthenticated} />
                 </Route>
                 <Route path="/">
