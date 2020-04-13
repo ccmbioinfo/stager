@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Button, Card, Form } from 'react-bootstrap';
+import {Alert, Button, Card, Form} from 'react-bootstrap';
 
 export default function LoginForm({
     authenticated = false,
@@ -7,6 +7,7 @@ export default function LoginForm({
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     function bind(set: typeof setUsername) {
         // @ts-ignore
         return e => set(e.target.value);
@@ -19,16 +20,36 @@ export default function LoginForm({
             body: JSON.stringify({ username, password })
         });
         setAuthenticated(result.ok);
+        setError(result.ok ? "" : await result.text());
+    }
+    async function signout() {
+        const result = await fetch("/api/logout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "dummy": true })
+        });
+        if (result.ok) {
+            setAuthenticated(false);
+        }
+        setError(result.ok ? "" : await result.text());
     }
     if (authenticated) {
         return (
-            <p className="lead">Already authenticated.</p>
+            <Card>
+                <Card.Body>
+                    <p className="lead">Already authenticated.</p>
+                    <Button variant="warning" onClick={signout}>Sign out</Button>
+                    {error && <Alert variant="danger">{error}</Alert>}
+                </Card.Body>
+            </Card>
+
         );
     } else {
         return (
             <Card>
                 <Card.Body>
                     <Form>
+                        {error && <Alert variant="danger">{error}</Alert>}
                         <Form.Group controlId="username">
                             <Form.Label>Username</Form.Label>
                             <Form.Control type="text" placeholder="Username" onChange={bind(setUsername)}/>
