@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css';
 
 import LoginForm from './login/Login';
+import UserList from './admin/UserList';
 
 export default function App() {
     const [authenticated, setAuthenticated] = useState(false);
@@ -21,7 +22,11 @@ export default function App() {
                     </NavItem>
                 </Nav>
                 <Nav>
-                    <NavItem>
+                    {authenticated &&
+                    <NavItem className="px-2">
+                        <Link to="/admin">Admin</Link>
+                    </NavItem>}
+                    <NavItem className="px-2">
                         <Link to="/auth">{authenticated ? "Sign out" : "Sign in"}</Link>
                     </NavItem>
                 </Nav>
@@ -30,6 +35,7 @@ export default function App() {
                 <Route path="/search">
                     <p className="lead">Search stub</p>
                 </Route>
+                {authenticated && <Route path="/admin" component={UserList} />}
                 <Route path="/auth">
                    <LoginForm authenticated={authenticated} setAuthenticated={setAuthenticated} />
                 </Route>
