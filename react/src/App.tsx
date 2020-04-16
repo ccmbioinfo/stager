@@ -7,6 +7,7 @@ import './App.css';
 
 import LoginForm from './login/Login';
 import UserList from './admin/UserList';
+import Dashboard from './dashboard/Dashboard';
 
 export default function App() {
     const [authenticated, setAuthenticated] = useState(false);
@@ -61,22 +62,7 @@ export default function App() {
                    <LoginForm authenticated={authenticated} setAuthenticated={setAuthenticated} />
                 </Route>
                 <Route path="/">
-                    <div className="App">
-                        <header className="App-header">
-                            <img src={logo} className="App-logo" alt="logo"/>
-                            <p>
-                                Edit <code>src/App.tsx</code> and save to reload.
-                            </p>
-                            <a
-                                className="App-link"
-                                href="https://reactjs.org"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Learn React
-                            </a>
-                        </header>
-                    </div>
+                    <Dashboard />
                 </Route>
             </Switch>
         </BrowserRouter>
