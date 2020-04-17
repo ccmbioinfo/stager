@@ -37,6 +37,7 @@ export default class UserList extends React.Component {
         this.clearMessage = this.clearMessage.bind(this);
     }
     componentDidMount() {
+        document.title = "Admin | ST2020";
         fetch("/api/users")
             .then(response => response.json())
             .then(userList => this.setState({ userList }));

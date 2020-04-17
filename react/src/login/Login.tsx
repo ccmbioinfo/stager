@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Alert, Button, Card, Form} from 'react-bootstrap';
 
 export default function LoginForm({
@@ -33,6 +33,9 @@ export default function LoginForm({
         }
         setError(result.ok ? "" : await result.text());
     }
+    useEffect(() => {
+        document.title = (authenticated ? "Profile" : "Sign in") + " | ST2020";
+    }, [authenticated]);
     if (authenticated) {
         return (
             <Card>
