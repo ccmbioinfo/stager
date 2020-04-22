@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Card, Col, Container, Row } from "react-bootstrap";
 import Analysis, { AnalysisProps } from "./Analysis";
 
-const analyses : AnalysisProps[] = [
+const analyses: AnalysisProps[] = [
     {
         submitted: new Date(),
         samples: ["ST2020", "ST2020-1"],
@@ -80,7 +80,7 @@ export default function Dashboard() {
                             <Card.Title>Running analyses</Card.Title>
                         </Card.Header>
                         <Card.Body className="analysis-list">
-                        {
+                            {
                                 analyses.filter(a => a.state === "running").map(a => (
                                     <Analysis {...a} />
                                 ))
@@ -94,11 +94,11 @@ export default function Dashboard() {
                             <Card.Title>Completed analyses</Card.Title>
                         </Card.Header>
                         <Card.Body className="analysis-list">
-                        {
+                            {
                                 analyses.filter(a => a.state === "completed" || a.state === "failed")
-                                .map(a => (
-                                    <Analysis {...a} />
-                                ))
+                                    .map(a => (
+                                        <Analysis {...a} />
+                                    ))
                             }
                         </Card.Body>
                     </Card>
