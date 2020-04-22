@@ -22,14 +22,15 @@ export default function Analysis(props: AnalysisProps) {
         <div className={`rounded my-1 p-3 text-white border-dark ${mapping[props.state]}`}>
             <p className="lead">{props.pipeline} {props.pipelineVersion}</p>
             <p>
-                Requested {props.submitted.toLocaleString()}
-                {props.elapsedSeconds && <><br />{props.elapsedSeconds} s elapsed</>}
-                {props.completed && <><br />Finished {props.completed.toLocaleString()}</>}
+                requested {props.submitted.toLocaleString()}
+                {props.elapsedSeconds &&
+                    <><br /><code className="text-primary">{props.elapsedSeconds}s</code> elapsed</>}
+                {props.completed && <><br /><i>{props.state}</i> {props.completed.toLocaleString()}</>}
             </p>
-            <b>Samples</b>
+            <b className="d-block">Samples</b>
             {
                 props.samples.map(sample => (
-                    <small className="d-block">{sample}</small>
+                    <small className="px-1">{sample}</small>
                 ))
             }
         </div>
