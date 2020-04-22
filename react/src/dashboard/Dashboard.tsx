@@ -60,12 +60,12 @@ export default function Dashboard() {
     return (
         <Container fluid>
             <Row>
-                <Col sm={6} md={4}>
-                    <Card className="my-3">
+                <Col sm={6} md={4} className="py-3">
+                    <Card className="h-100">
                         <Card.Header className="bg-dark text-light">
                             <Card.Title>Pending analyses</Card.Title>
                         </Card.Header>
-                        <Card.Body>
+                        <Card.Body className="analysis-list">
                             {
                                 analyses.filter(a => a.state === "pending").map(a => (
                                     <Analysis {...a} />
@@ -74,12 +74,12 @@ export default function Dashboard() {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col sm={6} md={4}>
-                    <Card className="my-3">
+                <Col sm={6} md={4} className="py-3">
+                    <Card className="h-100">
                         <Card.Header className="bg-dark text-light">
                             <Card.Title>Running analyses</Card.Title>
                         </Card.Header>
-                        <Card.Body>
+                        <Card.Body className="analysis-list">
                         {
                                 analyses.filter(a => a.state === "running").map(a => (
                                     <Analysis {...a} />
@@ -88,12 +88,12 @@ export default function Dashboard() {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col sm={12} md={4}>
-                    <Card className="my-3">
+                <Col sm={12} md={4} className="py-3">
+                    <Card className="h-100">
                         <Card.Header className="bg-dark text-light">
                             <Card.Title>Completed analyses</Card.Title>
                         </Card.Header>
-                        <Card.Body>
+                        <Card.Body className="analysis-list">
                         {
                                 analyses.filter(a => a.state === "completed" || a.state === "failed")
                                 .map(a => (
