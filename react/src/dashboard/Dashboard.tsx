@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Card, Col, Container, Row } from "react-bootstrap";
-import Analysis, { AnalysisProps } from "./Analysis";
+import { AnalysisProps } from "./Analysis";
+import AnalysisList from "./AnalysisList";
 
 const analyses: AnalysisProps[] = [
     {
@@ -66,11 +67,7 @@ export default function Dashboard() {
                             <Card.Title>Pending analyses</Card.Title>
                         </Card.Header>
                         <Card.Body className="analysis-list">
-                            {
-                                analyses.filter(a => a.state === "pending").map(a => (
-                                    <Analysis {...a} />
-                                ))
-                            }
+                            <AnalysisList analyses={analyses.filter(a => a.state === "pending")} />
                         </Card.Body>
                     </Card>
                 </Col>
@@ -80,11 +77,7 @@ export default function Dashboard() {
                             <Card.Title>Running analyses</Card.Title>
                         </Card.Header>
                         <Card.Body className="analysis-list">
-                            {
-                                analyses.filter(a => a.state === "running").map(a => (
-                                    <Analysis {...a} />
-                                ))
-                            }
+                            <AnalysisList analyses={analyses.filter(a => a.state === "running")} />
                         </Card.Body>
                     </Card>
                 </Col>
@@ -94,12 +87,9 @@ export default function Dashboard() {
                             <Card.Title>Completed analyses</Card.Title>
                         </Card.Header>
                         <Card.Body className="analysis-list">
-                            {
+                            <AnalysisList analyses={
                                 analyses.filter(a => a.state === "completed" || a.state === "failed")
-                                    .map(a => (
-                                        <Analysis {...a} />
-                                    ))
-                            }
+                            } />
                         </Card.Body>
                     </Card>
                 </Col>
