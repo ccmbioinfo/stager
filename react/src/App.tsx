@@ -8,6 +8,7 @@ import './App.css';
 import LoginForm from './login/Login';
 import UserList from './admin/UserList';
 import Dashboard from './dashboard/Dashboard';
+import ParticipantList from './participant/ParticipantList';
 
 export default function App() {
     const [authenticated, setAuthenticated] = useState(false);
@@ -52,7 +53,7 @@ export default function App() {
                     <p className="lead">Analysis stub</p>
                 </Route>
                 <Route path="/participants">
-                    <p className="lead">Participant stub</p>
+                    <ParticipantList />
                 </Route>
                 <Route path="/upload">
                     <p className="lead">Upload stub</p>
