@@ -17,6 +17,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "9000:9000"
     volumes:
       - ./react/build:/var/www/sample-tracker/react/build
       - ./nginx/conf.d:/etc/nginx/conf.d
@@ -24,4 +25,5 @@ services:
 #     - ./nginx/logs:/var/log/nginx
     depends_on:
       - app
+      - minio
     command: nginx -g "daemon off;"

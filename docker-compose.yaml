@@ -13,6 +13,14 @@ services:
       - "3306:3306"
     volumes:
       - ./mysql:/var/lib/mysql
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+    volumes:
+      - ${MINIO_DATA_MOUNT}:/data
+    command: server /data
   app:
     build: flask
     image: ccmbio/st2020
@@ -23,6 +31,7 @@ services:
       - "5000:5000"
     depends_on:
       - mysql
+      - minio
     volumes:
       - ./flask:/var/www/sample-tracker/flask
     command: ./utils/wait-for-it.sh mysql:3306 -- ./utils/run.sh --host=0.0.0.0
