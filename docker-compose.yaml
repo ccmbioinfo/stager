@@ -12,14 +12,14 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
     image: minio/minio
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
     volumes:
-      - ${MINIO_DATA_MOUNT}:/data
+      - ${MINIO_VOLUME}:/data
     command: server /data
   app:
     build: flask

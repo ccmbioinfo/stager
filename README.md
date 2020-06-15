@@ -2,9 +2,10 @@
 
 ## Tech stack
 
-MySQL 8.0
-Python 3.7/Flask
-TypeScript/Create React App
+- MySQL 8.0
+- MinIO
+- Python 3.7/Flask
+- TypeScript/Create React App
 
 ## No Docker
 
@@ -44,24 +45,28 @@ included in the requirements. For example, `gunicorn --bind 0.0.0.0:5000 --prelo
 will prefork one worker child process with two threads to serve up the Flask routes, listening on port 5000.
 
 ### Web frontend
-You will need a recent Node.js and Yarn (`npm install -g yarn`). Switch to the `react` directory.
-Install dependencies with `yarn`.
-Start a development server in watch mode with `yarn start`. Build the static bundles for production with `yarn build`.
+You will need a recent Node.js and Yarn (`npm install -g yarn`).
+1. Switch to the `react` directory.
+1. Install dependencies with `yarn`.
+1. Start a development server in watch mode with `yarn start`.
+
+You can build the static bundles for production with `yarn build`.
 
 ## With Docker and Docker Compose
-Create a `.env` file with appropriate MySQL credentials; see `docker-compose.yaml` for which ones are needed.
+Create a `.env` file with appropriate MySQL and MinIO credentials. See `sample.env` for which ones are needed.
+These are used in `docker-compose.yaml` and `docker-compose.prod.yaml`.
 
 ### Development
 ```bash
 docker-compose up
 ```
-`mysql` is a bind mount for the MySQL service for convenience.
 This builds a `ccmbio/st2020` image with the Python dependencies and mounts the `flask` directory to watch for live changes.
-Start the Create React App development server normally as above.
+Start the Create React App development server the same way as the no-Docker workflow.
 
 ### Production
-Add `star_ccm_sickkids_ca.crt` and `star_ccm_sickkids_ca.key` to `nginx/certs`.
-In the `react` directory, build the static bundles for nginx with `yarn build`. In the project root:
+1. Add `star_ccm_sickkids_ca.crt` and `star_ccm_sickkids_ca.key` to `nginx/certs`.
+1. In the `react` directory, build the static bundles for nginx with `yarn build`.
+1. In the project root:
 ```bash
 docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up
 ```
