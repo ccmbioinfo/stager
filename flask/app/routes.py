@@ -13,17 +13,6 @@ def load_user(uid: int):
     return models.User.query.get(uid)
 
 
-if len(db.session.query(models.User).all()) == 0:
-    default_admin = models.User(
-        username=app.config.get('DEFAULT_ADMIN'),
-        email=app.config.get('DEFAULT_ADMIN_EMAIL')
-    )
-    default_admin.set_password(app.config.get('DEFAULT_PASSWORD'))
-    db.session.add(default_admin)
-    db.session.commit()
-    print("Created default user " + default_admin)
-
-
 @app.route('/api/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:

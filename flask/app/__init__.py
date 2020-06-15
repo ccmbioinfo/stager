@@ -13,4 +13,5 @@ login.session_protection = 'strong'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+from app.manage import *
 from app.routes import *
