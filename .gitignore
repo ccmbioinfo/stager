@@ -1,6 +1,7 @@
 .idea/
 .vscode/
-mysql/
+minio*/
+mysql*/
 nginx/certs/
 nginx/logs
 venv/

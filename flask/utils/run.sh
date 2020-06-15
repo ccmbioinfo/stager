@@ -8,4 +8,9 @@ LC_ALL=C.UTF-8
 LANG=C.UTF-8
 FLASK_APP=app/__init__.py
 $COMMAND db upgrade
-$COMMAND run "$@"
+if [[ "$1" == "prod" ]]; then
+    shift
+    gunicorn wsgi:app "$@"
+else
+    $COMMAND run "$@"
+fi

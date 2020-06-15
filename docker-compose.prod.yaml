@@ -11,7 +11,7 @@ services:
       - "5000:5000"
     depends_on:
       - mysql
-    command: gunicorn --bind 0.0.0.0:5000 --preload --workers 1 --threads 2 wsgi:app
+    command: prod --bind 0.0.0.0:5000 --preload --workers 1 --threads 2
   nginx:
     image: nginx:alpine
     ports:

@@ -34,4 +34,3 @@ services:
       - minio
     volumes:
       - ./flask:/var/www/sample-tracker/flask
-    command: ./utils/wait-for-it.sh mysql:3306 -- ./utils/run.sh --host=0.0.0.0
