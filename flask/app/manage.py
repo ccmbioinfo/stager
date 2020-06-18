@@ -12,3 +12,7 @@ def add_default_admin():
         db.session.commit()
         print('Created default user "{}" with email "{}"'.format(
             default_admin.username, default_admin.email))
+
+@app.cli.command('add-dummy-data')
+def add_dummy_data():
+    pass
