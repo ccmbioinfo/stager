@@ -18,6 +18,8 @@ services:
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+    ports:
+      - "9000:9000"
     volumes:
       - ${MINIO_VOLUME}:/data
     command: server /data
