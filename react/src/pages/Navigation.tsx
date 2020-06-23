@@ -111,8 +111,8 @@ export default function Navigation() {
   };
 
   return (
-    <BrowserRouter>
     <div className={classes.root}>
+    <BrowserRouter>
       <CssBaseline />
       <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
         <Toolbar className={classes.toolbar}>
@@ -146,13 +146,13 @@ export default function Navigation() {
         <List>{mainListItems}</List>
       </Drawer>
       <Switch>
-        <Route path={["/","/dashboard"]} component={Dashboard} />
         <Route path="/analysis" component={Analysis} />
         <Route path="/participants" component={Participants} />
         <Route path="/uploads" component={Uploads} />
         <Route path="/settings" component={Settings} />
+        <Route path={["/","/dashboard"]} component={Dashboard} />
       </Switch>
-    </div>
     </BrowserRouter>
+    </div>
   );
 }
