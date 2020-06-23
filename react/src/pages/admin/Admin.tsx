@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Settings() {
+export default function Admin() {
   const classes = useStyles();
   return (
     <main className={classes.content}>
@@ -46,7 +46,7 @@ export default function Settings() {
           {/* Recent Orders */}
           <Grid item xs={12}>
             <Paper className={classes.paper}>
-              <Title>Settings</Title>
+              <Title>Admin Page</Title>
             </Paper>
           </Grid>
         </Grid>

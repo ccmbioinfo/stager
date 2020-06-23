@@ -17,12 +17,16 @@ import PeopleIcon from '@material-ui/icons/People';
 import UploadIcon from '@material-ui/icons/Publish';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
+import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
 import Participants from './participants/Participants';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
+import Admin from './admin/Admin';
 import ListItemRouterLink from './ListItemRouterLink';
 
 const drawerWidth = 240;
@@ -105,6 +109,9 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
+  bottomItems: {
+    marginTop: 'auto',
+  }
 }));
 
 export default function Navigation() {
@@ -167,12 +174,21 @@ export default function Navigation() {
                 <SettingsIcon />
             </ListItemRouterLink>
         </List>
+        <Divider />
+        <div className={classes.bottomItems}>
+        <List>
+          <ListItemRouterLink to="/login" primary="Logout">
+            <MeetingRoomIcon />
+          </ListItemRouterLink>
+        </List>
+        </div>
       </Drawer>
       <Switch>
         <Route path="/analysis" component={Analysis} />
         <Route path="/participants" component={Participants} />
         <Route path="/uploads" component={Uploads} />
         <Route path="/settings" component={Settings} />
+        <Route path="/admin" component={Admin} />
         <Route path={["/","/dashboard"]} component={Dashboard} />
       </Switch>
     </BrowserRouter>
