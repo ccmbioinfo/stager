@@ -12,12 +12,18 @@ import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import { mainListItems } from './listItems';
+import DashboardIcon from '@material-ui/icons/Dashboard';
+import PeopleIcon from '@material-ui/icons/People';
+import UploadIcon from '@material-ui/icons/Publish';
+import SettingsIcon from '@material-ui/icons/Settings';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
+
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
 import Participants from './participants/Participants';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
+import ListItemRouterLink from './ListItemRouterLink';
 
 const drawerWidth = 240;
 
@@ -143,7 +149,23 @@ export default function Navigation() {
           </IconButton>
         </div>
         <Divider />
-        <List>{mainListItems}</List>
+        <List>
+            <ListItemRouterLink to="/dashboard" primary="Dashboard">
+                <DashboardIcon />
+            </ListItemRouterLink>
+            <ListItemRouterLink to="/analysis" primary="Analyses">
+                <ShowChartIcon />
+            </ListItemRouterLink>
+            <ListItemRouterLink to="/participants" primary="Participants">
+                <PeopleIcon />
+            </ListItemRouterLink>
+            <ListItemRouterLink to="/upload" primary="Upload">
+                <UploadIcon />
+            </ListItemRouterLink>
+            <ListItemRouterLink to="/settings" primary="Settings">
+                <SettingsIcon />
+            </ListItemRouterLink>
+        </List>
       </Drawer>
       <Switch>
         <Route path="/analysis" component={Analysis} />
