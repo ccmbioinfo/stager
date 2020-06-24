@@ -3,13 +3,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
-import TableBody from '@material-ui/core/TableBody';
-
-import Title from '../Title';
+import Typography from '@material-ui/core/Typography';
+import Divider from '@material-ui/core/Divider';
+import TextField from '@material-ui/core/TextField';
+import FormControl from '@material-ui/core/FormControl'
+import { Input, InputLabel, Button } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -31,10 +29,22 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'auto',
     flexDirection: 'column',
   },
-  seeMore: {
+  dividingSpacer: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(3),
+  },
+  inputText: {
+    marginTop: theme.spacing(2),
+    maxWidth: "33%",
+  },
+  submitButton: {
     marginTop: theme.spacing(3),
-  }
+    float: "right",
+   }
+  
 }));
+
+const user : string = "example_user"
 
 export default function Settings() {
   const classes = useStyles();
@@ -42,14 +52,43 @@ export default function Settings() {
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Container maxWidth="lg" className={classes.container}>
-        <Grid container spacing={0}>
-          {/* Recent Orders */}
-          <Grid item xs={12}>
-            <Paper className={classes.paper}>
-              <Title>Settings</Title>
-            </Paper>
-          </Grid>
-        </Grid>
+        <Paper className={classes.paper}>
+          <Typography>
+          Logged In As <b>{user}</b> 
+          </Typography>
+          <Divider className={classes.dividingSpacer}/>
+          <Typography>
+            Change Password:
+          </Typography>
+          <FormControl className={classes.inputText} size="small">
+            <InputLabel htmlFor="current">Current Password</InputLabel>
+            <Input
+              id="current"
+              type="password"
+            />
+          </FormControl>
+          <FormControl className={classes.inputText} size="small">
+            <InputLabel htmlFor="new">New Password</InputLabel>
+            <Input
+              id="new"
+              type="password"
+            />
+          </FormControl>
+          <FormControl className={classes.inputText} size="small">
+            <InputLabel htmlFor="repeat">Repeat New Password</InputLabel>
+            <Input
+              id="repeat"
+              type="password"
+            />
+          </FormControl>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <Button className={classes.submitButton} variant="contained" color="secondary">
+                Update Password 
+              </Button> 
+            </Grid>
+         </Grid>
+        </Paper>
       </Container>
     </main>
   );
