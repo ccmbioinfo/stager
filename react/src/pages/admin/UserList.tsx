@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 import UserRow, { UserRowState } from "./UserRow";
+import ConfirmModal from './ConfirmModal';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -23,6 +24,42 @@ export default function UserList() {
     const [message, setMessage] = useState("");
     const [messageVariant, setMessageVariant] = useState("secondary");
 
+    async function updateUser() {
+        const response = await fetch("/api/users", {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatingUser)
+        });
+        if (response.ok) {
+            setMessage(`Updated ${updatingUser!.username}.`);
+            setMessageVariant("success");
+        } else {
+            setMessage(`Bad request for ${updatingUser!.username}.`);
+            setMessageVariant("warning");
+        }
+        setUpdatingUser(null);
+    }
+
+    async function deleteUser() {
+        const response = await fetch("/api/users", {
+            method: "DELETE",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(deletingUser)
+        });
+        if (response.ok) {
+            // Precondition: deletingUser is in userList
+            setUserList(userList.filter(user => user.username !== deletingUser!.username));
+            setMessage(`Deleted ${deletingUser!.username}.`);
+            setMessageVariant("info");
+        } else {
+            setMessage(`Failed to delete ${deletingUser!.username}.`);
+            setMessageVariant("warning");
+        }
+        setDeletingUser(null);
+    }
+
     useEffect(() => {
         document.title = "Admin | ST2020";
         fetch("/api/users")
@@ -35,6 +72,20 @@ export default function UserList() {
     return (
         <main className={classes.root}>
             <div className={classes.appBarSpacer} />
+            <ConfirmModal id="confirm-modal-update" color="primary"
+                open={!!updatingUser}
+                onClose={() => setUpdatingUser(null)}
+                onConfirm={updateUser}
+                title="Confirm updating user">
+                Update {updatingUser && updatingUser.username} and maybe overwrite password?
+            </ConfirmModal>
+            <ConfirmModal id="confirm-modal-delete" color="secondary"
+                open={!!deletingUser}
+                onClose={() => setDeletingUser(null)}
+                onConfirm={deleteUser}
+                title="Delete user">
+                Really delete {deletingUser && deletingUser.username}?
+            </ConfirmModal>
             <Grid container className={classes.table}>
                 <Grid item xs={4}>
                     <Typography variant="h6">Username &amp; email</Typography>
