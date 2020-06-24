@@ -7,7 +7,7 @@ export enum DisplayType {
   FAMILY = "Families",
 }
 
-interface MaterialTableProps {
+interface ParticipantsTableProps {
   display: DisplayType;
 }
 
@@ -26,7 +26,7 @@ const rows = [
   createParticipant('AA0005', '3013', 2, 'M', '2020-05-23'),
 ];
 
-export default function MTable({display}: MaterialTableProps) {
+export default function ParticipantsTable({display}: ParticipantsTableProps) {
 
   return (
     <MaterialTable
