@@ -11,8 +11,8 @@ import Navigation from './pages/Navigation';
 export default function App() {
     const [authenticated, setAuthenticated] = useState(false);
     if (authenticated) {
-        return <LoginForm setAuthenticated={setAuthenticated} />;
-    } else {
         return <Navigation />;
+    } else {
+        return <LoginForm setAuthenticated={setAuthenticated} />;
     }
 }
