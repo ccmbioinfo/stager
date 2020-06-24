@@ -1,9 +1,6 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
-import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css';
-
-import UserList from './admin/UserList';
 
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';

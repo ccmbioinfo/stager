@@ -77,7 +77,7 @@ export default function LoginForm({
                     onChange={bind(setPassword)}
                     autoComplete="current-password" />
                 <Button variant="contained" color="primary" className={classes.button}
-                    onClick={authenticate}>
+                    type="submit" onClick={authenticate}>
                     Sign in
                 </Button>
             </Paper>
