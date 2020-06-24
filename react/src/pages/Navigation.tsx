@@ -30,6 +30,7 @@ const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
+    height: '100%',
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
@@ -159,7 +160,7 @@ export default function Navigation() {
             <ListItemRouterLink to="/participants" primary="Participants">
                 <PeopleIcon />
             </ListItemRouterLink>
-            <ListItemRouterLink to="/upload" primary="Upload">
+            <ListItemRouterLink to="/uploads" primary="Upload">
                 <UploadIcon />
             </ListItemRouterLink>
             <ListItemRouterLink to="/settings" primary="Settings">
