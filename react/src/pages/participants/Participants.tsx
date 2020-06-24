@@ -6,7 +6,7 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import MTable, { DisplayType } from './MaterialTable';
+import ParticipantsTable, { DisplayType } from './ParticipantsTable';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -64,7 +64,7 @@ export default function Participants() {
     <Container >
       <Grid container spacing={0}>
         <Grid item xs={12}>
-          <MTable display={display}/>
+          <ParticipantsTable display={display}/>
         </Grid>
       </Grid>
     </Container>
