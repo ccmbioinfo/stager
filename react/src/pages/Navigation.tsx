@@ -159,7 +159,7 @@ export default function Navigation() {
             <ListItemRouterLink to="/participants" primary="Participants">
                 <PeopleIcon />
             </ListItemRouterLink>
-            <ListItemRouterLink to="/upload" primary="Upload">
+            <ListItemRouterLink to="/uploads" primary="Upload">
                 <UploadIcon />
             </ListItemRouterLink>
             <ListItemRouterLink to="/settings" primary="Settings">
