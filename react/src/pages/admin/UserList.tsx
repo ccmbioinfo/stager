@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
+import Snackbar, { SnackbarProps } from '@material-ui/core/Snackbar';
 import Typography from '@material-ui/core/Typography';
 
 import UserRow, { UserRowState } from "./UserRow";
@@ -22,7 +23,7 @@ export default function UserList() {
     const [updatingUser, setUpdatingUser] = useState<UserRowState | null>(null);
     const [deletingUser, setDeletingUser] = useState<UserRowState | null>(null);
     const [message, setMessage] = useState("");
-    const [messageVariant, setMessageVariant] = useState("secondary");
+    const [messageColor, setMessageColor] = useState<SnackbarProps["color"]>("secondary");
 
     async function updateUser() {
         const response = await fetch("/api/users", {
@@ -33,10 +34,10 @@ export default function UserList() {
         });
         if (response.ok) {
             setMessage(`Updated ${updatingUser!.username}.`);
-            setMessageVariant("success");
+            setMessageColor("primary");
         } else {
             setMessage(`Bad request for ${updatingUser!.username}.`);
-            setMessageVariant("warning");
+            setMessageColor("secondary");
         }
         setUpdatingUser(null);
     }
@@ -52,10 +53,10 @@ export default function UserList() {
             // Precondition: deletingUser is in userList
             setUserList(userList.filter(user => user.username !== deletingUser!.username));
             setMessage(`Deleted ${deletingUser!.username}.`);
-            setMessageVariant("info");
+            setMessageColor("primary");
         } else {
             setMessage(`Failed to delete ${deletingUser!.username}.`);
-            setMessageVariant("warning");
+            setMessageColor("secondary");
         }
         setDeletingUser(null);
     }
@@ -86,6 +87,13 @@ export default function UserList() {
                 title="Delete user">
                 Really delete {deletingUser && deletingUser.username}?
             </ConfirmModal>
+            <Snackbar
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                open={!!message}
+                onClose={() => setMessage("")}
+                message={message}
+                color={messageColor}
+            />
             <Grid container className={classes.table}>
                 <Grid item xs={4}>
                     <Typography variant="h6">Username &amp; email</Typography>
