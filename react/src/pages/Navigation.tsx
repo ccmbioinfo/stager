@@ -20,6 +20,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import VerifiedUserIcon from '@material-ui/icons/VerifiedUser'
 
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
@@ -27,6 +28,7 @@ import Participants from './participants/Participants';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
 import Admin from './admin/Admin';
+import UserList from './admin/UserList';
 import ListItemRouterLink from './ListItemRouterLink';
 
 const drawerWidth = 240;
@@ -173,6 +175,9 @@ export default function Navigation() {
             <ListItemRouterLink to="/settings" primary="Settings">
                 <SettingsIcon />
             </ListItemRouterLink>
+            <ListItemRouterLink to="/admin" primary="Admin">
+                <VerifiedUserIcon />
+            </ListItemRouterLink>
         </List>
         <Divider />
         <div className={classes.bottomItems}>
@@ -184,6 +189,7 @@ export default function Navigation() {
         </div>
       </Drawer>
       <Switch>
+        <Route path="/admin" component={UserList} />
         <Route path="/analysis" component={Analysis} />
         <Route path="/participants" component={Participants} />
         <Route path="/uploads" component={Uploads} />
