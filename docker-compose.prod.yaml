@@ -1,6 +1,14 @@
 version: "2"
 
 services:
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+    volumes:
+      - ${MINIO_VOLUME}:/data
+    command: server /data
   app:
     build: flask
     image: ccmbio/st2020

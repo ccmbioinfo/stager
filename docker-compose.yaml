@@ -23,8 +23,6 @@ services:
     volumes:
       - ${MINIO_VOLUME}:/data
     command: server /data
-    ports:
-      - "9000:9000"
   app:
     build: flask
     image: ccmbio/st2020
