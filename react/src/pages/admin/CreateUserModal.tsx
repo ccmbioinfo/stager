@@ -30,6 +30,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     const [isAdmin, setAdmin] = useState(false);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    // The following two are mutually exclusive
     const [errorNoMatch, setErrorNoMatch] = useState(false);
     const [errorIntegrity, setErrorIntegrity] = useState(false);
 
@@ -58,6 +59,21 @@ export default function CreateUserModal(props: CreateUserModalProps) {
         }
     }
 
+    let errorFragment = (<></>);
+    if (errorNoMatch) {
+        errorFragment = (
+            <DialogContentText id={`${props.id}-description`} color="secondary">
+                Passwords do not match or length requirement not satisfied.
+            </DialogContentText>
+        );
+    } else if (errorIntegrity) {
+        errorFragment = (
+            <DialogContentText id={`${props.id}-description`} color="secondary">
+                User or email already exists.
+            </DialogContentText>
+        );
+    }
+
     return (
         <Dialog open={props.open} onClose={props.onClose}
             aria-labelledby={`${props.id}-title`}
@@ -65,19 +81,18 @@ export default function CreateUserModal(props: CreateUserModalProps) {
             PaperProps={{ component: 'form' }}>
             <DialogTitle id={`${props.id}-title`}>New user</DialogTitle>
             <DialogContent>
-                <DialogContentText id={`${props.id}-description`}>
-                    {errorNoMatch && "Passwords do not match or length requirement not satisfied."}
-                    {errorIntegrity && "User or email already exists."}
-                </DialogContentText>
+                {errorFragment}
                 <TextField required autoFocus autoComplete="off"
                     fullWidth margin="dense" variant="filled"
                     label="Username (minimum 4 characters)"
+                    value={username}
                     onChange={e => setUsername(e.target.value)}
                 />
                 <TextField required autoComplete="off"
                     fullWidth margin="dense" variant="filled"
                     label="Email"
                     type="email"
+                    value={email}
                     onChange={e => setEmail(e.target.value)}
                 />
                 <FormControlLabel label="Admin?"
@@ -93,12 +108,14 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     fullWidth margin="dense" variant="filled"
                     label="Password (minimum 4 characters)"
                     type="password"
+                    value={password}
                     onChange={e => setPassword(e.target.value)}
                 />
                 <TextField required autoComplete="new-password"
                     fullWidth margin="dense" variant="filled"
                     label="Confirm password"
                     type="password"
+                    value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                 />
             </DialogContent>
