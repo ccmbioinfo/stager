@@ -8,7 +8,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Title from './Title';
+import Title from '../Title';
 
 // generate fake sample data
 function createParticipant(id, participantID, project, numSamples, sex, created) {

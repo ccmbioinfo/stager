@@ -17,12 +17,17 @@ import PeopleIcon from '@material-ui/icons/People';
 import UploadIcon from '@material-ui/icons/Publish';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
+import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import VerifiedUserIcon from '@material-ui/icons/VerifiedUser'
 
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
 import Participants from './participants/Participants';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
+import UserList from './admin/UserList';
 import ListItemRouterLink from './ListItemRouterLink';
 
 const drawerWidth = 240;
@@ -30,6 +35,7 @@ const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
+    height: '100%',
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
@@ -104,6 +110,9 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
+  bottomItems: {
+    marginTop: 'auto',
+  }
 }));
 
 export default function Navigation() {
@@ -159,15 +168,27 @@ export default function Navigation() {
             <ListItemRouterLink to="/participants" primary="Participants">
                 <PeopleIcon />
             </ListItemRouterLink>
-            <ListItemRouterLink to="/upload" primary="Upload">
+            <ListItemRouterLink to="/uploads" primary="Upload">
                 <UploadIcon />
             </ListItemRouterLink>
             <ListItemRouterLink to="/settings" primary="Settings">
                 <SettingsIcon />
             </ListItemRouterLink>
+            <ListItemRouterLink to="/admin" primary="Admin">
+                <VerifiedUserIcon />
+            </ListItemRouterLink>
         </List>
+        <Divider />
+        <div className={classes.bottomItems}>
+        <List>
+          <ListItemRouterLink to="/login" primary="Logout">
+            <MeetingRoomIcon />
+          </ListItemRouterLink>
+        </List>
+        </div>
       </Drawer>
       <Switch>
+        <Route path="/admin" component={UserList} />
         <Route path="/analysis" component={Analysis} />
         <Route path="/participants" component={Participants} />
         <Route path="/uploads" component={Uploads} />
