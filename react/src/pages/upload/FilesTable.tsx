@@ -1,5 +1,15 @@
 import React from 'react'
-import MaterialTable from 'material-table'
+import MaterialTable, { MTableToolbar } from 'material-table';
+import Chip from '@material-ui/core/Chip';
+import { makeStyles, Theme } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme: Theme) => ({
+  chip: {
+    color: "primary",
+    marginRight: '10px',
+    colorPrimary: theme.palette.primary,
+  }
+}));
 
 function createFile(name: string, uploader: string, size: number, md5: string, created: string) {
     return {name, uploader, size, md5, created};
@@ -15,6 +25,7 @@ const rows = [
 ];
 
 export default function FilesTable() {
+    const classes = useStyles();
 
     return (
       <MaterialTable
@@ -30,6 +41,20 @@ export default function FilesTable() {
       options={{
         pageSize : 10,
         selection: true
+      }}
+      components={{
+        Toolbar: props => (
+          <div>
+            <MTableToolbar {...props} />
+            <div style={{marginLeft: '24px'}}>
+              <Chip label="CHEO" clickable className={classes.chip}/>
+              <Chip label="SK" clickable className={classes.chip}/>
+              <Chip label="ACH" clickable className={classes.chip}/>
+              <Chip label="BCL" clickable className={classes.chip}/>
+              <Chip label="Misc." clickable className={classes.chip}/>
+            </div>
+          </div>
+        ),
       }}
     />
     )
