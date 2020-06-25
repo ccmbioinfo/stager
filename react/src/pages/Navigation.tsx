@@ -7,6 +7,9 @@ import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
@@ -17,9 +20,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import UploadIcon from '@material-ui/icons/Publish';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser'
 
 import Dashboard from './dashboard/Dashboard';
@@ -115,7 +116,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Navigation() {
+export default function Navigation({ signout }: { signout: () => void }) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
   const handleDrawerOpen = () => {
@@ -181,9 +182,10 @@ export default function Navigation() {
         <Divider />
         <div className={classes.bottomItems}>
         <List>
-          <ListItemRouterLink to="/login" primary="Logout">
-            <MeetingRoomIcon />
-          </ListItemRouterLink>
+        <ListItem button onClick={signout}>
+            <ListItemIcon><MeetingRoomIcon /></ListItemIcon>
+            <ListItemText primary="Sign out" />
+        </ListItem>
         </List>
         </div>
       </Drawer>
