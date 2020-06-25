@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 
-import './App.css';
-
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';
 
