@@ -27,7 +27,6 @@ import Analysis from './analysis/Analysis';
 import Participants from './participants/Participants';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
-import Admin from './admin/Admin';
 import UserList from './admin/UserList';
 import ListItemRouterLink from './ListItemRouterLink';
 
@@ -194,7 +193,6 @@ export default function Navigation() {
         <Route path="/participants" component={Participants} />
         <Route path="/uploads" component={Uploads} />
         <Route path="/settings" component={Settings} />
-        <Route path="/admin" component={Admin} />
         <Route path={["/","/dashboard"]} component={Dashboard} />
       </Switch>
     </BrowserRouter>
