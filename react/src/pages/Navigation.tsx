@@ -143,7 +143,7 @@ export default function Navigation({ signout }: { signout: () => void }) {
                         </IconButton>
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
                             ST2020 Dashboard
-          </Typography>
+                        </Typography>
                     </Toolbar>
                 </AppBar>
                 <Drawer

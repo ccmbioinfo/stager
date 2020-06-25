@@ -1,5 +1,4 @@
-import React from 'react';
-import Typography from '@material-ui/core/Typography'; 
+import React, { useEffect } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
@@ -50,9 +49,13 @@ function renderTable(displayTable: TableType) {
 }
 
 
-export default function Analysis() {
+export default function Uploads() {
   const classes = useStyles();
   const [tableType, setTableType] = React.useState(TableType.FILES);
+
+  useEffect(() => {
+    document.title = "Upload | ST2020";
+  }, []);
 
   return (
     <main className={classes.content}>
@@ -64,7 +67,7 @@ export default function Analysis() {
               <Card title={"Unlinked files"} value={"17"} textSecondary={"2 since last week"} linkText={""} children={
                 <Link color="primary" href="#" onClick={() => {setTableType(TableType.FILES); console.log(tableType)}}>
                   View unlinked files
-                </Link>               
+                </Link>
               }/>
             </Paper>
           </Grid>
@@ -73,7 +76,7 @@ export default function Analysis() {
               <Card title={"Uploaders"} value={"5"} textSecondary={"Avg 12 files per week"} linkText={""} children={
                 <Link color="primary" href="#" onClick={() => {setTableType(TableType.UPLOADERS); console.log(tableType)}}>
                   Manage uploaders
-                </Link>               
+                </Link>
               }/>
             </Paper>
           </Grid>

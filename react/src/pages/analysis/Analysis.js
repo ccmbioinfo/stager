@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
@@ -11,10 +11,10 @@ import TableBody from '@material-ui/core/TableBody';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import VisibilityIcon from '@material-ui/icons/Visibility';
-import {Dialog, DialogTitle, DialogContent, DialogContentText} from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent } from '@material-ui/core';
 import Title from '../Title';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'fill',
   },
@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
    viewIcon: {
     textAlign: 'center',
     '&:hover': {
-      //color: '#3f51b5', 
+      //color: '#3f51b5',
       background: "#f1f1f1",
     },
    }
@@ -87,6 +87,10 @@ export default function Analysis() {
   const [open, setOpen] = React.useState(false);
   const [activeRow, setActiveRow] = React.useState({});
 
+  useEffect(() => {
+    document.title = "Analyses | ST2020";
+  }, []);
+
   const formatDialog = (row) => {
     return(
       <div>
@@ -105,7 +109,7 @@ export default function Analysis() {
       </div>
     )
   }
-  
+
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
