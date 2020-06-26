@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import TrendingUp from '@material-ui/icons/TrendingUp';
-import Title from './Title';
 
 export interface CardProps {
     title: string;
@@ -34,7 +33,9 @@ export default function Card({title, value, textSecondary, linkText, children}: 
 
   return (
     <React.Fragment>
-      <Title>{title}</Title>
+      <Typography variant="h5" color="primary" gutterBottom>
+        {title}
+      </Typography>
       <Typography component="p" variant="h4">
         {value}
       </Typography>
