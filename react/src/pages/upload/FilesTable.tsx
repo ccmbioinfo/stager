@@ -1,18 +1,18 @@
 import React from 'react'
-import MaterialTable, { MTableToolbar } from 'material-table';
+import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import MaterialTable, { MTableToolbar } from 'material-table';
 
-const useStyles = makeStyles((theme: Theme) => ({
-  chip: {
-    color: "primary",
-    marginRight: '10px',
-    colorPrimary: theme.palette.primary,
-  }
+const useStyles = makeStyles(theme => ({
+    chip: {
+        color: "primary",
+        marginRight: '10px',
+        colorPrimary: theme.palette.primary,
+    }
 }));
 
 function createFile(name: string, uploader: string, size: number, md5: string, created: string) {
-    return {name, uploader, size, md5, created};
+    return { name, uploader, size, md5, created };
 }
 
 const rows = [
@@ -28,34 +28,34 @@ export default function FilesTable() {
     const classes = useStyles();
 
     return (
-      <MaterialTable
-      columns={[
-        { title: 'File name', field: 'name' },
-        { title: 'Uploader', field: 'uploader' },
-        { title: 'Size (mb)', field: 'size', type: 'numeric' },
-        { title: 'MD5sum', field: 'md5', type: 'string' },
-        { title: 'Created', field: 'created', type: 'string' }
-      ]}
-      data={rows}
-      title={"Unlinked files"}
-      options={{
-        pageSize : 10,
-        selection: true
-      }}
-      components={{
-        Toolbar: props => (
-          <div>
-            <MTableToolbar {...props} />
-            <div style={{marginLeft: '24px'}}>
-              <Chip label="CHEO" clickable className={classes.chip}/>
-              <Chip label="SK" clickable className={classes.chip}/>
-              <Chip label="ACH" clickable className={classes.chip}/>
-              <Chip label="BCL" clickable className={classes.chip}/>
-              <Chip label="Misc." clickable className={classes.chip}/>
-            </div>
-          </div>
-        ),
-      }}
-    />
+        <MaterialTable
+            columns={[
+                { title: 'File name', field: 'name' },
+                { title: 'Uploader', field: 'uploader' },
+                { title: 'Size (mb)', field: 'size', type: 'numeric' },
+                { title: 'MD5sum', field: 'md5', type: 'string' },
+                { title: 'Created', field: 'created', type: 'string' }
+            ]}
+            data={rows}
+            title="Unlinked files"
+            options={{
+                pageSize: 10,
+                selection: true
+            }}
+            components={{
+                Toolbar: props => (
+                    <div>
+                        <MTableToolbar {...props} />
+                        <div style={{ marginLeft: '24px' }}>
+                            <Chip label="CHEO" clickable className={classes.chip} />
+                            <Chip label="SK" clickable className={classes.chip} />
+                            <Chip label="ACH" clickable className={classes.chip} />
+                            <Chip label="BCL" clickable className={classes.chip} />
+                            <Chip label="Misc." clickable className={classes.chip} />
+                        </div>
+                    </div>
+                ),
+            }}
+        />
     )
-  }
+}
