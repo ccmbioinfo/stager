@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Card from './Card';
 import Chart from './Chart.js';
 
@@ -36,6 +36,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function Participants() {
   const classes = useStyles();
   const [display, setDisplay] = React.useState(DisplayType.PARTICIPANT);
+
+  useEffect(() => {
+    document.title = "Participants | ST2020";
+  }, []);
 
   return (
     <main className={classes.content}>

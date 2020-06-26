@@ -1,15 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
-import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl'
 import { Input, InputLabel, Button } from '@material-ui/core';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'fill',
   },
@@ -41,20 +40,23 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(3),
     float: "right",
    }
-  
 }));
 
 const user : string = "example_user"
 
 export default function Settings() {
   const classes = useStyles();
+  useEffect(() => {
+    document.title = "Settings | ST2020";
+  }, []);
+
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Container maxWidth="lg" className={classes.container}>
         <Paper className={classes.paper}>
           <Typography>
-          Logged In As <b>{user}</b> 
+          Logged In As <b>{user}</b>
           </Typography>
           <Divider className={classes.dividingSpacer}/>
           <Typography>
@@ -84,8 +86,8 @@ export default function Settings() {
           <Grid container spacing={2}>
             <Grid item xs={4}>
               <Button className={classes.submitButton} variant="contained" color="secondary">
-                Update Password 
-              </Button> 
+                Update Password
+              </Button>
             </Grid>
          </Grid>
         </Paper>

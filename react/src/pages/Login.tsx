@@ -44,17 +44,6 @@ export default function LoginForm({
         setAuthenticated(result.ok);
         setError(result.ok ? "" : await result.text());
     }
-    async function signout() {
-        const result = await fetch("/api/logout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "dummy": true })
-        });
-        if (result.ok) {
-            setAuthenticated(false);
-        }
-        setError(result.ok ? "" : await result.text());
-    }
     useEffect(() => {
         document.title = "Sign in | ST2020";
     }, []);

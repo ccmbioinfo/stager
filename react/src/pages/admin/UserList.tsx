@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Snackbar, { SnackbarProps } from '@material-ui/core/Snackbar';
 import Typography from '@material-ui/core/Typography';
 
 import UserRow, { UserRowState } from "./UserRow";
 import ConfirmModal from './ConfirmModal';
+import CreateUserModal, { CreateUser } from './CreateUserModal';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -24,6 +26,11 @@ export default function UserList() {
     const [deletingUser, setDeletingUser] = useState<UserRowState | null>(null);
     const [message, setMessage] = useState("");
     const [messageColor, setMessageColor] = useState<SnackbarProps["color"]>("secondary");
+
+    async function addUserSuccess(user: CreateUser) {
+        setUserList(userList.concat(user));
+        setAddingUser(false);
+    }
 
     async function updateUser() {
         const response = await fetch("/api/users", {
@@ -73,6 +80,10 @@ export default function UserList() {
     return (
         <main className={classes.root}>
             <div className={classes.appBarSpacer} />
+            <CreateUserModal id="create-modal"
+                open={addingUser}
+                onClose={() => setAddingUser(false)}
+                onSuccess={addUserSuccess} />
             <ConfirmModal id="confirm-modal-update" color="primary"
                 open={!!updatingUser}
                 onClose={() => setUpdatingUser(null)}
@@ -94,6 +105,9 @@ export default function UserList() {
                 message={message}
                 color={messageColor}
             />
+            <Button variant="contained" color="primary" onClick={() => setAddingUser(true)}>
+                Add new
+            </Button>
             <Grid container className={classes.table}>
                 <Grid item xs={4}>
                     <Typography variant="h6">Username &amp; email</Typography>
