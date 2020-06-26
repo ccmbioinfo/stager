@@ -1,9 +1,24 @@
 import React, { useState } from "react";
+import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
 import Checkbox from '@material-ui/core/Checkbox';
-import Grid from '@material-ui/core/Grid';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+
+const useStyles = makeStyles(theme => ({
+    actions: {
+        padding: theme.spacing(2)
+    },
+    expand: {
+        marginLeft: 'auto'
+    }
+}));
 
 export interface UserRowState {
     username: string;
@@ -29,21 +44,21 @@ export default function UserRow(props: UserRowProps) {
         password,
         confirmPassword
     };
+    const classes = useStyles();
     return (
-        <>
-            <Grid item xs={4}>
-                <Typography variant="button" component="p">{props.username}</Typography>
-                <Typography variant="button" component="p">{props.email}</Typography>
-            </Grid>
-            <Grid item xs={1}>
-                <Checkbox
-                    checked={isAdmin}
-                    onChange={e => setAdmin(e.target.checked)}
-                    color="primary"
-                    inputProps={{ 'aria-label': 'admin checkbox' }}
+        <Card>
+            <CardContent>
+                <Typography variant="h6">{props.username}</Typography>
+                <Typography variant="subtitle1">{props.email}</Typography>
+                <FormControlLabel label="Admin?"
+                    control={
+                        <Checkbox
+                            checked={isAdmin}
+                            onChange={e => setAdmin(e.target.checked)}
+                            color="primary"
+                        />
+                    }
                 />
-            </Grid>
-            <Grid item xs={6}>
                 <TextField required variant="filled" fullWidth margin="dense"
                     type="password" autoComplete="new-password"
                     label="New password"
@@ -56,17 +71,19 @@ export default function UserRow(props: UserRowProps) {
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                 />
-            </Grid>
-            <Grid item xs={1}>
-                <Button variant="contained" color="primary"
-                    onClick={() => props.onUpdate(state)}>
-                    Update
-                </Button>
-                <Button variant="contained" color="secondary"
+            </CardContent>
+            <CardActions disableSpacing className={classes.actions}>
+                <Button variant="outlined" color="secondary"
                     onClick={() => props.onDelete(state)}>
+                    <DeleteOutlineIcon />
                     Delete
                     </Button>
-            </Grid>
-        </>
+                <Button variant="outlined" color="primary" className={classes.expand}
+                    onClick={() => props.onUpdate(state)}>
+                    <EditIcon />
+                    Update
+                </Button>
+            </CardActions>
+        </Card>
     );
 }
