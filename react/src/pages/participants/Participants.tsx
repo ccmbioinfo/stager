@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import Card from './Card';
-import Chart from './Chart.js';
 
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
@@ -48,9 +47,8 @@ export default function Participants() {
         <Grid container spacing={2}>
           <Grid item xs={4}>
             <Paper className={classes.paper}>
-              <Card title={"Participants"} value={"2731"} textSecondary={"12 since last week"} linkText={"Particpant View"}>
-                <Chart />
-                </Card>
+              <Card title={"Participants"} value={"2731"} textSecondary={"12 since last week"} linkText={"Participant View"}>
+              </Card>
             </Paper>
           </Grid>
           <Grid item xs={4}>
