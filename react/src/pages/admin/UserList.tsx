@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Snackbar, { SnackbarProps } from '@material-ui/core/Snackbar';
-import Typography from '@material-ui/core/Typography';
+import AddIcon from '@material-ui/icons/Add';
 
 import UserRow, { UserRowState } from "./UserRow";
 import ConfirmModal from './ConfirmModal';
@@ -11,11 +11,13 @@ import CreateUserModal, { CreateUser } from './CreateUserModal';
 
 const useStyles = makeStyles(theme => ({
     root: {
-        flexGrow: 1
+        flexGrow: 1,
+        padding: theme.spacing(2),
+        overflow: 'auto',
     },
     appBarSpacer: theme.mixins.toolbar,
-    table: {
-        padding: theme.spacing(2)
+    addButton: {
+        marginBottom: theme.spacing(1)
     }
 }));
 
@@ -105,28 +107,21 @@ export default function UserList() {
                 message={message}
                 color={messageColor}
             />
-            <Button variant="contained" color="primary" onClick={() => setAddingUser(true)}>
+            <Button variant="contained" color="primary"
+                className={classes.addButton}
+                onClick={() => setAddingUser(true)}>
+                <AddIcon />
                 Add new
             </Button>
-            <Grid container className={classes.table}>
-                <Grid item xs={4}>
-                    <Typography variant="h6">Username &amp; email</Typography>
-                </Grid>
-                <Grid item xs={1}>
-                    <Typography variant="h6">Admin?</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                    <Typography variant="h6">Change password</Typography>
-                </Grid>
-                <Grid item xs={1}>
-                    <Typography variant="h6">Actions</Typography>
-                </Grid>
-                {userList.map(user =>
+            <Grid container spacing={2}>
+            {userList.map(user =>
+                <Grid item xs={12} md={6}>
                     <UserRow
                         key={user.username} {...user}
                         onUpdate={setUpdatingUser}
                         onDelete={setDeletingUser} />
-                )}
+                </Grid>
+            )}
             </Grid>
         </main>
     );
