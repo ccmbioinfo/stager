@@ -12,6 +12,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(30), nullable=False, unique=True)
     password_hash = db.Column(db.String(200), nullable=False, unique=False)
     email = db.Column(db.String(150), nullable=False, unique=True)
+    is_admin = db.Column(db.Boolean, unique=False, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256:50000')
@@ -21,6 +22,18 @@ class User(UserMixin, db.Model):
 
     def get_id(self):
         return self.user_id
+    
+    def make_admin(self):
+        self.is_admin = True
+
+    def revoke_admin(self):
+        self.is_admin = False
+
+
+class Group(db.Model):
+    group_id = db.Column(db.Integer, primary_key=True)
+    group_code = db.Column(db.String(50), nullable=False, unique=True) # i.e. CHEO, SK, AB 
+    group_name = db.Column(db.String(250), nullable=False, unique=True) # full group name
 
 
 class Family(db.Model):
@@ -140,11 +153,22 @@ class DatasetReadType(Enum):
 
 
 datasets_analyses_table = db.Table(
-    'association', db.Model.metadata,
+    'datasets_analyses', db.Model.metadata,
     db.Column('dataset_id', db.Integer, db.ForeignKey('dataset.dataset_id')),
     db.Column('analysis_id', db.Integer, db.ForeignKey('analysis.analysis_id'))
 )
 
+users_groups_table = db.Table(
+    'users_groups', db.Model.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.user_id')),
+    db.Column('group_id', db.Integer, db.ForeignKey('group.group_id'))
+)
+
+groups_datasets_table = db.Table(
+    'groups_datasets', db.Model.metadata,
+    db.Column('group_id', db.Integer, db.ForeignKey('group.group_id')),
+    db.Column('dataset_id', db.Integer, db.ForeignKey('dataset.dataset_id'))
+)
 
 class Dataset(db.Model):
     __tablename__ = DatasetDiscriminator.Dataset.value
@@ -255,3 +279,4 @@ class PipelineDatasets(db.Model):
     pipeline_id = db.Column(db.Integer, db.ForeignKey('pipeline.pipeline_id', onupdate='cascade', ondelete='restrict'),
                             primary_key=True)
     supported_dataset = db.Column(db.Enum(DatasetType), primary_key=True)
+
