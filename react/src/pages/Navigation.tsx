@@ -116,7 +116,12 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-export default function Navigation({ signout }: { signout: () => void }) {
+export interface NavigationProps {
+    signout: () => void;
+    username: string;
+}
+
+export default function Navigation({ username, signout }: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(true);
     const handleDrawerOpen = () => {
@@ -194,7 +199,9 @@ export default function Navigation({ signout }: { signout: () => void }) {
                     <Route path="/analysis" component={Analysis} />
                     <Route path="/participants" component={Participants} />
                     <Route path="/uploads" component={Uploads} />
-                    <Route path="/settings" component={Settings} />
+                    <Route path="/settings">
+                        <Settings username={username} />
+                    </Route>
                     <Route path={["/", "/dashboard"]} component={Dashboard} />
                 </Switch>
             </BrowserRouter>

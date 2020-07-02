@@ -44,9 +44,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const user: string = "example_user"
-
-export default function Settings() {
+export default function Settings({ username }: { username: string }) {
     const classes = useStyles();
 
     useEffect(() => {
@@ -59,7 +57,7 @@ export default function Settings() {
             <Container maxWidth="lg" className={classes.container}>
                 <Paper className={classes.paper}>
                     <Typography>
-                        Logged In As <b>{user}</b>
+                        Hello {username}!
                     </Typography>
                     <Divider className={classes.dividingSpacer} />
                     <Typography>

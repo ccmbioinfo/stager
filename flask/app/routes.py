@@ -16,7 +16,7 @@ def load_user(uid: int):
 @app.route('/api/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        return '', 204
+        return json.dumps({ "username": current_user.username }), 200
 
     body = request.json
     if not body:
@@ -26,7 +26,7 @@ def login():
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
     login_user(user)
-    return 'Authenticated', 200
+    return json.dumps({ "username": user.username }), 200
 
 
 @app.route('/api/logout', methods=['POST'])
