@@ -6,14 +6,13 @@ import MuiDialogContent from '@material-ui/core/DialogContent';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
-import Divider from '@material-ui/core/Divider';
 import Chip from '@material-ui/core/Chip';
 import SamplesTable from './SamplesTable';
+import { AnalysisRun } from './Analysis';
 
 interface AlertInfoDialogProp {
-    title: string,
     open: boolean,
-    samples: string[],
+    analysisRun: AnalysisRun | null,
     onClose: (() => void),
 }
 
@@ -74,18 +73,34 @@ const pipelineParams: string[] = ["gnomAD_AF <= 0.01", "trio", "joint_genotyping
 const analyses: string[] = ["SNP", "INDELs",]
 const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snpEff 4.3T", "gnomAD v2.1.1"]
 
-export default function AnalysisInfoDialog({title, samples, open, onClose}: AlertInfoDialogProp) {
+export default function AnalysisInfoDialog({analysisRun, open, onClose}: AlertInfoDialogProp) {
 
-    const chipStyle = makeChipStyle();
+  const chipStyle = makeChipStyle();
+  const analysis = analysisRun as AnalysisRun
+
   return (
+
+    !(analysisRun) ? null :
     <div>
       <Dialog onClose={onClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='md' fullWidth={true}>
         <DialogTitle id="customized-dialog-title" onClose={onClose}>
-          {title}
+          Analysis: {analysis.analysisID}
+          <Typography variant="body1" gutterBottom>
+            Submitted by: {analysisRun.submittedBy}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Status: {analysisRun.status}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Date submitted: {analysisRun.dateSubmitted}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Runtime: {analysisRun.timeElapsed}
+          </Typography>
         </DialogTitle>
         <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
-            CRE - Clinical Research Exome
+            {analysisRun.pipeline}
           </Typography>
           <div className={chipStyle.root}>
             {analyses.map( (analysis) =>
@@ -98,22 +113,6 @@ export default function AnalysisInfoDialog({title, samples, open, onClose}: Aler
                 <Chip size="medium" color="secondary" label={annotation} />
             )}
           </div>
-          <Typography variant="h6" gutterBottom>
-            Details
-          </Typography>
-          <Divider/>
-          <Typography variant="body1" gutterBottom>
-            Submitted by: CHEO
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Status: Running
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Date submitted: 2020-04-01
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Runtime: 24:00:01
-          </Typography>
           <Typography variant="h6" gutterBottom>
             Samples
           </Typography>

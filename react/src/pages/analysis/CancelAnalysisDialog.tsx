@@ -22,7 +22,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function AlertDialog({title, message, open, onClose}: CancelAnalysisDialogProp) {
+export default function CancelAnalysisDialog({title, message, open, onClose}: CancelAnalysisDialogProp) {
   return (
     <div>
       <Dialog

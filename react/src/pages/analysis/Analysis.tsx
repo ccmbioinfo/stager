@@ -67,7 +67,7 @@ export enum PipelineStatus {
     ERROR = "Error",
 }
 
-interface AnalysisRun {
+export interface AnalysisRun {
     id: number;
     analysisID: string;
     dateSubmitted: string;
@@ -126,8 +126,7 @@ export default function Analysis() {
             />
             <AnalysisInfoDialog
                 open={detail}
-                title={"Analysis AN1234"}
-                samples={(activeRow) ? activeRow.participants as string[] : []}
+                analysisRun={activeRow}
                 onClose={() => setDetail(false)}
             />
             <Container maxWidth="lg" className={classes.container}>
