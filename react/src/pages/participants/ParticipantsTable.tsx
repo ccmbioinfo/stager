@@ -3,6 +3,15 @@ import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
 
+export interface Participant {
+    participantID: string,
+    project: string,
+    uploader: string,
+    numSamples: number,
+    sex: string,
+    created: string
+}
+
 export enum DisplayType {
     PARTICIPANT = "Participants",
     DATASET = "Datasets",
@@ -21,7 +30,6 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-
 function createParticipant(
     participantID: string,
     project: string,
@@ -32,7 +40,7 @@ function createParticipant(
     return { participantID, project, uploader, numSamples, sex, created };
 }
 
-const rows = [
+const rows: Participant[] = [
     createParticipant('AA0001', '3001', 'CHEO', 2, 'F', '2020-02-01'),
     createParticipant('AA0002', '3002', 'CHEO', 1, 'M', '2020-02-01'),
     createParticipant('AA0003', '3003', 'ACH', 1, 'F', '2020-02-01'),
@@ -63,14 +71,6 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                 selection: true
             }}
             editable={{
-                onRowAdd: newData =>
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            /* setData([...data, newData]); */
-
-                            resolve();
-                        }, 1000);
-                    }),
                 onRowUpdate: (newData, oldData) =>
                     new Promise((resolve, reject) => {
                         setTimeout(() => {
@@ -82,17 +82,6 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                             resolve();
                         }, 1000);
                     }),
-                onRowDelete: oldData =>
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            // const dataDelete = [...data];
-                            // const index = oldData.tableData.id;
-                            // dataDelete.splice(index, 1);
-                            // setData([...dataDelete]);
-
-                            resolve();
-                        }, 1000);
-                    })
             }}
             components={{
                 Toolbar: props => (
@@ -108,6 +97,18 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                     </div>
                 ),
             }}
+            actions={[
+                {
+                    tooltip: 'Delete the selected participants',
+                    icon: 'delete',
+                    onClick: (evt, data) => {
+                        const sampleString = (data as Participant) ? (data as Participant).participantID :
+                        (data as Participant[]).map((participant) => {return participant.participantID}).join(', ')
+                        
+                        alert(`Widthdraw all data from the participants: ${sampleString}`)
+                    }
+                }
+            ]}
         />
     )
 }
