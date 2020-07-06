@@ -1,13 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Divider from '@material-ui/core/Divider';
-import FormControl from '@material-ui/core/FormControl'
 import Grid from '@material-ui/core/Grid';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
 import Paper from '@material-ui/core/Paper';
+import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles(theme => ({
@@ -34,17 +32,38 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(1),
         marginBottom: theme.spacing(3),
     },
-    inputText: {
-        marginTop: theme.spacing(2),
-        maxWidth: "33%",
-    },
     submitButton: {
         marginTop: theme.spacing(3),
-        float: "right",
     }
 }));
 
 export default function Settings({ username }: { username: string }) {
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [result, setResult] = useState("");
+
+    async function changePassword(e: React.MouseEvent) {
+        e.preventDefault();
+        const response = await fetch("/api/password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                current: currentPassword,
+                password: newPassword,
+                confirm: confirmPassword
+            })
+        });
+        if (response.ok) {
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            setResult("Password changed successfully");
+        } else {
+            setResult(await response.text());
+        }
+    }
+
     const classes = useStyles();
 
     useEffect(() => {
@@ -55,40 +74,43 @@ export default function Settings({ username }: { username: string }) {
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container}>
-                <Paper className={classes.paper}>
-                    <Typography>
+                <Paper className={classes.paper} component="form">
+                    <Typography variant="h4" component="h2">
                         Hello {username}!
                     </Typography>
                     <Divider className={classes.dividingSpacer} />
-                    <Typography>
-                        Change Password:
+                    <Typography variant="h5" component="h3">
+                        Change password
                     </Typography>
-                    <FormControl className={classes.inputText} size="small">
-                        <InputLabel htmlFor="current">Current Password</InputLabel>
-                        <Input
-                            id="current"
-                            type="password"
-                        />
-                    </FormControl>
-                    <FormControl className={classes.inputText} size="small">
-                        <InputLabel htmlFor="new">New Password</InputLabel>
-                        <Input
-                            id="new"
-                            type="password"
-                        />
-                    </FormControl>
-                    <FormControl className={classes.inputText} size="small">
-                        <InputLabel htmlFor="repeat">Repeat New Password</InputLabel>
-                        <Input
-                            id="repeat"
-                            type="password"
-                        />
-                    </FormControl>
-                    <Grid container spacing={2}>
+                    <TextField required variant="filled" margin="dense"
+                        type="password" autoComplete="current-password"
+                        label="Current password"
+                        value={currentPassword}
+                        onChange={e => setCurrentPassword(e.target.value)}
+                    />
+                    <TextField required variant="filled" margin="dense"
+                        type="password" autoComplete="new-password"
+                        label="New password"
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                    />
+                    <TextField required variant="filled" margin="dense"
+                        type="password" autoComplete="new-password"
+                        label="Confirm password"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                    />
+                    <Grid container spacing={2} className={classes.submitButton}>
                         <Grid item xs={4}>
-                            <Button className={classes.submitButton} variant="contained" color="secondary">
-                                Update Password
+                            <Button variant="contained" color="secondary"
+                                type="submit" onClick={changePassword}>
+                                Update password
                             </Button>
+                        </Grid>
+                        <Grid item xs={8}>
+                            <Typography variant="subtitle1">
+                                {result}
+                            </Typography>
                         </Grid>
                     </Grid>
                 </Paper>

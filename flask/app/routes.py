@@ -139,3 +139,26 @@ def delete_user():
     except:
         db.session.rollback()
         return 'Server error', 500
+
+
+@app.route('/api/password', methods=['POST'])
+@login_required
+def change_password():
+    params = request.get_json()
+    if 'current' not in params or 'password' not in params or \
+        'confirm' not in params:
+        return 'Bad request', 400
+
+    if params['password'] != params['confirm']:
+        return 'Passwords do not match', 400
+
+    if not current_user.check_password(params['current']):
+        return 'Incorrect password', 401
+
+    current_user.set_password(params['password'])
+    try:
+        db.session.commit()
+        return 'Updated', 204
+    except:
+        db.session.rollback()
+        return 'Server error', 500
