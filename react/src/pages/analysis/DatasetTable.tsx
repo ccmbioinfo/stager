@@ -24,7 +24,7 @@ const rows = [
   createData('3000_AA922', "RES", "AF983D_3000_AA922_R1.fq.gz, AF983D_3000_AA922_R2.fq.gz,", "102400 + 102400", "2020-10-01"),
 ];
 
-export default function SimpleTable() {
+export default function DatasetTable() {
   const classes = useStyles();
 
   return (
