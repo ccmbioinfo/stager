@@ -152,23 +152,26 @@ class DatasetReadType(Enum):
     SingleEnd = 'SingleEnd'
 
 
-datasets_analyses_table = db.Table(
-    'datasets_analyses', db.Model.metadata,
-    db.Column('dataset_id', db.Integer, db.ForeignKey('dataset.dataset_id')),
-    db.Column('analysis_id', db.Integer, db.ForeignKey('analysis.analysis_id'))
-)
-
 users_groups_table = db.Table(
     'users_groups', db.Model.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.user_id')),
     db.Column('group_id', db.Integer, db.ForeignKey('group.group_id'))
 )
 
+
 groups_datasets_table = db.Table(
     'groups_datasets', db.Model.metadata,
     db.Column('group_id', db.Integer, db.ForeignKey('group.group_id')),
     db.Column('dataset_id', db.Integer, db.ForeignKey('dataset.dataset_id'))
 )
+
+
+datasets_analyses_table = db.Table(
+    'datasets_analyses', db.Model.metadata,
+    db.Column('dataset_id', db.Integer, db.ForeignKey('dataset.dataset_id')),
+    db.Column('analysis_id', db.Integer, db.ForeignKey('analysis.analysis_id'))
+)
+
 
 class Dataset(db.Model):
     __tablename__ = DatasetDiscriminator.Dataset.value
