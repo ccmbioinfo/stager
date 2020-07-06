@@ -31,6 +31,6 @@ export default function App() {
     } else if (authenticated) {
         return <Navigation signout={signout} username={username} />;
     } else {
-        return <LoginForm setAuthenticated={setAuthenticated} />;
+        return <LoginForm setAuthenticated={setAuthenticated} setGlobalUsername={setUsername} />;
     }
 }
