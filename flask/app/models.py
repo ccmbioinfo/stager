@@ -22,12 +22,6 @@ class User(UserMixin, db.Model):
 
     def get_id(self):
         return self.user_id
-    
-    def make_admin(self):
-        self.is_admin = True
-
-    def revoke_admin(self):
-        self.is_admin = False
 
 
 class Group(db.Model):
