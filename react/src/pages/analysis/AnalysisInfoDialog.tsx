@@ -7,7 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import Chip from '@material-ui/core/Chip';
-import SamplesTable from './SamplesTable';
+import DatasetTable from './DatasetTable';
 import { AnalysisRun } from './Analysis';
 
 interface AlertInfoDialogProp {
@@ -116,7 +116,7 @@ export default function AnalysisInfoDialog({analysisRun, open, onClose}: AlertIn
           <Typography variant="h6" gutterBottom>
             Samples
           </Typography>
-          <SamplesTable/>
+          <DatasetTable/>
         </DialogContent>
       </Dialog>
     </div>

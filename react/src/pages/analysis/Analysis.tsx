@@ -120,8 +120,8 @@ export default function Analysis() {
             <div className={classes.appBarSpacer} />
             <CancelAnalysisDialog
                 open={cancel}
-                title={"Stop Analysis?"}
-                message={"Do you really want to stop the analysis of samples X, Y and Z? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched."}
+                title={`Stop Analysis ${activeRow ? (activeRow as AnalysisRun).analysisID : ""}?`}
+                message={`Do you really want to stop the analysis of samples ${activeRow ? (activeRow as AnalysisRun).participants.join(', ') : ""}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                 onClose={() => { setCancel(false) }}
             />
             <AnalysisInfoDialog
@@ -169,7 +169,7 @@ export default function Analysis() {
                         icon: AddIcon,
                         tooltip: 'Add User',
                         isFreeAction: true,
-                        onClick: (event) => alert("You want to add a new row")
+                        onClick: (event) => alert("Select some datasets over at the Participants tab if you want to create a new analysis!")
                     }
                 ]}
                 />
