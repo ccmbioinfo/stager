@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
-import TableBody from '@material-ui/core/TableBody';
-import Checkbox from '@material-ui/core/Checkbox';
-import Button from '@material-ui/core/Button';
 import VisibilityIcon from '@material-ui/icons/Visibility';
-import { Dialog, DialogTitle, DialogContent } from '@material-ui/core';
+import CancelIcon from '@material-ui/icons/Cancel';
+import AddIcon from '@material-ui/icons/Add';
+import MaterialTable from 'material-table';
 import Title from '../Title';
+import CancelAnalysisDialog from './CancelAnalysisDialog';
+import AnalysisInfoDialog from './AnalysisInfoDialog';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -65,6 +60,13 @@ const useStyles = makeStyles(theme => ({
 
 }));
 
+export enum PipelineStatus {
+    PENDING = "Pending",
+    RUNNING = "Running",
+    COMPLETED = "Completed",
+    ERROR = "Error",
+}
+
 interface AnalysisRun {
     id: number;
     analysisID: string;
@@ -74,7 +76,7 @@ interface AnalysisRun {
     participants: string[];
     pipeline: string;
     timeElapsed: string;
-    status: string;
+    status: PipelineStatus;
 }
 
 // generate fake analysis data
@@ -87,103 +89,92 @@ function createAnalysis(
     participants: string[],
     pipeline: string,
     timeElapsed: string,
-    status: string): AnalysisRun {
+    status: PipelineStatus): AnalysisRun {
     return { id, analysisID, dateSubmitted, submittedBy, project, participants, pipeline, timeElapsed, status };
 }
 
 const analyses = [
-    createAnalysis(0, 'AN20392', '2020-05-23', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', 'Running'),
-    createAnalysis(1, 'AN30092', '2020-06-13', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', 'Running'),
-    createAnalysis(2, 'AN43820', '2020-06-19', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', 'Running'),
-    createAnalysis(3, 'AN38292', '2020-06-22', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', 'Running'),
-    createAnalysis(4, 'AN33889', '2020-06-21', 'User C', '3289', ['CC330'], 'CRE', '17hrs', 'Running'),
-    createAnalysis(5, 'AN38920', '2020-06-21', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', 'Running'),
-    createAnalysis(6, 'AN38921', '2020-06-19', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', 'Completed'),
-    createAnalysis(7, 'AN38991', '2020-06-19', 'User B', '3271', ['AA320'], 'CRE', '20hrs', 'Completed'),
-    createAnalysis(8, 'AN20032', '2020-06-20', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', 'Error'),
+    createAnalysis(0, 'AN20392', '2020-05-23', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
+    createAnalysis(1, 'AN30092', '2020-06-13', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', PipelineStatus.RUNNING),
+    createAnalysis(2, 'AN43820', '2020-06-19', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(3, 'AN38292', '2020-06-22', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(4, 'AN33889', '2020-06-21', 'User C', '3289', ['CC330'], 'CRE', '17hrs', PipelineStatus.RUNNING),
+    createAnalysis(5, 'AN38920', '2020-06-21', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', PipelineStatus.RUNNING),
+    createAnalysis(6, 'AN38921', '2020-06-19', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
+    createAnalysis(7, 'AN38991', '2020-06-19', 'User B', '3271', ['AA320'], 'CRE', '20hrs', PipelineStatus.COMPLETED),
+    createAnalysis(8, 'AN20032', '2020-06-20', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
 ];
 
 export default function Analysis() {
     const classes = useStyles();
-    const [open, setOpen] = useState(false);
+    const [detail, setDetail] = useState(false);
+    const [cancel, setCancel] = useState(false);
     const [activeRow, setActiveRow] = useState<AnalysisRun | null>(null);
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
     }, []);
 
-    const formatDialog = (row: AnalysisRun) => {
-        return (
-            <div>
-                <DialogTitle className={classes.dialogHeader}>Analysis {row.analysisID}</DialogTitle>
-                <DialogContent>
-                    <div className={classes.statusTitle}><b>{row.status}</b></div>
-                    <Grid container spacing={0}>
-                        <Grid item xs={12}>
-                            <b>Project: </b>{row.project}
-                        </Grid>
-                        <Grid item xs={12}>
-                            <b>Date Submitted: </b>{row.dateSubmitted}
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-            </div>
-        )
-    }
-
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
+            <CancelAnalysisDialog
+                open={cancel}
+                title={"Stop Analysis?"}
+                message={"Do you really want to stop the analysis of samples X, Y and Z? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched."}
+                onClose={() => { setCancel(false) }}
+            />
+            <AnalysisInfoDialog
+                open={detail}
+                title={"Analysis AN1234"}
+                samples={(activeRow) ? activeRow.participants as string[] : []}
+                onClose={() => setDetail(false)}
+            />
             <Container maxWidth="lg" className={classes.container}>
-                <Paper className={classes.paper}>
-
-                    <Grid container spacing={0}>
-                        <Grid item xs={12}>
-                            <Title>Active Analyses</Title>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell className={classes.centreItem}>View</TableCell>
-                                        <TableCell>AnalysisID</TableCell>
-                                        <TableCell>Submitted</TableCell>
-                                        <TableCell>Submitted By</TableCell>
-                                        <TableCell>Project</TableCell>
-                                        <TableCell>Participants</TableCell>
-                                        <TableCell>Pipeline</TableCell>
-                                        <TableCell>Status</TableCell>
-                                        <TableCell className={classes.centreItem}>Download</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {analyses.map((row) => (
-                                        <TableRow key={row.id} >
-                                            <TableCell onClick={() => { setOpen(true); setActiveRow(row) }} className={classes.viewIcon}><VisibilityIcon fontSize="small" /></TableCell>
-                                            <TableCell>{row.analysisID}</TableCell>
-                                            <TableCell>{row.dateSubmitted}</TableCell>
-                                            <TableCell>{row.submittedBy}</TableCell>
-                                            <TableCell>{row.project}</TableCell>
-                                            <TableCell>{row.participants.join(", ")}</TableCell>
-                                            <TableCell>{row.pipeline}</TableCell>
-                                            <TableCell>{row.status}</TableCell>
-                                            <TableCell className={classes.centreItem}><Checkbox size='small' /></TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button size="small" className={classes.downloadButton} variant="contained" color="primary">Download Selected</Button>
-                        </Grid>
-                    </Grid>
-                </Paper>
-                <Dialog
-                    open={open}
-                    onClose={() => { setOpen(false) }}
-                    aria-labelledby="max-width-dialog-title"
-                >
-                    {(activeRow) ? formatDialog(activeRow) : ''}
-                </Dialog>
+                <MaterialTable
+                columns={[
+                    { title: 'AnalysisID', field: 'analysisID', type: 'string' },
+                    { title: 'Submitted', field: 'dateSubmitted', type: 'string' },
+                    { title: 'Submitted By', field: 'submittedBy', type: 'string' },
+                    { title: 'Project', field: 'project', type: 'string' },
+                    { title: 'Participants', field: 'participants', type: 'string' },
+                    { title: 'Pipeline', field: 'pipeline', type: 'string' },
+                    { title: 'Status', field: 'status', type: 'string' }
+                ]}
+                data={analyses}
+                title={
+                    <Title>Active Analyses</Title>
+                }
+                options={{
+                    pageSize: 10,
+                }}
+                actions={[
+                    {
+                      icon: VisibilityIcon,
+                      tooltip: 'Analysis details',
+                      onClick: (event, rowData) => {
+                        setActiveRow((rowData as AnalysisRun))
+                        setDetail(true)
+                      }
+                    },
+                    rowData => ({
+                        icon: CancelIcon,
+                        tooltip: 'Cancel analysis',
+                        onClick: () => {{
+                          setActiveRow(rowData)
+                          setCancel(true)
+                        }},
+                        disabled: rowData.status != PipelineStatus.RUNNING,
+                    }),
+                    {
+                        icon: AddIcon,
+                        tooltip: 'Add User',
+                        isFreeAction: true,
+                        onClick: (event) => alert("You want to add a new row")
+                    }
+                ]}
+                />
             </Container>
         </main>
-    );
+    )
 }
