@@ -69,8 +69,8 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
             <DialogTitle id={labeledBy} onClose={onClose}>
                 Analysis: {analysis.analysisID}
                 <Typography variant="body1" gutterBottom>
-                    Submitted by: {analysis.submittedBy} react/src/pages/analysis/ChipStrip.tsx
-          </Typography>
+                    Submitted by: {analysis.submittedBy}
+                </Typography>
                 <Typography variant="body1" gutterBottom>
                     Status: {analysis.status}
                 </Typography>
