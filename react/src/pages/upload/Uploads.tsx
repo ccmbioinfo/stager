@@ -5,6 +5,8 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography'
+import AddIcon from '@material-ui/icons/Add';
 
 import Card from '../participants/Card';
 import FilesTable from './FilesTable';
@@ -34,6 +36,14 @@ const useStyles = makeStyles(theme => ({
         display: 'flex',
         overflow: 'auto',
         flexDirection: 'column',
+    },
+    addnew: {
+        padding: theme.spacing(2),
+        display: 'flex',
+        overflow: 'auto',
+        flexDirection: 'column',
+        background: '#e5e5e5',
+        height: '100%',
     },
     fixedHeight: {
         height: 240,
@@ -79,6 +89,16 @@ export default function Uploads() {
                                     Manage uploaders
                                 </Link>
                             } />
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Paper className={classes.addnew}>
+                        <React.Fragment>
+                            <Typography variant="h5" color="primary" align='center' gutterBottom>
+                                Add New Participants
+                            </Typography>
+                            <Typography align='center' component="p" variant="h2">+</Typography>
+                        </React.Fragment>
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>
