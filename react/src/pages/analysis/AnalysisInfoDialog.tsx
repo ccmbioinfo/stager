@@ -11,49 +11,49 @@ import { AnalysisRun } from './Analysis';
 import ChipStrip from './ChipStrip';
 
 interface AlertInfoDialogProp {
-  open: boolean,
-  analysis: AnalysisRun,
-  onClose: (() => void),
+    open: boolean,
+    analysis: AnalysisRun,
+    onClose: (() => void),
 }
 
 const styles = (theme: Theme) =>
-  createStyles({
-    root: {
-      margin: 0,
-      padding: theme.spacing(2),
-    },
-    closeButton: {
-      position: 'absolute',
-      right: theme.spacing(1),
-      top: theme.spacing(1),
-      color: theme.palette.grey[500],
-    },
-  });
+    createStyles({
+        root: {
+            margin: 0,
+            padding: theme.spacing(2),
+        },
+        closeButton: {
+            position: 'absolute',
+            right: theme.spacing(1),
+            top: theme.spacing(1),
+            color: theme.palette.grey[500],
+        },
+    });
 
 export interface DialogTitleProps extends WithStyles<typeof styles> {
-  id: string;
-  children: React.ReactNode;
-  onClose: () => void;
+    id: string;
+    children: React.ReactNode;
+    onClose: () => void;
 }
 
 const DialogTitle = withStyles(styles)((props: DialogTitleProps) => {
-  const { children, classes, onClose, ...other } = props;
-  return (
-    <MuiDialogTitle disableTypography className={classes.root} {...other}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
-  );
+    const { children, classes, onClose, ...other } = props;
+    return (
+        <MuiDialogTitle disableTypography className={classes.root} {...other}>
+            <Typography variant="h6">{children}</Typography>
+            {onClose ? (
+                <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
+                    <CloseIcon />
+                </IconButton>
+            ) : null}
+        </MuiDialogTitle>
+    );
 });
 
 const DialogContent = withStyles((theme: Theme) => ({
-  root: {
-    padding: theme.spacing(2),
-  },
+    root: {
+        padding: theme.spacing(2),
+    },
 }))(MuiDialogContent);
 
 const pipelineParams: string[] = ["gnomAD_AF <= 0.01", "trio", "joint_genotyping", "denovo", "IMPACT_SEVERITY=HIGH",]
@@ -62,37 +62,37 @@ export const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snp
 
 export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
 
-  const labeledBy = "analysis-info-dialog-slide-title"
+    const labeledBy = "analysis-info-dialog-slide-title"
 
-  return (
-    <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
-      <DialogTitle id={labeledBy} onClose={onClose}>
-        Analysis: {analysis.analysisID}
-        <Typography variant="body1" gutterBottom>
-          Submitted by: {analysis.submittedBy} react/src/pages/analysis/ChipStrip.tsx
+    return (
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
+            <DialogTitle id={labeledBy} onClose={onClose}>
+                Analysis: {analysis.analysisID}
+                <Typography variant="body1" gutterBottom>
+                    Submitted by: {analysis.submittedBy} react/src/pages/analysis/ChipStrip.tsx
           </Typography>
-        <Typography variant="body1" gutterBottom>
-          Status: {analysis.status}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Date submitted: {analysis.dateSubmitted}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Runtime: {analysis.timeElapsed}
-        </Typography>
-      </DialogTitle>
-      <DialogContent dividers>
-        <Typography variant="h6" gutterBottom>
-          {analysis.pipeline}
-        </Typography>
-        <ChipStrip labels={analyses} color="primary" />
-        <ChipStrip labels={pipelineParams} color="secondary" />
-        <ChipStrip labels={annotations} color="default" />
-        <Typography variant="h6" gutterBottom>
-          Samples
+                <Typography variant="body1" gutterBottom>
+                    Status: {analysis.status}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    Date submitted: {analysis.dateSubmitted}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    Runtime: {analysis.timeElapsed}
+                </Typography>
+            </DialogTitle>
+            <DialogContent dividers>
+                <Typography variant="h6" gutterBottom>
+                    {analysis.pipeline}
+                </Typography>
+                <ChipStrip labels={analyses} color="primary" />
+                <ChipStrip labels={pipelineParams} color="secondary" />
+                <ChipStrip labels={annotations} color="default" />
+                <Typography variant="h6" gutterBottom>
+                    Samples
           </Typography>
-        <DatasetTable />
-      </DialogContent>
-    </Dialog>
-  );
+                <DatasetTable />
+            </DialogContent>
+        </Dialog>
+    );
 }
