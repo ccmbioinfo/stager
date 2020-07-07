@@ -5,10 +5,12 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 
 import Card from '../participants/Card';
 import FilesTable from './FilesTable';
 import UploadersTable from './UploadersTable';
+import UploadDialog from './UploadDialog';
 
 enum TableType {
     FILES,
@@ -35,6 +37,14 @@ const useStyles = makeStyles(theme => ({
         overflow: 'auto',
         flexDirection: 'column',
     },
+    addnew: {
+        padding: theme.spacing(2),
+        display: 'flex',
+        overflow: 'auto',
+        flexDirection: 'column',
+        background: '#e5e5e5',
+        height: '100%',
+    },
     fixedHeight: {
         height: 240,
     },
@@ -49,10 +59,11 @@ function renderTable(displayTable: TableType) {
     }
 }
 
-
 export default function Uploads() {
     const classes = useStyles();
     const [tableType, setTableType] = useState(TableType.FILES);
+    const [elevation, setElevation] = useState(1);
+    const [uploaderOpen, setUploaderOpen] = useState(false);
 
     useEffect(() => {
         document.title = "Upload | ST2020";
@@ -61,6 +72,10 @@ export default function Uploads() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
+            <UploadDialog
+                open={uploaderOpen}
+                onClose={() => setUploaderOpen(false)}
+            />
             <Container maxWidth="lg" className={classes.container}>
                 <Grid container spacing={2}>
                     <Grid item xs={4}>
@@ -79,6 +94,16 @@ export default function Uploads() {
                                     Manage uploaders
                                 </Link>
                             } />
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Paper className={classes.addnew} elevation={elevation} onMouseOver={() => setElevation(10)} onMouseOut={() => setElevation(1)} onClick={() => {setUploaderOpen(true); setElevation(10)}}>
+                        <React.Fragment>
+                            <Typography variant="h5" color="primary" align='center' gutterBottom>
+                                Add New Participants
+                            </Typography>
+                            <Typography align='center' component="p" variant="h2">+</Typography>
+                        </React.Fragment>
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>

@@ -39,7 +39,7 @@ export default function FilesTable() {
             data={rows}
             title="Unlinked files"
             options={{
-                pageSize: 10,
+                pageSize: 5,
                 selection: true
             }}
             components={{
