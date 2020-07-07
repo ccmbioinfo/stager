@@ -24,7 +24,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function CancelAnalysisDialog({title, message, open, labeledByPrefix, describedByPrefix, onClose}: CancelAnalysisDialogProp) {
+export default function CancelAnalysisDialog({ title, message, open, labeledByPrefix, describedByPrefix, onClose }: CancelAnalysisDialogProp) {
 
   const labeledBy = `${labeledByPrefix}-cancel-alert-dialog-title`
   const describedBy = `${describedByPrefix}-cancel-alert-dialog-description`

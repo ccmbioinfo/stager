@@ -11,9 +11,9 @@ import { AnalysisRun } from './Analysis';
 import ChipStrip from './ChipStrip';
 
 interface AlertInfoDialogProp {
-    open: boolean,
-    analysis: AnalysisRun,
-    onClose: (() => void),
+  open: boolean,
+  analysis: AnalysisRun,
+  onClose: (() => void),
 }
 
 const styles = (theme: Theme) =>
@@ -60,39 +60,39 @@ const pipelineParams: string[] = ["gnomAD_AF <= 0.01", "trio", "joint_genotyping
 const analyses: string[] = ["SNP", "INDELs",]
 export const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snpEff 4.3T", "gnomAD v2.1.1"]
 
-export default function AnalysisInfoDialog({analysis, open, onClose}: AlertInfoDialogProp) {
+export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
 
   const labeledBy = "analysis-info-dialog-slide-title"
 
   return (
-      <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
-        <DialogTitle id={labeledBy} onClose={onClose}>
-          Analysis: {analysis.analysisID}
-          <Typography variant="body1" gutterBottom>
-            Submitted by: {analysis.submittedBy}
+    <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
+      <DialogTitle id={labeledBy} onClose={onClose}>
+        Analysis: {analysis.analysisID}
+        <Typography variant="body1" gutterBottom>
+          Submitted by: {analysis.submittedBy} react/src/pages/analysis/ChipStrip.tsx
           </Typography>
-          <Typography variant="body1" gutterBottom>
-            Status: {analysis.status}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Date submitted: {analysis.dateSubmitted}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Runtime: {analysis.timeElapsed}
-          </Typography>
-        </DialogTitle>
-        <DialogContent dividers>
+        <Typography variant="body1" gutterBottom>
+          Status: {analysis.status}
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Date submitted: {analysis.dateSubmitted}
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Runtime: {analysis.timeElapsed}
+        </Typography>
+      </DialogTitle>
+      <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
-            {analysis.pipeline}
+          {analysis.pipeline}
+        </Typography>
+        <ChipStrip labels={analyses} color="primary" />
+        <ChipStrip labels={pipelineParams} color="secondary" />
+        <ChipStrip labels={annotations} color="default" />
+        <Typography variant="h6" gutterBottom>
+          Samples
           </Typography>
-          <ChipStrip labels={analyses} color="primary"/>
-          <ChipStrip labels={pipelineParams} color="secondary"/>
-          <ChipStrip labels={annotations} color="default"/>
-          <Typography variant="h6" gutterBottom>
-            Samples
-          </Typography>
-          <DatasetTable/>
-        </DialogContent>
-      </Dialog>
+        <DatasetTable />
+      </DialogContent>
+    </Dialog>
   );
 }

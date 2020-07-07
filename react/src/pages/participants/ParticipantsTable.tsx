@@ -113,7 +113,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                         tooltip: 'Delete the selected participants',
                         icon: DeleteIcon,
                         onClick: (evt, data) => {
-                            const sampleString = (data as Participant[]).map((participant) => {return participant.participantID}).join(', ')
+                            const sampleString = (data as Participant[]).map((participant) => { return participant.participantID }).join(', ')
                             alert(`Widthdraw all datasets and records associated with the samples: ${sampleString}`)
                         }
                     },
@@ -122,7 +122,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                         icon: PlayArrowIcon,
                         onClick: (evt, data) => {
                             setActiveParticipants(data as Participant[])
-                            setRunner(true)    
+                            setRunner(true)
                         }
                     }
                 ]}

@@ -118,64 +118,64 @@ export default function Analysis() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            {(activeRow as AnalysisRun) && 
-            <CancelAnalysisDialog
-                open={cancel}
-                title={`Stop Analysis ${(activeRow as AnalysisRun).analysisID}?`}
-                message={`Do you really want to stop the analysis of samples ${(activeRow as AnalysisRun).participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
-                onClose={() => { setCancel(false) }}
-                labeledByPrefix={(activeRow as AnalysisRun).analysisID}
-                describedByPrefix={(activeRow as AnalysisRun).analysisID}
-            />}
             {(activeRow as AnalysisRun) &&
-            <AnalysisInfoDialog
-                open={detail}
-                analysis={activeRow as AnalysisRun}
-                onClose={() => setDetail(false)}
-            />}
+                <CancelAnalysisDialog
+                    open={cancel}
+                    title={`Stop Analysis ${(activeRow as AnalysisRun).analysisID}?`}
+                    message={`Do you really want to stop the analysis of samples ${(activeRow as AnalysisRun).participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
+                    onClose={() => { setCancel(false) }}
+                    labeledByPrefix={(activeRow as AnalysisRun).analysisID}
+                    describedByPrefix={(activeRow as AnalysisRun).analysisID}
+                />}
+            {(activeRow as AnalysisRun) &&
+                <AnalysisInfoDialog
+                    open={detail}
+                    analysis={activeRow as AnalysisRun}
+                    onClose={() => setDetail(false)}
+                />}
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
-                columns={[
-                    { title: 'AnalysisID', field: 'analysisID', type: 'string' },
-                    { title: 'Submitted', field: 'dateSubmitted', type: 'string' },
-                    { title: 'Submitted By', field: 'submittedBy', type: 'string' },
-                    { title: 'Project', field: 'project', type: 'string' },
-                    { title: 'Participants', field: 'participants', type: 'string' },
-                    { title: 'Pipeline', field: 'pipeline', type: 'string' },
-                    { title: 'Status', field: 'status', type: 'string' }
-                ]}
-                data={analyses}
-                title={
-                    <Title>Active Analyses</Title>
-                }
-                options={{
-                    pageSize: 10,
-                }}
-                actions={[
-                    {
-                      icon: VisibilityIcon,
-                      tooltip: 'Analysis details',
-                      onClick: (event, rowData) => {
-                        setActiveRow((rowData as AnalysisRun))
-                        setDetail(true)
-                      }
-                    },
-                    rowData => ({
-                        icon: CancelIcon,
-                        tooltip: 'Cancel analysis',
-                        onClick: () => {
-                          setActiveRow(rowData)
-                          setCancel(true)
-                        },
-                        disabled: rowData.status !== PipelineStatus.RUNNING,
-                    }),
-                    {
-                        icon: AddIcon,
-                        tooltip: 'Add User',
-                        isFreeAction: true,
-                        onClick: (event) => alert("Select some datasets over at the Participants tab if you want to create a new analysis!")
+                    columns={[
+                        { title: 'AnalysisID', field: 'analysisID', type: 'string' },
+                        { title: 'Submitted', field: 'dateSubmitted', type: 'string' },
+                        { title: 'Submitted By', field: 'submittedBy', type: 'string' },
+                        { title: 'Project', field: 'project', type: 'string' },
+                        { title: 'Participants', field: 'participants', type: 'string' },
+                        { title: 'Pipeline', field: 'pipeline', type: 'string' },
+                        { title: 'Status', field: 'status', type: 'string' }
+                    ]}
+                    data={analyses}
+                    title={
+                        <Title>Active Analyses</Title>
                     }
-                ]}
+                    options={{
+                        pageSize: 10,
+                    }}
+                    actions={[
+                        {
+                            icon: VisibilityIcon,
+                            tooltip: 'Analysis details',
+                            onClick: (event, rowData) => {
+                                setActiveRow((rowData as AnalysisRun))
+                                setDetail(true)
+                            }
+                        },
+                        rowData => ({
+                            icon: CancelIcon,
+                            tooltip: 'Cancel analysis',
+                            onClick: () => {
+                                setActiveRow(rowData)
+                                setCancel(true)
+                            },
+                            disabled: rowData.status !== PipelineStatus.RUNNING,
+                        }),
+                        {
+                            icon: AddIcon,
+                            tooltip: 'Add User',
+                            isFreeAction: true,
+                            onClick: (event) => alert("Select some datasets over at the Participants tab if you want to create a new analysis!")
+                        }
+                    ]}
                 />
             </Container>
         </main>
