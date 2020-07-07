@@ -118,19 +118,19 @@ export default function Analysis() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            {(activeRow as AnalysisRun) &&
+            {activeRow &&
                 <CancelAnalysisDialog
                     open={cancel}
-                    title={`Stop Analysis ${(activeRow as AnalysisRun).analysisID}?`}
-                    message={`Do you really want to stop the analysis of samples ${(activeRow as AnalysisRun).participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
+                    title={`Stop Analysis ${activeRow.analysisID}?`}
+                    message={`Do you really want to stop the analysis of samples ${activeRow.participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                     onClose={() => { setCancel(false) }}
-                    labeledByPrefix={(activeRow as AnalysisRun).analysisID}
-                    describedByPrefix={(activeRow as AnalysisRun).analysisID}
+                    labeledByPrefix={activeRow.analysisID}
+                    describedByPrefix={activeRow.analysisID}
                 />}
-            {(activeRow as AnalysisRun) &&
+            {activeRow &&
                 <AnalysisInfoDialog
                     open={detail}
-                    analysis={activeRow as AnalysisRun}
+                    analysis={activeRow}
                     onClose={() => setDetail(false)}
                 />}
             <Container maxWidth="lg" className={classes.container}>
