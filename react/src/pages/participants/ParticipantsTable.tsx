@@ -2,6 +2,9 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import DeleteIcon from '@material-ui/icons/Delete';
+import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 export interface Participant {
     participantID: string,
@@ -53,62 +56,77 @@ const rows: Participant[] = [
 
 export default function ParticipantsTable({ display }: ParticipantsTableProps) {
     const classes = useStyles();
+    const [showRunner, setRunner] = React.useState(false);
+    const [activeParticipants, setActiveParticipants] = React.useState<Participant[]>([]);
 
     return (
-        <MaterialTable
-            columns={[
-                { title: 'Participant', field: 'participantID' },
-                { title: 'Project', field: 'project' },
-                { title: 'Uploader', field: 'uploader' },
-                { title: 'Num. Samples', field: 'numSamples', type: 'numeric' },
-                { title: 'Sex', field: 'sex', type: 'string' },
-                { title: 'Created', field: 'created', type: 'string' }
-            ]}
-            data={rows}
-            title={display}
-            options={{
-                pageSize: 10,
-                selection: true
-            }}
-            editable={{
-                onRowUpdate: (newData, oldData) =>
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            // const dataUpdate = [...data];
-                            // const index = oldData.tableData.id;
-                            // dataUpdate[index] = newData;
-                            // setData([...dataUpdate]);
+        <div>
+            <AnalysisRunnerDialog
+                participants={activeParticipants}
+                open={showRunner}
+                onClose={() => {setRunner(false)}}
+            />
+            <MaterialTable
+                columns={[
+                    { title: 'Participant', field: 'participantID' },
+                    { title: 'Project', field: 'project' },
+                    { title: 'Uploader', field: 'uploader' },
+                    { title: 'Num. Samples', field: 'numSamples', type: 'numeric' },
+                    { title: 'Sex', field: 'sex', type: 'string' },
+                    { title: 'Created', field: 'created', type: 'string' }
+                ]}
+                data={rows}
+                title={display}
+                options={{
+                    pageSize: 10,
+                    selection: true
+                }}
+                editable={{
+                    onRowUpdate: (newData, oldData) =>
+                        new Promise((resolve, reject) => {
+                            setTimeout(() => {
+                                // const dataUpdate = [...data];
+                                // const index = oldData.tableData.id;
+                                // dataUpdate[index] = newData;
+                                // setData([...dataUpdate]);
 
-                            resolve();
-                        }, 1000);
-                    }),
-            }}
-            components={{
-                Toolbar: props => (
-                    <div>
-                        <MTableToolbar {...props} />
-                        <div style={{ marginLeft: '24px' }}>
-                            <Chip label="CHEO" clickable className={classes.chip} />
-                            <Chip label="SK" clickable className={classes.chip} />
-                            <Chip label="ACH" clickable className={classes.chip} />
-                            <Chip label="BCL" clickable className={classes.chip} />
-                            <Chip label="Misc." clickable className={classes.chip} />
+                                resolve();
+                            }, 1000);
+                        }),
+                }}
+                components={{
+                    Toolbar: props => (
+                        <div>
+                            <MTableToolbar {...props} />
+                            <div style={{ marginLeft: '24px' }}>
+                                <Chip label="CHEO" clickable className={classes.chip} />
+                                <Chip label="SK" clickable className={classes.chip} />
+                                <Chip label="ACH" clickable className={classes.chip} />
+                                <Chip label="BCL" clickable className={classes.chip} />
+                                <Chip label="Misc." clickable className={classes.chip} />
+                            </div>
                         </div>
-                    </div>
-                ),
-            }}
-            actions={[
-                {
-                    tooltip: 'Delete the selected participants',
-                    icon: 'delete',
-                    onClick: (evt, data) => {
-                        const sampleString = (data as Participant) ? (data as Participant).participantID :
-                        (data as Participant[]).map((participant) => {return participant.participantID}).join(', ')
-                        
-                        alert(`Widthdraw all data from the participants: ${sampleString}`)
+                    ),
+                }}
+                actions={[
+                    {
+                        tooltip: 'Delete the selected participants',
+                        icon: DeleteIcon,
+                        onClick: (evt, data) => {
+                            const sampleString = (data as Participant[]).map((participant) => {return participant.participantID}).join(', ')
+                            alert(`Widthdraw all datasets and records associated with the samples: ${sampleString}`)
+                        }
+                    },
+                    {
+                        tooltip: 'Run an analysis with the selected datasets',
+                        icon: PlayArrowIcon,
+                        onClick: (evt, data) => {
+                            setActiveParticipants(data as Participant[])
+                            setRunner(true)    
+                        }
                     }
-                }
-            ]}
-        />
+                ]}
+            />
+        </div>
     )
 }

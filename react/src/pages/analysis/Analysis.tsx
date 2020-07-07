@@ -118,17 +118,19 @@ export default function Analysis() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
+            {(activeRow as AnalysisRun) && 
             <CancelAnalysisDialog
                 open={cancel}
-                title={`Stop Analysis ${activeRow ? (activeRow as AnalysisRun).analysisID : ""}?`}
-                message={`Do you really want to stop the analysis of samples ${activeRow ? (activeRow as AnalysisRun).participants.join(', ') : ""}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
+                title={`Stop Analysis ${(activeRow as AnalysisRun).analysisID}?`}
+                message={`Do you really want to stop the analysis of samples ${(activeRow as AnalysisRun).participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                 onClose={() => { setCancel(false) }}
-            />
+            />}
+            {(activeRow as AnalysisRun) &&
             <AnalysisInfoDialog
                 open={detail}
-                analysisRun={activeRow}
+                analysis={activeRow as AnalysisRun}
                 onClose={() => setDetail(false)}
-            />
+            />}
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                 columns={[
@@ -159,11 +161,11 @@ export default function Analysis() {
                     rowData => ({
                         icon: CancelIcon,
                         tooltip: 'Cancel analysis',
-                        onClick: () => {{
+                        onClick: () => {
                           setActiveRow(rowData)
                           setCancel(true)
-                        }},
-                        disabled: rowData.status != PipelineStatus.RUNNING,
+                        },
+                        disabled: rowData.status !== PipelineStatus.RUNNING,
                     }),
                     {
                         icon: AddIcon,

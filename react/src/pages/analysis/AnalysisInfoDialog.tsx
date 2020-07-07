@@ -1,18 +1,18 @@
 import React from 'react';
-import { createStyles, Theme, makeStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
-import Chip from '@material-ui/core/Chip';
 import DatasetTable from './DatasetTable';
 import { AnalysisRun } from './Analysis';
+import ChipStrip from './ChipStrip';
 
 interface AlertInfoDialogProp {
     open: boolean,
-    analysisRun: AnalysisRun | null,
+    analysis: AnalysisRun,
     onClose: (() => void),
 }
 
@@ -56,69 +56,41 @@ const DialogContent = withStyles((theme: Theme) => ({
   },
 }))(MuiDialogContent);
 
-const makeChipStyle = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      display: 'flex',
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-      '& > *': {
-        margin: theme.spacing(0.5),
-      },
-    },
-  }),
-);
-
 const pipelineParams: string[] = ["gnomAD_AF <= 0.01", "trio", "joint_genotyping", "denovo", "IMPACT_SEVERITY=HIGH",]
 const analyses: string[] = ["SNP", "INDELs",]
-const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snpEff 4.3T", "gnomAD v2.1.1"]
+export const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snpEff 4.3T", "gnomAD v2.1.1"]
 
-export default function AnalysisInfoDialog({analysisRun, open, onClose}: AlertInfoDialogProp) {
-
-  const chipStyle = makeChipStyle();
-  const analysis = analysisRun as AnalysisRun
+export default function AnalysisInfoDialog({analysis, open, onClose}: AlertInfoDialogProp) {
 
   return (
-
-    !(analysisRun) ? null :
-    <div>
       <Dialog onClose={onClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='md' fullWidth={true}>
         <DialogTitle id="customized-dialog-title" onClose={onClose}>
           Analysis: {analysis.analysisID}
           <Typography variant="body1" gutterBottom>
-            Submitted by: {analysisRun.submittedBy}
+            Submitted by: {analysis.submittedBy}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            Status: {analysisRun.status}
+            Status: {analysis.status}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            Date submitted: {analysisRun.dateSubmitted}
+            Date submitted: {analysis.dateSubmitted}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            Runtime: {analysisRun.timeElapsed}
+            Runtime: {analysis.timeElapsed}
           </Typography>
         </DialogTitle>
         <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
-            {analysisRun.pipeline}
+            {analysis.pipeline}
           </Typography>
-          <div className={chipStyle.root}>
-            {analyses.map( (analysis) =>
-                <Chip size="medium" color="primary" label={analysis} />
-            )}
-            {pipelineParams.map( (chipValue) =>
-                <Chip size="medium" label={chipValue} />
-            )}
-            {annotations.map( (annotation) =>
-                <Chip size="medium" color="secondary" label={annotation} />
-            )}
-          </div>
+          <ChipStrip labels={analyses} color="primary"/>
+          <ChipStrip labels={pipelineParams} color="secondary"/>
+          <ChipStrip labels={annotations} color="default"/>
           <Typography variant="h6" gutterBottom>
             Samples
           </Typography>
           <DatasetTable/>
         </DialogContent>
       </Dialog>
-    </div>
   );
 }
