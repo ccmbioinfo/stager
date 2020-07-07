@@ -7,7 +7,7 @@ export interface ChipStripProps {
     color: "primary" | "secondary" | "default",
 }
 
-const makeChipStyle = makeStyles((theme: Theme) =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
@@ -21,7 +21,7 @@ const makeChipStyle = makeStyles((theme: Theme) =>
 );
 
 export default function ChipStrip({labels, color} : ChipStripProps) {
-    const chipStyle = makeChipStyle();
+    const chipStyle = useStyles();
 
     return (
         <div className={chipStyle.root}>

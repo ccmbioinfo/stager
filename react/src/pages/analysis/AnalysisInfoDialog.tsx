@@ -62,9 +62,11 @@ export const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snp
 
 export default function AnalysisInfoDialog({analysis, open, onClose}: AlertInfoDialogProp) {
 
+  const labeledBy = "analysis-info-dialog-slide-title"
+
   return (
-      <Dialog onClose={onClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='md' fullWidth={true}>
-        <DialogTitle id="customized-dialog-title" onClose={onClose}>
+      <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
+        <DialogTitle id={labeledBy} onClose={onClose}>
           Analysis: {analysis.analysisID}
           <Typography variant="body1" gutterBottom>
             Submitted by: {analysis.submittedBy}

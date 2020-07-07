@@ -124,6 +124,8 @@ export default function Analysis() {
                 title={`Stop Analysis ${(activeRow as AnalysisRun).analysisID}?`}
                 message={`Do you really want to stop the analysis of samples ${(activeRow as AnalysisRun).participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                 onClose={() => { setCancel(false) }}
+                labeledByPrefix={(activeRow as AnalysisRun).analysisID}
+                describedByPrefix={(activeRow as AnalysisRun).analysisID}
             />}
             {(activeRow as AnalysisRun) &&
             <AnalysisInfoDialog

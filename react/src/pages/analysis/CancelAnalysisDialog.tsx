@@ -12,6 +12,8 @@ interface CancelAnalysisDialogProp {
   title: string,
   message: string,
   open: boolean,
+  labeledByPrefix: string,
+  describedByPrefix: string,
   onClose: (() => void)
 }
 
@@ -22,7 +24,11 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function CancelAnalysisDialog({title, message, open, onClose}: CancelAnalysisDialogProp) {
+export default function CancelAnalysisDialog({title, message, open, labeledByPrefix, describedByPrefix, onClose}: CancelAnalysisDialogProp) {
+
+  const labeledBy = `${labeledByPrefix}-cancel-alert-dialog-title`
+  const describedBy = `${describedByPrefix}-cancel-alert-dialog-description`
+
   return (
     <div>
       <Dialog
@@ -30,12 +36,12 @@ export default function CancelAnalysisDialog({title, message, open, onClose}: Ca
         TransitionComponent={Transition}
         keepMounted
         onClose={onClose}
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
+        aria-labelledby={labeledBy}
+        aria-describedby={describedBy}
       >
-        <DialogTitle id="alert-dialog-slide-title">{title}</DialogTitle>
+        <DialogTitle id={labeledBy}>{title}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContentText id={describedBy}>
             {message}
           </DialogContentText>
         </DialogContent>

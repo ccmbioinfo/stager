@@ -29,7 +29,7 @@ export default function DatasetTable() {
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="simple table">
+      <Table className={classes.table}>
         <TableHead>
           <TableRow>
             <TableCell>SampleID</TableCell>
@@ -40,7 +40,7 @@ export default function DatasetTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          {rows.map((row) => 
             <TableRow key={row.name}>
               <TableCell component="th" scope="row">
                 {row.name}
@@ -50,7 +50,7 @@ export default function DatasetTable() {
               <TableCell align="right">{row.fileSize}</TableCell>
               <TableCell align="right">{row.dateUploaded}</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

@@ -18,7 +18,7 @@ import DatasetTable from '../analysis/DatasetTable';
 import { annotations } from '../analysis/AnalysisInfoDialog';
 import ChipStrip from '../analysis/ChipStrip';
 
-interface CancelAnalysisDialogProp {
+interface AnalysisRunnerDialogProp {
   participants: Participant[],
   open: boolean,
   onClose: (() => void)
@@ -31,7 +31,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function AnalysisRunnerDialog({participants, open, onClose}: CancelAnalysisDialogProp) {
+export default function AnalysisRunnerDialog({participants, open, onClose}: AnalysisRunnerDialogProp) {
     
     const [state, setState] = useState({
         checkedSNP: true,
@@ -45,34 +45,37 @@ export default function AnalysisRunnerDialog({participants, open, onClose}: Canc
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
         setState({ ...state, [event.target.name]: event.target.checked });
     };
-  
+
+    const labeledBy = "analysis-runner-alert-dialog-slide-title"
+    const describedBy = "analysis-runner-alert-dialog-slide-description"
+
     return (
         <Dialog
             open={open}
             TransitionComponent={Transition}
             keepMounted
             onClose={onClose}
-            aria-labelledby="alert-dialog-slide-title"
-            aria-describedby="alert-dialog-slide-description"
+            aria-labelledby={labeledBy}
+            aria-describedby={describedBy}
             maxWidth='md' 
             fullWidth={true}
         >
-            <DialogTitle id="alert-dialog-slide-title">
-                {"Run analysis"}
+            <DialogTitle id={labeledBy}>
+                Run analysis
             </DialogTitle>
             <DialogContent>
-                <Typography variant="body1">
-                  {"Run a pipeline using the selected datasets on the cluster. A full analysis can take a day to several days depending on the number of samples and the pipeline used."}
+                <Typography id={describedBy} variant="body1">
+                  Run a pipeline using the selected datasets on the cluster. A full analysis can take a day to several days depending on the number of samples and the pipeline used.
                 </Typography>
                 <br/>
                 <Typography variant="subtitle1">
-                  {"Datasets:"}
+                  Datasets:
                 </Typography>
                 <DatasetTable/>
                 <br/>
                 <FormControl component="fieldset">
                     <FormLabel component="legend">
-                        {"Pipelines:"}
+                        Pipelines:
                     </FormLabel>
                     <RadioGroup row aria-label="pipelines" name="pipelines" defaultValue="top">
                       <FormControlLabel value="cre" control={<Radio color="primary" checked={true}/>} label="CRE v1.0.1" />
@@ -83,13 +86,13 @@ export default function AnalysisRunnerDialog({participants, open, onClose}: Canc
                 </FormControl>
                 <br/>
                 <FormLabel component="legend">
-                    {"Annotations:"}
+                    Annotations:
                 </FormLabel>
                 <ChipStrip labels={annotations} color="primary"/>
                 <br/>
                 <FormControl component="fieldset">
                     <FormLabel component="legend">
-                        {"Variants:"}
+                        Variants:
                     </FormLabel>
                     <RadioGroup row aria-label="position" name="position" defaultValue="top">
                         <FormControlLabel control={<Checkbox checked={checkedSNP} onChange={handleChange} name="checkedSNP" color="primary"/>} label="SNPs" />             
@@ -101,7 +104,7 @@ export default function AnalysisRunnerDialog({participants, open, onClose}: Canc
                 <br/>
                 <FormControl component="fieldset">
                     <FormLabel component="legend">
-                        {"Parameters:"}
+                        Parameters:
                     </FormLabel>
                     <RadioGroup row aria-label="position" name="position" defaultValue="top">
                         <FormControlLabel control={<Checkbox checked={true} onChange={handleChange} name="checkedGnomAD" color="primary"/>} label="gnomAD_AF <= 0.01" />             

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
@@ -56,15 +56,15 @@ const rows: Participant[] = [
 
 export default function ParticipantsTable({ display }: ParticipantsTableProps) {
     const classes = useStyles();
-    const [showRunner, setRunner] = React.useState(false);
-    const [activeParticipants, setActiveParticipants] = React.useState<Participant[]>([]);
+    const [showRunner, setRunner] = useState(false);
+    const [activeParticipants, setActiveParticipants] = useState<Participant[]>([]);
 
     return (
         <div>
             <AnalysisRunnerDialog
                 participants={activeParticipants}
                 open={showRunner}
-                onClose={() => {setRunner(false)}}
+                onClose={() => setRunner(false)}
             />
             <MaterialTable
                 columns={[
