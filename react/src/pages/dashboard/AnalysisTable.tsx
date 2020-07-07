@@ -8,6 +8,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import { PipelineStatus } from '../analysis/Analysis';
 
 import Title from '../Title';
 
@@ -17,7 +18,7 @@ interface AnalysisRun {
     project: string;
     pipeline: string;
     timeElapsed: string;
-    status: string;
+    status: PipelineStatus;
 }
 
 // generate fake analysis data
@@ -27,26 +28,26 @@ function createAnalysis(
     project: string,
     pipeline: string,
     timeElapsed: string,
-    status: string): AnalysisRun {
+    status: PipelineStatus): AnalysisRun {
     return { id, dateSubmitted, project, pipeline, timeElapsed, status };
 }
 
 const pending = [
-    createAnalysis(0, '2020-05-23', '1000', 'CRE', '-', 'Pending'),
-    createAnalysis(1, '2020-06-13', '2030', 'CRE', '-', 'Pending'),
-    createAnalysis(2, '2020-06-19', '4030', 'CRG', '-', 'Pending'),
+    createAnalysis(0, '2020-05-23', '1000', 'CRE', '-', PipelineStatus.PENDING),
+    createAnalysis(1, '2020-06-13', '2030', 'CRE', '-', PipelineStatus.PENDING),
+    createAnalysis(2, '2020-06-19', '4030', 'CRG', '-', PipelineStatus.PENDING),
 ];
 
 const running = [
-    createAnalysis(0, '2020-06-22', '3291', 'CRG', '2hrs', 'Running'),
-    createAnalysis(1, '2020-06-21', '3289', 'CRE', '17hrs', 'Running'),
-    createAnalysis(2, '2020-06-21', '2382', 'CRG', '20hrs', 'Running'),
+    createAnalysis(0, '2020-06-22', '3291', 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(1, '2020-06-21', '3289', 'CRE', '17hrs', PipelineStatus.RUNNING),
+    createAnalysis(2, '2020-06-21', '2382', 'CRG', '20hrs', PipelineStatus.RUNNING),
 ];
 
 const completed = [
-    createAnalysis(0, '2020-06-19', '4182', 'CRG', '47hrs', 'Completed'),
-    createAnalysis(1, '2020-06-19', '3271', 'CRE', '20hrs', 'Completed'),
-    createAnalysis(2, '2020-06-20', '3839', 'CRE', '22hrs', 'Error'),
+    createAnalysis(0, '2020-06-19', '4182', 'CRG', '47hrs', PipelineStatus.COMPLETED),
+    createAnalysis(1, '2020-06-19', '3271', 'CRE', '20hrs', PipelineStatus.COMPLETED),
+    createAnalysis(2, '2020-06-20', '3839', 'CRE', '22hrs', PipelineStatus.ERROR),
 ];
 
 function preventDefault(event: React.MouseEvent) {

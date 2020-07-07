@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import DeleteIcon from '@material-ui/icons/Delete';
+import AnalysisRunnerDialog from './AnalysisRunnerDialog';
+
+export interface Participant {
+    participantID: string,
+    project: string,
+    uploader: string,
+    numSamples: number,
+    sex: string,
+    created: string
+}
 
 export enum DisplayType {
     PARTICIPANT = "Participants",
@@ -21,7 +33,6 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-
 function createParticipant(
     participantID: string,
     project: string,
@@ -32,7 +43,7 @@ function createParticipant(
     return { participantID, project, uploader, numSamples, sex, created };
 }
 
-const rows = [
+const rows: Participant[] = [
     createParticipant('AA0001', '3001', 'CHEO', 2, 'F', '2020-02-01'),
     createParticipant('AA0002', '3002', 'CHEO', 1, 'M', '2020-02-01'),
     createParticipant('AA0003', '3003', 'ACH', 1, 'F', '2020-02-01'),
@@ -45,69 +56,77 @@ const rows = [
 
 export default function ParticipantsTable({ display }: ParticipantsTableProps) {
     const classes = useStyles();
+    const [showRunner, setRunner] = useState(false);
+    const [activeParticipants, setActiveParticipants] = useState<Participant[]>([]);
 
     return (
-        <MaterialTable
-            columns={[
-                { title: 'Participant', field: 'participantID' },
-                { title: 'Project', field: 'project' },
-                { title: 'Uploader', field: 'uploader' },
-                { title: 'Num. Samples', field: 'numSamples', type: 'numeric' },
-                { title: 'Sex', field: 'sex', type: 'string' },
-                { title: 'Created', field: 'created', type: 'string' }
-            ]}
-            data={rows}
-            title={display}
-            options={{
-                pageSize: 10,
-                selection: true
-            }}
-            editable={{
-                onRowAdd: newData =>
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            /* setData([...data, newData]); */
+        <div>
+            <AnalysisRunnerDialog
+                participants={activeParticipants}
+                open={showRunner}
+                onClose={() => setRunner(false)}
+            />
+            <MaterialTable
+                columns={[
+                    { title: 'Participant', field: 'participantID' },
+                    { title: 'Project', field: 'project' },
+                    { title: 'Uploader', field: 'uploader' },
+                    { title: 'Num. Samples', field: 'numSamples', type: 'numeric' },
+                    { title: 'Sex', field: 'sex', type: 'string' },
+                    { title: 'Created', field: 'created', type: 'string' }
+                ]}
+                data={rows}
+                title={display}
+                options={{
+                    pageSize: 10,
+                    selection: true
+                }}
+                editable={{
+                    onRowUpdate: (newData, oldData) =>
+                        new Promise((resolve, reject) => {
+                            setTimeout(() => {
+                                // const dataUpdate = [...data];
+                                // const index = oldData.tableData.id;
+                                // dataUpdate[index] = newData;
+                                // setData([...dataUpdate]);
 
-                            resolve();
-                        }, 1000);
-                    }),
-                onRowUpdate: (newData, oldData) =>
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            // const dataUpdate = [...data];
-                            // const index = oldData.tableData.id;
-                            // dataUpdate[index] = newData;
-                            // setData([...dataUpdate]);
-
-                            resolve();
-                        }, 1000);
-                    }),
-                onRowDelete: oldData =>
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            // const dataDelete = [...data];
-                            // const index = oldData.tableData.id;
-                            // dataDelete.splice(index, 1);
-                            // setData([...dataDelete]);
-
-                            resolve();
-                        }, 1000);
-                    })
-            }}
-            components={{
-                Toolbar: props => (
-                    <div>
-                        <MTableToolbar {...props} />
-                        <div style={{ marginLeft: '24px' }}>
-                            <Chip label="CHEO" clickable className={classes.chip} />
-                            <Chip label="SK" clickable className={classes.chip} />
-                            <Chip label="ACH" clickable className={classes.chip} />
-                            <Chip label="BCL" clickable className={classes.chip} />
-                            <Chip label="Misc." clickable className={classes.chip} />
+                                resolve();
+                            }, 1000);
+                        }),
+                }}
+                components={{
+                    Toolbar: props => (
+                        <div>
+                            <MTableToolbar {...props} />
+                            <div style={{ marginLeft: '24px' }}>
+                                <Chip label="CHEO" clickable className={classes.chip} />
+                                <Chip label="SK" clickable className={classes.chip} />
+                                <Chip label="ACH" clickable className={classes.chip} />
+                                <Chip label="BCL" clickable className={classes.chip} />
+                                <Chip label="Misc." clickable className={classes.chip} />
+                            </div>
                         </div>
-                    </div>
-                ),
-            }}
-        />
+                    ),
+                }}
+                actions={[
+                    {
+                        tooltip: 'Delete the selected participants',
+                        icon: DeleteIcon,
+                        onClick: (evt, data) => {
+                            const sampleString = (data as Participant[]).map((participant) => { return participant.participantID }).join(', ')
+                            alert(`Widthdraw all datasets and records associated with the samples: ${sampleString}`)
+                        }
+                    },
+                    {
+                        tooltip: 'Run an analysis with the selected datasets',
+                        icon: PlayArrowIcon,
+                        onClick: (evt, data) => {
+                            setActiveParticipants(data as Participant[])
+                            setRunner(true)
+                        }
+                    }
+                ]}
+            />
+        </div>
     )
 }

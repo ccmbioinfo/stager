@@ -16,7 +16,7 @@ def load_user(uid: int):
 @app.route('/api/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        return '', 204
+        return json.dumps({ "username": current_user.username }), 200
 
     body = request.json
     if not body:
@@ -26,7 +26,7 @@ def login():
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
     login_user(user)
-    return 'Authenticated', 200
+    return json.dumps({ "username": user.username }), 200
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -134,6 +134,29 @@ def delete_user():
     db_user = models.User.query.filter_by(username=rq_user['username']).first_or_404()
     try:
         db.session.delete(db_user)
+        db.session.commit()
+        return 'Updated', 204
+    except:
+        db.session.rollback()
+        return 'Server error', 500
+
+
+@app.route('/api/password', methods=['POST'])
+@login_required
+def change_password():
+    params = request.get_json()
+    if 'current' not in params or 'password' not in params or \
+        'confirm' not in params:
+        return 'Bad request', 400
+
+    if params['password'] != params['confirm']:
+        return 'Passwords do not match', 400
+
+    if not current_user.check_password(params['current']):
+        return 'Incorrect password', 401
+
+    current_user.set_password(params['password'])
+    try:
         db.session.commit()
         return 'Updated', 204
     except:

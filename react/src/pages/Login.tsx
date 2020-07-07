@@ -25,7 +25,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function LoginForm({
-    setAuthenticated = function (auth: boolean) { }
+    setAuthenticated = (auth: boolean) => { },
+    setGlobalUsername = (username: string) => { }
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -41,8 +42,13 @@ export default function LoginForm({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password })
         });
+        if (result.ok) {
+            setGlobalUsername((await result.json())["username"]);
+            setError("");
+        } else {
+            setError(await result.text());
+        }
         setAuthenticated(result.ok);
-        setError(result.ok ? "" : await result.text());
     }
     useEffect(() => {
         document.title = "Sign in | ST2020";
