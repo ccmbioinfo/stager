@@ -94,15 +94,15 @@ function createAnalysis(
 }
 
 const analyses = [
-    createAnalysis(0, 'AN20392', '2020-05-23', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
-    createAnalysis(1, 'AN30092', '2020-06-13', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', PipelineStatus.RUNNING),
-    createAnalysis(2, 'AN43820', '2020-06-19', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', PipelineStatus.RUNNING),
-    createAnalysis(3, 'AN38292', '2020-06-22', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
-    createAnalysis(4, 'AN33889', '2020-06-21', 'User C', '3289', ['CC330'], 'CRE', '17hrs', PipelineStatus.RUNNING),
-    createAnalysis(5, 'AN38920', '2020-06-21', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', PipelineStatus.RUNNING),
-    createAnalysis(6, 'AN38921', '2020-06-19', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
-    createAnalysis(7, 'AN38991', '2020-06-19', 'User B', '3271', ['AA320'], 'CRE', '20hrs', PipelineStatus.COMPLETED),
-    createAnalysis(8, 'AN20032', '2020-06-20', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
+    createAnalysis(0, 'AN20392', '2020-05-23 12:09 PM', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
+    createAnalysis(1, 'AN30092', '2020-06-13 1:09 AM', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', PipelineStatus.RUNNING),
+    createAnalysis(2, 'AN43820', '2020-06-19 4:32 AM', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(3, 'AN38292', '2020-06-22 8:56 PM', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(4, 'AN33889', '2020-06-21 8:09 AM', 'User C', '3289', ['CC330'], 'CRE', '17hrs', PipelineStatus.RUNNING),
+    createAnalysis(5, 'AN38920', '2020-06-21 1:22 PM', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', PipelineStatus.RUNNING),
+    createAnalysis(6, 'AN38921', '2020-06-19 10:00 AM', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
+    createAnalysis(7, 'AN38991', '2020-06-19 9:09 AM', 'User B', '3271', ['AA320'], 'CRE', '20hrs', PipelineStatus.COMPLETED),
+    createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
 ];
 
 export default function Analysis() {
@@ -140,7 +140,7 @@ export default function Analysis() {
                         { title: 'Submitted', field: 'dateSubmitted', type: 'string' },
                         { title: 'Submitted By', field: 'submittedBy', type: 'string' },
                         { title: 'Project', field: 'project', type: 'string' },
-                        { title: 'Participants', field: 'participants', type: 'string' },
+                        { title: 'Participants', field: 'participants', type: 'string', render: rowData => rowData.participants.join(', ') },
                         { title: 'Pipeline', field: 'pipeline', type: 'string' },
                         { title: 'Status', field: 'status', type: 'string' }
                     ]}

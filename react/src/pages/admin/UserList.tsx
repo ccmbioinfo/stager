@@ -15,7 +15,6 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(2),
         overflow: 'auto',
     },
-    appBarSpacer: theme.mixins.toolbar,
     addButton: {
         marginBottom: theme.spacing(1)
     }
@@ -81,7 +80,6 @@ export default function UserList() {
 
     return (
         <main className={classes.root}>
-            <div className={classes.appBarSpacer} />
             <CreateUserModal id="create-modal"
                 open={addingUser}
                 onClose={() => setAddingUser(false)}
@@ -114,14 +112,14 @@ export default function UserList() {
                 Add new
             </Button>
             <Grid container spacing={2}>
-            {userList.map(user =>
-                <Grid item xs={12} md={6}>
-                    <UserRow
-                        key={user.username} {...user}
-                        onUpdate={setUpdatingUser}
-                        onDelete={setDeletingUser} />
-                </Grid>
-            )}
+                {userList.map(user =>
+                    <Grid item xs={12} md={6}>
+                        <UserRow
+                            key={user.username} {...user}
+                            onUpdate={setUpdatingUser}
+                            onDelete={setDeletingUser} />
+                    </Grid>
+                )}
             </Grid>
         </main>
     );
