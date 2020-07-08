@@ -91,8 +91,8 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
                 <Typography variant="h6" gutterBottom>
                     Samples
           </Typography>
-                <DatasetTable />
-            </DialogContent>
-        </Dialog>
-    );
+          <DatasetTable/>
+        </DialogContent>
+      </Dialog>
+  );
 }

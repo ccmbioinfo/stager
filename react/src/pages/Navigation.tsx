@@ -168,14 +168,14 @@ export default function Navigation({ username, signout }: NavigationProps) {
                         <ListItemRouterLink to="/dashboard" primary="Dashboard">
                             <DashboardIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/analysis" primary="Analyses">
-                            <ShowChartIcon />
+                        <ListItemRouterLink to="/uploads" primary="Upload">
+                            <UploadIcon />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/participants" primary="Participants">
                             <PeopleIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/uploads" primary="Upload">
-                            <UploadIcon />
+                        <ListItemRouterLink to="/analysis" primary="Analyses">
+                            <ShowChartIcon />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/settings" primary="Settings">
                             <SettingsIcon />
