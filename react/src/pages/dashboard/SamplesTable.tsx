@@ -18,10 +18,9 @@ export interface Sample {
 
 const useStyles = makeStyles(theme => ({
     chip: {
+        color: "primary",
         marginRight: '10px',
-        '&.Mui-click': {
-            backgroundColor: '#f50057',
-        }
+        colorPrimary: theme.palette.primary,
     }
 }));
 
