@@ -152,7 +152,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                             <MenuIcon />
                         </IconButton>
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                            ST2020 Dashboard
+                            ST2020
                         </Typography>
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize='large' />
