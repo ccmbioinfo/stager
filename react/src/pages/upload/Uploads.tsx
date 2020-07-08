@@ -67,7 +67,7 @@ export default function Uploads() {
                         </Paper>
                     </Grid>
                     <Grid item xs={4}>
-                        <Paper className={classes.addnew} elevation={elevation} onMouseOver={() => setElevation(10)} onMouseOut={() => setElevation(1)} onClick={() => { setElevation(10) }}>
+                        <Paper className={classes.addnew} elevation={elevation} onMouseOver={() => setElevation(10)} onMouseOut={() => setElevation(1)} onClick={() => { setElevation(10); setUploaderOpen(true) }}>
                             <React.Fragment>
                                 <Typography variant="h5" color="primary" align='center' gutterBottom>
                                     Add New Participants
