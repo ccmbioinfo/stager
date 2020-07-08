@@ -28,7 +28,7 @@ import Analysis from './analysis/Analysis';
 import Participants from './participants/Participants';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
-import UserList from './admin/UserList';
+import Admin from './admin/Admin';
 import ListItemRouterLink from './ListItemRouterLink';
 
 const drawerWidth = 240;
@@ -195,7 +195,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                     </div>
                 </Drawer>
                 <Switch>
-                    <Route path="/admin" component={UserList} />
+                    <Route path="/admin" component={Admin} />
                     <Route path="/analysis" component={Analysis} />
                     <Route path="/participants" component={Participants} />
                     <Route path="/uploads" component={Uploads} />

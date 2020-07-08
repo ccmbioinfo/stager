@@ -9,13 +9,7 @@ import Typography from '@material-ui/core/Typography';
 
 import Card from '../participants/Card';
 import FilesTable from './FilesTable';
-import UploadersTable from './UploadersTable';
 import UploadDialog from './UploadDialog';
-
-enum TableType {
-    FILES,
-    UPLOADERS,
-}
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -50,18 +44,8 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function renderTable(displayTable: TableType) {
-    switch (displayTable) {
-        case TableType.FILES:
-            return <FilesTable />;
-        case TableType.UPLOADERS:
-            return <UploadersTable />;
-    }
-}
-
 export default function Uploads() {
     const classes = useStyles();
-    const [tableType, setTableType] = useState(TableType.FILES);
     const [elevation, setElevation] = useState(1);
     const [uploaderOpen, setUploaderOpen] = useState(false);
 
@@ -80,35 +64,22 @@ export default function Uploads() {
                 <Grid container spacing={2}>
                     <Grid item xs={4}>
                         <Paper className={classes.paper}>
-                            <Card title="Unlinked files" value="17" textSecondary="2 since last week" linkText="" children={
-                                <Link color="primary" href="#" onClick={() => { setTableType(TableType.FILES); console.log(tableType) }}>
-                                    View unlinked files
-                                </Link>
-                            } />
+                            <Card title="Unlinked files" value="17" textSecondary="2 since last week" linkText="" children="" />
                         </Paper>
                     </Grid>
                     <Grid item xs={4}>
-                        <Paper className={classes.paper}>
-                            <Card title="Uploaders" value="5" textSecondary="Avg 12 files per week" linkText="" children={
-                                <Link color="primary" href="#" onClick={() => { setTableType(TableType.UPLOADERS); console.log(tableType) }}>
-                                    Manage uploaders
-                                </Link>
-                            } />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Paper className={classes.addnew} elevation={elevation} onMouseOver={() => setElevation(10)} onMouseOut={() => setElevation(1)} onClick={() => {setUploaderOpen(true); setElevation(10)}}>
-                        <React.Fragment>
-                            <Typography variant="h5" color="primary" align='center' gutterBottom>
-                                Add New Participants
+                        <Paper className={classes.addnew} elevation={elevation} onMouseOver={() => setElevation(10)} onMouseOut={() => setElevation(1)} onClick={() => { setElevation(10) }}>
+                            <React.Fragment>
+                                <Typography variant="h5" color="primary" align='center' gutterBottom>
+                                    Add New Participants
                             </Typography>
-                            <Typography align='center' component="p" variant="h2">+</Typography>
-                        </React.Fragment>
+                                <Typography align='center' component="p" variant="h2">+</Typography>
+                            </React.Fragment>
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>
                         <Box alignItems="stretch">
-                            {renderTable(tableType)}
+                            <FilesTable />
                         </Box>
                     </Grid>
                 </Grid>
