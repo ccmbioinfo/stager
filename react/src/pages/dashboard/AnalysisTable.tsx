@@ -39,9 +39,9 @@ const pending = [
 ];
 
 const running = [
-    createAnalysis(0, '2020-06-22', '3291', 'CRG', '2hrs', PipelineStatus.RUNNING),
-    createAnalysis(1, '2020-06-21', '3289', 'CRE', '17hrs', PipelineStatus.RUNNING),
-    createAnalysis(2, '2020-06-21', '2382', 'CRG', '20hrs', PipelineStatus.RUNNING),
+    createAnalysis(0, '2020-07-08', '3291', 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(1, '2020-07-07', '3289', 'CRE', '17hrs', PipelineStatus.RUNNING),
+    createAnalysis(2, '2020-07-07', '2382', 'CRG', '20hrs', PipelineStatus.RUNNING),
 ];
 
 const completed = [
@@ -60,12 +60,15 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+
+
 export default function AnalysisTable() {
     const classes = useStyles();
+
     return (
-        <Grid container spacing={2}>
+        <Grid container spacing={1}>
             <Grid item xs={4}>
-                <Title>Pending Analyses</Title>
+                <Title>9 Pending Analyses</Title>
                 <Paper variant="outlined">
                     <Table size="small">
                         <TableHead>
@@ -93,12 +96,13 @@ export default function AnalysisTable() {
                 </div>
             </Grid>
             <Grid item xs={4}>
-                <Title>Running Analyses</Title>
+                <Title>5 Running Analyses</Title>
                 <Paper variant="outlined">
                     <Table size="small">
                         <TableHead>
                             <TableRow>
                                 <TableCell>Submitted</TableCell>
+                                <TableCell>Time</TableCell>
                                 <TableCell>Project</TableCell>
                                 <TableCell>Pipeline</TableCell>
                             </TableRow>
@@ -107,6 +111,7 @@ export default function AnalysisTable() {
                             {running.map(row => (
                                 <TableRow key={row.id}>
                                     <TableCell>{row.dateSubmitted}</TableCell>
+                                    <TableCell>{row.timeElapsed}</TableCell>
                                     <TableCell>{row.project}</TableCell>
                                     <TableCell>{row.pipeline}</TableCell>
                                 </TableRow>
@@ -121,7 +126,7 @@ export default function AnalysisTable() {
                 </div>
             </Grid>
             <Grid item xs={4}>
-                <Title>Completed Analyses</Title>
+                <Title>34 Completed Analyses</Title>
                 <Paper variant="outlined">
                     <Table size="small">
                         <TableHead>
