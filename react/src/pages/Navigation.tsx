@@ -21,7 +21,9 @@ import UploadIcon from '@material-ui/icons/Publish';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
-import VerifiedUserIcon from '@material-ui/icons/VerifiedUser'
+import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
@@ -113,6 +115,9 @@ const useStyles = makeStyles(theme => ({
     },
     bottomItems: {
         marginTop: 'auto',
+    },
+    icon: {
+        paddingLeft: theme.spacing(1)
     }
 }));
 
@@ -147,8 +152,11 @@ export default function Navigation({ username, signout }: NavigationProps) {
                             <MenuIcon />
                         </IconButton>
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                            ST2020 Dashboard
+                            ST2020
                         </Typography>
+                        <Tooltip title={"Logged in as " + username} arrow>
+                            <AccountCircleIcon fontSize='large' />
+                        </Tooltip>
                     </Toolbar>
                 </AppBar>
                 <Drawer
