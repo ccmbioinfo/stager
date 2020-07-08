@@ -4,7 +4,7 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import AnalysisTable from './AnalysisTable';
-import ParticipantTable from './ParticipantTable';
+import SamplesTable from './SamplesTable';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -49,9 +49,8 @@ export default function Dashboard() {
             <Container>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-                        <Paper className={classes.paper}>
-                            <ParticipantTable />
-                        </Paper>
+
+                            <SamplesTable />
                     </Grid>
                 </Grid>
             </Container>
