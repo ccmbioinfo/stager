@@ -63,6 +63,14 @@ docker-compose up
 This builds a `ccmbio/st2020` image with the Python dependencies and mounts the `flask` directory to watch for live changes.
 Start the Create React App development server the same way as the no-Docker workflow.
 
+To rebuild the database after changes to the schema (i.e. to the `models.py` file) run `docker ps -a`, note the CONTAINER ID, and run
+```
+docker exec -it <CONTAINER ID> /bin/bash
+# and within the container:
+flask db migrate
+```
+Exit out of the container, restart and the changes to the schema should be applied
+
 ### Production
 1. Add `star_ccm_sickkids_ca.crt` and `star_ccm_sickkids_ca.key` to `nginx/certs`.
 1. In the `react` directory, build the static bundles for nginx with `yarn build`.
