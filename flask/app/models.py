@@ -34,9 +34,9 @@ class Family(db.Model):
     family_id = db.Column(db.Integer, primary_key=True)
     # Family.FamilyID
     family_codename = db.Column(db.String(50), nullable=False, unique=True)
-    created = db.Column(db.DateTime, nullable=False)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     participants = db.relationship('Participant', backref='family', lazy='dynamic')
 
@@ -49,7 +49,8 @@ class Sex(Enum):
 
 class ParticipantType(Enum):
     Proband = 'Proband'
-    Parent = 'Parent'
+    Mother = 'Mother'
+    Father = 'Father'
     Sibling = 'Sibling'
 
 
@@ -64,10 +65,12 @@ class Participant(db.Model):
     participant_type = db.Column(db.Enum(ParticipantType), nullable=False)
     # Sample.AffectedStatus
     affected = db.Column(db.Boolean, nullable=False)
+    # Dataset.SolvedStatus
+    solved = db.Column(db.Boolean) #TODO uncomment and rebuild
     notes = db.Column(db.Text)
-    created = db.Column(db.DateTime, nullable=False)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     tissue_samples = db.relationship('TissueSample', backref='participant', lazy='dynamic')
 
@@ -98,12 +101,10 @@ class TissueSample(db.Model):
     tissue_sample_type = db.Column(db.Enum(TissueSampleType), nullable=False)
     # RNASeqDataset.TissueProcessing
     tissue_processing = db.Column(db.Enum(TissueProcessing))
-    # Dataset.SolvedStatus
-    solved = db.Column(db.Boolean)
     notes = db.Column(db.Text)
-    created = db.Column(db.DateTime, nullable=False)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.now)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     datasets = db.relationship('Dataset', backref='tissue_sample', lazy='dynamic')
 
@@ -124,6 +125,7 @@ class DatasetType(Enum):
     RRS = 'RRS'
     RTA = 'RTA'
     WES = 'WES'
+    WGS = 'WGS'
     RNASeq = 'RNASeq'  # RNA-Seq
     RCS = 'RCS'
     RDC = 'RDC'
@@ -133,7 +135,7 @@ class DatasetType(Enum):
 # Name TBD
 class DatasetCondition(Enum):
     Control = 'Control'
-    GermLine = 'GermLine'  # e.g. rare diseases
+    GermLine = 'Germline'  # e.g. rare diseases
     Somatic = 'Somatic'  # e.g. cancer
 
 
@@ -175,16 +177,12 @@ class Dataset(db.Model):
     # Dataset.DatasetType
     dataset_type = db.Column(db.Enum(DatasetType), nullable=False)
     # Dataset.HPFPath
-    input_hpf_path = db.Column(db.String(500), nullable=False)
-    # Dataset.EnteredDate
-    entered = db.Column(db.DateTime, nullable=False)
-    # Dataset.EnteredBy
-    entered_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    input_hpf_path = db.Column(db.String(500))
     # Dataset.Notes
     notes = db.Column(db.Text)
     # RNASeqDataset.Condition (name TBD)
     condition = db.Column(db.Enum(DatasetCondition), nullable=False)
-    extraction_protocol = db.Column(db.Enum(DatasetExtractionProtocol), nullable=False)
+    extraction_protocol = db.Column(db.Enum(DatasetExtractionProtocol))
     # RNASeqDataset.ExtractionMethod (guided dropdown or enum)
     capture_kit = db.Column(db.String(50))
     # RNASeq.LibraryPrepMethod (guided dropdown or enum)
@@ -195,12 +193,12 @@ class Dataset(db.Model):
     sequencing_id = db.Column(db.String(50))
     sequencing_date = db.Column(db.Date)
     # Uploaders.UploadCenter
-    sequencing_centre = db.Column(db.String(100), nullable=False)
+    sequencing_centre = db.Column(db.String(100))
     batch_id = db.Column(db.String(50))
-    created = db.Column(db.DateTime, nullable=False)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     # Dataset.NotesLastUpdatedDate
-    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
+    updated = db.Column(db.DateTime, nullable=False, onupdate=datetime.now, default=datetime.utcnow)
     # Dataset.NotesLastUpdatedBy
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
 
