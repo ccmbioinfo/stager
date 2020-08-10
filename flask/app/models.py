@@ -48,9 +48,9 @@ class Sex(Enum):
 
 
 class ParticipantType(Enum):
-    # TODO: switch this to Mother/Father instead of Parent to help identify sample swaps
     Proband = 'Proband'
-    Parent = 'Parent'
+    Mother = 'Mother'
+    Father = 'Father'
     Sibling = 'Sibling'
 
 
@@ -65,6 +65,8 @@ class Participant(db.Model):
     participant_type = db.Column(db.Enum(ParticipantType), nullable=False)
     # Sample.AffectedStatus
     affected = db.Column(db.Boolean, nullable=False)
+    # Dataset.SolvedStatus
+    solved = db.Column(db.Boolean) #TODO uncomment and rebuild
     notes = db.Column(db.Text)
     created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
@@ -99,8 +101,6 @@ class TissueSample(db.Model):
     tissue_sample_type = db.Column(db.Enum(TissueSampleType), nullable=False)
     # RNASeqDataset.TissueProcessing
     tissue_processing = db.Column(db.Enum(TissueProcessing))
-    # Dataset.SolvedStatus
-    solved = db.Column(db.Boolean) # TODO move this to either family or participant level
     notes = db.Column(db.Text)
     created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
@@ -125,7 +125,7 @@ class DatasetType(Enum):
     RRS = 'RRS'
     RTA = 'RTA'
     WES = 'WES'
-    #TODO: add WGS
+    WGS = 'WGS'
     RNASeq = 'RNASeq'  # RNA-Seq
     RCS = 'RCS'
     RDC = 'RDC'
@@ -178,12 +178,6 @@ class Dataset(db.Model):
     dataset_type = db.Column(db.Enum(DatasetType), nullable=False)
     # Dataset.HPFPath
     input_hpf_path = db.Column(db.String(500))
-    # Dataset.EnteredDate
-    # TODO this is the same as date_created, remove
-    entered = db.Column(db.DateTime)
-    # Dataset.EnteredBy
-    # TODO this is the same as created_by, remove
-    entered_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
     # Dataset.Notes
     notes = db.Column(db.Text)
     # RNASeqDataset.Condition (name TBD)

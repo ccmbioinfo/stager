@@ -110,10 +110,7 @@ def add_dummy_data():
                 dataset_type = d['dataset_type'],
                 condition = d['condition'],
                 created_by = d['created_by'],
-                entered_by = d['created_by'],
                 updated_by = d['created_by'],
-                #input_hpf_path = d['input_hpf_path'],
-                entered = d['entered'],
                 created = d['entered'],
                 sequencing_centre = 'CHEO', #TODO: remove
                 extraction_protocol = 'Something' #TODO: remove
@@ -123,17 +120,42 @@ def add_dummy_data():
         db.session.commit()
         print("Created default datasets: {}".format(", ".join([d['dataset_type']+" for TissueSample"+str(d['tissue_sample_id']) for d in default_datasets])))
 
-    # add analyses
-    if len(db.session.query(models.Analysis).all()) == 0:
-        pass
-
     # add pipelines
     if len(db.session.query(models.Pipeline).all()) == 0:
-        pass
+        default_pipelines = [
+            {"pipeline_name": "CRG", "pipeline_version": "1.2"},
+            {"pipeline_name": "CRE", "pipeline_version": "4.3"}
+        ]
+        for p in default_pipelines:
+            pipeline = models.Pipeline(
+                pipeline_name = p["pipeline_name"],
+                pipeline_version = p["pipeline_version"]
+            )
+            db.session.add(pipeline)
+        
+        db.session.commit()
+        print("Created default pipelines: {}".format(", ".join([p['pipeline_version'] for p in default_pipelines])))
 
-    # add pipeline/dataset compatability
-    if len(db.session.query(models.PipelineDatasets).all()) == 0:
-        pass
+    # add analyses
+    if len(db.session.query(models.Analysis).all()) == 0:
+        default_analyses = [
+            {'analysis_state': "Running", "pipeline_id": 1, "assignee": 1, "requester": 1, "requested": "2020-07-28", "started": "2020-08-04", "updated_by": 1},
+            {'analysis_state': "Pending", "pipeline_id": 2, "assignee": 1, "requester": 1, "requested": "2020-08-10", "started": "", "updated_by": 1}
+        ]
+        for a in default_analyses:
+            analysis = models.Analysis(
+                analysis_state = a['analysis_state'],
+                pipeline_id = a['pipeline_id'],
+                assignee = a['assignee'],
+                requester = a['requester'],
+                requested = a['requested'],
+                started = a['started'],
+                updated_by = a['updated_by']
+            )
+            db.session.add(pipeline)
+        
+        db.session.commit()
+        print("Created default analysis with states: {}".format(", ".join([a['analysis_state'] for a in default_analyses])))
 
     # need to add to the users_groups, groups_datasets, and datasets_analyses tables as well
 
