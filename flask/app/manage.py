@@ -57,8 +57,8 @@ def add_dummy_data():
         # codename is key, sex, type
         default_participants = [
             {'family_id': 1, 'codename': 'AA001', 'sex': 'Female', 'type': 'Proband', 'affected': True, 'notes': 'Extra info about sample here', 'created_by': 1, 'updated_by': 1},
-            {'family_id': 1, 'codename': 'AA002', 'sex': 'Male', 'type': 'Parent', 'affected': False, 'notes': '', 'created_by': 1, 'updated_by': 1},
-            {'family_id': 1, 'codename': 'AA003', 'sex': 'Female', 'type': 'Parent', 'affected': False, 'notes': '', 'created_by': 1, 'updated_by': 1},
+            {'family_id': 1, 'codename': 'AA002', 'sex': 'Male', 'type': 'Father', 'affected': False, 'notes': '', 'created_by': 1, 'updated_by': 1},
+            {'family_id': 1, 'codename': 'AA003', 'sex': 'Female', 'type': 'Mother', 'affected': False, 'notes': '', 'created_by': 1, 'updated_by': 1},
         ]
         for p in default_participants:
             participant = models.Participant(

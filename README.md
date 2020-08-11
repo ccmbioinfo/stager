@@ -63,13 +63,24 @@ docker-compose up
 This builds a `ccmbio/st2020` image with the Python dependencies and mounts the `flask` directory to watch for live changes.
 Start the Create React App development server the same way as the no-Docker workflow.
 
-To rebuild the database after changes to the schema (i.e. to the `models.py` file) run `docker ps -a`, note the CONTAINER ID, and run
+To rebuild the database after changes to the schema (i.e. to the `models.py` file) run `docker ps -a`, note the CONTAINER ID of `ccmbio/st2020` , and run
 ```
 docker exec -it <CONTAINER ID> /bin/bash
 # and within the container:
-flask db migrate
+flask db migrate -m "messsage about change"
+flask db upgrade
 ```
-Exit out of the container, restart and the changes to the schema should be applied
+Exit out of the container, restart and the changes to the schema should be applied.
+
+If the change is to an enum or something else that the isn't automatically picked up by flask migrate, you need to manually create the migration file by doing the following:
+
+1. When the application is running, enter into the `ccmbio/st2020` container as described above and run:
+```
+flask db revision -m "message about change"
+``` 
+2. Navigate to the `migrations/versions` folder and open the file that was just created.
+3. Edit the `updgrade/downgrade` functions by writing MySQL code directly in `op.execute("MYSQL CODE HERE)` calls
+4. Shut down everything, update the `models.py` and restart
 
 ### Production
 1. Add `star_ccm_sickkids_ca.crt` and `star_ccm_sickkids_ca.key` to `nginx/certs`.
