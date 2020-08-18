@@ -47,8 +47,8 @@ will prefork one worker child process with two threads to serve up the Flask rou
 ### Web frontend
 You will need a recent Node.js and Yarn (`npm install -g yarn`).
 1. Switch to the `react` directory.
-1. Install dependencies with `yarn`.
-1. Start a development server in watch mode with `yarn start`.
+2. Install dependencies with `yarn`.
+3. Start a development server in watch mode with `yarn start`.
 
 You can build the static bundles for production with `yarn build`.
 
@@ -61,7 +61,8 @@ These are used in `docker-compose.yaml` and `docker-compose.prod.yaml`.
 docker-compose up
 ```
 This builds a `ccmbio/st2020` image with the Python dependencies and mounts the `flask` directory to watch for live changes.
-Start the Create React App development server the same way as the no-Docker workflow.
+
+Start the Create React App development server the [same way as the no-Docker workflow.](#web-frontend)
 
 To rebuild the database after changes to the schema (i.e. to the `models.py` file) run `docker ps -a`, note the CONTAINER ID of `ccmbio/st2020` , and run
 ```
