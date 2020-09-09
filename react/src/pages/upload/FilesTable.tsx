@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState, useEffect }  from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { useState, useEffect } from 'react';
+
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -21,23 +21,15 @@ function createFile(object_name: string, owner_id: string, size: number, etag: s
 export default function FilesTable() {
     const classes = useStyles();
 
-    const [data, setData] = useState([createFile(
-        'TESTER.fastq.gz', 'CHEO', 6611, '3a72eed94ddd4fafff9e4c2ba88cae02', '2020-09-01'
-        )]);
-
-    //for error handling (?)
+    const [data, setData] = useState([]);
     const [iserror, setIserror] = useState(false)
-    const [errorMessages, setErrorMessages] = useState([''])
 
 
     useEffect(() => {
         fetch("/api/objects").then(res => res.json()).then(res => {
             setData(res);
           })
-
-          // not entirely sure how this works 
           .catch(error=>{
-            setErrorMessages(["Error..."])
             setIserror(true)
           })
       }, [])
