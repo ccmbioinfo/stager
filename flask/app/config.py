@@ -10,6 +10,7 @@ class Config(object):
     DEFAULT_ADMIN = os.getenv('ST_DEFAULT_ADMIN', 'admin')
     DEFAULT_ADMIN_EMAIL = os.getenv('ST_DEFAULT_EMAIL', 'admin@sampletracker.ccm.sickkids.ca')
     DEFAULT_PASSWORD = os.getenv('ST_DEFAULT_PASSWORD', 'eternity')
+    MINIO_ENDPOINT = os.getenv('MINIO_ENDPOINT', 'localhost:9000')
     MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' )
     MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY', 'AKIAIOSFODNN7EXAMPLE')
 

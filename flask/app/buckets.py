@@ -3,12 +3,9 @@ from flask import request, json, jsonify
 from minio import Minio
 from minio.error import ResponseError
 
-access_key = app.config.get('MINIO_ACCESS_KEY')
-secret_key = app.config.get('MINIO_SECRET_KEY')
-
-minioClient = Minio('minio:9000', 
-                    access_key = access_key, 
-                    secret_key = secret_key,
+minioClient = Minio(app.config.get('MINIO_ENDPOINT'),
+                    access_key = app.config.get('MINIO_ACCESS_KEY'),
+                    secret_key = app.config.get('MINIO_SECRET_KEY'),
                      secure = False)
 
 
@@ -24,12 +21,11 @@ def get_object_info():
         for obj in bucket_objects:
             object_dict = obj.__dict__
             all_objects.append({'bucket_name': object_dict['bucket_name'],
-                                'object_name': object_dict['object_name'], 
+                                'object_name': object_dict['object_name'],
                                 'owner_name': object_dict['owner_name'],
-                                'size': round(object_dict['size'] * 1e-6, 3),  
+                                'size': round(object_dict['size'] * 1e-6, 3),
                                 'etag': object_dict['etag'],
                                 'last_modified': (object_dict['last_modified'])})
 
     return jsonify(all_objects)
 
-  
