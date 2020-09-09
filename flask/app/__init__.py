@@ -15,3 +15,4 @@ migrate = Migrate(app, db)
 
 from app.manage import *
 from app.routes import *
+from app.buckets import *

@@ -7,3 +7,4 @@ gunicorn
 pymysql[rsa]
 sqlalchemy
 werkzeug
+minio
