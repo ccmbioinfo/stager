@@ -41,13 +41,13 @@ class Family(db.Model):
     participants = db.relationship('Participant', backref='family', lazy='dynamic')
 
 
-class Sex(Enum):
+class Sex(str, Enum):
     Male = 'Male'
     Female = 'Female'
     Other = 'Other'
 
 
-class ParticipantType(Enum):
+class ParticipantType(str, Enum):
     Proband = 'Proband'
     Mother = 'Mother'
     Father = 'Father'
@@ -56,7 +56,7 @@ class ParticipantType(Enum):
 
 class Participant(db.Model):
     participant_id = db.Column(db.Integer, primary_key=True)
-    family_id = db.Column(db.Integer, db.ForeignKey('family.family_id'), nullable=False)
+    family_id = db.Column(db.Integer, db.ForeignKey('family.family_codename'), nullable=False)
     # Sample.SampleName
     participant_codename = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender

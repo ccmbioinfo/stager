@@ -7,6 +7,15 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 from app import app, db, login, models
 
+from datetime import date, datetime
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError ("Type %s not serializable" % type(obj))
 
 @login.user_loader
 def load_user(uid: int):
@@ -162,3 +171,61 @@ def change_password():
     except:
         db.session.rollback()
         return 'Server error', 500
+
+@app.route('/api/participant', methods=['GET'], endpoint='partipants_list')
+def partipants_list():
+    db_participants = db.session.query(models.Participant).all()
+    participants = [
+        {
+            'family_codename': participant.family_id,
+            'participant_codename': participant.participant_codename,
+            'sex': participant.sex,
+            'participant_type': participant.participant_type,
+            'affected': participant.affected,
+            'solved': participant.solved,
+            'created': participant.created,
+            'created_by': participant.created_by,
+            'updated': participant.updated_by,
+            'tissue_samples': [tissue for tissue in participant.tissue_samples.all()]
+        }
+        for participant in db_participants
+    ]
+    return json.dumps(participants, indent=4, default=str)
+
+
+@app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
+def analyses_list():
+    db_analyses = db.session.query(models.Analysis).all()
+    analyses = [
+        {
+            'analysis_id': analysis.analysis_id,
+            'analysis_state': analysis.analysis_state,
+            'pipeline_id': analysis.pipeline_id,
+            'qsub_id': analysis.qsub_id,
+            'result_hpf_path': analysis.result_hpf_path,
+            'assignee': analysis.assignee,
+            'requester': analysis.requester,
+            'requested': analysis.requested,
+            'started': analysis.started,
+            'finished': analysis.finished,
+            'notes': analysis.started,
+            'updated': analysis.updated,
+            'updated_by': analysis.updated_by
+        }
+        for analysis in db_analyses
+    ]
+    return json.dumps(analyses, indent=4, default=json_serial)
+
+
+@app.route('/api/pipelines', methods=['GET'], endpoint='pipelines_list')
+def pipelines_list():
+    db_pipelines= db.session.query(models.Pipeline).all()
+    pipelines = [
+        {
+            'pipeline_id': pipeline.pipeline_id,
+            'pipeline_name': pipeline.pipeline_name,
+            'pipeline_version': pipeline.pipeline_version
+        }
+        for pipeline in db_pipelines
+    ]
+    return json.dumps(pipelines, indent=4, default=json_serial)
