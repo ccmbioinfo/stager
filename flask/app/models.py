@@ -26,7 +26,7 @@ class User(UserMixin, db.Model):
 
 class Group(db.Model):
     group_id = db.Column(db.Integer, primary_key=True)
-    group_code = db.Column(db.String(50), nullable=False, unique=True) # i.e. CHEO, SK, AB 
+    group_code = db.Column(db.String(50), nullable=False, unique=True) # i.e. CHEO, SK, AB
     group_name = db.Column(db.String(250), nullable=False, unique=True) # full group name
 
 
@@ -64,7 +64,7 @@ class Participant(db.Model):
     # Sample.SampleType
     participant_type = db.Column(db.Enum(ParticipantType), nullable=False)
     # Sample.AffectedStatus
-    affected = db.Column(db.Boolean, nullable=False)
+    affected = db.Column(db.Boolean)
     # Dataset.SolvedStatus
     solved = db.Column(db.Boolean) #TODO uncomment and rebuild
     notes = db.Column(db.Text)
@@ -109,11 +109,6 @@ class TissueSample(db.Model):
     datasets = db.relationship('Dataset', backref='tissue_sample', lazy='dynamic')
 
 
-class DatasetDiscriminator(Enum):
-    Dataset = 'dataset'
-    RNASeqDataset = 'rnaseq_dataset'
-
-
 class DatasetType(Enum):
     CES = 'CES'
     CGS = 'CGS'
@@ -135,7 +130,7 @@ class DatasetType(Enum):
 # Name TBD
 class DatasetCondition(Enum):
     Control = 'Control'
-    GermLine = 'Germline'  # e.g. rare diseases
+    GermLine = 'GermLine'  # e.g. rare diseases
     Somatic = 'Somatic'  # e.g. cancer
 
 
@@ -170,7 +165,7 @@ datasets_analyses_table = db.Table(
 
 
 class Dataset(db.Model):
-    __tablename__ = DatasetDiscriminator.Dataset.value
+    __tablename__ = 'dataset'
     tissue_sample_id = db.Column(db.Integer, db.ForeignKey('tissue_sample.tissue_sample_id'), nullable=False)
     # Dataset.DatasetID
     dataset_id = db.Column(db.Integer, primary_key=True)
@@ -202,9 +197,9 @@ class Dataset(db.Model):
     # Dataset.NotesLastUpdatedBy
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
 
-    discriminator = db.Column(db.Enum(DatasetDiscriminator))
+    discriminator = db.Column(db.Enum('dataset', 'rnaseq_dataset'))
     __mapper_args__ = {
-        'polymorphic_identity': DatasetDiscriminator.Dataset.value,
+        'polymorphic_identity': 'dataset',
         'polymorphic_on': discriminator
     }
 
@@ -212,7 +207,7 @@ class Dataset(db.Model):
 
 
 class RNASeqDataset(Dataset):
-    __tablename__ = DatasetDiscriminator.RNASeqDataset.value
+    __tablename__ = 'rnaseq_dataset'
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.dataset_id', onupdate='cascade', ondelete='cascade'),
                            primary_key=True)
     # RNASeqDataset.RIN
@@ -226,7 +221,7 @@ class RNASeqDataset(Dataset):
     spike_in = db.Column(db.String(50))
 
     __mapper_args__ = {
-        'polymorphic_identity': DatasetDiscriminator.RNASeqDataset.value
+        'polymorphic_identity': 'rnaseq_dataset'
     }
 
 
@@ -235,6 +230,7 @@ class AnalysisState(Enum):
     Running = 'Running'
     Done = 'Done'
     Error = 'Error'
+    Cancelled = 'Cancelled'
 
 
 class Analysis(db.Model):
@@ -248,7 +244,7 @@ class Analysis(db.Model):
     qsub_id = db.Column(db.Integer)
     # Analysis.ResultsDirectory
     result_hpf_path = db.Column(db.String(500))
-    assignee = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    assignee = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
     requester = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     # Analysis.RequestedDate
     requested = db.Column(db.DateTime, nullable=False)
