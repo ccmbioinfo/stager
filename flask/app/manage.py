@@ -17,8 +17,8 @@ def add_default_admin():
 def add_dummy_data():
     # add groups
     if len(db.session.query(models.Group).all()) == 0:
-        # group code/name pairs 
-        default_groups = {'C4R': 'Care4Rare', 
+        # group code/name pairs
+        default_groups = {'C4R': 'Care4Rare',
         'CHEO': "Children's Hospital of Eastern Ontario",
         'BCCH': "BC Children's Hospital",
         'ACH': "Alberta Children's Hospital",
@@ -31,7 +31,7 @@ def add_dummy_data():
                 group_name = default_name
             )
             db.session.add(group)
-        
+
         db.session.commit()
         print('Created default groups with codes: {}'.format(", ".join(default_groups)))
 
@@ -48,7 +48,7 @@ def add_dummy_data():
                 updated_by = f['updated_by']
             )
             db.session.add(family)
-        
+
         db.session.commit()
         print('Created default families: {}'.format(", ".join([a['family_codename'] for a in default_families])))
 
@@ -72,11 +72,11 @@ def add_dummy_data():
                 updated_by = p['updated_by']
             )
             db.session.add(participant)
-      
+
         db.session.commit()
         print('Created default participants: {}'.format(", ".join([a['codename'] for a in default_participants])))
-    
-    
+
+
     # add tissue samples
     if len(db.session.query(models.TissueSample).all()) == 0:
         default_tissues = [
@@ -93,7 +93,7 @@ def add_dummy_data():
                 updated_by = t['updated_by']
             )
             db.session.add(tissue)
-        
+
         db.session.commit()
         print("Created default tissue samples: {}".format(", ".join([t['tissue_sample_type']+" for Participant "+str(t['participant_id']) for t in default_tissues])))
 
@@ -116,7 +116,7 @@ def add_dummy_data():
                 extraction_protocol = 'Something' #TODO: remove
             )
             db.session.add(dataset)
-        
+
         db.session.commit()
         print("Created default datasets: {}".format(", ".join([d['dataset_type']+" for TissueSample"+str(d['tissue_sample_id']) for d in default_datasets])))
 
@@ -132,15 +132,15 @@ def add_dummy_data():
                 pipeline_version = p["pipeline_version"]
             )
             db.session.add(pipeline)
-        
+
         db.session.commit()
         print("Created default pipelines: {}".format(", ".join([p['pipeline_version'] for p in default_pipelines])))
 
     # add analyses
     if len(db.session.query(models.Analysis).all()) == 0:
         default_analyses = [
-            {'analysis_state': "Running", "pipeline_id": 1, "assignee": 1, "requester": 1, "requested": "2020-07-28", "started": "2020-08-04", "updated_by": 1},
-            {'analysis_state': "Pending", "pipeline_id": 2, "assignee": 1, "requester": 1, "requested": "2020-08-10", "started": "", "updated_by": 1}
+            {'analysis_state': "Running", "pipeline_id": 1, "assignee": 1, "requester": 1, "requested": "2020-07-28", "started": "2020-08-04", "updated": "2020-08-04", "updated_by": 1},
+            {'analysis_state': "Requested", "pipeline_id": 2, "assignee": 1, "requester": 1, "requested": "2020-08-10", "started": None, "updated": "2020-08-10", "updated_by": 1}
         ]
         for a in default_analyses:
             analysis = models.Analysis(
@@ -150,17 +150,18 @@ def add_dummy_data():
                 requester = a['requester'],
                 requested = a['requested'],
                 started = a['started'],
+                updated = a['updated'],
                 updated_by = a['updated_by']
             )
-            db.session.add(pipeline)
-        
+            db.session.add(analysis)
+
         db.session.commit()
         print("Created default analysis with states: {}".format(", ".join([a['analysis_state'] for a in default_analyses])))
 
     # need to add to the users_groups, groups_datasets, and datasets_analyses tables as well
 
 
-    
+
 
 
 
