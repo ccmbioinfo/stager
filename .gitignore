@@ -4,8 +4,6 @@ minio*/
 mysql*/
 nginx/certs/
 nginx/logs
-venv/
 .env
 .DS_Store
 *.log
-node_modules/
