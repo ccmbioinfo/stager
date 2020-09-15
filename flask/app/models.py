@@ -56,7 +56,7 @@ class ParticipantType(str, Enum):
 
 class Participant(db.Model):
     participant_id = db.Column(db.Integer, primary_key=True)
-    family_id = db.Column(db.Integer, db.ForeignKey('family.family_codename'), nullable=False)
+    family_id = db.Column(db.Integer, db.ForeignKey('family.family_id'), nullable=False)
     # Sample.SampleName
     participant_codename = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender

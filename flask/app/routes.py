@@ -173,7 +173,7 @@ def change_password():
         return 'Server error', 500
 
 @app.route('/api/participant', methods=['GET'], endpoint='partipants_list')
-def partipants_list():
+def participants_list():
     db_participants = db.session.query(models.Participant).all()
     participants = [
         {
@@ -186,7 +186,47 @@ def partipants_list():
             'created': participant.created,
             'created_by': participant.created_by,
             'updated': participant.updated_by,
-            'tissue_samples': [tissue for tissue in participant.tissue_samples.all()]
+            'tissue_samples': [
+                {
+                    'tissue_sample_id': tissue.tissue_sample_id,
+                    'participant_id': tissue.participant_id,
+                    'extraction_date': tissue.extraction_date,
+                    'tissue_sample_type': tissue.tissue_sample_type,
+                    'tissue_processing': tissue.tissue_processing,
+                    'notes': tissue.notes,
+                    'created': tissue.created,
+                    'created_by': tissue.created_by,
+                    'updated': tissue.updated,
+                    'updated_by': tissue.updated_by,
+                    'datasets': [
+                        {
+                          'dataset_id': dataset.dataset_id,
+                          'dataset_type': dataset.dataset_type,
+                          'input_hpf_path': dataset.input_hpf_path,
+                          'notes': dataset.notes,
+                          'condition': dataset.condition,
+                          'extraction_protocol': dataset.extraction_protocol,
+                          'capture_kit': dataset.capture_kit,
+                          'library_prep_method': dataset.library_prep_method,
+                          'library_prep_date': dataset.library_prep_date,
+                          'read_length': dataset.read_length,
+                          'read_type': dataset.read_type,
+                          'sequencing_id': dataset.sequencing_id,
+                          'sequencing_date': dataset.sequencing_date,
+                          'sequencing_centre': dataset.sequencing_centre,
+                          'batch_id': dataset.batch_id,
+                          'created': dataset.created,
+                          'updated': dataset.updated,
+                          'updated_by': dataset.updated_by,
+                          'discriminator': dataset.discriminator,
+                          'created_by': dataset.created_by
+                        }
+                    for dataset in tissue.datasets.all()
+                    ]
+                }
+                for tissue in participant.tissue_samples.all()
+                ]
+
         }
         for participant in db_participants
     ]
@@ -229,3 +269,35 @@ def pipelines_list():
         for pipeline in db_pipelines
     ]
     return json.dumps(pipelines, indent=4, default=json_serial)
+
+
+@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+def datasets_list():
+    db_datasets= db.session.query(models.Dataset).all()
+    datasets = [
+            {
+                'dataset_id': dataset.dataset_id,
+                'dataset_type': dataset.dataset_type,
+                'input_hpf_path': dataset.input_hpf_path,
+                'notes': dataset.notes,
+                'condition': dataset.condition,
+                'extraction_protocol': dataset.extraction_protocol,
+                'capture_kit': dataset.capture_kit,
+                'library_prep_method': dataset.library_prep_method,
+                'library_prep_date': dataset.library_prep_date,
+                'read_length': dataset.read_length,
+                'read_type': dataset.read_type,
+                'sequencing_id': dataset.sequencing_id,
+                'sequencing_date': dataset.sequencing_date,
+                'sequencing_centre': dataset.sequencing_centre,
+                'batch_id': dataset.batch_id,
+                'created': dataset.created,
+                'updated': dataset.updated,
+                'updated_by': dataset.updated_by,
+                'discriminator': dataset.discriminator,
+                'created_by': dataset.created_by
+            }
+        for dataset in db_datasets
+        ]
+
+    return datasets
