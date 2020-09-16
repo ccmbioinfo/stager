@@ -173,11 +173,12 @@ def change_password():
         return 'Server error', 500
 
 @app.route('/api/participant', methods=['GET'], endpoint='partipants_list')
+@login_required
 def participants_list():
-    db_participants = db.session.query(models.Participant).all()
+    db_participants = db.session.query(models.Participant).join(models.Family)
     participants = [
         {
-            'family_codename': participant.family_id,
+            'family_codename': participant.family.family_codename,
             'participant_codename': participant.participant_codename,
             'sex': participant.sex,
             'participant_type': participant.participant_type,
@@ -230,12 +231,13 @@ def participants_list():
         }
         for participant in db_participants
     ]
-    return json.dumps(participants, indent=4, default=str)
+    return json.dumps(participants, indent=4, default=json_serial)
 
 
 @app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
+@login_required
 def analyses_list():
-    db_analyses = db.session.query(models.Analysis).all()
+    db_analyses = db.session.query(models.Analysis)
     analyses = [
         {
             'analysis_id': analysis.analysis_id,
@@ -243,14 +245,14 @@ def analyses_list():
             'pipeline_id': analysis.pipeline_id,
             'qsub_id': analysis.qsub_id,
             'result_hpf_path': analysis.result_hpf_path,
-            'assignee': analysis.assignee,
-            'requester': analysis.requester,
+            'assignee': db.session.query(models.User).get(analysis.assignee).username,
+            'requester': db.session.query(models.User).get(analysis.requester).username,
             'requested': analysis.requested,
             'started': analysis.started,
             'finished': analysis.finished,
             'notes': analysis.started,
             'updated': analysis.updated,
-            'updated_by': analysis.updated_by
+            'updated_by': db.session.query(models.User).get(analysis.updated_by).username
         }
         for analysis in db_analyses
     ]
@@ -258,13 +260,15 @@ def analyses_list():
 
 
 @app.route('/api/pipelines', methods=['GET'], endpoint='pipelines_list')
+@login_required
 def pipelines_list():
-    db_pipelines= db.session.query(models.Pipeline).all()
+    db_pipelines = db.session.query(models.Pipeline).join(models.PipelineDatasets)
     pipelines = [
         {
             'pipeline_id': pipeline.pipeline_id,
             'pipeline_name': pipeline.pipeline_name,
-            'pipeline_version': pipeline.pipeline_version
+            'pipeline_version': pipeline.pipeline_version,
+            'supported_datasets': pipeline.pipeline_datasets.supported_dataset
         }
         for pipeline in db_pipelines
     ]
@@ -272,8 +276,9 @@ def pipelines_list():
 
 
 @app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@login_required
 def datasets_list():
-    db_datasets= db.session.query(models.Dataset).all()
+    db_datasets = db.session.query(models.Dataset).join(models.TissueSample)
     datasets = [
             {
                 'dataset_id': dataset.dataset_id,
@@ -295,9 +300,16 @@ def datasets_list():
                 'updated': dataset.updated,
                 'updated_by': dataset.updated_by,
                 'discriminator': dataset.discriminator,
-                'created_by': dataset.created_by
+                'created_by': dataset.created_by,
+                'tissue_sample_type': dataset.tissue_sample.tissue_sample_type,
+                'participant_codename': dataset.tissue_sample.participant.participant_codename,
+                'participant_type': dataset.tissue_sample.participant.participant_type,
+                'sex': dataset.tissue_sample.participant.sex,
+                'family_codename': dataset.tissue_sample.participant.family.family_codename
             }
         for dataset in db_datasets
         ]
 
-    return datasets
+    return json.dumps(datasets, indent=4, default=json_serial)
+
+

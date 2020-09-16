@@ -75,7 +75,7 @@ class Participant(db.Model):
     tissue_samples = db.relationship('TissueSample', backref='participant', lazy='dynamic')
 
 
-class TissueSampleType(Enum):
+class TissueSampleType(str, Enum):
     Blood = 'Blood'  # BLO
     Saliva = 'Saliva'  # SAL
     Lymphocyte = 'Lymphocyte'  # LYM
@@ -88,7 +88,7 @@ class TissueSampleType(Enum):
     Kidney = 'Kidney'  # KID
 
 
-class TissueProcessing(Enum):
+class TissueProcessing(str, Enum):
     FreshFrozen = 'FF'
     Formaldehyde = 'FFPE'
 
@@ -109,7 +109,7 @@ class TissueSample(db.Model):
     datasets = db.relationship('Dataset', backref='tissue_sample', lazy='dynamic')
 
 
-class DatasetType(Enum):
+class DatasetType(str, Enum):
     CES = 'CES'
     CGS = 'CGS'
     CPS = 'CPS'
@@ -128,17 +128,17 @@ class DatasetType(Enum):
 
 
 # Name TBD
-class DatasetCondition(Enum):
+class DatasetCondition(str, Enum):
     Control = 'Control'
     GermLine = 'GermLine'  # e.g. rare diseases
     Somatic = 'Somatic'  # e.g. cancer
 
 
-class DatasetExtractionProtocol(Enum):
+class DatasetExtractionProtocol(str, Enum):
     Something = 1
 
 
-class DatasetReadType(Enum):
+class DatasetReadType(str, Enum):
     PairedEnd = 'PairedEnd'
     SingleEnd = 'SingleEnd'
 
@@ -225,7 +225,7 @@ class RNASeqDataset(Dataset):
     }
 
 
-class AnalysisState(Enum):
+class AnalysisState(str, Enum):
     Requested = 'Requested'
     Running = 'Running'
     Done = 'Done'
