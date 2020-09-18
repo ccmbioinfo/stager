@@ -79,61 +79,60 @@ class TissueSampleType(Enum):
     Saliva = 'Saliva'  # SAL
     Urine = 'Urine'  # URI
     Plasma = 'Plasma'  # PLA
-    Unknown = 'Unknown'  # UNK
-    Adipose - Subcutaneous = 'Adipose - Subcutaneous'
-    Adipose - Visceral (Omentum) = 'Adipose - Visceral (Omentum)'
-    Adrenal Gland = 'Adrenal Gland'
-    Artery - Aorta = 'Artery - Aorta'
-    Artery - Coronary = 'Artery - Coronary'
-    Artery - Tibial = 'Artery - Tibial'
+    Adipose_Subcutaneous = 'Adipose - Subcutaneous'
+    Adipose_Visceral = 'Adipose - Visceral (Omentum)'
+    Adrenal_Gland = 'Adrenal Gland'
+    Artery_Aorta = 'Artery - Aorta'
+    Artery_Coronary = 'Artery - Coronary'
+    Artery_Tibial = 'Artery - Tibial'
     Bladder = 'Bladder'
-    Brain - Amygdala = 'Brain - Amygdala'
-    Brain - Anterior cingulate cortex (BA24) = 'Brain - Anterior cingulate cortex (BA24)'
-    Brain - Caudate (basal ganglia) = 'Brain - Caudate (basal ganglia)'
-    Brain - Cerebellar Hemisphere = 'Brain - Cerebellar Hemisphere'
-    Brain - Cerebellum = 'Brain - Cerebellum'
-    Brain - Cortex = 'Brain - Cortex'
-    Brain - Frontal Cortex (BA9) = 'Brain - Frontal Cortex (BA9)'
-    Brain - Hippocampus = 'Brain - Hippocampus'
-    Brain - Hypothalamus = 'Brain - Hypothalamus'
-    Brain - Nucleus accumbens (basal ganglia) = 'Brain - Nucleus accumbens (basal ganglia)'
-    Brain - Putamen (basal ganglia) = 'Brain - Putamen (basal ganglia)'
-    Brain - Spinal cord (cervical c-1) = 'Brain - Spinal cord (cervical c-1)'
-    Brain - Substantia nigra = 'Brain - Substantia nigra'
-    Breast - Mammary Tissue = 'Breast - Mammary Tissue'
-    Cells - Cultured fibroblasts = 'Cells - Cultured fibroblasts' # FIB
-    Cells - EBV-transformed lymphocytes = 'Cells - EBV-transformed lymphocytes' # # LYM ?
-    Cervix - Ectocervix = 'Cervix - Ectocervix'
-    Cervix - Endocervix = 'Cervix - Endocervix'
-    Colon - Sigmoid = 'Colon - Sigmoid'
-    Colon - Transverse = 'Colon - Transverse'
-    Esophagus - Gastroesophageal Junction = 'Esophagus - Gastroesophageal Junction'
-    Esophagus - Mucosa = 'Esophagus - Mucosa'
-    Esophagus - Muscularis = 'Esophagus - Muscularis'
-    Fallopian Tube = 'Fallopian Tube'
-    Heart - Atrial Appendage = 'Heart - Atrial Appendage'
-    Heart - Left Ventricle = 'Heart - Left Ventricle'
-    Kidney - Cortex = 'Kidney - Cortex' # KID
+    Brain_Amygdala = 'Brain - Amygdala'
+    Brain_Anterior_cingulate_cortex = 'Brain - Anterior cingulate cortex (BA24)'
+    Brain_Caudate = 'Brain - Caudate (basal ganglia)'
+    Brain_Cerebellar_Hemisphere = 'Brain - Cerebellar Hemisphere'
+    Brain_Cerebellum = 'Brain - Cerebellum'
+    Brain_Cortex = 'Brain - Cortex'
+    Brain_Frontal_Cortex= 'Brain - Frontal Cortex (BA9)'
+    Brain_Hippocampus = 'Brain - Hippocampus'
+    Brain_Hypothalamus = 'Brain - Hypothalamus'
+    Brain_Nucleus_accumbens = 'Brain - Nucleus accumbens (basal ganglia)'
+    Brain_Putamen = 'Brain - Putamen (basal ganglia)'
+    Brain_Spinal_cord = 'Brain - Spinal cord (cervical c-1)'
+    Brain_Substantia_nigra = 'Brain - Substantia nigra'
+    Breast_Mammary_Tissue = 'Breast - Mammary Tissue'
+    Cells_Cultured_fibroblasts = 'Cells - Cultured fibroblasts' # FIB
+    Cells_EBV_transformed_lymphocytes = 'Cells - EBV-transformed lymphocytes' # # LYM ?
+    Cervix_Ectocervix = 'Cervix - Ectocervix'
+    Cervix_Endocervix = 'Cervix - Endocervix'
+    Colon_Sigmoid = 'Colon - Sigmoid'
+    Colon_Transverse = 'Colon - Transverse'
+    Esophagus_Gastroesophageal_Junction = 'Esophagus - Gastroesophageal Junction'
+    Esophagus_Mucosa = 'Esophagus - Mucosa'
+    Esophagus_Muscularis = 'Esophagus - Muscularis'
+    Fallopian_Tube = 'Fallopian Tube'
+    Heart_Atrial_Appendage = 'Heart - Atrial Appendage'
+    Heart_Left_Ventricle = 'Heart - Left Ventricle'
+    Kidney_Cortex = 'Kidney - Cortex' # KID
     Liver = 'Liver'
     Lung = 'Lung'
-    Minor Salivary Gland = 'Minor Salivary Gland'
-    Muscle - Skeletal = 'Muscle - Skeletal' # MUS
-    Nerve - Tibial = 'Nerve - Tibial'
+    Minor_Salivary_Gland = 'Minor Salivary Gland'
+    Muscle_Skeletal = 'Muscle - Skeletal' # MUS
+    Nerve_Tibial = 'Nerve - Tibial'
     Ovary = 'Ovary'
     Pancreas = 'Pancreas'
     Pituitary = 'Pituitary'
     Prostate = 'Prostate'
-    Skin - Not Sun Exposed (Suprapubic) = 'Skin - Not Sun Exposed (Suprapubic)'
-    Skin - Sun Exposed (Lower leg) = 'Skin - Sun Exposed (Lower leg)'
-    Small Intestine - Terminal Ileum = 'Small Intestine - Terminal Ileum'
+    Skin_Not_Sun_Exposed = 'Skin - Not Sun Exposed (Suprapubic)'
+    Skin_Sun_Exposed = 'Skin - Sun Exposed (Lower leg)'
+    Small_Intestine_Terminal_Ileum = 'Small Intestine - Terminal Ileum'
     Spleen = 'Spleen'
     Stomach = 'Stomach'
     Testis = 'Testis'
     Thyroid = 'Thyroid'
     Uterus = 'Uterus'
     Vagina = 'Vagina'
-    Whole Blood = 'Whole Blood' # BLO
-    Unknown = 'Unknown'
+    Whole_Blood = 'Whole Blood' # BLO
+    Unknown = 'Unknown' # UNK
 
 
 class TissueProcessing(Enum):
@@ -254,6 +253,12 @@ class Dataset(db.Model):
     analyses = db.relationship('Analysis', secondary=datasets_analyses_table, backref='datasets', lazy='dynamic')
 
 
+class LibraryStrand(Enum):
+    Forward = "Forward"
+    Reverse = "Reverse"
+    Unstranded = "Unstranded"
+
+
 class RNASeqDataset(Dataset):
     __tablename__ = 'rnaseq_dataset'
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.dataset_id', onupdate='cascade', ondelete='cascade'),
@@ -267,6 +272,7 @@ class RNASeqDataset(Dataset):
     # RNASeqDataset.Sequencer (guided dropdown or enum)
     sequencer = db.Column(db.String(50))
     spike_in = db.Column(db.String(50))
+    library_strand = db.Column(db.Enum(LibraryStrand))
 
     __mapper_args__ = {
         'polymorphic_identity': 'rnaseq_dataset'
