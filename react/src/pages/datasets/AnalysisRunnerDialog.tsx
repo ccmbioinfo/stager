@@ -6,7 +6,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import { TransitionProps } from '@material-ui/core/transitions';
-import { Participant } from './ParticipantsTable';
+import { Dataset } from './DatasetTable';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -19,7 +19,7 @@ import { annotations } from '../analysis/AnalysisInfoDialog';
 import ChipStrip from '../analysis/ChipStrip';
 
 interface AnalysisRunnerDialogProp {
-    participants: Participant[],
+    participants: Dataset[],
     open: boolean,
     onClose: (() => void)
 }
