@@ -6,6 +6,7 @@ from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
 
 from app import app, db, login, models
+from datetime import datetime
 
 
 @login.user_loader
@@ -162,3 +163,42 @@ def change_password():
     except:
         db.session.rollback()
         return 'Server error', 500
+
+
+@app.route('/api/participants/<participant_id>', methods = ['PATCH'])
+# @login_required # check document for how to test endpoints with login signing? 
+def update_participants(participant_id):
+    patch_json = request.get_json()
+
+    # convert to dictionary
+    patch_d = json.loads(patch_json)
+
+    # get the PK
+    id = patch_d['participant_id']
+
+    # check if PK exists, is this necessary ??
+    q = db.session.query(models.Participant.participant_id)\
+        .filter_by(participant_id = id)
+
+    if q.scalar() == 1:
+        # add time of edit
+        patch_d['updated'] = datetime.now()
+
+        q.update(dict(patch_d)) # for more granular control, i was thinking of looping through
+                                # the dictionary and updating so we prevent the primary key from being changed? 
+        try:
+            db.session.commit()
+            # TODO: return the json which will update the front-end
+            return 'success!!!!', 200
+
+        except:
+            db.session.rollback()
+            return 'oh no something has gone terribly wrong', 500
+    else:
+        return 'oh no something has gone terribly wrong', 400
+
+# @app.route('/api/datasets/<dataset_id>', methods = ['PATCH'])
+# @login_required
+
+# @app.route('/api/analyses/<analysis_id>', methods = ['PATCH'])
+# @login_required
