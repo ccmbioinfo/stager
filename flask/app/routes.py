@@ -9,6 +9,17 @@ from app import app, db, login, models
 from datetime import datetime
 
 
+def row2dict(row):
+    """
+    converts an sqlalchemy row into a dictionary, credits to: https://stackoverflow.com/questions/1958219/convert-sqlalchemy-row-object-to-python-dict
+    alternative to '.__dict__' which returns an extra '_sa_instance_state' field
+    """
+    d = {}
+    for column in row.__table__.columns:
+        d[column.name] = str(getattr(row, column.name))
+    return d
+    
+
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
@@ -166,36 +177,49 @@ def change_password():
 
 
 @app.route('/api/participants/<participant_id>', methods = ['PATCH'])
-# @login_required # check document for how to test endpoints with login signing? 
+#@login_required 
 def update_participants(participant_id):
-    patch_json = request.get_json()
 
-    # convert to dictionary
-    patch_d = json.loads(patch_json)
+    body = request.get_json()
 
-    # get the PK
-    id = patch_d['participant_id']
+    if not body: # ie. is None
+        return 'Bad Request', 400
+    
+    try:
+        id = body['participant_id']
+    except KeyError:
+        return 'Participant ID not found in json body!', 400
 
-    # check if PK exists, is this necessary ??
-    q = db.session.query(models.Participant.participant_id)\
+    q =  db.session.query(models.Participant.participant_id)\
         .filter_by(participant_id = id)
 
     if q.scalar() == 1:
-        # add time of edit
-        patch_d['updated'] = datetime.now()
 
-        q.update(dict(patch_d)) # for more granular control, i was thinking of looping through
-                                # the dictionary and updating so we prevent the primary key from being changed? 
+        # add time of edit
+        body['updated'] = datetime.now()
+
+        excluded_fields = ['participant_id', 'created', 'created_by'] 
+
+        for field in excluded_fields:
+            body.pop(field, None)  # we use pop over del since it does not check for existing keys
+
+        q.update(dict(body))
+
         try:
             db.session.commit()
-            # TODO: return the json which will update the front-end
-            return 'success!!!!', 200
 
+            # TODO: think this is a TBD until we know exactly what the front end will display? also serialization of enums
+            res = db.session.query(models.Participant)\
+                .filter(models.Participant.participant_id  == id).first()
+
+            return json.dumps(row2dict(res))
+    
         except:
             db.session.rollback()
-            return 'oh no something has gone terribly wrong', 500
+            return 'Server Error', 500
     else:
-        return 'oh no something has gone terribly wrong', 400
+        return 'Participant ID not found in Database', 404
+
 
 # @app.route('/api/datasets/<dataset_id>', methods = ['PATCH'])
 # @login_required
