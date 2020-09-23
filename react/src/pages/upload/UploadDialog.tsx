@@ -23,6 +23,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import FilesTable from './FilesTable';
 import UploadForm from './UploadForm';
+import { FormControlLabel } from '@material-ui/core';
+import { InputFileUpload } from './UploadCSV';
 
 
 interface UploadDialogProps {
@@ -62,13 +64,37 @@ const useStyles = makeStyles(theme => ({
 export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const classes = useStyles();
     const [tab, changeTab] = React.useState(0);
+    const [file, setFile] = React.useState<File | null>(null);
+
+    // for accessing uploaded file locally
+    function fileChange(e: React.SyntheticEvent<HTMLInputElement>) {
+        const files = e.currentTarget.files;
+        if (files !== null && files[0]) {
+            setFile(files[0]);
+            console.log(files[0].name);
+        }
+        else {
+            setFile(null);
+        }
+    }
 
     let tabContent;
     if (tab == 0) {
-        tabContent = <UploadForm />
+        tabContent = (<UploadForm />);
     }
     else {
-        tabContent = <Button variant="outlined"> Upload Excel Sample Sheet <DescriptionIcon/> </Button>
+        // tabContent = (<Button variant="outlined"> Upload Excel Sample Sheet <DescriptionIcon/> </Button>);
+        
+        tabContent = (
+            <>
+            <InputFileUpload onChange={fileChange}/>
+            {/* /// Replace below - for demonstration purposes only /// */}
+            <Typography variant="h6">
+            {file !== null ? `${file.name} - ${file.size}` : ""}
+            </Typography>
+            {/* /// Replace above /// */}
+            </>
+        );
     }
 
     return (
