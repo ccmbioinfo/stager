@@ -40,8 +40,66 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+// Types for generating form rows
+// TODO: better way to do this; pull DB columns from server schema maybe?
+
+enum Sex {
+  Male   = 'M',
+  Female = 'F',
+  Other  = 'Other'
+}
+
+enum DatasetType {
+ WES    = 'WES',
+ WGS    = 'WGS',
+ CES    = 'CES',
+ CGS    = 'CGS',
+ CPS    = 'CPS',
+ RNASeq = 'RNASeq',
+ Other  = 'Other'
+}
+
+enum Relation {
+  Proband = "Proband",
+  Mother  = "Mother",
+  Father  = "Father",
+  Sibling = "Sibling",
+  Other   = "Other"
+}
+
+enum Condition {
+  Germline = "Germline",
+  Somatic  = "Somatic",
+  Control  = "Control"
+}
+
+enum TissueType {
+  Blood      = "Blood",
+  Saliva     = "Saliva",
+  Lymphocyte = "Lymphocyte",
+  Fibroblast = "Fibroblast",
+  Skin       = "Skin",
+  Urine      = "Urine",
+  Plasma     = "Plasma",
+  Kidney     = "Kidney",
+  Unknown    = "Unknown"
+}
+
+interface datasetRow {
+  familyCode: string,
+  participantCode: string,
+  participantSex: Sex,
+  datasetType: DatasetType,
+  participantType: Relation,
+  datasetCondition: Condition,
+  tissueType: TissueType
+}
+
 export default function UploadForm() {
     const classes = useStyles();
+
+    
+
     return (
       <form>
       <FormControl className={classes.margin}>
