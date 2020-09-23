@@ -175,7 +175,7 @@ def change_password():
 @app.route('/api/participant', methods=['GET'], endpoint='partipants_list')
 @login_required
 def participants_list():
-    db_participants = db.session.query(models.Participant).join(models.Family)
+    db_participants = db.session.query(models.Participant).join(models.Family).all()
     participants = [
         {
             'family_codename': participant.family.family_codename,
@@ -237,7 +237,7 @@ def participants_list():
 @app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
 @login_required
 def analyses_list():
-    db_analyses = db.session.query(models.Analysis)
+    db_analyses = db.session.query(models.Analysis).all()
     analyses = [
         {
             'analysis_id': analysis.analysis_id,
@@ -262,23 +262,32 @@ def analyses_list():
 @app.route('/api/pipelines', methods=['GET'], endpoint='pipelines_list')
 @login_required
 def pipelines_list():
-    db_pipelines = db.session.query(models.Pipeline).join(models.PipelineDatasets)
-    pipelines = [
-        {
-            'pipeline_id': pipeline.pipeline_id,
-            'pipeline_name': pipeline.pipeline_name,
-            'pipeline_version': pipeline.pipeline_version,
-            'supported_datasets': pipeline.pipeline_datasets.supported_dataset
-        }
-        for pipeline in db_pipelines
-    ]
+    db_pipelines = db.session.query(models.Pipeline.pipeline_id,
+         models.Pipeline.pipeline_name,
+        models.Pipeline.pipeline_version,
+        models.PipelineDatasets.supported_dataset).join(models.PipelineDatasets, 
+        models.Pipeline.pipeline_id == models.PipelineDatasets.pipeline_id).all()
+    pipelines = {}
+    for pipeline in db_pipelines: 
+        pipeline_id = pipeline.pipeline_id
+        if pipeline_id in pipelines: 
+            pipelines[pipeline_id]['supported_datasets'].append(pipeline.supported_dataset)
+        else:
+            pipelines[pipeline_id] = {
+                    'pipeline_id': pipeline_id,
+                    'pipeline_name': pipeline.pipeline_name,
+                    'pipeline_version': pipeline.pipeline_version,
+                    'supported_datasets': [pipeline.supported_dataset]
+                    }
+    pipelines = [pipelines[pipeline] for pipeline in pipelines]
+
     return json.dumps(pipelines, indent=4, default=json_serial)
 
 
 @app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
 @login_required
 def datasets_list():
-    db_datasets = db.session.query(models.Dataset).join(models.TissueSample)
+    db_datasets = db.session.query(models.Dataset).join(models.TissueSample).all()
     datasets = [
             {
                 'dataset_id': dataset.dataset_id,
