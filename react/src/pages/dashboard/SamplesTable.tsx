@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { Cancel } from '@material-ui/icons';
+import { IconButton } from '@material-ui/core';
 
 
 export interface Sample {
@@ -86,7 +88,7 @@ export default function SamplesTable() {
                                 <Chip label="SK" clickable className={classes.chip} onClick={() => setCentre("SK")}/>
                                 <Chip label="ACH" clickable className={classes.chip} onClick={() => setCentre("ACH")}/>
                                 <Chip label="BCL" clickable className={classes.chip} onClick={() => setCentre("BCL")}/>
-                                <Chip label="x" clickable className={classes.chip} onClick={() => setCentre("")}/>
+                                <IconButton className={classes.chip} onClick={() => setCentre("")}> <Cancel/> </IconButton>
                             </div>
                         </div>
                     ),

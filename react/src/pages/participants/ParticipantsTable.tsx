@@ -5,6 +5,8 @@ import MaterialTable, { MTableToolbar } from 'material-table';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AnalysisRunnerDialog from './AnalysisRunnerDialog';
+import { Cancel } from '@material-ui/icons';
+import { IconButton } from '@material-ui/core';
 
 export interface Participant {
     participantID: string,
@@ -58,6 +60,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
     const [activeParticipants, setActiveParticipants] = useState<Participant[]>([]);
+    const [centre, setCentre] = useState("");
 
     return (
         <div>
@@ -70,7 +73,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                 columns={[
                     { title: 'Participant', field: 'participantID' },
                     { title: 'Project', field: 'project' },
-                    { title: 'Uploader', field: 'uploader' },
+                    { title: 'Uploader', field: 'uploader', defaultFilter: centre},
                     { title: 'Num. Samples', field: 'numSamples', type: 'numeric' },
                     { title: 'Sex', field: 'sex', type: 'string' },
                     { title: 'Created', field: 'created', type: 'string' }
@@ -101,11 +104,11 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                         <div>
                             <MTableToolbar {...props} />
                             <div style={{ marginLeft: '24px' }}>
-                                <Chip label="CHEO" clickable className={classes.chip} />
-                                <Chip label="SK" clickable className={classes.chip} />
-                                <Chip label="ACH" clickable className={classes.chip} />
-                                <Chip label="BCL" clickable className={classes.chip} />
-                                <Chip label="Misc." clickable className={classes.chip} />
+                                <Chip label="CHEO" clickable className={classes.chip} onClick={() => setCentre("CHEO")} />
+                                <Chip label="SK" clickable className={classes.chip} onClick={() => setCentre("SK")} />
+                                <Chip label="ACH" clickable className={classes.chip} onClick={() => setCentre("ACH")} />
+                                <Chip label="BCL" clickable className={classes.chip} onClick={() => setCentre("BCL")} />
+                                <IconButton className={classes.chip} onClick={() => setCentre("")}> <Cancel/> </IconButton>
                             </div>
                         </div>
                     ),
@@ -116,7 +119,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                         icon: DeleteIcon,
                         onClick: (evt, data) => {
                             const sampleString = (data as Participant[]).map((participant) => { return participant.participantID }).join(', ')
-                            alert(`Widthdraw all datasets and records associated with the samples: ${sampleString}`)
+                            alert(`Withdraw all datasets and records associated with the samples: ${sampleString}`)
                         }
                     },
                     {
