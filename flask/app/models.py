@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
@@ -41,36 +42,37 @@ class Family(db.Model):
     participants = db.relationship('Participant', backref='family', lazy='dynamic')
 
 
-class Sex(Enum):
+class Sex(str, Enum):
     Male = 'Male'
     Female = 'Female'
     Other = 'Other'
 
 
-class ParticipantType(Enum):
+class ParticipantType(str, Enum):
     Proband = 'Proband'
     Mother = 'Mother'
     Father = 'Father'
     Sibling = 'Sibling'
 
 
+@dataclass
 class Participant(db.Model):
-    participant_id = db.Column(db.Integer, primary_key=True)
+    participant_id: int = db.Column(db.Integer, primary_key=True)
     family_id = db.Column(db.Integer, db.ForeignKey('family.family_id'), nullable=False)
     # Sample.SampleName
-    participant_codename = db.Column(db.String(50), nullable=False, unique=True)
+    participant_codename: str = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender
-    sex = db.Column(db.Enum(Sex), nullable=False)
+    sex: Sex = db.Column(db.Enum(Sex), nullable=False)
     # Sample.SampleType
-    participant_type = db.Column(db.Enum(ParticipantType), nullable=False)
+    participant_type: ParticipantType = db.Column(db.Enum(ParticipantType), nullable=False)
     # Sample.AffectedStatus
-    affected = db.Column(db.Boolean)
+    affected: bool = db.Column(db.Boolean)
     # Dataset.SolvedStatus
-    solved = db.Column(db.Boolean) #TODO uncomment and rebuild
-    notes = db.Column(db.Text)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    solved: bool = db.Column(db.Boolean) #TODO uncomment and rebuild
+    notes: str = db.Column(db.Text)
+    created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     tissue_samples = db.relationship('TissueSample', backref='participant', lazy='dynamic')
 

@@ -1,24 +1,15 @@
-import json
-
+from datetime import datetime
+from enum import Enum
 from functools import wraps
+import json
+from typing import Any, Dict, List, Union
 
-from flask import request
+from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
+from sqlalchemy import exc
 
 from app import app, db, login, models
-from datetime import datetime
 
-
-def row2dict(row):
-    """
-    converts an sqlalchemy row into a dictionary, credits to: https://stackoverflow.com/questions/1958219/convert-sqlalchemy-row-object-to-python-dict
-    alternative to '.__dict__' which returns an extra '_sa_instance_state' field
-    """
-    d = {}
-    for column in row.__table__.columns:
-        d[column.name] = str(getattr(row, column.name))
-    return d
-    
 
 @login.user_loader
 def load_user(uid: int):
@@ -176,49 +167,48 @@ def change_password():
         return 'Server error', 500
 
 
-@app.route('/api/participants/<participant_id>', methods = ['PATCH'])
-#@login_required 
-def update_participants(participant_id):
+def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> Union[None, str]:
+    for field in columns:
+        if field in json_mixin:
+            column = getattr(entity, field)
+            value = json_mixin[field]
+            if isinstance(column, Enum):
+                if not hasattr(type(column), str(value)):
+                    allowed = [e.value for e in type(column)]
+                    return f'"{field}" must be one of {allowed}'
+            setattr(entity, field, value)
 
-    body = request.get_json()
 
-    if not body: # ie. is None
-        return 'Bad Request', 400
-    
+@app.route('/api/participants/<int:participant_id>', methods = ['PATCH'])
+@login_required
+def update_participants(participant_id: int):
+    if not request.json:
+        return 'Request body must be JSON', 415
+
+    participant = models.Participant.query.get(participant_id)
+    if not participant:
+        return 'Not Found', 404
+
+    enum_error = mixin(participant, request.json, ['participant_codename', 'solved', 'sex', 'participant_type'])
+    if enum_error:
+        return enum_error, 400
+
     try:
-        id = body['participant_id']
-    except KeyError:
-        return 'Participant ID not found in json body!', 400
+        participant.updated_by = current_user.user_id
+    except:
+        pass  # LOGIN_DISABLED
 
-    q =  db.session.query(models.Participant.participant_id)\
-        .filter_by(participant_id = id)
+    try:
+        db.session.commit()
+    except exc.DataError as err:
+        db.session.rollback()
+        # SQLAlchemy wraps the underlying database error; extract just the message
+        return err.orig.args[1], 400
+    except:
+        db.session.rollback()
+        return 'Server error', 500
 
-    if q.scalar() == 1:
-
-        # add time of edit
-        body['updated'] = datetime.now()
-
-        excluded_fields = ['participant_id', 'created', 'created_by'] 
-
-        for field in excluded_fields:
-            body.pop(field, None)  # we use pop over del since it does not check for existing keys
-
-        q.update(dict(body))
-
-        try:
-            db.session.commit()
-
-            # TODO: think this is a TBD until we know exactly what the front end will display? also serialization of enums
-            res = db.session.query(models.Participant)\
-                .filter(models.Participant.participant_id  == id).first()
-
-            return json.dumps(row2dict(res))
-    
-        except:
-            db.session.rollback()
-            return 'Server Error', 500
-    else:
-        return 'Participant ID not found in Database', 404
+    return jsonify(participant)
 
 
 # @app.route('/api/datasets/<dataset_id>', methods = ['PATCH'])
