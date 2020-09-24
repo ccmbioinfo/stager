@@ -129,12 +129,16 @@ export interface NavigationProps {
 export default function Navigation({ username, signout }: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(true);
+    const [pageName, setPageName] = React.useState("Dashboard");
     const handleDrawerOpen = () => {
         setOpen(true);
     };
     const handleDrawerClose = () => {
         setOpen(false);
     };
+    const updatePageName = (name: string) => {
+        setPageName(name)
+    }
 
     return (
         <div className={classes.root}>
@@ -152,7 +156,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                             <MenuIcon />
                         </IconButton>
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                            ST2020
+                            {pageName}
                         </Typography>
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize='large' />
@@ -173,22 +177,22 @@ export default function Navigation({ username, signout }: NavigationProps) {
                     </div>
                     <Divider />
                     <List>
-                        <ListItemRouterLink to="/dashboard" primary="Dashboard">
+                        <ListItemRouterLink to="/dashboard" primary="Dashboard" updatePageName={updatePageName}>
                             <DashboardIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/uploads" primary="Upload">
+                        <ListItemRouterLink to="/uploads" primary="Upload" updatePageName={updatePageName}>
                             <UploadIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/participants" primary="Participants">
+                        <ListItemRouterLink to="/participants" primary="Participants" updatePageName={updatePageName}>
                             <PeopleIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/analysis" primary="Analyses">
+                        <ListItemRouterLink to="/analysis" primary="Analyses" updatePageName={updatePageName}>
                             <ShowChartIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/settings" primary="Settings">
+                        <ListItemRouterLink to="/settings" primary="Settings" updatePageName={updatePageName}>
                             <SettingsIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/admin" primary="Admin">
+                        <ListItemRouterLink to="/admin" primary="Admin" updatePageName={updatePageName}>
                             <VerifiedUserIcon />
                         </ListItemRouterLink>
                     </List>
@@ -203,14 +207,12 @@ export default function Navigation({ username, signout }: NavigationProps) {
                     </div>
                 </Drawer>
                 <Switch>
-                    <Route path="/admin" component={Admin} />
-                    <Route path="/analysis" component={Analysis} />
-                    <Route path="/participants" component={Participants} />
-                    <Route path="/uploads" component={Uploads} />
-                    <Route path="/settings">
-                        <Settings username={username} />
-                    </Route>
-                    <Route path={["/", "/dashboard"]} component={Dashboard} />
+                    <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
+                    <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analysis />}} />
+                    <Route path="/participants" render={() => {setPageName("Participants"); return <Participants />}}  />
+                    <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
+                    <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
+                    <Route path={["/", "/dashboard"]} render={() => {setPageName("Dashboard"); return <Dashboard />}}  />
                 </Switch>
             </BrowserRouter>
         </div>
