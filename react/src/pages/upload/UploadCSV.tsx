@@ -1,9 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import FormControl from '@material-ui/core/FormControl';
 import { Button, makeStyles } from '@material-ui/core';
 import DescriptionIcon from '@material-ui/icons/Description';
+import { FileDrop } from 'react-file-drop';
 
-// TODO: file dropzone (drag-and-drop); pretty it up
+// TODO: pretty it up
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -14,7 +15,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export interface InputFileUploadProps {
-    onChange: (e: React.SyntheticEvent<HTMLInputElement>) => void
+    onUpload: (files: FileList | null) => void
 }
 
 export function InputFileUpload(props: InputFileUploadProps) {
@@ -27,12 +28,20 @@ export function InputFileUpload(props: InputFileUploadProps) {
         className={classes.input}
         id="contained-button-file"
         type="file"
-        onChange={props.onChange}
+        onChange={
+            (e: React.SyntheticEvent<HTMLInputElement>) => {
+                props.onUpload(e.currentTarget.files);
+            }
+        }
         />
         <label htmlFor="contained-button-file">
-        <Button variant="contained" component="span" endIcon={<DescriptionIcon/>}>
-            Select .CSV Sample Sheet
-        </Button>
+        <FileDrop
+            onDrop={(files, event) => props.onUpload(files)}
+        >
+            <Button variant="contained" component="span" endIcon={<DescriptionIcon/>}>
+                Select .CSV Sample Sheet
+            </Button>
+        </FileDrop>
         </label>
     </>
     );

@@ -67,8 +67,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const [file, setFile] = React.useState<File | null>(null);
 
     // for accessing uploaded file locally
-    function fileChange(e: React.SyntheticEvent<HTMLInputElement>) {
-        const files = e.currentTarget.files;
+    function onUpload(files: FileList | null) {
         if (files !== null && files[0]) {
             setFile(files[0]);
             console.log(files[0].name);
@@ -87,7 +86,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
         
         tabContent = (
             <>
-            <InputFileUpload onChange={fileChange}/>
+            <InputFileUpload onUpload={onUpload}/>
             {/* /// Replace below - for demonstration purposes only /// */}
             <Typography variant="h6">
             {file !== null ? `${file.name} - ${file.size}` : ""}
