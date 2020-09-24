@@ -79,7 +79,9 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                 title={display}
                 options={{
                     pageSize: 10,
-                    selection: true
+                    selection: true,
+                    filtering: true,
+                    search: false
                 }}
                 editable={{
                     onRowUpdate: (newData, oldData) =>

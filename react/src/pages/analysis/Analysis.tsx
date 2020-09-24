@@ -150,6 +150,8 @@ export default function Analysis() {
                     }
                     options={{
                         pageSize: 10,
+                        filtering: true,
+                        search: false
                     }}
                     actions={[
                         {

@@ -74,7 +74,8 @@ export default function SamplesTable() {
                 options={{
                     pageSize: 10,
                     selection: false,
-
+                    filtering: true,
+                    search: false
                 }}
                 components={{
                     Toolbar: props => (
