@@ -189,7 +189,10 @@ def update_participants(participant_id: int):
     if not participant:
         return 'Not Found', 404
 
-    enum_error = mixin(participant, request.json, ['participant_codename', 'solved', 'sex', 'participant_type'])
+    enum_error = mixin(participant, request.json, [
+        'participant_codename', 'sex', 'participant_type',
+        'affected', 'solved', 'notes'
+    ])
     if enum_error:
         return enum_error, 400
 
@@ -204,9 +207,12 @@ def update_participants(participant_id: int):
         db.session.rollback()
         # SQLAlchemy wraps the underlying database error; extract just the message
         return err.orig.args[1], 400
-    except:
+    except exc.StatementError as err:
         db.session.rollback()
-        return 'Server error', 500
+        return str(err.orig), 400
+    except Exception as err:
+        db.session.rollback()
+        raise err
 
     return jsonify(participant)
 
