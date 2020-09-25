@@ -1,9 +1,12 @@
-import json
-
+from datetime import datetime
+from enum import Enum
 from functools import wraps
+import json
+from typing import Any, Dict, List, Union
 
-from flask import request
+from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
+from sqlalchemy import exc
 
 from app import app, db, login, models
 
@@ -162,3 +165,60 @@ def change_password():
     except:
         db.session.rollback()
         return 'Server error', 500
+
+
+def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> Union[None, str]:
+    for field in columns:
+        if field in json_mixin:
+            column = getattr(entity, field)
+            value = json_mixin[field]
+            if isinstance(column, Enum):
+                if not hasattr(type(column), str(value)):
+                    allowed = [e.value for e in type(column)]
+                    return f'"{field}" must be one of {allowed}'
+            setattr(entity, field, value)
+
+
+@app.route('/api/participants/<int:participant_id>', methods = ['PATCH'])
+@login_required
+def update_participants(participant_id: int):
+    if not request.json:
+        return 'Request body must be JSON', 415
+
+    participant = models.Participant.query.get(participant_id)
+    if not participant:
+        return 'Not Found', 404
+
+    enum_error = mixin(participant, request.json, [
+        'participant_codename', 'sex', 'participant_type',
+        'affected', 'solved', 'notes'
+    ])
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        participant.updated_by = current_user.user_id
+    except:
+        pass  # LOGIN_DISABLED
+
+    try:
+        db.session.commit()
+    except exc.DataError as err:
+        db.session.rollback()
+        # SQLAlchemy wraps the underlying database error; extract just the message
+        return err.orig.args[1], 400
+    except exc.StatementError as err:
+        db.session.rollback()
+        return str(err.orig), 400
+    except Exception as err:
+        db.session.rollback()
+        raise err
+
+    return jsonify(participant)
+
+
+# @app.route('/api/datasets/<dataset_id>', methods = ['PATCH'])
+# @login_required
+
+# @app.route('/api/analyses/<analysis_id>', methods = ['PATCH'])
+# @login_required
