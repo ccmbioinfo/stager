@@ -17,7 +17,6 @@ import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import DescriptionIcon from '@material-ui/icons/Description';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
@@ -66,9 +65,9 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const [tab, changeTab] = React.useState(0);
     const [file, setFile] = React.useState<File | null>(null);
 
-    // for accessing uploaded file locally
+    // File reference gets set here
     function onUpload(files: FileList | null) {
-        if (files !== null && files[0]) {
+        if (files && files[0]) {
             setFile(files[0]);
             console.log(files[0].name);
         }
@@ -87,11 +86,6 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
         tabContent = (
             <>
             <InputFileUpload onUpload={onUpload}/>
-            {/* /// Replace below - for demonstration purposes only /// */}
-            <Typography variant="h6">
-            {file !== null ? `${file.name} - ${file.size}` : ""}
-            </Typography>
-            {/* /// Replace above /// */}
             </>
         );
     }
