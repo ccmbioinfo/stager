@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Chip from '@material-ui/core/Chip';
+import { Chip, IconButton } from '@material-ui/core';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { Cancel } from '@material-ui/icons';
-import { IconButton } from '@material-ui/core';
 
 
 export interface Sample {
@@ -64,7 +63,7 @@ export default function SamplesTable() {
                 columns={[
                     { title: 'Project', field: 'project' },
                     { title: 'Participant', field: 'participantID' },
-                    { title: 'Uploader', field: 'uploader' , defaultFilter: centre},
+                    { title: 'Uploader', field: 'uploader' , defaultFilter: centre },
                     { title: 'Tissue', field: 'tissueType'},
                     { title: 'Data Type', field: 'dataType'},
                     { title: 'Relation', field: 'relation'},

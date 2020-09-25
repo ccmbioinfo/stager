@@ -1,13 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import { makeStyles, Grid, Link, Paper, Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core';
 import { PipelineStatus } from '../analysis/Analysis';
 
 import Title from '../Title';

@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Chip from '@material-ui/core/Chip';
+import { Chip, IconButton } from '@material-ui/core';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import AnalysisRunnerDialog from './AnalysisRunnerDialog';
-import { Cancel } from '@material-ui/icons';
-import { IconButton } from '@material-ui/core';
 
 export interface Participant {
     participantID: string,
@@ -73,7 +70,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                 columns={[
                     { title: 'Participant', field: 'participantID' },
                     { title: 'Project', field: 'project' },
-                    { title: 'Uploader', field: 'uploader', defaultFilter: centre},
+                    { title: 'Uploader', field: 'uploader', defaultFilter: centre },
                     { title: 'Num. Samples', field: 'numSamples', type: 'numeric' },
                     { title: 'Sex', field: 'sex', type: 'string' },
                     { title: 'Created', field: 'created', type: 'string' }
@@ -116,7 +113,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                 actions={[
                     {
                         tooltip: 'Delete the selected participants',
-                        icon: DeleteIcon,
+                        icon: Delete,
                         onClick: (evt, data) => {
                             const sampleString = (data as Participant[]).map((participant) => { return participant.participantID }).join(', ')
                             alert(`Withdraw all datasets and records associated with the samples: ${sampleString}`)
@@ -124,7 +121,7 @@ export default function ParticipantsTable({ display }: ParticipantsTableProps) {
                     },
                     {
                         tooltip: 'Run an analysis with the selected datasets',
-                        icon: PlayArrowIcon,
+                        icon: PlayArrow,
                         onClick: (evt, data) => {
                             setActiveParticipants(data as Participant[])
                             setRunner(true)
