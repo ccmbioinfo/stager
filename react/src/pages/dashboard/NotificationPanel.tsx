@@ -7,6 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import Switch from "@material-ui/core/Switch";
 import Collapse from "@material-ui/core/Collapse";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import Notification from './Notification';
 
 const useStyles = makeStyles(theme => ({
@@ -47,6 +48,7 @@ export default function NotificationPanel({analyses}: NotificationPanelProps) {
     return (
         <Paper className={classes.paper}>
             <Box className={classes.titleBox}>
+                <NotificationsActiveIcon />
                 <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} display="inline">
                     Notifications
                 </Typography>
