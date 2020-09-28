@@ -18,9 +18,13 @@ def load_user(uid: int):
 @app.route('/api/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
-        current_user.last_login = datetime.now()
-        db.session.commit()
-        return json.dumps({ "username": current_user.username }), 200
+        try:
+            current_user.last_login = datetime.now()
+            db.session.commit()
+            return json.dumps({ "username": current_user.username }), 200
+        except:
+            db.session.rollback()
+            return 'Server error', 500
 
     body = request.json
     if not body:
@@ -29,10 +33,14 @@ def login():
     user = models.User.query.filter_by(username=body['username']).first()
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
-    login_user(user)
-    user.last_login = datetime.now()
-    db.session.commit()
-    return json.dumps({ "username": user.username }), 200
+    try:
+        login_user(user)
+        user.last_login = datetime.now()
+        db.session.commit()
+        return json.dumps({ "username": user.username }), 200
+    except:
+        db.session.rollback()
+        return 'Server error', 500
 
 
 @app.route('/api/logout', methods=['POST'])
