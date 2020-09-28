@@ -136,9 +136,6 @@ export default function Navigation({ username, signout }: NavigationProps) {
     const handleDrawerClose = () => {
         setOpen(false);
     };
-    const updatePageName = (name: string) => {
-        setPageName(name)
-    }
 
     return (
         <div className={classes.root}>
@@ -177,22 +174,22 @@ export default function Navigation({ username, signout }: NavigationProps) {
                     </div>
                     <Divider />
                     <List>
-                        <ListItemRouterLink to="/dashboard" primary="Dashboard" updatePageName={updatePageName}>
+                        <ListItemRouterLink to="/dashboard" primary="Dashboard">
                             <DashboardIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/uploads" primary="Upload" updatePageName={updatePageName}>
+                        <ListItemRouterLink to="/uploads" primary="Upload">
                             <UploadIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/participants" primary="Participants" updatePageName={updatePageName}>
+                        <ListItemRouterLink to="/participants" primary="Participants">
                             <PeopleIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/analysis" primary="Analyses" updatePageName={updatePageName}>
+                        <ListItemRouterLink to="/analysis" primary="Analyses">
                             <ShowChartIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/settings" primary="Settings" updatePageName={updatePageName}>
+                        <ListItemRouterLink to="/settings" primary="Settings">
                             <SettingsIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/admin" primary="Admin" updatePageName={updatePageName}>
+                        <ListItemRouterLink to="/admin" primary="Admin">
                             <VerifiedUserIcon />
                         </ListItemRouterLink>
                     </List>
