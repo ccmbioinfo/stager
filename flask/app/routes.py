@@ -7,6 +7,8 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 from app import app, db, login, models
 
+from datetime import datetime
+
 
 @login.user_loader
 def load_user(uid: int):
@@ -16,6 +18,8 @@ def load_user(uid: int):
 @app.route('/api/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
+        current_user.last_login = datetime.now()
+        db.session.commit()
         return json.dumps({ "username": current_user.username }), 200
 
     body = request.json
@@ -26,6 +30,8 @@ def login():
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
     login_user(user)
+    user.last_login = datetime.now()
+    db.session.commit()
     return json.dumps({ "username": user.username }), 200
 
 
