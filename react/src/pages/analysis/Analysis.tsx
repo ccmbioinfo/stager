@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
@@ -80,7 +81,7 @@ export interface AnalysisRun {
 }
 
 // generate fake analysis data
-function createAnalysis(
+export function createAnalysis(
     id: number,
     analysisID: string,
     dateSubmitted: string,
@@ -107,9 +108,10 @@ const analyses = [
 
 export default function Analysis() {
     const classes = useStyles();
-    const [detail, setDetail] = useState(false);
+    let { analysisID } : any = useParams();
+    const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRun | null>(null);
+    const [activeRow, setActiveRow] = useState<AnalysisRun | null>(analyses.filter(analysis => analysis.analysisID === analysisID)[0]);
 
     useEffect(() => {
         document.title = "Analyses | ST2020";

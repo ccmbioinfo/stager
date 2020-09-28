@@ -2,14 +2,11 @@ import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import AnalysisTable from './AnalysisTable';
 import SamplesTable from './SamplesTable';
+import NotificationPanel from './NotificationPanel';
+import { PipelineStatus, createAnalysis } from '../analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: 'fill',
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
@@ -20,13 +17,15 @@ const useStyles = makeStyles(theme => ({
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
     },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
 }));
+
+//generate fake data
+const analyses = [
+    createAnalysis(0, 'AN20392', '2020-05-23 12:09 PM', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
+    createAnalysis(3, 'AN38292', '2020-06-22 8:56 PM', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+    createAnalysis(6, 'AN38921', '2020-06-19 10:00 AM', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
+    createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
+];
 
 export default function Dashboard() {
     const classes = useStyles();
@@ -40,17 +39,14 @@ export default function Dashboard() {
             <Container maxWidth="lg" className={classes.container}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-                        <Paper className={classes.paper}>
-                            <AnalysisTable />
-                        </Paper>
+                        <NotificationPanel analyses={analyses}/>
                     </Grid>
                 </Grid>
             </Container>
             <Container>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-
-                            <SamplesTable />
+                        <SamplesTable />
                     </Grid>
                 </Grid>
             </Container>

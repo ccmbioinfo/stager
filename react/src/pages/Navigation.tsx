@@ -204,6 +204,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                 </Drawer>
                 <Switch>
                     <Route path="/admin" component={Admin} />
+                    <Route path="/analysis/:analysisID" component={Analysis} />
                     <Route path="/analysis" component={Analysis} />
                     <Route path="/participants" component={Participants} />
                     <Route path="/uploads" component={Uploads} />
