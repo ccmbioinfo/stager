@@ -5,9 +5,11 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import MaterialTable from 'material-table';
+import { useHistory } from 'react-router';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
+import AddAnalysisAlert from './AddAnalysisAlert';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -110,6 +112,9 @@ export default function Analysis() {
     const [detail, setDetail] = useState(false);
     const [cancel, setCancel] = useState(false);
     const [activeRow, setActiveRow] = useState<AnalysisRun | null>(null);
+    const [direct, setDirect] = useState(false);
+
+    const history = useHistory();
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
@@ -133,6 +138,12 @@ export default function Analysis() {
                     analysis={activeRow}
                     onClose={() => setDetail(false)}
                 />}
+
+            <AddAnalysisAlert
+                open={direct}
+                onClose={() => { setDirect(false) }}
+                onAccept={() => { setDirect(false); history.push("/participants") }}
+            />
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
@@ -173,9 +184,9 @@ export default function Analysis() {
                         }),
                         {
                             icon: AddIcon,
-                            tooltip: 'Add User',
+                            tooltip: 'Add New Analysis',
                             isFreeAction: true,
-                            onClick: (event) => alert("Select some datasets over at the Participants tab if you want to create a new analysis!")
+                            onClick: (event) => setDirect(true)
                         }
                     ]}
                 />
