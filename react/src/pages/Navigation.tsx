@@ -129,6 +129,7 @@ export interface NavigationProps {
 export default function Navigation({ username, signout }: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(true);
+    const [pageName, setPageName] = React.useState("Dashboard");
     const handleDrawerOpen = () => {
         setOpen(true);
     };
@@ -152,7 +153,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                             <MenuIcon />
                         </IconButton>
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                            ST2020
+                            {pageName}
                         </Typography>
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize='large' />
@@ -203,14 +204,12 @@ export default function Navigation({ username, signout }: NavigationProps) {
                     </div>
                 </Drawer>
                 <Switch>
-                    <Route path="/admin" component={Admin} />
-                    <Route path="/analysis" component={Analysis} />
-                    <Route path="/participants" component={Participants} />
-                    <Route path="/uploads" component={Uploads} />
-                    <Route path="/settings">
-                        <Settings username={username} />
-                    </Route>
-                    <Route path={["/", "/dashboard"]} component={Dashboard} />
+                    <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
+                    <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analysis />}} />
+                    <Route path="/participants" render={() => {setPageName("Participants"); return <Participants />}}  />
+                    <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
+                    <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
+                    <Route path={["/", "/dashboard"]} render={() => {setPageName("Dashboard"); return <Dashboard />}}  />
                 </Switch>
             </BrowserRouter>
         </div>
