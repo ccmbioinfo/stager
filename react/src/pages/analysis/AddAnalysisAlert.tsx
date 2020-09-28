@@ -16,7 +16,7 @@ export default function AddAnalysisAlert(props: AddAnalysisAlertProps) {
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">{"Add new Analysis"}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">Request Analysis</DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description">
                 New analyses are created in the Participants panel. Would you like to be moved to the Participants panel?

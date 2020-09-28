@@ -5,10 +5,10 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import MaterialTable from 'material-table';
+import { useHistory } from 'react-router';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
-import { useHistory } from 'react-router';
 import AddAnalysisAlert from './AddAnalysisAlert';
 
 const useStyles = makeStyles(theme => ({
