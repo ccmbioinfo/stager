@@ -179,25 +179,45 @@ def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> U
             setattr(entity, field, value)
 
 
-@app.route('/api/participants/<int:participant_id>', methods = ['PATCH'])
+@app.route('/api/<model_name>/<int:id>', methods = ['PATCH'])
+# eg. /api/analyses/1 for analysis table, /api/participants/1 for participants table, and so forth
 @login_required
-def update_participants(participant_id: int):
+def update_db(model_name:str, id:int):
     if not request.json:
         return 'Request body must be JSON', 415
+    print(model_name)
+    #return(jsonify(model_name))
+    editable_columns = []
 
-    participant = models.Participant.query.get(participant_id)
-    if not participant:
+    # can these if statements be generalized?
+    if model_name == 'participants':
+        table = models.Participant.query.get(id)
+        editable_columns = ['participant_codename', 'sex', 'participant_type',
+                        'affected', 'solved', 'notes']
+    elif model_name == 'datasets':
+        table = models.Datasets.query.get(id)
+        editable_columns = ['dataset_type', 'input_hpf_path', 'notes', 'condition',
+                    'extraction_protocol', 'capture_kit', 'library_prep_method',
+                    'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
+                    'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator'
+                    ]
+    elif model_name == 'analyses':
+        table = models.Analysis.query.get(id)
+        editable_columns = [
+                    # I assume most of these will be coupled with the pipeline automation and should be editable
+                    'analysis_state', 'pipeline_id', 'qsub_id', 'result_hpf_path',
+                    'assignee','requester', 'requested',  'started','finished',
+                    'notes'
+                    ]
+    else:
         return 'Not Found', 404
 
-    enum_error = mixin(participant, request.json, [
-        'participant_codename', 'sex', 'participant_type',
-        'affected', 'solved', 'notes'
-    ])
+    enum_error = mixin(table, request.json, editable_columns)
     if enum_error:
         return enum_error, 400
 
     try:
-        participant.updated_by = current_user.user_id
+        table.updated_by = current_user.user_id
     except:
         pass  # LOGIN_DISABLED
 
@@ -205,7 +225,6 @@ def update_participants(participant_id: int):
         db.session.commit()
     except exc.DataError as err:
         db.session.rollback()
-        # SQLAlchemy wraps the underlying database error; extract just the message
         return err.orig.args[1], 400
     except exc.StatementError as err:
         db.session.rollback()
@@ -214,11 +233,5 @@ def update_participants(participant_id: int):
         db.session.rollback()
         raise err
 
-    return jsonify(participant)
+    return jsonify(table)
 
-
-# @app.route('/api/datasets/<dataset_id>', methods = ['PATCH'])
-# @login_required
-
-# @app.route('/api/analyses/<analysis_id>', methods = ['PATCH'])
-# @login_required
