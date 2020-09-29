@@ -92,6 +92,11 @@ export interface AnalysisRow {
     state: PipelineStatus;
     updated: string; // Date type maybe?
     notes: string;
+    /*
+    More fields can go here as required;
+    MaterialTable columns only need to cover a subset of 
+    fields in this interface. 
+    */
 }
 
 // generate fake analysis data
@@ -159,7 +164,7 @@ function renderNotes(rowData: AnalysisRow) {
         <>
         <Typography variant="body1">{rowData.notes}</Typography>
         </>
-    } interactive placement="right">
+    } interactive placement="left">
         <IconButton><DescriptionIcon/></IconButton>
     </Tooltip>
     );
@@ -172,11 +177,15 @@ export default function Analysis() {
     const [cancel, setCancel] = useState(false);
     const [activeRow, setActiveRow] = useState<AnalysisRow | null>(null);
     const [direct, setDirect] = useState(false);
+    const [rows, setRows] = useState<AnalysisRow[]>([]);
+
 
     const history = useHistory();
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
+        setRows(analyses);
+
     }, []);
 
     return (
@@ -207,16 +216,16 @@ export default function Analysis() {
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
-                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric' },
-                        { title: 'Pipeline', field: 'pipeline_id', type: 'numeric' },
-                        { title: 'Assignee ID', field: 'assignee', type: 'numeric' },
-                        { title: 'Requester ID', field: 'requester', type: 'numeric' },
-                        { title: 'Updated', field: 'updated', type: 'string' },
+                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric', editable: 'never' },
+                        { title: 'Pipeline', field: 'pipeline_id', type: 'numeric', editable: 'never' },
+                        { title: 'Assignee ID', field: 'assignee', type: 'numeric', editable: 'never' },
+                        { title: 'Requester ID', field: 'requester', type: 'numeric', editable: 'never' },
+                        { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
-                        { title: 'Status', field: 'state', type: 'string' },
+                        { title: 'Status', field: 'state', type: 'string', editable: 'never' },
                         { title: 'Notes', field: 'notes', type: 'string', render: renderNotes }
                     ]}
-                    data={analyses}
+                    data={rows}
                     title={
                         <Title>Active Analyses</Title>
                     }
@@ -250,6 +259,25 @@ export default function Analysis() {
                             onClick: (event) => setDirect(true)
                         }
                     ]}
+                    editable={{
+                        onRowUpdate: (newData, oldData) =>
+                            new Promise((resolve, reject) => {
+                                const dataUpdate = [...rows];
+                                // find the row; assume analysis_id is unique
+                                const index = dataUpdate.findIndex((row, index, obj) => {
+                                    return row.analysis_id === oldData?.analysis_id
+                                });
+
+                                // only update the rows that are allowed
+                                dataUpdate[index].notes = newData.notes;
+                                dataUpdate[index].result_hpf_path = newData.result_hpf_path;
+                                setRows([...dataUpdate]);
+
+                                // Send PATCH here
+
+                                resolve();
+                            }),
+                    }}
                 />
             </Container>
         </main>
