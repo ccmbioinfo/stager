@@ -10,6 +10,7 @@ import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
+import { Button, Tooltip, Typography } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -69,42 +70,81 @@ export enum PipelineStatus {
     ERROR = "Error",
 }
 
-export interface AnalysisRun {
-    id: number;
-    analysisID: string;
-    dateSubmitted: string;
-    submittedBy: string;
-    project: string;
-    participants: string[];
-    pipeline: string;
-    timeElapsed: string;
-    status: PipelineStatus;
+// export interface AnalysisRow {
+//     id: number;
+//     analysisID: string;
+//     dateSubmitted: string;
+//     submittedBy: string;
+//     project: string;
+//     participants: string[];
+//     pipeline: string;
+//     timeElapsed: string;
+//     status: PipelineStatus;
+// }
+
+export interface AnalysisRow {
+    analysis_id: number;
+    pipeline_id: number; // Display pipeline name?
+    result_hpf_path: string;
+    assignee: number;  // show ID or username?
+    requester: number; // show ID or username?
+    state: PipelineStatus;
+    updated: string; // Date type maybe?
+    notes: string;
 }
 
 // generate fake analysis data
-export function createAnalysis(
-    id: number,
-    analysisID: string,
-    dateSubmitted: string,
-    submittedBy: string,
-    project: string,
-    participants: string[],
-    pipeline: string,
-    timeElapsed: string,
-    status: PipelineStatus): AnalysisRun {
-    return { id, analysisID, dateSubmitted, submittedBy, project, participants, pipeline, timeElapsed, status };
+function createAnalysis(
+    analysis_id: number,
+    pipeline_id: number,
+    result_hpf_path: string,
+    assignee: number,
+    requester: number,
+    state: PipelineStatus,
+    updated: string,
+    notes: string): AnalysisRow {
+
+    return { 
+        analysis_id,
+        pipeline_id,
+        result_hpf_path,
+        assignee,
+        requester,
+        state,
+        updated,
+        notes
+    };
 }
 
+// const analyses = [
+//     createAnalysis(0, 'AN20392', '2020-05-23 12:09 PM', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
+//     createAnalysis(1, 'AN30092', '2020-06-13 1:09 AM', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', PipelineStatus.RUNNING),
+//     createAnalysis(2, 'AN43820', '2020-06-19 4:32 AM', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+//     createAnalysis(3, 'AN38292', '2020-06-22 8:56 PM', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
+//     createAnalysis(4, 'AN33889', '2020-06-21 8:09 AM', 'User C', '3289', ['CC330'], 'CRE', '17hrs', PipelineStatus.RUNNING),
+//     createAnalysis(5, 'AN38920', '2020-06-21 1:22 PM', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', PipelineStatus.RUNNING),
+//     createAnalysis(6, 'AN38921', '2020-06-19 10:00 AM', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
+//     createAnalysis(7, 'AN38991', '2020-06-19 9:09 AM', 'User B', '3271', ['AA320'], 'CRE', '20hrs', PipelineStatus.COMPLETED),
+//     createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
+// ];
+
+// fake notes
+const loremIpsum = [
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vestibulum, urna ac iaculis congue, urna justo accumsan ligula.",
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas rhoncus libero at ornare pellentesque. Etiam consequat nullam.",
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce rutrum hendrerit mi, at dignissim mauris porttitor ut. Cras odio."
+]
+
 const analyses = [
-    createAnalysis(0, 'AN20392', '2020-05-23 12:09 PM', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
-    createAnalysis(1, 'AN30092', '2020-06-13 1:09 AM', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', PipelineStatus.RUNNING),
-    createAnalysis(2, 'AN43820', '2020-06-19 4:32 AM', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', PipelineStatus.RUNNING),
-    createAnalysis(3, 'AN38292', '2020-06-22 8:56 PM', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
-    createAnalysis(4, 'AN33889', '2020-06-21 8:09 AM', 'User C', '3289', ['CC330'], 'CRE', '17hrs', PipelineStatus.RUNNING),
-    createAnalysis(5, 'AN38920', '2020-06-21 1:22 PM', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', PipelineStatus.RUNNING),
-    createAnalysis(6, 'AN38921', '2020-06-19 10:00 AM', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
-    createAnalysis(7, 'AN38991', '2020-06-19 9:09 AM', 'User B', '3271', ['AA320'], 'CRE', '20hrs', PipelineStatus.COMPLETED),
-    createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
+    createAnalysis(0, 1, '/example/path/', 2, 3, PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', loremIpsum[0]),
+    createAnalysis(1, 2, '/example/path/', 4, 3, PipelineStatus.COMPLETED, '2020-06-13 1:09 AM', loremIpsum[1]),
+    createAnalysis(2, 1, '/example/path/', 2, 5, PipelineStatus.COMPLETED, '2020-06-19 4:32 AM', loremIpsum[2]),
+    createAnalysis(3, 2, '/example/path/', 3, 1, PipelineStatus.COMPLETED, '2020-06-22 8:56 PM', loremIpsum[2]),
+    createAnalysis(4, 3, '/example/path/', 1, 2, PipelineStatus.COMPLETED, '2020-06-21 8:09 AM', loremIpsum[0]),
+    createAnalysis(5, 3, '/example/path/', 4, 4, PipelineStatus.COMPLETED, '2020-06-21 1:22 PM', loremIpsum[1]),
+    createAnalysis(6, 2, '/example/path/', 1, 5, PipelineStatus.COMPLETED, '2020-06-19 10:00 AM', loremIpsum[2]),
+    createAnalysis(7, 3, '/example/path/', 2, 5, PipelineStatus.COMPLETED, '2020-06-19 9:09 AM', loremIpsum[0]),
+    createAnalysis(8, 3, '/example/path/', 5, 4, PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
 ];
 
 type ParamTypes = {
@@ -116,7 +156,7 @@ export default function Analysis() {
     const { analysisID }= useParams<ParamTypes>();
     const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRun | undefined>(analyses.find(analysis => analysis.analysisID === analysisID));
+    const [activeRow, setActiveRow] = useState<AnalysisRow | null>(null);
     const [direct, setDirect] = useState(false);
 
     const history = useHistory();
@@ -131,11 +171,11 @@ export default function Analysis() {
             {activeRow &&
                 <CancelAnalysisDialog
                     open={cancel}
-                    title={`Stop Analysis ${activeRow.analysisID}?`}
-                    message={`Do you really want to stop the analysis of samples ${activeRow.participants.join(', ')}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
+                    title={`Stop Analysis ${activeRow.analysis_id}?`}
+                    message={`Do you really want to stop this analysis? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                     onClose={() => { setCancel(false) }}
-                    labeledByPrefix={activeRow.analysisID}
-                    describedByPrefix={activeRow.analysisID}
+                    labeledByPrefix={`${activeRow.analysis_id}`}
+                    describedByPrefix={`${activeRow.analysis_id}`}
                 />}
             {activeRow &&
                 <AnalysisInfoDialog
@@ -152,13 +192,23 @@ export default function Analysis() {
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
-                        { title: 'AnalysisID', field: 'analysisID', type: 'string' },
-                        { title: 'Submitted', field: 'dateSubmitted', type: 'string' },
-                        { title: 'Submitted By', field: 'submittedBy', type: 'string' },
-                        { title: 'Project', field: 'project', type: 'string' },
-                        { title: 'Participants', field: 'participants', type: 'string', render: rowData => rowData.participants.join(', ') },
-                        { title: 'Pipeline', field: 'pipeline', type: 'string' },
-                        { title: 'Status', field: 'status', type: 'string' }
+                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric' },
+                        { title: 'Updated', field: 'updated', type: 'string' },
+                        { title: 'Pipeline', field: 'pipeline_id', type: 'numeric' },
+                        { title: 'Status', field: 'state', type: 'string' },
+                        { title: 'Notes', field: 'notes', type: 'string', 
+                            render: rowData => 
+                            <Tooltip title={
+                                <>
+                                <Typography variant="body1">{rowData.notes}</Typography>
+                                </>
+                            } interactive>
+                                <Button>Notes...</Button>
+                            </Tooltip>
+                        },
+                        { title: 'Assignee ID', field: 'assignee', type: 'numeric' },
+                        { title: 'Requester ID', field: 'requester', type: 'numeric' },
+                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' }
                     ]}
                     data={analyses}
                     title={
@@ -174,7 +224,7 @@ export default function Analysis() {
                             icon: VisibilityIcon,
                             tooltip: 'Analysis details',
                             onClick: (event, rowData) => {
-                                setActiveRow((rowData as AnalysisRun))
+                                setActiveRow((rowData as AnalysisRow))
                                 setDetail(true)
                             }
                         },
@@ -185,7 +235,7 @@ export default function Analysis() {
                                 setActiveRow(rowData)
                                 setCancel(true)
                             },
-                            disabled: rowData.status !== PipelineStatus.RUNNING,
+                            disabled: rowData.state !== PipelineStatus.RUNNING,
                         }),
                         {
                             icon: AddIcon,
