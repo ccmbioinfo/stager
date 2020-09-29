@@ -180,16 +180,13 @@ def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> U
 
 
 @app.route('/api/<model_name>/<int:id>', methods = ['PATCH'])
-# eg. /api/analyses/1 for analysis table, /api/participants/1 for participants table, and so forth
 @login_required
 def update_db(model_name:str, id:int):
     if not request.json:
         return 'Request body must be JSON', 415
-    print(model_name)
-    #return(jsonify(model_name))
+
     editable_columns = []
 
-    # can these if statements be generalized?
     if model_name == 'participants':
         table = models.Participant.query.get(id)
         editable_columns = ['participant_codename', 'sex', 'participant_type',
