@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import MaterialTable from 'material-table';
-import { useHistory } from 'react-router';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -110,7 +109,7 @@ const analyses = [
 
 export default function Analysis() {
     const classes = useStyles();
-    let { analysisID } : any = useParams();
+    const { analysisID } : any = useParams();
     const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
     const [activeRow, setActiveRow] = useState<AnalysisRun | null>(analyses.filter(analysis => analysis.analysisID === analysisID)[0]);
@@ -138,7 +137,7 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRow}
-                    onClose={() => setDetail(false)}
+                    onClose={() => {setDetail(false); if(analysisID){history.push("/dashboard")}}}
                 />}
 
             <AddAnalysisAlert
