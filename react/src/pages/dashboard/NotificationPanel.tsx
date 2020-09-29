@@ -1,14 +1,13 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import { AnalysisRun } from '../analysis/Analysis';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import Switch from "@material-ui/core/Switch";
 import Collapse from "@material-ui/core/Collapse";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import Notification from './Notification';
+import { AnalysisRun } from '../analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -52,11 +51,13 @@ export default function NotificationPanel({analyses}: NotificationPanelProps) {
                 <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} display="inline">
                     Notifications
                 </Typography>
-                <FormControlLabel control={<Switch checked={checked} onChange={handleChange} />} label=""/>
+                <Switch checked={checked} onChange={handleChange} />
             </Box>
-            <Box className={classes.alert}>
+            <Box>
                 <Collapse in={checked}>
-                    {analyses.map(analysis => <Notification analysis={analysis}/>)}
+                    <div className={classes.alert}>
+                        {analyses.map(analysis => <Notification analysis={analysis} />)}
+                    </div>
                 </Collapse>
             </Box>                          
         </Paper>

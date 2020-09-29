@@ -109,14 +109,14 @@ const analyses = [
 
 type ParamTypes = {
     analysisID: string | undefined
-  }
+}
 
 export default function Analysis() {
     const classes = useStyles();
     const { analysisID }= useParams<ParamTypes>();
     const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRun | null>(analyses.filter(analysis => analysis.analysisID === analysisID)[0]);
+    const [activeRow, setActiveRow] = useState<AnalysisRun | undefined>(analyses.find(analysis => analysis.analysisID === analysisID));
     const [direct, setDirect] = useState(false);
 
     const history = useHistory();
@@ -141,7 +141,7 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRow}
-                    onClose={() => {setDetail(false); if(analysisID){history.push("/dashboard")}}}
+                    onClose={() => {setDetail(false); if(analysisID){history.goBack()}}}
                 />}
 
             <AddAnalysisAlert
