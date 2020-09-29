@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
-import { IconButton, Tooltip, Typography } from '@material-ui/core';
+import { Chip, IconButton, Tooltip, Typography } from '@material-ui/core';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import DescriptionIcon from '@material-ui/icons/Description';
-import MaterialTable from 'material-table';
+import MaterialTable, { MTableToolbar } from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
+import { Cancel } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -60,8 +61,12 @@ const useStyles = makeStyles(theme => ({
             //color: '#3f51b5',
             background: "#f1f1f1",
         },
+    },
+    chip: {
+        color: "primary",
+        marginRight: '10px',
+        colorPrimary: theme.palette.primary,
     }
-
 }));
 
 export enum PipelineStatus {
@@ -178,7 +183,7 @@ export default function Analysis() {
     const [activeRow, setActiveRow] = useState<AnalysisRow | null>(null);
     const [direct, setDirect] = useState(false);
     const [rows, setRows] = useState<AnalysisRow[]>([]);
-
+    const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
     const history = useHistory();
 
@@ -217,12 +222,12 @@ export default function Analysis() {
                 <MaterialTable
                     columns={[
                         { title: 'Analysis ID', field: 'analysis_id', type: 'numeric', editable: 'never' },
-                        { title: 'Pipeline', field: 'pipeline_id', type: 'numeric', editable: 'never' },
+                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'numeric', editable: 'never' },
                         { title: 'Assignee ID', field: 'assignee', type: 'numeric', editable: 'never' },
                         { title: 'Requester ID', field: 'requester', type: 'numeric', editable: 'never' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
-                        { title: 'Status', field: 'state', type: 'string', editable: 'never' },
+                        { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
                         { title: 'Notes', field: 'notes', type: 'string', render: renderNotes }
                     ]}
                     data={rows}
@@ -277,6 +282,20 @@ export default function Analysis() {
 
                                 resolve();
                             }),
+                    }}
+                    components={{
+                        Toolbar: props => ( // ripped from Participants page
+                            <div>
+                                <MTableToolbar {...props} />
+                                <div style={{ marginLeft: '24px' }}>
+                                    <Chip label="Completed" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.COMPLETED)} />
+                                    <Chip label="Running" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.RUNNING)} />
+                                    <Chip label="Pending" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.PENDING)} />
+                                    <Chip label="Error" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.ERROR)} />
+                                    <IconButton onClick={() => setChipFilter("")}> <Cancel/> </IconButton>
+                                </div>
+                            </div>
+                        ),
                     }}
                 />
             </Container>
