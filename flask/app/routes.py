@@ -190,7 +190,7 @@ def update_entity(model_name:str, id:int):
         editable_columns = ['participant_codename', 'sex', 'participant_type',
                              'affected', 'solved', 'notes']
     elif model_name == 'datasets':
-        table = models.Datasets.query.get(id)
+        table = models.Dataset.query.get(id)
         editable_columns = ['dataset_type', 'input_hpf_path', 'notes', 'condition',
                             'extraction_protocol', 'capture_kit', 'library_prep_method',
                             'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
@@ -205,7 +205,11 @@ def update_entity(model_name:str, id:int):
     else:
         return 'Not Found', 404
 
+    if not table:
+         return 'Not Found', 404
+
     enum_error = mixin(table, request.json, editable_columns)
+    
     if enum_error:
         return enum_error, 400
 
