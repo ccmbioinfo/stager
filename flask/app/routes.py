@@ -2,7 +2,7 @@ import json
 
 from functools import wraps
 
-from flask import request
+from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
 
 from app import app, db, login, models
@@ -18,13 +18,14 @@ def load_user(uid: int):
 @app.route('/api/login', methods=['POST'])
 def login():
     if current_user.is_authenticated:
+        # get/update last login
+        last_login = current_user.last_login
         try:
             current_user.last_login = datetime.now()
             db.session.commit()
-            return json.dumps({ "username": current_user.username }), 200
         except:
-            db.session.rollback()
-            return 'Server error', 500
+            app.logger.info('failed to update last_login for %s', current_user.username)
+        return jsonify({ "username": current_user.username, "last_login": current_user.last_login }), 200
 
     body = request.json
     if not body:
@@ -33,14 +34,17 @@ def login():
     user = models.User.query.filter_by(username=body['username']).first()
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
+
+    # get/update last login
+    last_login = current_user.last_login
     try:
-        login_user(user)
         user.last_login = datetime.now()
         db.session.commit()
-        return json.dumps({ "username": user.username }), 200
     except:
-        db.session.rollback()
-        return 'Server error', 500
+        app.logger.info('failed to update last_login for %s', current_user.username)
+
+    login_user(user)
+    return jsonify({ "username": user.username, "last_login": current_user.last_login}), 200
 
 
 @app.route('/api/logout', methods=['POST'])
