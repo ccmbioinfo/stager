@@ -181,31 +181,27 @@ def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> U
 
 @app.route('/api/<model_name>/<int:id>', methods = ['PATCH'])
 @login_required
-def update_db(model_name:str, id:int):
+def update_entity(model_name:str, id:int):
     if not request.json:
         return 'Request body must be JSON', 415
-
-    editable_columns = []
 
     if model_name == 'participants':
         table = models.Participant.query.get(id)
         editable_columns = ['participant_codename', 'sex', 'participant_type',
-                        'affected', 'solved', 'notes']
+                             'affected', 'solved', 'notes']
     elif model_name == 'datasets':
         table = models.Datasets.query.get(id)
         editable_columns = ['dataset_type', 'input_hpf_path', 'notes', 'condition',
-                    'extraction_protocol', 'capture_kit', 'library_prep_method',
-                    'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
-                    'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator'
-                    ]
+                            'extraction_protocol', 'capture_kit', 'library_prep_method',
+                            'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
+                            'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator'
+                            ]
     elif model_name == 'analyses':
         table = models.Analysis.query.get(id)
-        editable_columns = [
-                    # I assume most of these will be coupled with the pipeline automation and should be editable
-                    'analysis_state', 'pipeline_id', 'qsub_id', 'result_hpf_path',
-                    'assignee','requester', 'requested',  'started','finished',
-                    'notes'
-                    ]
+        editable_columns = ['analysis_state', 'pipeline_id', 'qsub_id', 'result_hpf_path',
+                            'assignee','requester', 'requested',  'started','finished',
+                            'notes'
+                            ]
     else:
         return 'Not Found', 404
 
