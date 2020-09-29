@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
+import { IconButton, Tooltip, Typography } from '@material-ui/core';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
+import DescriptionIcon from '@material-ui/icons/Description';
 import MaterialTable from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
-import { Button, Tooltip, Typography } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -136,19 +137,32 @@ const loremIpsum = [
 ]
 
 const analyses = [
-    createAnalysis(0, 1, '/example/path/', 2, 3, PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', loremIpsum[0]),
-    createAnalysis(1, 2, '/example/path/', 4, 3, PipelineStatus.COMPLETED, '2020-06-13 1:09 AM', loremIpsum[1]),
-    createAnalysis(2, 1, '/example/path/', 2, 5, PipelineStatus.COMPLETED, '2020-06-19 4:32 AM', loremIpsum[2]),
-    createAnalysis(3, 2, '/example/path/', 3, 1, PipelineStatus.COMPLETED, '2020-06-22 8:56 PM', loremIpsum[2]),
-    createAnalysis(4, 3, '/example/path/', 1, 2, PipelineStatus.COMPLETED, '2020-06-21 8:09 AM', loremIpsum[0]),
-    createAnalysis(5, 3, '/example/path/', 4, 4, PipelineStatus.COMPLETED, '2020-06-21 1:22 PM', loremIpsum[1]),
-    createAnalysis(6, 2, '/example/path/', 1, 5, PipelineStatus.COMPLETED, '2020-06-19 10:00 AM', loremIpsum[2]),
-    createAnalysis(7, 3, '/example/path/', 2, 5, PipelineStatus.COMPLETED, '2020-06-19 9:09 AM', loremIpsum[0]),
+    createAnalysis(0, 1, '/path/to/file/', 2, 3, PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', loremIpsum[0]),
+    createAnalysis(1, 2, '/example/path/', 4, 3, PipelineStatus.RUNNING, '2020-06-13 1:09 AM', loremIpsum[1]),
+    createAnalysis(2, 1, '/foo/', 2, 5, PipelineStatus.ERROR, '2020-06-19 4:32 AM', loremIpsum[2]),
+    createAnalysis(3, 2, '/foo/bar/', 3, 1, PipelineStatus.PENDING, '2020-06-22 8:56 PM', loremIpsum[2]),
+    createAnalysis(4, 3, '/foo/bar/', 1, 2, PipelineStatus.PENDING, '2020-06-21 8:09 AM', loremIpsum[0]),
+    createAnalysis(5, 3, '/foo/baz/', 4, 4, PipelineStatus.RUNNING, '2020-06-21 1:22 PM', loremIpsum[1]),
+    createAnalysis(6, 2, '/bar/baz/', 1, 5, PipelineStatus.PENDING, '2020-06-19 10:00 AM', loremIpsum[2]),
+    createAnalysis(7, 3, '/example/path/', 2, 5, PipelineStatus.RUNNING, '2020-06-19 9:09 AM', loremIpsum[0]),
     createAnalysis(8, 3, '/example/path/', 5, 4, PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
 ];
 
 type ParamTypes = {
     analysisID: string | undefined
+}
+
+// Display notes as an interactive tooltip
+function renderNotes(rowData: AnalysisRow) {
+    return (
+    <Tooltip title={
+        <>
+        <Typography variant="body1">{rowData.notes}</Typography>
+        </>
+    } interactive placement="right">
+        <IconButton><DescriptionIcon/></IconButton>
+    </Tooltip>
+    );
 }
 
 export default function Analysis() {
@@ -172,6 +186,7 @@ export default function Analysis() {
                 <CancelAnalysisDialog
                     open={cancel}
                     title={`Stop Analysis ${activeRow.analysis_id}?`}
+                    // Message used to say which participants were involved in the analysis
                     message={`Do you really want to stop this analysis? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                     onClose={() => { setCancel(false) }}
                     labeledByPrefix={`${activeRow.analysis_id}`}
@@ -193,22 +208,13 @@ export default function Analysis() {
                 <MaterialTable
                     columns={[
                         { title: 'Analysis ID', field: 'analysis_id', type: 'numeric' },
-                        { title: 'Updated', field: 'updated', type: 'string' },
                         { title: 'Pipeline', field: 'pipeline_id', type: 'numeric' },
-                        { title: 'Status', field: 'state', type: 'string' },
-                        { title: 'Notes', field: 'notes', type: 'string', 
-                            render: rowData => 
-                            <Tooltip title={
-                                <>
-                                <Typography variant="body1">{rowData.notes}</Typography>
-                                </>
-                            } interactive>
-                                <Button>Notes...</Button>
-                            </Tooltip>
-                        },
                         { title: 'Assignee ID', field: 'assignee', type: 'numeric' },
                         { title: 'Requester ID', field: 'requester', type: 'numeric' },
-                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' }
+                        { title: 'Updated', field: 'updated', type: 'string' },
+                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
+                        { title: 'Status', field: 'state', type: 'string' },
+                        { title: 'Notes', field: 'notes', type: 'string', render: renderNotes }
                     ]}
                     data={analyses}
                     title={
