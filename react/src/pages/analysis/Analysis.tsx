@@ -107,9 +107,13 @@ const analyses = [
     createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
 ];
 
+type ParamTypes = {
+    analysisID: string | undefined
+  }
+
 export default function Analysis() {
     const classes = useStyles();
-    const { analysisID } : any = useParams();
+    const { analysisID }= useParams<ParamTypes>();
     const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
     const [activeRow, setActiveRow] = useState<AnalysisRun | null>(analyses.filter(analysis => analysis.analysisID === analysisID)[0]);
