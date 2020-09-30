@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
-import { Cancel, Description, Add, Visibility } from '@material-ui/icons';
+import { Cancel, Description, Add, Visibility, PlayArrow } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { useHistory } from 'react-router';
 import Title from '../Title';
@@ -183,14 +183,25 @@ export default function Analysis() {
             {activeRows.length > 0 &&
                 <CancelAnalysisDialog
                     open={cancel}
+                    affectedRows={activeRows}
                     title={
                         activeRows.length == 1 
-                        ? `Stop Analysis ${activeRows[0].analysis_id}?` 
-                        : `Stop Analyses ${rowsToString(activeRows)}?`
+                        ? `Stop Analysis?` 
+                        : `Stop Analyses?`
                     }
-                    // Message used to say which participants were involved in the analysis
-                    message={`Do you really want to stop this analysis? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                     onClose={() => { setCancel(false) }}
+                    onAccept={() => { 
+                        // TODO: PATCH goes here for cancelling analyses
+
+                        const newRows = [...rows];
+                        // TODO: This is pretty slow
+                        newRows.forEach((row, index, arr) => {
+                            if (row.state === PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
+                                newRows[index].state = PipelineStatus.PENDING; // Not sure if this is correct
+                        });
+                        setRows([...newRows]);
+                        setCancel(false);
+                    }}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />}
@@ -244,6 +255,7 @@ export default function Analysis() {
                             tooltip: 'Analysis details',
                             position: 'row',
                             onClick: (event, rowData) => {
+                                // We can only view details of one row at a time
                                 setActiveRows([rowData as AnalysisRow]);
                                 setDetail(true);
                             }
@@ -261,6 +273,22 @@ export default function Analysis() {
                             tooltip: 'Add New Analysis',
                             isFreeAction: true,
                             onClick: (event) => setDirect(true)
+                        },
+                        {
+                            icon: PlayArrow,
+                            tooltip: 'Run analysis',
+                            onClick: (event, rowData) => {
+                                // TODO: PATCH here to start pending analyses
+
+                                setActiveRows(rowData as AnalysisRow[]);
+
+                                const newRows = [...rows];
+                                // TODO: This is pretty slow
+                                newRows.forEach((row, index, arr) => {
+                                    if (row.state !== PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
+                                        newRows[index].state = PipelineStatus.RUNNING;  // not sure if this is correct either
+                                })
+                            },
                         }
                     ]}
                     editable={{
@@ -277,7 +305,7 @@ export default function Analysis() {
                                 dataUpdate[index].result_hpf_path = newData.result_hpf_path;
                                 setRows([...dataUpdate]);
 
-                                // TODO: Send PATCH here
+                                // TODO: Send PATCH here for editing notes or path
 
                                 resolve();
                             }),
