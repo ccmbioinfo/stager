@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import MaterialTable from 'material-table';
-import { useHistory } from 'react-router';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -82,7 +82,7 @@ export interface AnalysisRun {
 }
 
 // generate fake analysis data
-function createAnalysis(
+export function createAnalysis(
     id: number,
     analysisID: string,
     dateSubmitted: string,
@@ -107,11 +107,16 @@ const analyses = [
     createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
 ];
 
+type ParamTypes = {
+    analysisID: string | undefined
+}
+
 export default function Analysis() {
     const classes = useStyles();
-    const [detail, setDetail] = useState(false);
+    const { analysisID }= useParams<ParamTypes>();
+    const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRun | null>(null);
+    const [activeRow, setActiveRow] = useState<AnalysisRun | undefined>(analyses.find(analysis => analysis.analysisID === analysisID));
     const [direct, setDirect] = useState(false);
 
     const history = useHistory();
@@ -136,7 +141,7 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRow}
-                    onClose={() => setDetail(false)}
+                    onClose={() => {setDetail(false); if(analysisID){history.goBack()}}}
                 />}
 
             <AddAnalysisAlert
