@@ -129,7 +129,7 @@ const analyses = [
     createAnalysis(8, 3, '/example/path/', 5, 4, PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
 ];
 
-// Display notes as an interactive tooltip
+// Displays notes as an interactive tooltip
 function renderNotes(rowData: AnalysisRow) {
     return (
     <Tooltip title={
@@ -155,6 +155,8 @@ export default function Analysis() {
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
+
+        // TODO: Fetch data here
         setRows(analyses);
 
     }, []);
@@ -254,7 +256,7 @@ export default function Analysis() {
                                 dataUpdate[index].result_hpf_path = newData.result_hpf_path;
                                 setRows([...dataUpdate]);
 
-                                // Send PATCH here
+                                // TODO: Send PATCH here
 
                                 resolve();
                             }),
