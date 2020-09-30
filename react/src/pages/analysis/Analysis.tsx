@@ -142,11 +142,27 @@ function renderNotes(rowData: AnalysisRow) {
     );
 }
 
+// Returns the analysis IDs of the provided rows, optionally delimited with delim
+function rowsToString(rows: AnalysisRow[], delim?: string) {
+    let returnStr = "";
+    if (delim) {
+        rows.forEach((row) => returnStr = returnStr.concat(`${row.analysis_id}${delim}`));
+    } else {
+        rows.forEach((row, index, arr) => (
+            returnStr = returnStr.concat(
+            index < arr.length-1 
+            ? `${row.analysis_id}, `
+            : `${row.analysis_id}`
+        )));
+    }
+    return returnStr;
+}
+
 export default function Analysis() {
     const classes = useStyles();
     const [detail, setDetail] = useState(false);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRow | null>(null);
+    const [activeRows, setActiveRows] = useState<AnalysisRow[]>([]);
     const [direct, setDirect] = useState(false);
     const [rows, setRows] = useState<AnalysisRow[]>([]);
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
@@ -164,27 +180,31 @@ export default function Analysis() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            {activeRow &&
+            {activeRows.length > 0 &&
                 <CancelAnalysisDialog
                     open={cancel}
-                    title={`Stop Analysis ${activeRow.analysis_id}?`}
+                    title={
+                        activeRows.length == 1 
+                        ? `Stop Analysis ${activeRows[0].analysis_id}?` 
+                        : `Stop Analyses ${rowsToString(activeRows)}?`
+                    }
                     // Message used to say which participants were involved in the analysis
                     message={`Do you really want to stop this analysis? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`}
                     onClose={() => { setCancel(false) }}
-                    labeledByPrefix={`${activeRow.analysis_id}`}
-                    describedByPrefix={`${activeRow.analysis_id}`}
+                    labeledByPrefix={`${rowsToString(activeRows, "-")}`}
+                    describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />}
-            {activeRow &&
+            {activeRows.length > 0 &&
                 <AnalysisInfoDialog
                     open={detail}
-                    analysis={activeRow}
+                    analysis={activeRows[0]}
                     onClose={() => setDetail(false)}
                 />}
 
             <AddAnalysisAlert
                 open={direct}
-                onClose={() => { setDirect(false) }}
-                onAccept={() => { setDirect(false); history.push("/participants") }}
+                onClose={() => { setDirect(false); }}
+                onAccept={() => { setDirect(false); history.push("/participants"); }}
             />
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
@@ -215,26 +235,27 @@ export default function Analysis() {
                         pageSize: 10,
                         filtering: true,
                         search: false,
-                        padding: 'dense'
+                        padding: 'dense',
+                        selection: true
                     }}
                     actions={[
                         {
                             icon: Visibility,
                             tooltip: 'Analysis details',
+                            position: 'row',
                             onClick: (event, rowData) => {
-                                setActiveRow((rowData as AnalysisRow))
-                                setDetail(true)
+                                setActiveRows([rowData as AnalysisRow]);
+                                setDetail(true);
                             }
                         },
-                        rowData => ({
+                        {
                             icon: Cancel,
                             tooltip: 'Cancel analysis',
-                            onClick: () => {
-                                setActiveRow(rowData)
-                                setCancel(true)
+                            onClick: (event, rowData) => {
+                                setActiveRows(rowData as AnalysisRow[]);
+                                setCancel(true);
                             },
-                            disabled: rowData.state !== PipelineStatus.RUNNING,
-                        }),
+                        },
                         {
                             icon: Add,
                             tooltip: 'Add New Analysis',
@@ -262,9 +283,11 @@ export default function Analysis() {
                             }),
                     }}
                     components={{
-                        Toolbar: props => (
+                        Toolbar: props => {
+                            const propsCopy = { ...props };
+                            return (
                             <div>
-                                <MTableToolbar {...props} />
+                                <MTableToolbar {...propsCopy} />
                                 <div style={{ marginLeft: '24px' }}>
                                     <Chip label="Completed" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.COMPLETED)} />
                                     <Chip label="Running" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.RUNNING)} />
@@ -273,7 +296,8 @@ export default function Analysis() {
                                     <IconButton onClick={() => setChipFilter("")}> <Cancel/> </IconButton>
                                 </div>
                             </div>
-                        ),
+                            );
+                        },
                     }}
                 />
             </Container>
