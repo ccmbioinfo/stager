@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
-import { Chip, IconButton, Tooltip, Typography } from '@material-ui/core';
+import { Chip, IconButton, TextField, Tooltip, Typography } from '@material-ui/core';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import CancelIcon from '@material-ui/icons/Cancel';
@@ -221,14 +221,23 @@ export default function Analysis() {
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
-                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric', editable: 'never' },
-                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'numeric', editable: 'never' },
-                        { title: 'Assignee ID', field: 'assignee', type: 'numeric', editable: 'never' },
-                        { title: 'Requester ID', field: 'requester', type: 'numeric', editable: 'never' },
+                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric', editable: 'never', width: '8%' },
+                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'numeric', editable: 'never', width: '8%' },
+                        { title: 'Assignee ID', field: 'assignee', type: 'numeric', editable: 'never', width: '8%' },
+                        { title: 'Requester ID', field: 'requester', type: 'numeric', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
-                        { title: 'Notes', field: 'notes', type: 'string', render: renderNotes }
+                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', /* render: renderNotes, */
+                        editComponent: props => (
+                            <TextField
+                            multiline
+                            value={props.value}
+                            onChange={props.onChange}
+                            rows={4}
+                            fullWidth
+                            />
+                        )}
                     ]}
                     data={rows}
                     title={
@@ -237,7 +246,8 @@ export default function Analysis() {
                     options={{
                         pageSize: 10,
                         filtering: true,
-                        search: false
+                        search: false,
+                        padding: 'dense'
                     }}
                     actions={[
                         {
@@ -284,7 +294,7 @@ export default function Analysis() {
                             }),
                     }}
                     components={{
-                        Toolbar: props => ( // ripped from Participants page
+                        Toolbar: props => (
                             <div>
                                 <MTableToolbar {...props} />
                                 <div style={{ marginLeft: '24px' }}>
