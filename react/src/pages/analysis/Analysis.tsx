@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
-import { Chip, IconButton, TextField, Tooltip, Typography } from '@material-ui/core';
-import Container from '@material-ui/core/Container';
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import CancelIcon from '@material-ui/icons/Cancel';
-import AddIcon from '@material-ui/icons/Add';
-import DescriptionIcon from '@material-ui/icons/Description';
+import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
+import { Cancel, Description, Add, Visibility } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
-import { Cancel } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -76,18 +71,6 @@ export enum PipelineStatus {
     ERROR = "Error",
 }
 
-// export interface AnalysisRow {
-//     id: number;
-//     analysisID: string;
-//     dateSubmitted: string;
-//     submittedBy: string;
-//     project: string;
-//     participants: string[];
-//     pipeline: string;
-//     timeElapsed: string;
-//     status: PipelineStatus;
-// }
-
 export interface AnalysisRow {
     analysis_id: number;
     pipeline_id: number; // Display pipeline name?
@@ -127,18 +110,6 @@ function createAnalysis(
     };
 }
 
-// const analyses = [
-//     createAnalysis(0, 'AN20392', '2020-05-23 12:09 PM', 'User A', '1000', ['AA920', 'AA921', 'AA922'], 'CRE', '.5hrs', PipelineStatus.RUNNING),
-//     createAnalysis(1, 'AN30092', '2020-06-13 1:09 AM', 'User A', '2030', ['AA410', 'AA411', 'AA412'], 'CRE', '1hr', PipelineStatus.RUNNING),
-//     createAnalysis(2, 'AN43820', '2020-06-19 4:32 AM', 'User B', '4030', ['BB024', 'BB025', 'BB026'], 'CRG', '2hrs', PipelineStatus.RUNNING),
-//     createAnalysis(3, 'AN38292', '2020-06-22 8:56 PM', 'User A', '3291', ['AA810', 'AA811', 'AA812', 'AA813'], 'CRG', '2hrs', PipelineStatus.RUNNING),
-//     createAnalysis(4, 'AN33889', '2020-06-21 8:09 AM', 'User C', '3289', ['CC330'], 'CRE', '17hrs', PipelineStatus.RUNNING),
-//     createAnalysis(5, 'AN38920', '2020-06-21 1:22 PM', 'User A', '2382', ['AC289', 'AC290', 'AC291'], 'CRG', '20hrs', PipelineStatus.RUNNING),
-//     createAnalysis(6, 'AN38921', '2020-06-19 10:00 AM', 'User B', '4182', ['AA337', 'AA338', 'AA339'], 'CRG', '47hrs', PipelineStatus.COMPLETED),
-//     createAnalysis(7, 'AN38991', '2020-06-19 9:09 AM', 'User B', '3271', ['AA320'], 'CRE', '20hrs', PipelineStatus.COMPLETED),
-//     createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
-// ];
-
 // fake notes
 const loremIpsum = [
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vestibulum, urna ac iaculis congue, urna justo accumsan ligula.",
@@ -170,7 +141,7 @@ function renderNotes(rowData: AnalysisRow) {
         <Typography variant="body1">{rowData.notes}</Typography>
         </>
     } interactive placement="left">
-        <IconButton><DescriptionIcon/></IconButton>
+        <IconButton><Description/></IconButton>
     </Tooltip>
     );
 }
@@ -251,7 +222,7 @@ export default function Analysis() {
                     }}
                     actions={[
                         {
-                            icon: VisibilityIcon,
+                            icon: Visibility,
                             tooltip: 'Analysis details',
                             onClick: (event, rowData) => {
                                 setActiveRow((rowData as AnalysisRow))
@@ -259,7 +230,7 @@ export default function Analysis() {
                             }
                         },
                         rowData => ({
-                            icon: CancelIcon,
+                            icon: Cancel,
                             tooltip: 'Cancel analysis',
                             onClick: () => {
                                 setActiveRow(rowData)
@@ -268,7 +239,7 @@ export default function Analysis() {
                             disabled: rowData.state !== PipelineStatus.RUNNING,
                         }),
                         {
-                            icon: AddIcon,
+                            icon: Add,
                             tooltip: 'Add New Analysis',
                             isFreeAction: true,
                             onClick: (event) => setDirect(true)
