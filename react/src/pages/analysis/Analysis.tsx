@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { useHistory } from 'react-router';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -144,17 +143,17 @@ function renderNotes(rowData: AnalysisRow) {
 }
 
 type ParamTypes = {
-    analysisID: string | undefined
+    analysis_id: string | undefined
 }
 
 export default function Analysis() {
     const classes = useStyles();
-    const { analysisID }= useParams<ParamTypes>();
-    const [detail, setDetail] = useState(true);
+    const { analysis_id }= useParams<ParamTypes>();
+    const [detail, setDetail] = useState(false);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRow | undefined>(analyses.find(analysis => analysis.analysis_id === analysis_id));
     const [direct, setDirect] = useState(false);
     const [rows, setRows] = useState<AnalysisRow[]>([]);
+    const [activeRow, setActiveRow] = useState<AnalysisRow | undefined>(analyses.find(analysis => analysis.analysis_id === analysis_id));
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
     const history = useHistory();
@@ -162,6 +161,10 @@ export default function Analysis() {
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
+        // For when the user comes from the notification panel
+        if (activeRow && analysis_id) 
+            setDetail(true);
+            
         // TODO: Fetch data here
         setRows(analyses);
 
@@ -184,7 +187,7 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRow}
-                    onClose={() => {setDetail(false); if(analysis_id){history.goBack()}}}
+                    onClose={() => {setDetail(false); if (analysis_id) {history.goBack()}}}
                 />}
 
             <AddAnalysisAlert
