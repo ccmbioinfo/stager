@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Union
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
+from sqlalchemy.orm import joinedload
+from dataclasses import asdict
 
 from app import app, db, login, models
 
@@ -232,3 +234,23 @@ def update_entity(model_name:str, id:int):
 
     return jsonify(table)
 
+@app.route('/api/participant', methods=['GET'], endpoint='partipants_list')
+@login_required
+def participants_list():
+    db_participants = models.Participant.query.options(
+        joinedload(models.Participant.family),
+        joinedload(models.Participant.tissue_samples).
+        joinedload(models.TissueSample.datasets)
+    ).all()
+    return jsonify([
+        {
+            **asdict(participant),
+            'family_codename': participant.family.family_codename,
+            'tissue_samples': [
+                {
+                    **asdict(tissue_sample),
+                    'datasets': tissue_sample.datasets
+                } for tissue_sample in participant.tissue_samples
+            ]
+        } for participant in db_participants
+    ])
