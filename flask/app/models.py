@@ -77,7 +77,7 @@ class Participant(db.Model):
     created_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    tissue_samples = db.relationship('TissueSample',  backref='participant')
+    tissue_samples = db.relationship('TissueSample', backref='participant')
 
 
 class TissueSampleType(str, Enum):

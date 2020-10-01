@@ -3,12 +3,12 @@ from enum import Enum
 from functools import wraps
 import json
 from typing import Any, Dict, List, Union
+from dataclasses import asdict
 
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import joinedload
-from dataclasses import asdict
 
 from app import app, db, login, models
 
@@ -234,7 +234,7 @@ def update_entity(model_name:str, id:int):
 
     return jsonify(table)
 
-@app.route('/api/participant', methods=['GET'], endpoint='partipants_list')
+@app.route('/api/participants', methods=['GET'], endpoint='participants_list')
 @login_required
 def participants_list():
     db_participants = models.Participant.query.options(
