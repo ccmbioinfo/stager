@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useHistory } from 'react-router';
+import { useParams, useHistory, useLocation } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility } from '@material-ui/icons';
@@ -148,7 +148,8 @@ type ParamTypes = {
 
 export default function Analysis() {
     const classes = useStyles();
-    const { analysis_id }= useParams<ParamTypes>();
+    const { analysis_id } = useParams<ParamTypes>();
+
     const [detail, setDetail] = useState(false);
     const [cancel, setCancel] = useState(false);
     const [direct, setDirect] = useState(false);
@@ -164,7 +165,7 @@ export default function Analysis() {
         // For when the user comes from the notification panel
         if (activeRow && analysis_id) 
             setDetail(true);
-
+        
         // TODO: Fetch data here
         setRows(analyses);
 
@@ -199,9 +200,9 @@ export default function Analysis() {
                 <MaterialTable
                     columns={[
                         { title: 'Analysis ID', field: 'analysis_id', type: 'string', editable: 'never', width: '8%' },
-                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
-                        { title: 'Assignee ID', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
-                        { title: 'Requester ID', field: 'requester', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Pipeline', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
@@ -231,8 +232,9 @@ export default function Analysis() {
                             icon: Visibility,
                             tooltip: 'Analysis details',
                             onClick: (event, rowData) => {
-                                setActiveRow((rowData as AnalysisRow))
-                                setDetail(true)
+                                setActiveRow((rowData as AnalysisRow));
+                                setDetail(true);
+                                history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
                             }
                         },
                         rowData => ({
@@ -242,7 +244,7 @@ export default function Analysis() {
                                 setActiveRow(rowData)
                                 setCancel(true)
                             },
-                            disabled: rowData.state !== PipelineStatus.RUNNING,
+                            disabled: rowData.state !== PipelineStatus.RUNNING && rowData.state !== PipelineStatus.PENDING,
                         }),
                         {
                             icon: Add,
@@ -254,18 +256,21 @@ export default function Analysis() {
                     editable={{
                         onRowUpdate: (newData, oldData) =>
                             new Promise((resolve, reject) => {
+                                // TODO: Send PATCH here
+
                                 const dataUpdate = [...rows];
                                 // find the row; assume analysis_id is unique
                                 const index = dataUpdate.findIndex((row, index, obj) => {
                                     return row.analysis_id === oldData?.analysis_id
                                 });
 
-                                // only update the rows that are allowed
-                                dataUpdate[index].notes = newData.notes;
-                                dataUpdate[index].result_hpf_path = newData.result_hpf_path;
-                                setRows([...dataUpdate]);
+                                const newRow: AnalysisRow = { ...dataUpdate[index] };
 
-                                // TODO: Send PATCH here
+                                // only update the columns that are allowed
+                                newRow.notes = newData.notes;
+                                newRow.result_hpf_path = newData.result_hpf_path;
+                                dataUpdate[index] = newRow;
+                                setRows(dataUpdate);
 
                                 resolve();
                             }),
