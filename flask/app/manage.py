@@ -135,6 +135,18 @@ def add_dummy_data():
 
         db.session.commit()
         print("Created default pipelines: {}".format(", ".join([p['pipeline_version'] for p in default_pipelines])))
+    
+    # add the supported datasets for the pipelines
+    if len(db.session.query(models.PipelineDatasets).all()) == 0:
+        # genomic datasets map to pipeline_id 1 (CRG)
+        for g in ["CGS","RGS","WGS"]:
+            db.session.add(models.PipelineDatasets(pipeline_id=1,supported_dataset=g))
+        # exomic datasets map to pipeline_id 2 (CRE) 
+        for e in ["CES","CPS","RES","WES"]:
+            db.session.add(models.PipelineDatasets(pipeline_id=2,supported_dataset=e))
+        
+        db.session.commit()
+        print("Added dataset support info for pipelines")
 
     # add analyses
     if len(db.session.query(models.Analysis).all()) == 0:

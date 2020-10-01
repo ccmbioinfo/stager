@@ -50,7 +50,9 @@ export default function FilesTable() {
             title="Unlinked files"
             options={{
                 pageSize: 5,
-                selection: true
+                selection: true,
+                filtering: true,
+                search: false
             }}
             components={{
                 Toolbar: props => (

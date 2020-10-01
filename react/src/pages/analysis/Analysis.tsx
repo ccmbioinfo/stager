@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import VisibilityIcon from '@material-ui/icons/Visibility';
@@ -8,6 +9,7 @@ import MaterialTable from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
+import AddAnalysisAlert from './AddAnalysisAlert';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -80,7 +82,7 @@ export interface AnalysisRun {
 }
 
 // generate fake analysis data
-function createAnalysis(
+export function createAnalysis(
     id: number,
     analysisID: string,
     dateSubmitted: string,
@@ -105,11 +107,19 @@ const analyses = [
     createAnalysis(8, 'AN20032', '2020-06-20 7:07 AM', 'User C', '3839', ['CC773', 'CC774', 'CC775'], 'CRE', '22hrs', PipelineStatus.ERROR),
 ];
 
+type ParamTypes = {
+    analysisID: string | undefined
+}
+
 export default function Analysis() {
     const classes = useStyles();
-    const [detail, setDetail] = useState(false);
+    const { analysisID }= useParams<ParamTypes>();
+    const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRun | null>(null);
+    const [activeRow, setActiveRow] = useState<AnalysisRun | undefined>(analyses.find(analysis => analysis.analysisID === analysisID));
+    const [direct, setDirect] = useState(false);
+
+    const history = useHistory();
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
@@ -131,8 +141,14 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRow}
-                    onClose={() => setDetail(false)}
+                    onClose={() => {setDetail(false); if(analysisID){history.goBack()}}}
                 />}
+
+            <AddAnalysisAlert
+                open={direct}
+                onClose={() => { setDirect(false) }}
+                onAccept={() => { setDirect(false); history.push("/participants") }}
+            />
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
@@ -150,6 +166,8 @@ export default function Analysis() {
                     }
                     options={{
                         pageSize: 10,
+                        filtering: true,
+                        search: false
                     }}
                     actions={[
                         {
@@ -171,9 +189,9 @@ export default function Analysis() {
                         }),
                         {
                             icon: AddIcon,
-                            tooltip: 'Add User',
+                            tooltip: 'Add New Analysis',
                             isFreeAction: true,
-                            onClick: (event) => alert("Select some datasets over at the Participants tab if you want to create a new analysis!")
+                            onClick: (event) => setDirect(true)
                         }
                     ]}
                 />
