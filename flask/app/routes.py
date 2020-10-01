@@ -19,7 +19,7 @@ def login():
         # get/update last login
         last_login = ''
         try:
-            last_login = str(current_user.last_login)
+            last_login = current_user.last_login
             current_user.last_login = datetime.now()
             db.session.commit()
         except:
@@ -40,7 +40,7 @@ def login():
     # get/update last login
     last_login = ''
     try:
-        last_login = str(user.last_login)
+        last_login = user.last_login
         user.last_login = datetime.now()
         db.session.commit()
     except:
