@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import List
-from flask_marshmallow import Marshmallow
 
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
