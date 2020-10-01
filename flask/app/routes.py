@@ -15,17 +15,15 @@ def load_user(uid: int):
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    last_login = None
     if current_user.is_authenticated:
         # get/update last login
-        last_login = ''
         try:
             last_login = current_user.last_login
             current_user.last_login = datetime.now()
             db.session.commit()
         except:
-            app.logger.warning('Failed to updated last_login for {user} with timestamp {login}'.format(
-                user=current_user.username,
-                login=last_login))
+            app.logger.warning('Failed to updated last_login for %s', current_user.username)
         
         return jsonify({ "username": current_user.username, "last_login": last_login })
 
@@ -38,16 +36,12 @@ def login():
         return 'Unauthorized', 401
 
     # get/update last login
-    last_login = ''
     try:
         last_login = user.last_login
         user.last_login = datetime.now()
         db.session.commit()
     except:
-        app.logger.warning('Failed to updated last_login for {user} with timestamp {login}'.format(
-            user=user.username,
-            login=last_login))
-        app.logger.warning('failed to update last_login with %s', last_login)
+        app.logger.warning('Failed to updated last_login for %s', user.username)
 
     login_user(user)
     return jsonify({ "username": user.username, "last_login": last_login})
