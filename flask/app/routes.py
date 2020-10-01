@@ -10,7 +10,6 @@ from sqlalchemy import exc
 
 from app import app, db, login, models
 
-
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
@@ -18,18 +17,36 @@ def load_user(uid: int):
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    last_login = None
     if current_user.is_authenticated:
-        return json.dumps({ "username": current_user.username }), 200
+        # get/update last login
+        try:
+            last_login = current_user.last_login
+            current_user.last_login = datetime.now()
+            db.session.commit()
+        except:
+            app.logger.warning('Failed to updated last_login for %s', current_user.username)
+
+        return jsonify({ "username": current_user.username, "last_login": last_login })
 
     body = request.json
-    if not body:
+    if not body or 'username' not in body or 'password' not in body:
         return 'Request body must be correctly-shaped JSON!', 400
 
     user = models.User.query.filter_by(username=body['username']).first()
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
+
+    # get/update last login
+    try:
+        last_login = user.last_login
+        user.last_login = datetime.now()
+        db.session.commit()
+    except:
+        app.logger.warning('Failed to updated last_login for %s', user.username)
+
     login_user(user)
-    return json.dumps({ "username": user.username }), 200
+    return jsonify({ "username": user.username, "last_login": last_login })
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -209,7 +226,7 @@ def update_entity(model_name:str, id:int):
          return 'Not Found', 404
 
     enum_error = mixin(table, request.json, editable_columns)
-    
+
     if enum_error:
         return enum_error, 400
 
