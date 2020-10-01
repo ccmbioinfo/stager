@@ -254,3 +254,29 @@ def participants_list():
             ]
         } for participant in db_participants
     ])
+
+@app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
+@login_required
+def analyses_list():
+    db_analyses = db.session.query(models.Analysis).all()
+
+    analyses = [
+        {
+            **asdict(analysis),
+            "assignee" : db.session.query(models.User).get(analysis.assignee).username,
+            "requester" : db.session.query(models.User).get(analysis.requester).username,
+            "updated_by" : db.session.query(models.User).get(analysis.updated_by).username,
+        } for analysis in db_analyses
+    ]
+
+    return jsonify(analyses)
+
+
+@app.route('/api/pipelines', methods=['GET'], endpoint='pipelines_list')
+@login_required
+def pipelines_list():
+    db_pipelines = db.session.query(models.Pipeline).options(
+        joinedload(models.Pipeline.supported)
+    ).all()
+
+    return jsonify(db_pipelines)
