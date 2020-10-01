@@ -33,7 +33,7 @@ const organizeDatasetTypes = (types: string[]) => {
     return newTypes
 }
 
-export default function SamplesTable() {
+export default function ParticipantTable() {
     const classes = useStyles();
     const [centre, setCentre] = useState("");
 
