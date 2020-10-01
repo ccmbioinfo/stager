@@ -230,8 +230,8 @@ export default function Analysis() {
             {activeRows.length > 0 &&
                 <AnalysisInfoDialog
                     open={detail}
-                    onClose={() => {setDetail(false); if(analysisID){history.goBack()}}}
                     analysis={activeRows[0]}
+                    onClose={() => {setDetail(false); if(analysis_id){history.goBack()}}}
                 />}
 
             <AddAnalysisAlert
