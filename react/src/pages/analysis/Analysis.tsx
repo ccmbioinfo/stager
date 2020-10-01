@@ -239,7 +239,7 @@ export default function Analysis() {
                             <TextField
                             multiline
                             value={props.value}
-                            onChange={props.onChange}
+                            onChange={event => props.onChange(event.target.value)}
                             rows={4}
                             fullWidth
                             />
