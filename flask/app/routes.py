@@ -1,14 +1,12 @@
 import json
 
 from functools import wraps
+from datetime import datetime
 
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
 
 from app import app, db, login, models
-
-from datetime import datetime
-
 
 @login.user_loader
 def load_user(uid: int):
@@ -19,13 +17,17 @@ def load_user(uid: int):
 def login():
     if current_user.is_authenticated:
         # get/update last login
-        last_login = current_user.last_login
+        last_login = ''
         try:
+            last_login = str(current_user.last_login)
             current_user.last_login = datetime.now()
             db.session.commit()
         except:
-            app.logger.info('failed to update last_login for %s', current_user.username)
-        return jsonify({ "username": current_user.username, "last_login": current_user.last_login }), 200
+            app.logger.warning('Failed to updated last_login for {user} with timestamp {login}'.format(
+                user=current_user.username,
+                login=last_login))
+        
+        return jsonify({ "username": current_user.username, "last_login": last_login })
 
     body = request.json
     if not body:
@@ -36,15 +38,19 @@ def login():
         return 'Unauthorized', 401
 
     # get/update last login
-    last_login = current_user.last_login
+    last_login = ''
     try:
+        last_login = str(user.last_login)
         user.last_login = datetime.now()
         db.session.commit()
     except:
-        app.logger.info('failed to update last_login for %s', current_user.username)
+        app.logger.warning('Failed to updated last_login for {user} with timestamp {login}'.format(
+            user=user.username,
+            login=last_login))
+        app.logger.warning('failed to update last_login with %s', last_login)
 
     login_user(user)
-    return jsonify({ "username": user.username, "last_login": current_user.last_login}), 200
+    return jsonify({ "username": user.username, "last_login": last_login})
 
 
 @app.route('/api/logout', methods=['POST'])
