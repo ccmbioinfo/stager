@@ -165,6 +165,10 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
     return returnStr;
 }
 
+// How long to wait before refreshing data, in milliseconds
+// Default: 1 min
+const refreshTimeDelay = 1000 * 60;
+
 export default function Analysis() {
     const classes = useStyles();
     const { analysisID }= useParams<ParamTypes>();
@@ -182,6 +186,12 @@ export default function Analysis() {
 
         // TODO: Fetch data here
         setRows(analyses);
+
+        // Auto-refresh
+        // const dataRefreshTimer = setInterval(() => {
+        //     // TODO: Fetch data here, set rows
+            
+        // }, refreshTimeDelay)
 
     }, []);
 
