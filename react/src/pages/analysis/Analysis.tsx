@@ -164,7 +164,7 @@ export default function Analysis() {
         // For when the user comes from the notification panel
         if (activeRow && analysis_id) 
             setDetail(true);
-            
+
         // TODO: Fetch data here
         setRows(analyses);
 
@@ -198,10 +198,10 @@ export default function Analysis() {
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
-                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric', editable: 'never', width: '8%' },
-                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'numeric', editable: 'never', width: '8%' },
-                        { title: 'Assignee ID', field: 'assignee', type: 'numeric', editable: 'never', width: '8%' },
-                        { title: 'Requester ID', field: 'requester', type: 'numeric', editable: 'never', width: '8%' },
+                        { title: 'Analysis ID', field: 'analysis_id', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Assignee ID', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Requester ID', field: 'requester', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
