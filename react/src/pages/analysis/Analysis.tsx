@@ -133,7 +133,7 @@ const analyses = [
 ];
 
 type ParamTypes = {
-    analysisID: string | undefined
+    analysis_id: string | undefined
 }
 
 // Displays notes as an interactive tooltip
@@ -171,12 +171,13 @@ const refreshTimeDelay = 1000 * 60;
 
 export default function Analysis() {
     const classes = useStyles();
-    const { analysisID }= useParams<ParamTypes>();
-    const [detail, setDetail] = useState(true);
+    const { analysis_id }= useParams<ParamTypes>();
+    const [detail, setDetail] = useState(false);
     const [cancel, setCancel] = useState(false);
     const [activeRows, setActiveRows] = useState<AnalysisRow[]>([]);
     const [direct, setDirect] = useState(false);
     const [rows, setRows] = useState<AnalysisRow[]>([]);
+    const [activeRow, setActiveRow] = useState<AnalysisRow | undefined>(analyses.find(analysis => analysis.analysis_id === analysis_id));
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
     const history = useHistory();
@@ -184,6 +185,10 @@ export default function Analysis() {
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
+        // For when the user comes from the notification panel
+        if (activeRow && analysis_id) 
+            setDetail(true);
+            
         // TODO: Fetch data here
         setRows(analyses);
 
