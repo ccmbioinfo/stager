@@ -69,6 +69,7 @@ export enum PipelineStatus {
     RUNNING = "Running",
     COMPLETED = "Completed",
     ERROR = "Error",
+    CANCELLED = "Cancelled"
 }
 
 export interface AnalysisRow {
@@ -80,6 +81,7 @@ export interface AnalysisRow {
     state: PipelineStatus;
     updated: string; // Date type maybe?
     notes: string;
+    selected: boolean; // used for optimizing data updating
     /*
     More fields can go here as required;
     MaterialTable columns only need to cover a subset of 
@@ -106,7 +108,8 @@ function createAnalysis(
         requester,
         state,
         updated,
-        notes
+        notes,
+        selected: false
     };
 }
 
@@ -199,11 +202,15 @@ export default function Analysis() {
                         // TODO: PATCH goes here for cancelling analyses
 
                         const newRows = [...rows];
-                        // TODO: This is pretty slow
+                        // newRows.forEach((row, index, arr) => {
+                        //     if (row.state === PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
+                        //         newRows[index].state = PipelineStatus.CANCELLED; // Not sure if this is correct
+                        // });
                         newRows.forEach((row, index, arr) => {
-                            if (row.state === PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
-                                newRows[index].state = PipelineStatus.PENDING; // Not sure if this is correct
+                            if (row.selected && row.state === PipelineStatus.RUNNING)
+                                newRows[index].state = PipelineStatus.CANCELLED;
                         });
+
                         setRows([...newRows]);
                         setCancel(false);
                     }}
@@ -243,6 +250,17 @@ export default function Analysis() {
                             />
                         )}
                     ]}
+                    onSelectionChange={(data, row) => {
+                        // Use hidden 'selected' field to optimize mass cancellation, reassignment, etc.
+                        // doesn't use setState, but these shouldn't trigger a re-render anyways
+                        if (row) // one row changed
+                            row.selected = !row.selected;
+                        else // all rows changed
+                            if (data.length === rows.length)
+                                rows.forEach((val, i, arr) => arr[i].selected = true);
+                            else
+                                rows.forEach((val, i, arr) => arr[i].selected = false);
+                    }}
                     data={rows}
                     title={
                         <Title>Active Analyses</Title>
@@ -288,11 +306,16 @@ export default function Analysis() {
                                 setActiveRows(rowData as AnalysisRow[]);
 
                                 const newRows = [...rows];
-                                // TODO: This is pretty slow
+                                // newRows.forEach((row, index, arr) => {
+                                //     if (row.state !== PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
+                                //         newRows[index].state = PipelineStatus.RUNNING;
+                                // });
                                 newRows.forEach((row, index, arr) => {
-                                    if (row.state !== PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
-                                        newRows[index].state = PipelineStatus.RUNNING;  // not sure if this is correct either
-                                })
+                                    if (row.selected && row.state !== PipelineStatus.RUNNING)
+                                        newRows[index].state = PipelineStatus.RUNNING;
+                                });
+
+                                setRows([...newRows]);
                             },
                         }
                     ]}
@@ -326,6 +349,7 @@ export default function Analysis() {
                                     <Chip label="Running" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.RUNNING)} />
                                     <Chip label="Pending" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.PENDING)} />
                                     <Chip label="Error" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.ERROR)} />
+                                    <Chip label="Cancelled" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.CANCELLED)} />
                                     <IconButton onClick={() => setChipFilter("")}> <Cancel/> </IconButton>
                                 </div>
                             </div>
