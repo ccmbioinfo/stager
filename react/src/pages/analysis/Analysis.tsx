@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility } from '@material-ui/icons';
@@ -142,11 +143,16 @@ function renderNotes(rowData: AnalysisRow) {
     );
 }
 
+type ParamTypes = {
+    analysisID: string | undefined
+}
+
 export default function Analysis() {
     const classes = useStyles();
-    const [detail, setDetail] = useState(false);
+    const { analysisID }= useParams<ParamTypes>();
+    const [detail, setDetail] = useState(true);
     const [cancel, setCancel] = useState(false);
-    const [activeRow, setActiveRow] = useState<AnalysisRow | null>(null);
+    const [activeRow, setActiveRow] = useState<AnalysisRow | undefined>(analyses.find(analysis => analysis.analysis_id === analysis_id));
     const [direct, setDirect] = useState(false);
     const [rows, setRows] = useState<AnalysisRow[]>([]);
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
@@ -178,7 +184,7 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRow}
-                    onClose={() => setDetail(false)}
+                    onClose={() => {setDetail(false); if(analysis_id){history.goBack()}}}
                 />}
 
             <AddAnalysisAlert
