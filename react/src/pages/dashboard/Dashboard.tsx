@@ -7,9 +7,6 @@ import AnalysisTable from './AnalysisTable';
 import SamplesTable from './SamplesTable';
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: 'fill',
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
