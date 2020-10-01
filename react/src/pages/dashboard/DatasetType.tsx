@@ -17,6 +17,6 @@ interface DatasetTypeProps{
 export default function DatasetType({ type, number }: DatasetTypeProps) {
     const classes = useStyles();
     return (
-        <Chip className={classes.chip} label={type} avatar={<Avatar>{number}</Avatar>}/>
+        <Chip className={classes.chip} label={type} avatar={<Avatar>{number}</Avatar>} />
     )
 }

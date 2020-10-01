@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
         colorPrimary: theme.palette.primary,
     },
     copyIcon: {
-        marginLeft: theme.spacing(1)
+        marginLeft: theme.spacing(1),
     }
 }));
 
@@ -25,7 +25,7 @@ const organizeDatasetTypes = (types: string[]) => {
     const newTypes : {[key: string]: number}= {};
     types.map(type => {
         if(newTypes.hasOwnProperty(type)){
-            newTypes[type] +=1;
+            newTypes[type] += 1;
         }else{
             newTypes[type] = 1;
         }
@@ -84,12 +84,12 @@ export default function SamplesTable() {
                     {
                         icon: () => <FileCopyIcon className={classes.copyIcon}/>,
                         tooltip: 'Copy Participant Codename_Family Codename',
-                        onClick: CopyToClipboard
+                        onClick: CopyToClipboard,
                     },
                 ]}
                 localization={{
                     header: {
-                        actions: ''
+                        actions: '',
                     },
                 }}
             />

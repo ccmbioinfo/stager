@@ -46,8 +46,7 @@ export default function Dashboard() {
             <Container>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-
-                            <SamplesTable />
+                        <SamplesTable />
                     </Grid>
                 </Grid>
             </Container>
