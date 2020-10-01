@@ -10,7 +10,6 @@ from sqlalchemy import exc
 
 from app import app, db, login, models
 
-
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
@@ -18,18 +17,36 @@ def load_user(uid: int):
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    last_login = None
     if current_user.is_authenticated:
-        return json.dumps({ "username": current_user.username }), 200
+        # get/update last login
+        try:
+            last_login = current_user.last_login
+            current_user.last_login = datetime.now()
+            db.session.commit()
+        except:
+            app.logger.warning('Failed to updated last_login for %s', current_user.username)
+
+        return jsonify({ "username": current_user.username, "last_login": last_login })
 
     body = request.json
-    if not body:
+    if not body or 'username' not in body or 'password' not in body:
         return 'Request body must be correctly-shaped JSON!', 400
 
     user = models.User.query.filter_by(username=body['username']).first()
     if user is None or not user.check_password(body['password']):
         return 'Unauthorized', 401
+
+    # get/update last login
+    try:
+        last_login = user.last_login
+        user.last_login = datetime.now()
+        db.session.commit()
+    except:
+        app.logger.warning('Failed to updated last_login for %s', user.username)
+
     login_user(user)
-    return json.dumps({ "username": user.username }), 200
+    return jsonify({ "username": user.username, "last_login": last_login })
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -179,25 +196,42 @@ def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> U
             setattr(entity, field, value)
 
 
-@app.route('/api/participants/<int:participant_id>', methods = ['PATCH'])
+@app.route('/api/<model_name>/<int:id>', methods = ['PATCH'])
 @login_required
-def update_participants(participant_id: int):
+def update_entity(model_name:str, id:int):
     if not request.json:
         return 'Request body must be JSON', 415
 
-    participant = models.Participant.query.get(participant_id)
-    if not participant:
+    if model_name == 'participants':
+        table = models.Participant.query.get(id)
+        editable_columns = ['participant_codename', 'sex', 'participant_type',
+                             'affected', 'solved', 'notes']
+    elif model_name == 'datasets':
+        table = models.Dataset.query.get(id)
+        editable_columns = ['dataset_type', 'input_hpf_path', 'notes', 'condition',
+                            'extraction_protocol', 'capture_kit', 'library_prep_method',
+                            'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
+                            'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator'
+                            ]
+    elif model_name == 'analyses':
+        table = models.Analysis.query.get(id)
+        editable_columns = ['analysis_state', 'pipeline_id', 'qsub_id', 'result_hpf_path',
+                            'assignee','requester', 'requested',  'started','finished',
+                            'notes'
+                            ]
+    else:
         return 'Not Found', 404
 
-    enum_error = mixin(participant, request.json, [
-        'participant_codename', 'sex', 'participant_type',
-        'affected', 'solved', 'notes'
-    ])
+    if not table:
+         return 'Not Found', 404
+
+    enum_error = mixin(table, request.json, editable_columns)
+
     if enum_error:
         return enum_error, 400
 
     try:
-        participant.updated_by = current_user.user_id
+        table.updated_by = current_user.user_id
     except:
         pass  # LOGIN_DISABLED
 
@@ -205,7 +239,6 @@ def update_participants(participant_id: int):
         db.session.commit()
     except exc.DataError as err:
         db.session.rollback()
-        # SQLAlchemy wraps the underlying database error; extract just the message
         return err.orig.args[1], 400
     except exc.StatementError as err:
         db.session.rollback()
@@ -214,11 +247,5 @@ def update_participants(participant_id: int):
         db.session.rollback()
         raise err
 
-    return jsonify(participant)
+    return jsonify(table)
 
-
-# @app.route('/api/datasets/<dataset_id>', methods = ['PATCH'])
-# @login_required
-
-# @app.route('/api/analyses/<analysis_id>', methods = ['PATCH'])
-# @login_required

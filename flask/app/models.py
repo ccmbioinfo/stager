@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False, unique=False)
     email = db.Column(db.String(150), nullable=False, unique=True)
     is_admin = db.Column(db.Boolean, unique=False, default=False)
+    last_login = db.Column(db.DateTime)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256:50000')

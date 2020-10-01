@@ -205,6 +205,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                 </Drawer>
                 <Switch>
                     <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
+                    <Route path="/analysis/:analysisID" render={() => {setPageName("Analyses"); return <Analysis />}} />
                     <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analysis />}} />
                     <Route path="/participants" render={() => {setPageName("Participants"); return <Participants />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
