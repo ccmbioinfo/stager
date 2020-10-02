@@ -61,6 +61,9 @@ const useStyles = makeStyles(theme => ({
         color: "primary",
         marginRight: '10px',
         colorPrimary: theme.palette.primary,
+    },
+    visibilityIcon: {
+        marginLeft: theme.spacing(1)
     }
 }));
 
@@ -227,17 +230,18 @@ export default function Analysis() {
                     options={{
                         pageSize: 10,
                         filtering: true,
-                        search: false
+                        search: false,
+                        padding: 'dense'
                     }}
                     actions={[
                         {
-                            icon: Visibility,
+                            icon: () => <Visibility className={classes.visibilityIcon} />,
                             tooltip: 'Analysis details',
                             onClick: (event, rowData) => {
                                 setActiveRow((rowData as AnalysisRow));
                                 setDetail(true);
                                 history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
-                            }
+                            },
                         },
                         rowData => ({
                             icon: Cancel,
