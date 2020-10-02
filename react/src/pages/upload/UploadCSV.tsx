@@ -13,7 +13,8 @@ const useStyles = makeStyles(theme => ({
     dropzone: {
         cursor: 'pointer',
         p: 2,
-        alignItems: 'center',        
+        alignItems: 'center',
+        backgroundColor: theme.palette.grey[300]
     }
 }));
 
@@ -75,7 +76,6 @@ export function InputFileUpload(props: InputFileUploadProps) {
             >
                 <Box 
                     display="flex" 
-                    bgcolor="grey.300" 
                     boxShadow={isDragging ? 0 : 1} 
                     className={classes.dropzone} 
                     py={isDragging ? 20 : 0}

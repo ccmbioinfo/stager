@@ -116,7 +116,24 @@ export default function UploadForm() {
     const [columns, setColumns] = useState(() => {
       var columns = [];
       for (let key in DatasetColumnNames) {
-        let colToAdd = { title: DatasetColumnNames[key], field: key };
+        let colToAdd: any = { title: DatasetColumnNames[key], field: key};
+        switch (key) {
+          case "participantSex":
+            colToAdd.lookup = {...Object.values(Sex)};
+            break;
+          case "datasetType":
+            colToAdd.lookup = {...Object.values(DatasetType)};
+            break;
+          case "participantType":
+            colToAdd.lookup = {...Object.values(Relation)};
+            break;
+          case "datasetCondition":
+            colToAdd.lookup = {...Object.values(Condition)};
+            break;
+          case "tissueType":
+            colToAdd.lookup = {...Object.values(TissueType)};
+            break;
+        }
         columns.push(colToAdd);
       }
       return columns;
@@ -153,85 +170,13 @@ export default function UploadForm() {
               const index = newRows.indexOf(oldRow!);
               newRows.splice(index, 1);
               setRows([...newRows]);
+              resolve();
             })
         }}
         options={{
-          search: false
+          search: false,
+          actionsColumnIndex: -1
         }}
         />
     );
-
-  //   return (
-  //     <>
-  //     <form>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="family-code">Family ID</InputLabel>
-  //       <Input id="family-code"/>
-  //     </FormControl>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="participant-code">Participant ID</InputLabel>
-  //       <Input id="participant-code"/>
-  //     </FormControl>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="participant-sex">Sex</InputLabel>
-  //       <Select id="participant-sex">
-  //         <MenuItem value={'F'}>F</MenuItem>
-  //         <MenuItem value={'M'}>M</MenuItem>
-  //         <MenuItem value={'Other'}>Other</MenuItem>
-  //       </Select>
-  //     </FormControl>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="dataset-type">Type</InputLabel>
-  //       <Select autoWidth={true} id="dataset-type">
-  //         <MenuItem value={'WES'}>WES</MenuItem>
-  //         <MenuItem value={'WGS'}>WGS</MenuItem>
-  //         <MenuItem value={'CES'}>CES</MenuItem>
-  //         <MenuItem value={'CGS'}>CGS</MenuItem>
-  //         <MenuItem value={'CPS'}>CPS</MenuItem>
-  //         <MenuItem value={'RNASeq'}>RNASeq</MenuItem>
-  //         <MenuItem value={'Other'}>Other</MenuItem>
-  //       </Select>
-  //     </FormControl>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="participant-type">Relation</InputLabel>
-  //       <Select autoWidth={true} id="participant-type">
-  //         <MenuItem value={'Proband'}>Proband</MenuItem>
-  //         <MenuItem value={'Mother'}>Mother</MenuItem>
-  //         <MenuItem value={'Father'}>Father</MenuItem>
-  //         <MenuItem value={'Sibling'}>Sibling</MenuItem>
-  //         <MenuItem value={'Other'}>Other</MenuItem>
-  //       </Select>
-  //     </FormControl>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="dataset-condition">Condition</InputLabel>
-  //       <Select autoWidth={true} id="participant-type">
-  //         <MenuItem value={'Germline'}>Germline</MenuItem>
-  //         <MenuItem value={'Somatic'}>Somatic</MenuItem>
-  //         <MenuItem value={'Control'}>Control</MenuItem>
-  //       </Select>
-  //     </FormControl>
-  //     <FormControl className={classes.margin}>
-  //       <InputLabel shrink htmlFor="tissue-type">Tissue</InputLabel>
-  //       <Select autoWidth={true} id="tissue-type">
-  //         <MenuItem value={'Blood'}>Blood</MenuItem>
-  //         <MenuItem value={'Saliva'}>Saliva</MenuItem>
-  //         <MenuItem value={'Lymphocyte'}>Lymphocyte</MenuItem>
-  //         <MenuItem value={'Fibroblast'}>Fibroblast</MenuItem>
-  //         <MenuItem value={'Skin'}>Skin</MenuItem>
-  //         <MenuItem value={'Urine'}>Urine</MenuItem>
-  //         <MenuItem value={'Plasma'}>Plasma</MenuItem>
-  //         <MenuItem value={'Kidney'}>Kidney</MenuItem>
-  //         <MenuItem value={'Unknown'}>Unknown</MenuItem>
-  //       </Select>
-  //     </FormControl>
-  //     <FormControl>
-  //       <IconButton>
-  //         <AddCircle />
-  //       </IconButton>
-  //     </FormControl>
-  //     </form>
-  //     <Divider/>
-
-  //     </>
-  // );
 }
