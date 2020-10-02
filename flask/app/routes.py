@@ -242,7 +242,8 @@ def participants_list():
         joinedload(models.Participant.tissue_samples).
         joinedload(models.TissueSample.datasets)
     ).all()
-    return jsonify([
+
+    participants = [
         {
             **asdict(participant),
             'family_codename': participant.family.family_codename,
@@ -253,7 +254,8 @@ def participants_list():
                 } for tissue_sample in participant.tissue_samples
             ]
         } for participant in db_participants
-    ])
+    ]
+    return jsonify(participants)
 
 @app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
 @login_required
@@ -280,3 +282,26 @@ def pipelines_list():
     ).all()
 
     return jsonify(db_pipelines)
+
+
+
+
+@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@login_required
+def datasets_list():
+    db_datasets = db.session.query(models.Dataset).options(
+        joinedload(models.Dataset.tissue_sample).
+        joinedload(models.TissueSample.participant).
+        joinedload(models.Participant.family)
+    ).all()
+    datasets = [
+        {
+            **asdict(dataset),
+            'tissue_sample_type' : dataset.tissue_sample.tissue_sample_type,
+            'participant_codename' : dataset.tissue_sample.participant.participant_codename,
+            'participant_type' : dataset.tissue_sample.participant.participant_type,
+            'sex' : dataset.tissue_sample.participant.sex,
+            'family_codename' : dataset.tissue_sample.participant.family.family_codename
+        } for dataset in db_datasets
+    ]
+    return jsonify(datasets)

@@ -210,7 +210,7 @@ class Dataset(db.Model):
         'polymorphic_on': discriminator
     }
 
-    analyses = db.relationship('Analysis', secondary=datasets_analyses_table, backref='datasets', lazy='dynamic')
+    analyses = db.relationship('Analysis', secondary=datasets_analyses_table, backref='datasets')
 
 
 @dataclass
