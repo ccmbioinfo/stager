@@ -2,14 +2,11 @@ import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import AnalysisTable from './AnalysisTable';
 import SamplesTable from './SamplesTable';
+import NotificationPanel from './NotificationPanel';
+import { PipelineStatus, createAnalysis } from '../analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: 'fill',
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
@@ -20,13 +17,15 @@ const useStyles = makeStyles(theme => ({
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
     },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
 }));
+
+//generate fake data
+const analyses = [
+    createAnalysis("A0000", "P01", '/path/to/file/', "User 2", "User 3", PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', "Notes example"),
+    createAnalysis("A0001", "P02", '/example/path/', "User 4", "User 3", PipelineStatus.RUNNING, '2020-06-13 1:09 AM', ""),
+    createAnalysis("A0002", "P01", '/foo/', "User 2", "User 5", PipelineStatus.ERROR, '2020-06-19 4:32 AM', ""),
+    createAnalysis("A0003", "P02", '/foo/bar/', "User 3", "User 1", PipelineStatus.PENDING, '2020-06-22 8:56 PM', "Do not run until later."),
+];
 
 export default function Dashboard() {
     const classes = useStyles();
@@ -40,17 +39,14 @@ export default function Dashboard() {
             <Container maxWidth="lg" className={classes.container}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-                        <Paper className={classes.paper}>
-                            <AnalysisTable />
-                        </Paper>
+                        <NotificationPanel analyses={analyses} />
                     </Grid>
                 </Grid>
             </Container>
             <Container>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-
-                            <SamplesTable />
+                        <SamplesTable />
                     </Grid>
                 </Grid>
             </Container>

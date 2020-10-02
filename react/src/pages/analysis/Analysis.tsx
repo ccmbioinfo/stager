@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { useHistory } from 'react-router';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -73,11 +73,11 @@ export enum PipelineStatus {
 }
 
 export interface AnalysisRow {
-    analysis_id: number;
-    pipeline_id: number; // Display pipeline name?
+    analysis_id: string;
+    pipeline_id: string; // Display pipeline name?
     result_hpf_path: string;
-    assignee: number;  // show ID or username?
-    requester: number; // show ID or username?
+    assignee: string;  // show ID or username?
+    requester: string; // show ID or username?
     state: PipelineStatus;
     updated: string; // Date type maybe?
     notes: string;
@@ -90,12 +90,12 @@ export interface AnalysisRow {
 }
 
 // generate fake analysis data
-function createAnalysis(
-    analysis_id: number,
-    pipeline_id: number,
+export function createAnalysis(
+    analysis_id: string,
+    pipeline_id: string,
     result_hpf_path: string,
-    assignee: number,
-    requester: number,
+    assignee: string,
+    requester: string,
     state: PipelineStatus,
     updated: string,
     notes: string): AnalysisRow {
@@ -121,15 +121,15 @@ const loremIpsum = [
 ]
 
 const analyses = [
-    createAnalysis(0, 1, '/path/to/file/', 2, 3, PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', loremIpsum[0]),
-    createAnalysis(1, 2, '/example/path/', 4, 3, PipelineStatus.RUNNING, '2020-06-13 1:09 AM', loremIpsum[1]),
-    createAnalysis(2, 1, '/foo/', 2, 5, PipelineStatus.ERROR, '2020-06-19 4:32 AM', loremIpsum[2]),
-    createAnalysis(3, 2, '/foo/bar/', 3, 1, PipelineStatus.PENDING, '2020-06-22 8:56 PM', loremIpsum[2]),
-    createAnalysis(4, 3, '/foo/bar/', 1, 2, PipelineStatus.PENDING, '2020-06-21 8:09 AM', loremIpsum[0]),
-    createAnalysis(5, 3, '/foo/baz/', 4, 4, PipelineStatus.RUNNING, '2020-06-21 1:22 PM', loremIpsum[1]),
-    createAnalysis(6, 2, '/bar/baz/', 1, 5, PipelineStatus.PENDING, '2020-06-19 10:00 AM', loremIpsum[2]),
-    createAnalysis(7, 3, '/example/path/', 2, 5, PipelineStatus.RUNNING, '2020-06-19 9:09 AM', loremIpsum[0]),
-    createAnalysis(8, 3, '/example/path/', 5, 4, PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
+    createAnalysis("A0000", "P01", '/path/to/file/', "User 2", "User 3", PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', loremIpsum[0]),
+    createAnalysis("A0001", "P02", '/example/path/', "User 4", "User 3", PipelineStatus.RUNNING, '2020-06-13 1:09 AM', loremIpsum[1]),
+    createAnalysis("A0002", "P01", '/foo/', "User 2", "User 5", PipelineStatus.ERROR, '2020-06-19 4:32 AM', loremIpsum[2]),
+    createAnalysis("A0003", "P02", '/foo/bar/', "User 3", "User 1", PipelineStatus.PENDING, '2020-06-22 8:56 PM', loremIpsum[2]),
+    createAnalysis("A0004", "P03", '/foo/bar/', "User 1", "User 2", PipelineStatus.PENDING, '2020-06-21 8:09 AM', loremIpsum[0]),
+    createAnalysis("A0005", "P03", '/foo/baz/', "User 4", "User 4", PipelineStatus.RUNNING, '2020-06-21 1:22 PM', loremIpsum[1]),
+    createAnalysis("A0006", "P02", '/bar/baz/', "User 1", "User 5", PipelineStatus.PENDING, '2020-06-19 10:00 AM', loremIpsum[2]),
+    createAnalysis("A0007", "P03", '/example/path/', "User 2", "User 5", PipelineStatus.RUNNING, '2020-06-19 9:09 AM', loremIpsum[0]),
+    createAnalysis("A0008", "P03", '/example/path/', "User 5", "User 4", PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
 ];
 
 // Displays notes as an interactive tooltip
@@ -165,13 +165,21 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
 // Default: 1 min
 const refreshTimeDelay = 1000 * 60;
 
+type ParamTypes = {
+    analysis_id: string | undefined
+}
+
 export default function Analysis() {
     const classes = useStyles();
+    const { analysis_id }= useParams<ParamTypes>();
+    const [rows, setRows] = useState<AnalysisRow[]>([]);
     const [detail, setDetail] = useState(false);
     const [cancel, setCancel] = useState(false);
-    const [activeRows, setActiveRows] = useState<AnalysisRow[]>([]);
     const [direct, setDirect] = useState(false);
-    const [rows, setRows] = useState<AnalysisRow[]>([]);
+
+    const detailRow = analyses.find(analysis => analysis.analysis_id === analysis_id);
+    const [activeRows, setActiveRows] = useState<AnalysisRow[]>(detailRow ? [detailRow] : []);
+
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
     const history = useHistory();
@@ -181,6 +189,10 @@ export default function Analysis() {
 
         // TODO: Fetch data here
         setRows(analyses);
+
+        // For when the user comes from the notification panel
+        if (activeRows.length > 0 && analysis_id) 
+            setDetail(true);
 
         // Auto-refresh
         // const dataRefreshTimer = setInterval(() => {
@@ -226,7 +238,7 @@ export default function Analysis() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRows[0]}
-                    onClose={() => setDetail(false)}
+                    onClose={() => {setDetail(false); if(analysis_id){history.goBack()}}}
                 />}
 
             <AddAnalysisAlert
@@ -237,10 +249,10 @@ export default function Analysis() {
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
-                        { title: 'Analysis ID', field: 'analysis_id', type: 'numeric', editable: 'never', width: '8%' },
-                        { title: 'Pipeline ID', field: 'pipeline_id', type: 'numeric', editable: 'never', width: '8%' },
-                        { title: 'Assignee ID', field: 'assignee', type: 'numeric', editable: 'never', width: '8%' },
-                        { title: 'Requester ID', field: 'requester', type: 'numeric', editable: 'never', width: '8%' },
+                        { title: 'Analysis ID', field: 'analysis_id', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Pipeline', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
+                        { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
@@ -286,6 +298,7 @@ export default function Analysis() {
                                 // We can only view details of one row at a time
                                 setActiveRows([rowData as AnalysisRow]);
                                 setDetail(true);
+                                history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
                             }
                         },
                         {
@@ -327,18 +340,21 @@ export default function Analysis() {
                     editable={{
                         onRowUpdate: (newData, oldData) =>
                             new Promise((resolve, reject) => {
+                                // TODO: Send PATCH here for editing notes or path
+
                                 const dataUpdate = [...rows];
                                 // find the row; assume analysis_id is unique
                                 const index = dataUpdate.findIndex((row, index, obj) => {
                                     return row.analysis_id === oldData?.analysis_id
                                 });
 
-                                // only update the rows that are allowed
-                                dataUpdate[index].notes = newData.notes;
-                                dataUpdate[index].result_hpf_path = newData.result_hpf_path;
-                                setRows([...dataUpdate]);
+                                const newRow: AnalysisRow = { ...dataUpdate[index] };
 
-                                // TODO: Send PATCH here for editing notes or path
+                                // only update the columns that are allowed
+                                newRow.notes = newData.notes;
+                                newRow.result_hpf_path = newData.result_hpf_path;
+                                dataUpdate[index] = newRow;
+                                setRows(dataUpdate);
 
                                 resolve();
                             }),
