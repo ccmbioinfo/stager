@@ -132,11 +132,14 @@ const analyses = [
 // Displays notes as an interactive tooltip
 function renderNotes(rowData: AnalysisRow) {
     return (
-    <Tooltip title={
+    <Tooltip 
+    title={
         <>
         <Typography variant="body1">{rowData.notes}</Typography>
         </>
-    } interactive placement="left">
+    } 
+    interactive 
+    placement="left">
         <IconButton><Description/></IconButton>
     </Tooltip>
     );
@@ -224,8 +227,7 @@ export default function Analysis() {
                     options={{
                         pageSize: 10,
                         filtering: true,
-                        search: false,
-                        padding: 'dense'
+                        search: false
                     }}
                     actions={[
                         {
