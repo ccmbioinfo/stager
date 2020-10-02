@@ -8,7 +8,7 @@ from dataclasses import asdict
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import aliased, joinedload
 
 from app import app, db, login, models
 
@@ -211,7 +211,7 @@ def update_entity(model_name:str, id:int):
          return 'Not Found', 404
 
     enum_error = mixin(table, request.json, editable_columns)
-    
+
     if enum_error:
         return enum_error, 400
 
@@ -260,15 +260,24 @@ def participants_list():
 @app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
 @login_required
 def analyses_list():
-    db_analyses = db.session.query(models.Analysis).all()
+    u1 = aliased(models.User)
+    u2 = aliased(models.User)
+    u3 = aliased(models.User)
+    db_analyses = db.session.query(models.Analysis, u1, u2, u3).join(
+        u1, models.Analysis.requester == u1.user_id
+    ).join(
+        u2, models.Analysis.updated_by == u2.user_id
+    ).outerjoin(
+        u3, models.Analysis.assignee == u3.user_id
+    ).all()
 
     analyses = [
         {
             **asdict(analysis),
-            "assignee" : db.session.query(models.User).get(analysis.assignee).username,
-            "requester" : db.session.query(models.User).get(analysis.requester).username,
-            "updated_by" : db.session.query(models.User).get(analysis.updated_by).username,
-        } for analysis in db_analyses
+            "requester": requester and requester.username,
+            "updated_by": updated_by and updated_by.username,
+            "assignee": assignee and assignee.username,
+        } for analysis, requester, updated_by, assignee in db_analyses
     ]
 
     return jsonify(analyses)
@@ -282,8 +291,6 @@ def pipelines_list():
     ).all()
 
     return jsonify(db_pipelines)
-
-
 
 
 @app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
