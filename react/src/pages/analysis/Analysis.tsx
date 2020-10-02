@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
-import { Cancel, Description, Add, Visibility, PlayArrow } from '@material-ui/icons';
+import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
+import SetAssigneeDialog from './SetAssigneeDialog';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -173,9 +174,10 @@ export default function Analysis() {
     const classes = useStyles();
     const { analysis_id }= useParams<ParamTypes>();
     const [rows, setRows] = useState<AnalysisRow[]>([]);
-    const [detail, setDetail] = useState(false);
-    const [cancel, setCancel] = useState(false);
-    const [direct, setDirect] = useState(false);
+    const [detail, setDetail] = useState(false); // for detail dialog
+    const [cancel, setCancel] = useState(false); // for cancel dialog
+    const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
+    const [assignment, setAssignment] = useState(false); // for set assignee dialog
 
     const detailRow = analyses.find(analysis => analysis.analysis_id === analysis_id);
     const [activeRows, setActiveRows] = useState<AnalysisRow[]>(detailRow ? [detailRow] : []);
@@ -218,22 +220,23 @@ export default function Analysis() {
                     onAccept={() => { 
                         // TODO: PATCH goes here for cancelling analyses
 
+                        // If successful...
                         const newRows = [...rows];
-                        // newRows.forEach((row, index, arr) => {
-                        //     if (row.state === PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
-                        //         newRows[index].state = PipelineStatus.CANCELLED; // Not sure if this is correct
-                        // });
                         newRows.forEach((row, index, arr) => {
-                            if (row.selected && row.state === PipelineStatus.RUNNING)
-                                newRows[index].state = PipelineStatus.CANCELLED;
+                            if (row.selected && row.state === PipelineStatus.RUNNING) {
+                                const newRow: AnalysisRow = { ...newRows[index] };
+                                newRow.state = PipelineStatus.CANCELLED;
+                                newRows[index] = newRow;
+                            }
                         });
 
-                        setRows([...newRows]);
+                        setRows(newRows);
                         setCancel(false);
                     }}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />}
+                
             {activeRows.length > 0 &&
                 <AnalysisInfoDialog
                     open={detail}
@@ -246,6 +249,31 @@ export default function Analysis() {
                 onClose={() => { setDirect(false); }}
                 onAccept={() => { setDirect(false); history.push("/participants"); }}
             />
+
+            {activeRows.length > 0 && 
+                <SetAssigneeDialog
+                    affectedRows={activeRows}
+                    open={assignment}
+                    onClose={() => { setAssignment(false); }}
+                    onSubmit={(username) => { 
+                        // TODO: PATCH goes here for setting assignees
+
+                        // If successful...
+                        const newRows = [...rows];
+                        newRows.forEach((row, index, arr) => {
+                            if (row.selected) {
+                                const newRow: AnalysisRow = { ...newRows[index] };
+                                newRow.assignee = username;
+                                newRows[index] = newRow;
+                            }
+                        });
+
+                        setRows(newRows);
+                        setAssignment(false);
+                    
+                    }}
+                />}
+            
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
@@ -321,20 +349,28 @@ export default function Analysis() {
                             onClick: (event, rowData) => {
                                 // TODO: PATCH here to start pending analyses
 
+                                // If successful...
                                 setActiveRows(rowData as AnalysisRow[]);
-
                                 const newRows = [...rows];
-                                // newRows.forEach((row, index, arr) => {
-                                //     if (row.state !== PipelineStatus.RUNNING && activeRows.find((val) => val.analysis_id === row.analysis_id))
-                                //         newRows[index].state = PipelineStatus.RUNNING;
-                                // });
                                 newRows.forEach((row, index, arr) => {
-                                    if (row.selected && row.state !== PipelineStatus.RUNNING)
-                                        newRows[index].state = PipelineStatus.RUNNING;
+                                    if (row.selected && row.state !== PipelineStatus.RUNNING) {
+                                        const newRow: AnalysisRow = { ...newRows[index] };
+                                        newRow.state = PipelineStatus.RUNNING;
+                                        newRows[index] = newRow;
+                                    }
                                 });
 
-                                setRows([...newRows]);
+                                setRows(newRows);
                             },
+                        },
+                        {
+                            icon: PersonPin,
+                            tooltip: "Assign to...",
+                            onClick: (event, rowData) => {
+                                // Data handled by SetAssigneeDialog onSubmit
+                                setActiveRows(rowData as AnalysisRow[]);
+                                setAssignment(true);
+                            }
                         }
                     ]}
                     editable={{

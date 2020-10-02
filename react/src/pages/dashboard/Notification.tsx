@@ -58,7 +58,7 @@ const getNotificationInfo = (analysis: AnalysisRow) => {
 
 export default function Notification({ analysis } : NotificationProps) {
     const classes = useStyles();
-    const {analysis_id, msg, severity} = getNotificationInfo(analysis)
+    const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
 
     return (
     <Alert className={classes.msgBox} severity={severity}>
