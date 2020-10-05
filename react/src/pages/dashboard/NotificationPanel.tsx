@@ -7,7 +7,7 @@ import Switch from "@material-ui/core/Switch";
 import Collapse from "@material-ui/core/Collapse";
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import Notification from './Notification';
-import { AnalysisRun } from '../analysis/Analysis';
+import { AnalysisRow } from '../analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export interface NotificationPanelProps {
-    analyses: AnalysisRun[];
+    analyses: AnalysisRow[];
 }
 
 export default function NotificationPanel({analyses}: NotificationPanelProps) {
