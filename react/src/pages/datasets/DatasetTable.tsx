@@ -76,14 +76,14 @@ export default function DatasetTable() {
                 columns={[
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
-                    { title: 'Tissue sample', field: 'tissue_sample_type' },
-                    { title: 'Dataset type', field: 'dataset_type', defaultFilter: datasetType },
+                    { title: 'Tissue Sample', field: 'tissue_sample_type' },
+                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetType },
                     { title: 'Condition', field: 'condition' },
                     { title: 'Notes', field: 'notes' },
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
                     { title: 'Updated', field: 'updated', type: 'datetime' },
-                    { title: 'Updated by', field: 'updated_by' },
+                    { title: 'Updated By', field: 'updated_by' },
                 ]}
                 data={rows}
                 title="Datasets"
