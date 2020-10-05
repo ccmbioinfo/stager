@@ -170,6 +170,38 @@ type ParamTypes = {
     analysis_id: string | undefined
 }
 
+/**
+ * Convert the provided JSON Array to a valid array of AnalysisRows.
+ */
+function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
+    const rows: AnalysisRow[] = data.map((row, index, arr) => {
+        switch (row.analysis_state) {
+            case 'Requested':
+                row.state = PipelineStatus.PENDING;
+                break;
+            case 'Running':
+                row.state = PipelineStatus.RUNNING;
+                break;
+            case 'Done':
+                row.state = PipelineStatus.COMPLETED;
+                break;
+            case 'Error':
+                row.state = PipelineStatus.ERROR;
+                break;
+            case 'Cancelled':
+                row.state = PipelineStatus.CANCELLED;
+                break;
+            default:
+                row.state = null;
+                break;
+        }
+        
+        return { ...row, selected: false } as AnalysisRow;
+    });
+    return rows;
+
+}
+
 export default function Analysis() {
     const classes = useStyles();
     const { analysis_id }= useParams<ParamTypes>();
@@ -189,18 +221,17 @@ export default function Analysis() {
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
-        // TODO: Fetch data here
-        setRows(analyses);
+        // Fetch data here
+        fetch('/api/analyses', { method: "GET" })
+        .then(response => response.json())
+        .then(data => {
+            const rows = jsonToAnalysisRows(data);
+            setRows(rows);
+        });
 
         // For when the user comes from the notification panel
         if (activeRows.length > 0 && analysis_id) 
             setDetail(true);
-
-        // Auto-refresh
-        // const dataRefreshTimer = setInterval(() => {
-        //     // TODO: Fetch data here, set rows
-            
-        // }, refreshTimeDelay)
 
     }, []);
 
