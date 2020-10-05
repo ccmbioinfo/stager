@@ -330,8 +330,8 @@ def datasets_list():
     ]
     return jsonify(datasets)
 
-@app.route('/api/<model_name>', methods = ['GET'])
+@app.route('/api/<enum_name>', methods = ['GET'])
 @login_required
-def get_enums(model_name:str):
-    enums = getattr(models, model_name)
+def get_enums(enum_name:str):
+    enums = getattr(models, enum_name)
     return jsonify([e for e in enums])
