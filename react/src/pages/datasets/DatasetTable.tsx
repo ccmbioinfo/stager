@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { makeStyles, Chip, IconButton } from '@material-ui/core';
-import MaterialTable, { MTableToolbar } from 'material-table';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
+import MaterialTable, { MTableToolbar } from 'material-table';
 import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 export interface Dataset {
@@ -62,13 +62,13 @@ const rows: Dataset[] = [
 export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
-    const [activeParticipants, setActiveParticipants] = useState<Dataset[]>([]);
+    const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetType, setDatasetType] = useState("");
 
     return (
         <div>
             <AnalysisRunnerDialog
-                participants={activeParticipants}
+                datasets={selectedDatasets}
                 open={showRunner}
                 onClose={() => setRunner(false)}
             />
@@ -136,7 +136,7 @@ export default function DatasetTable() {
                         tooltip: 'Analyze selected datasets',
                         icon: PlayArrow,
                         onClick: (evt, data) => {
-                            setActiveParticipants(data as Dataset[])
+                            setSelectedDatasets(data as Dataset[])
                             setRunner(true)
                         }
                     }

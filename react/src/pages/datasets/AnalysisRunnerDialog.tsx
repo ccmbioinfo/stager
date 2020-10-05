@@ -19,9 +19,9 @@ import { annotations } from '../analysis/AnalysisInfoDialog';
 import ChipStrip from '../analysis/ChipStrip';
 
 interface AnalysisRunnerDialogProp {
-    participants: Dataset[],
+    datasets: Dataset[],
     open: boolean,
-    onClose: (() => void)
+    onClose: () => void
 }
 
 const Transition = React.forwardRef(function Transition(
@@ -31,8 +31,7 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function AnalysisRunnerDialog({ participants, open, onClose }: AnalysisRunnerDialogProp) {
-
+export default function AnalysisRunnerDialog({ datasets, open, onClose }: AnalysisRunnerDialogProp) {
     const [state, setState] = useState({
         checkedSNP: true,
         checkedINDEL: true,
