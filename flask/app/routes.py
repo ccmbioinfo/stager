@@ -4,6 +4,7 @@ from functools import wraps
 import json
 from typing import Any, Dict, List, Union
 from dataclasses import asdict
+import inspect
 
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
@@ -330,8 +331,12 @@ def datasets_list():
     ]
     return jsonify(datasets)
 
-@app.route('/api/<enum_name>', methods = ['GET'])
+
+@app.route('/api/enums', methods = ['GET'])
 @login_required
-def get_enums(enum_name:str):
-    enums = getattr(models, enum_name)
-    return jsonify([e for e in enums])
+def get_enums():
+    enums = {}
+    for name, obj in inspect.getmembers(models, inspect.isclass):
+        if issubclass(obj, Enum) and name != 'Enum':
+                enums[name] = [e.value for e in getattr(models, name)]
+    return jsonify(enums)
