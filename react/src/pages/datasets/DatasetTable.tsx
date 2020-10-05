@@ -59,6 +59,12 @@ const rows: Dataset[] = [
     createDataset(8, 'Skin', 'AA0005', '3013', 'WES', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
 ];
 
+const pipelines = [
+    { name: "CRG", version: "1.1" },
+    { name: "CRG", version: "2.0" },
+    { name: "CRE", version: "1.5" },
+];
+
 type Hash = { [key: string]: string };
 
 function toKVPair(array: string[]) {
@@ -83,6 +89,7 @@ export default function DatasetTable() {
         <div>
             <AnalysisRunnerDialog
                 datasets={selectedDatasets}
+                pipelines={pipelines}
                 open={showRunner}
                 onClose={() => setRunner(false)}
             />

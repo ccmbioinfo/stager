@@ -1,118 +1,102 @@
-import React, { useState, ChangeEvent } from 'react';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Slide from '@material-ui/core/Slide';
+import React, { ReactElement, forwardRef } from 'react';
+import {
+    Button, Dialog, DialogActions, DialogContent, DialogTitle,
+    FormControl, FormControlLabel, FormLabel, Paper, Radio, RadioGroup,
+    Slide, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Typography, makeStyles
+} from '@material-ui/core';
 import { TransitionProps } from '@material-ui/core/transitions';
 import { Dataset } from './DatasetTable';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import Typography from '@material-ui/core/Typography';
-import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
-import DatasetTable from '../analysis/DatasetTable';
-import { annotations } from '../analysis/AnalysisInfoDialog';
-import ChipStrip from '../analysis/ChipStrip';
 
-interface AnalysisRunnerDialogProp {
+export interface Pipeline {
+    name: string;
+    version: string;
+}
+
+interface AnalysisRunnerDialogProps {
     datasets: Dataset[],
+    pipelines: Pipeline[],
     open: boolean,
     onClose: () => void
 }
 
-const Transition = React.forwardRef(function Transition(
-    props: TransitionProps & { children?: React.ReactElement<any, any> },
+const useStyles = makeStyles(theme => ({
+    text: {
+        paddingBottom: theme.spacing(1)
+    }
+}));
+
+const SlideUpTransition = forwardRef((
+    props: TransitionProps & { children?: ReactElement },
     ref: React.Ref<unknown>,
-) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
+) => <Slide direction="up" ref={ref} {...props} />);
 
-export default function AnalysisRunnerDialog({ datasets, open, onClose }: AnalysisRunnerDialogProp) {
-    const [state, setState] = useState({
-        checkedSNP: true,
-        checkedINDEL: true,
-        checkedDenovo: true,
-        checkedTranscripts: false,
-        checkedSynonynmous: true,
-        checkedSV: false,
-    });
-    const { checkedSNP, checkedINDEL, checkedDenovo, checkedTranscripts, checkedSynonynmous, checkedSV } = state;
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setState({ ...state, [event.target.name]: event.target.checked });
-    };
-
-    const labeledBy = "analysis-runner-alert-dialog-slide-title"
-    const describedBy = "analysis-runner-alert-dialog-slide-description"
+export default function AnalysisRunnerDialog({ open, onClose, datasets, pipelines }: AnalysisRunnerDialogProps) {
+    const classes = useStyles();
+    const titleId = "analysis-runner-alert-dialog-slide-title";
+    const descriptionId = "analysis-runner-alert-dialog-slide-description";
 
     return (
         <Dialog
             open={open}
-            TransitionComponent={Transition}
-            keepMounted
             onClose={onClose}
-            aria-labelledby={labeledBy}
-            aria-describedby={describedBy}
-            maxWidth='md'
-            fullWidth={true}
+            TransitionComponent={SlideUpTransition}
+            keepMounted
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
+            maxWidth="md"
+            fullWidth
         >
-            <DialogTitle id={labeledBy}>
-                Run analysis
+            <DialogTitle id={titleId}>
+                Request Analysis
             </DialogTitle>
             <DialogContent>
-                <Typography id={describedBy} variant="body1">
-                    Run a pipeline using the selected datasets on the cluster. A full analysis can take a day to several days depending on the number of samples and the pipeline used.
+                <Typography id={descriptionId} variant="body1" className={classes.text}>
+                    Run a pipeline using the selected datasets. A full analysis can take a day to several days depending on the number of datasets and the requested pipeline.
                 </Typography>
-                <br />
-                <Typography variant="subtitle1">
-                    Datasets:
-                </Typography>
-                <DatasetTable />
-                <br />
                 <FormControl component="fieldset">
-                    <FormLabel component="legend">
+                    <FormLabel component="legend" className={classes.text}>
                         Pipelines:
                     </FormLabel>
-                    <RadioGroup row aria-label="pipelines" name="pipelines" defaultValue="top">
-                        <FormControlLabel value="cre" control={<Radio color="primary" checked={true} />} label="CRE v1.0.1" />
-                        <FormControlLabel value="crg" control={<Radio disabled color="primary" />} label="CRG v2" />
-                        <FormControlLabel value="crt" control={<Radio disabled color="primary" />} label="CRT v0.5.1" />
-                        <FormControlLabel value="genpipes" control={<Radio color="primary" />} label="Genpipes v1" />
+                    <RadioGroup row aria-label="Pipelines" name="pipelines" defaultValue="top">
+                        {pipelines.map(
+                            ({ name, version }) =>
+                                <FormControlLabel
+                                    label={`${name} v${version}`}
+                                    value={`${name}|${version}`}
+                                    control={<Radio color="primary" />} />
+                        )}
                     </RadioGroup>
                 </FormControl>
-                <br />
-                <FormLabel component="legend">
-                    Annotations:
-                </FormLabel>
-                <ChipStrip labels={annotations} color="primary" />
-                <br />
-                <FormControl component="fieldset">
-                    <FormLabel component="legend">
-                        Variants:
-                    </FormLabel>
-                    <RadioGroup row aria-label="position" name="position" defaultValue="top">
-                        <FormControlLabel control={<Checkbox checked={checkedSNP} onChange={handleChange} name="checkedSNP" color="primary" />} label="SNPs" />
-                        <FormControlLabel control={<Checkbox checked={checkedINDEL} onChange={handleChange} name="checkedINDEL" color="primary" />} label="INDELs" />
-                        <FormControlLabel control={<Checkbox disabled checked={checkedTranscripts} onChange={handleChange} name="checkedTranscripts" color="primary" />} label="Transcripts" />
-                        <FormControlLabel control={<Checkbox disabled checked={checkedSV} onChange={handleChange} name="checkedSV" color="primary" />} label="SVs" />
-                    </RadioGroup>
-                </FormControl>
-                <br />
-                <FormControl component="fieldset">
-                    <FormLabel component="legend">
-                        Parameters:
-                    </FormLabel>
-                    <RadioGroup row aria-label="position" name="position" defaultValue="top">
-                        <FormControlLabel control={<Checkbox checked={true} onChange={handleChange} name="checkedGnomAD" color="primary" />} label="gnomAD_AF <= 0.01" />
-                        <FormControlLabel control={<Checkbox checked={true} onChange={handleChange} name="checkedImpactSeverity" color="primary" />} label="IMPACT_SEVERITY=HIGH" />
-                        <FormControlLabel control={<Checkbox checked={false} onChange={handleChange} name="checkedProteinCodingGenes" color="primary" />} label="Restrict to protein coding genes" />
-                        <FormControlLabel control={<Checkbox checked={checkedDenovo} onChange={handleChange} name="checkedDenovo" color="primary" />} label="Denovo" />
-                        <FormControlLabel control={<Checkbox checked={checkedSynonynmous} onChange={handleChange} name="checkedSynonynmous" color="primary" />} label="Synonymous" />
-                    </RadioGroup>
-                </FormControl>
+                <Typography variant="subtitle1" className={classes.text}>
+                    Datasets:
+                </Typography>
+                <TableContainer component={Paper}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Participant</TableCell>
+                                <TableCell>Family</TableCell>
+                                <TableCell>Tissue Sample</TableCell>
+                                <TableCell>Type</TableCell>
+                                <TableCell>Condition</TableCell>
+                                <TableCell align="right">Input File</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {datasets.map(dataset =>
+                                <TableRow key={dataset.dataset_id}>
+                                    <TableCell>{dataset.participant_codename}</TableCell>
+                                    <TableCell>{dataset.family_codename}</TableCell>
+                                    <TableCell>{dataset.tissue_sample_type}</TableCell>
+                                    <TableCell>{dataset.dataset_type}</TableCell>
+                                    <TableCell>{dataset.condition}</TableCell>
+                                    <TableCell align="right">{dataset.input_hpf_path}</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={onClose} color="primary">
