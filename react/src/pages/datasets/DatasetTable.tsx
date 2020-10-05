@@ -59,11 +59,25 @@ const rows: Dataset[] = [
     createDataset(8, 'Skin', 'AA0005', '3013', 'WES', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
 ];
 
+type Hash = { [key: string]: string };
+
+function toKVPair(array: string[]) {
+    return array.reduce<Hash>((obj, value) => {
+        obj[value] = value;
+        return obj;
+    }, {});
+}
+
 export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetType, setDatasetType] = useState("");
+
+    // TODO: replace with enum values from backend
+    const tissueSampleTypes = toKVPair(["Blood", "Saliva", "Skin"]);
+    const datasetTypes = toKVPair(["WGS", "WES"]);
+    const conditions = toKVPair(["Control", "GermLine", "Somatic"]);
 
     return (
         <div>
@@ -76,9 +90,9 @@ export default function DatasetTable() {
                 columns={[
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
-                    { title: 'Tissue Sample', field: 'tissue_sample_type' },
-                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetType },
-                    { title: 'Condition', field: 'condition' },
+                    { title: 'Tissue Sample', field: 'tissue_sample_type', lookup: tissueSampleTypes },
+                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetType, lookup: datasetTypes },
+                    { title: 'Condition', field: 'condition', lookup: conditions },
                     { title: 'Notes', field: 'notes' },
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
