@@ -28,9 +28,21 @@ const organizeDatasetTypes = (types: string[]) => {
     return newTypes
 }
 
+type Hash = { [key: string]: string };
+
+const getLookupValues = (values: string[]) => {
+    return values.reduce<Hash>((lookupValues, value) => {
+        lookupValues[value] = value;
+        return lookupValues
+    }, {})
+}
+
 export default function ParticipantTable() {
     const classes = useStyles();
     const [filter, setFilter] = useState("");
+    const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
+    const datasetTypes = getLookupValues(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
+    const participantTypes = getLookupValues(['Proband', 'Mother', 'Father', 'Sibling']);
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant []) {
         if(!Array.isArray(rowData)){
@@ -43,14 +55,14 @@ export default function ParticipantTable() {
         <div>
            <MaterialTable
                 columns={[
-                    { title: 'Participant Codename', field: 'participantCodename', align: 'center',},
-                    { title: 'Family Codename', field: 'familyCodename', align: 'center',},
-                    { title: 'Participant Type', field: 'participantType' , align: 'center', defaultFilter: filter},
-                    { title: 'Affected', field: 'affected', type: 'boolean', align: 'center',},
-                    { title: 'Solved', field: 'solved', type: 'boolean', align: 'center',},
-                    { title: 'Sex', field: 'sex', type: 'string', align: 'center',},
-                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{rowData.note}</Typography>},
-                    { title: 'Dataset Types', field: 'datasetTypes', align: 'center', render: (rowData) => <DatasetTypes datasetTypes={organizeDatasetTypes(rowData.datasetTypes)} />}
+                    { title: 'Participant Codename', field: 'participantCodename', align: 'center'},
+                    { title: 'Family Codename', field: 'familyCodename', align: 'center'},
+                    { title: 'Participant Type', field: 'participantType' , align: 'center', lookup: participantTypes, defaultFilter: filter},
+                    { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
+                    { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
+                    { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
+                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{ rowData.note }</Typography>},
+                    { title: 'Dataset Types', field: 'datasetTypes', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={organizeDatasetTypes(rowData.datasetTypes)} />}
                 ]}
                 data={rows}
                 title='Participants'
