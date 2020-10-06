@@ -1,10 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import Switch from "@material-ui/core/Switch";
-import Collapse from "@material-ui/core/Collapse";
+import { makeStyles, Paper, Box, Typography, Switch, Collapse } from '@material-ui/core';
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import Notification from './Notification';
 import { AnalysisRun } from '../analysis/Analysis';

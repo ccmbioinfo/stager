@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Chip, IconButton } from '@material-ui/core';
+import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { Cancel } from '@material-ui/icons';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-
 import { Participant, rows } from './MockData';
 import Note from './Note';
 import DatasetTypes from './DatasetTypes';

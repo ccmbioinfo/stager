@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, Button } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
-import Button from '@material-ui/core/Button';
+
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { PipelineStatus, AnalysisRun } from '../analysis/Analysis';
 
