@@ -8,6 +8,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import { TransitionProps } from '@material-ui/core/transitions';
 import { AnalysisRow, PipelineStatus } from './Analysis';
+import { Divider } from '@material-ui/core';
 
 interface CancelAnalysisDialogProp {
     title: string,
@@ -16,7 +17,8 @@ interface CancelAnalysisDialogProp {
     describedByPrefix: string,
     onClose: (() => void),
     onAccept: (() => void),
-    affectedRows: AnalysisRow[]
+    affectedRows: AnalysisRow[],
+    cancelFilter: ((row: AnalysisRow) => boolean) // What rows are allowed to be cancelled
 }
 
 const Transition = React.forwardRef(function Transition(
@@ -26,12 +28,12 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function CancelAnalysisDialog({ title, open, labeledByPrefix, describedByPrefix, onClose, onAccept, affectedRows }: CancelAnalysisDialogProp) {
+export default function CancelAnalysisDialog({ title, open, labeledByPrefix, describedByPrefix, onClose, onAccept, affectedRows, cancelFilter }: CancelAnalysisDialogProp) {
 
     const message = `Do you really want to stop ${affectedRows.length > 1 ? "these analyses" : "this analysis"}? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`;
 
-    const rowsToCancel = affectedRows.filter((row) => row.state === PipelineStatus.RUNNING);
-    const rowsToSkip = affectedRows.filter((row) => row.state !== PipelineStatus.RUNNING);
+    const rowsToCancel = affectedRows.filter((row) => cancelFilter(row));
+    const rowsToSkip = affectedRows.filter((row) => !cancelFilter(row));
 
 
     const cancelMessage = `The following analyses are currently running and will be cancelled: ${rowsToCancel.map(val => val.analysis_id)}`;
@@ -54,10 +56,11 @@ export default function CancelAnalysisDialog({ title, open, labeledByPrefix, des
                 <DialogContent>
                     <DialogContentText id={describedBy}>   
                         {message} <br/>
-                        <i>The following analyses are currently running and will be cancelled: </i> 
-                        {`${rowsToCancel.map(val => val.analysis_id)}`} <br/>
-                        <i>The following analyses are not running, and will be skipped: </i> 
-                        {`${rowsToSkip.map(val => val.analysis_id)}`}
+                        <Divider/>
+                        <i>The following analyses are currently running and will be cancelled: </i> <br/>
+                        {rowsToCancel.map(val => val.analysis_id).join(', ')} <br/>
+                        <i>The following analyses are not running, and will be skipped: </i> <br/>
+                        {rowsToSkip.map(val => val.analysis_id).join(', ')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

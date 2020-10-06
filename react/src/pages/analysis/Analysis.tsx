@@ -200,7 +200,20 @@ function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
         return { ...row, selected: false } as AnalysisRow;
     });
     return rows;
+}
 
+/**
+ * Returns whether this analysis is allowed to be cancelled.
+ */
+function cancelFilter(row: AnalysisRow) {
+    return row.state === PipelineStatus.RUNNING || row.state === PipelineStatus.PENDING;
+}
+
+/**
+ * Returns whether this analysis is allowed to be run.
+ */
+function runFilter(row: AnalysisRow) {
+    return row.state === PipelineStatus.ERROR || row.state === PipelineStatus.CANCELLED;
 }
 
 export default function Analysis() {
@@ -216,6 +229,8 @@ export default function Analysis() {
     const [activeRows, setActiveRows] = useState<AnalysisRow[]>(detailRow ? [detailRow] : []);
 
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
+
+    const [cancelAllowed, setCancelAllowed] = useState<boolean>(true);
 
     const history = useHistory();
 
@@ -255,7 +270,7 @@ export default function Analysis() {
                         // If successful...
                         const newRows = [...rows];
                         newRows.forEach((row, index, arr) => {
-                            if (row.selected && row.state === PipelineStatus.RUNNING) {
+                            if (row.selected && cancelFilter(row)) {
                                 const newRow: AnalysisRow = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
@@ -265,6 +280,7 @@ export default function Analysis() {
                         setRows(newRows);
                         setCancel(false);
                     }}
+                    cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />}
@@ -327,16 +343,34 @@ export default function Analysis() {
                             />
                         )}
                     ]}
-                    onSelectionChange={(data, row) => {
+                    onSelectionChange={(selectedRows, row) => {
+                        setActiveRows(selectedRows);
                         // Use hidden 'selected' field to optimize mass cancellation, reassignment, etc.
-                        // doesn't use setState, but these shouldn't trigger a re-render anyways
-                        if (row) // one row changed
-                            row.selected = !row.selected;
-                        else // all rows changed
-                            if (data.length === rows.length)
-                                rows.forEach((val, i, arr) => arr[i].selected = true);
+                        const newRows = [...rows];
+                        
+                        if (row) {  // one row changed
+                            const index = rows.indexOf(row);
+                            const newRow: AnalysisRow = { ...newRows[index] };
+                            newRow.selected = !row.selected;
+                            newRows[index] = newRow;
+                        } 
+                        else {  // all rows changed
+                            if (selectedRows.length === rows.length)
+                                newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: true });
                             else
-                                rows.forEach((val, i, arr) => arr[i].selected = false);
+                                newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: false });
+                        }
+                        setRows(newRows);
+
+                        // Check what actions are allowed
+                        let cancelAllowed = true;
+                        for (const row of selectedRows) {
+                            if ( !(row.state in [PipelineStatus.RUNNING, PipelineStatus.PENDING]) ) {
+                                cancelAllowed = false;
+                                break;
+                            }
+                        }
+                        setCancelAllowed(cancelAllowed);
                     }}
                     data={rows}
                     title={
@@ -356,7 +390,6 @@ export default function Analysis() {
                             position: 'row',
                             onClick: (event, rowData) => {
                                 // We can only view details of one row at a time
-                                setActiveRows([rowData as AnalysisRow]);
                                 setDetail(true);
                                 history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
                             }
@@ -364,6 +397,7 @@ export default function Analysis() {
                         {
                             icon: Cancel,
                             tooltip: 'Cancel analysis',
+                            position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as AnalysisRow[]);
                                 setCancel(true);
@@ -372,20 +406,22 @@ export default function Analysis() {
                         {
                             icon: Add,
                             tooltip: 'Add New Analysis',
+                            position: 'toolbar',
                             isFreeAction: true,
                             onClick: (event) => setDirect(true)
                         },
                         {
                             icon: PlayArrow,
                             tooltip: 'Run analysis',
+                            position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
+                                setActiveRows(rowData as AnalysisRow[]);
                                 // TODO: PATCH here to start pending analyses
 
                                 // If successful...
-                                setActiveRows(rowData as AnalysisRow[]);
                                 const newRows = [...rows];
                                 newRows.forEach((row, index, arr) => {
-                                    if (row.selected && row.state !== PipelineStatus.RUNNING) {
+                                    if (row.selected && runFilter(row)) {
                                         const newRow: AnalysisRow = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
@@ -425,7 +461,7 @@ export default function Analysis() {
                                 setRows(dataUpdate);
 
                                 resolve();
-                            }),
+                            })
                     }}
                     components={{
                         Toolbar: props => {
