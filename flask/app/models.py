@@ -5,6 +5,7 @@ from typing import List
 
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import CheckConstraint
 
 from app import db
 
@@ -69,6 +70,7 @@ class Participant(db.Model):
     sex: Sex = db.Column(db.Enum(Sex), nullable=False)
     # Sample.SampleType
     participant_type: ParticipantType = db.Column(db.Enum(ParticipantType), nullable=False)
+    month_of_birth: datetime.date = db.Column(db.Date)
     # Sample.AffectedStatus
     affected: bool = db.Column(db.Boolean)
     # Dataset.SolvedStatus
