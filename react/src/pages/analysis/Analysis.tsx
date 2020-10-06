@@ -133,6 +133,7 @@ const analyses = [
     createAnalysis("A0008", "P03", '/example/path/', "User 5", "User 4", PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
 ];
 
+
 type ParamTypes = {
     analysis_id: string | undefined
 }
@@ -407,7 +408,7 @@ export default function Analysis() {
                     editable={{
                         onRowUpdate: (newData, oldData) =>
                             new Promise((resolve, reject) => {
-                                // TODO: Send PATCH here
+                                // TODO: Send PATCH here for editing notes or path
 
                                 const dataUpdate = [...rows];
                                 // find the row; assume analysis_id is unique
@@ -417,7 +418,6 @@ export default function Analysis() {
 
                                 const newRow: AnalysisRow = { ...dataUpdate[index] };
 
-                                // TODO: Send PATCH here for editing notes or path
                                 // only update the columns that are allowed
                                 newRow.notes = newData.notes;
                                 newRow.result_hpf_path = newData.result_hpf_path;
