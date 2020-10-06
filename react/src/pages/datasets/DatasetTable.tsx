@@ -133,7 +133,7 @@ export default function DatasetTable() {
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
                                 {[...new Set(rows.map(e => e.dataset_type))].map(type => (
-                                    <Chip label={type} onClick={() => setDatasetType(type)} clickable className={classes.chip} />
+                                    <Chip label={type} onClick={() => setDatasetType([type])} clickable className={classes.chip} />
                                 ))}
                                 <IconButton onClick={() => setDatasetType("")} className={classes.chip}>
                                     <Cancel />
