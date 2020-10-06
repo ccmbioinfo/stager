@@ -16,7 +16,8 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const organizeDatasetTypes = (types: string[]) => types.reduce<Hash>(
+type DatasetHash = { [key: string]: number }
+const organizeDatasetTypes = (types: string[]) => types.reduce<DatasetHash>(
     (newTypes, type) => {
         if (newTypes[type]) {
             newTypes[type] += 1;
@@ -26,10 +27,9 @@ const organizeDatasetTypes = (types: string[]) => types.reduce<Hash>(
         return newTypes;
     }, Object.create(null));
 
-type Hash = { [key: string]: string };
-
+type LookupHash = { [key: string]: string };
 const getLookupValues = (values: string[]) => {
-    return values.reduce<Hash>((lookupValues, value) => {
+    return values.reduce<LookupHash>((lookupValues, value) => {
         lookupValues[value] = value;
         return lookupValues
     }, {})
