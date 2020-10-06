@@ -78,7 +78,7 @@ export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
-    const [datasetType, setDatasetType] = useState("");
+    const [datasetType, setDatasetType] = useState<string[]>([]);
 
     // TODO: replace with enum values from backend
     const tissueSampleTypes = toKVPair(["Blood", "Saliva", "Skin"]);
@@ -135,7 +135,7 @@ export default function DatasetTable() {
                                 {[...new Set(rows.map(e => e.dataset_type))].map(type => (
                                     <Chip label={type} onClick={() => setDatasetType([type])} clickable className={classes.chip} />
                                 ))}
-                                <IconButton onClick={() => setDatasetType("")} className={classes.chip}>
+                                <IconButton onClick={() => setDatasetType([])} className={classes.chip}>
                                     <Cancel />
                                 </IconButton>
                             </div>
