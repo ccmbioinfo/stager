@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { makeStyles, Button } from '@material-ui/core';
 import { OpenInNew } from '@material-ui/icons';
 import { Alert } from '@material-ui/lab';
-import { PipelineStatus, AnalysisRun } from '../analysis/Analysis';
-
+import { PipelineStatus, AnalysisRow } from '../analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     msgBox: {
@@ -63,7 +62,7 @@ export default function Notification({ analysis } : NotificationProps) {
     return (
     <Alert className={classes.msgBox} severity={severity}>
         <span>{msg}</span>
-        <Button component={Link} to={`/analysis/${analysis_id}`} className={classes.msgButton} variant="contained" color="default" endIcon={<OpenInNewIcon color="primary"/>} disableElevation>
+        <Button component={Link} to={`/analysis/${analysis_id}`} className={classes.msgButton} variant="contained" color="default" endIcon={<OpenInNew color="primary"/>} disableElevation>
             See Detail
         </Button>
     </Alert>   
