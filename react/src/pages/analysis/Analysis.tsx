@@ -464,11 +464,9 @@ export default function Analysis() {
                             })
                     }}
                     components={{
-                        Toolbar: props => {
-                            const propsCopy = { ...props };
-                            return (
+                        Toolbar: props => (
                             <div>
-                                <MTableToolbar {...propsCopy} />
+                                <MTableToolbar {...props} />
                                 <div style={{ marginLeft: '24px' }}>
                                     <Chip label="Completed" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.COMPLETED)} />
                                     <Chip label="Running" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.RUNNING)} />
@@ -478,9 +476,9 @@ export default function Analysis() {
                                     <IconButton onClick={() => setChipFilter("")}> <Cancel/> </IconButton>
                                 </div>
                             </div>
-                            );
-                        },
-                    }}
+                            )
+                        }
+                    }
                 />
             </Container>
         </main>
