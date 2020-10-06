@@ -16,17 +16,15 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const organizeDatasetTypes = (types: string[]) => {
-    const newTypes: {[key: string]: number} = {};
-    types.map(type => {
-        if(newTypes.hasOwnProperty(type)){
+const organizeDatasetTypes = (types: string[]) => types.reduce<Hash>(
+    (newTypes, type) => {
+        if (newTypes[type]) {
             newTypes[type] += 1;
-        }else{
+        } else {
             newTypes[type] = 1;
         }
-    })
-    return newTypes
-}
+        return newTypes;
+    }, Object.create(null));
 
 type Hash = { [key: string]: string };
 
