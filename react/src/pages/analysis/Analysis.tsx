@@ -200,7 +200,6 @@ function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
         return { ...row, selected: false } as AnalysisRow;
     });
     return rows;
-
 }
 
 export default function Analysis() {
@@ -428,11 +427,9 @@ export default function Analysis() {
                             }),
                     }}
                     components={{
-                        Toolbar: props => {
-                            const propsCopy = { ...props };
-                            return (
+                        Toolbar: props => (
                             <div>
-                                <MTableToolbar {...propsCopy} />
+                                <MTableToolbar {...props} />
                                 <div style={{ marginLeft: '24px' }}>
                                     <Chip label="Completed" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.COMPLETED)} />
                                     <Chip label="Running" clickable className={classes.chip} onClick={() => setChipFilter(PipelineStatus.RUNNING)} />
