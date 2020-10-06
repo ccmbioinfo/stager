@@ -338,5 +338,5 @@ def get_enums():
     enums = {}
     for name, obj in inspect.getmembers(models, inspect.isclass):
         if issubclass(obj, Enum) and name != 'Enum':
-                enums[name] = [e.value for e in getattr(models, name)]
+            enums[name] = [e.value for e in getattr(models, name)]
     return jsonify(enums)
