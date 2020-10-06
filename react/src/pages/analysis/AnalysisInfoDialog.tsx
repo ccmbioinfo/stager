@@ -7,12 +7,12 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import DatasetTable from './DatasetTable';
-import { AnalysisRun } from './Analysis';
+import { AnalysisRow } from './Analysis';
 import ChipStrip from './ChipStrip';
 
 interface AlertInfoDialogProp {
     open: boolean,
-    analysis: AnalysisRun,
+    analysis: AnalysisRow,
     onClose: (() => void),
 }
 
@@ -67,23 +67,26 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
     return (
         <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
             <DialogTitle id={labeledBy} onClose={onClose}>
-                Analysis: {analysis.analysisID}
+                Analysis: {analysis.analysis_id}
                 <Typography variant="body1" gutterBottom>
-                    Submitted by: {analysis.submittedBy}
+                    Assigned to: {analysis.assignee}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    Status: {analysis.status}
+                    Requested by: {analysis.requester}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    Date submitted: {analysis.dateSubmitted}
+                    Status: {analysis.state}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    Runtime: {analysis.timeElapsed}
+                    Last Updated: {analysis.updated}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    Notes: {analysis.notes}
                 </Typography>
             </DialogTitle>
             <DialogContent dividers>
                 <Typography variant="h6" gutterBottom>
-                    {analysis.pipeline}
+                    Pipeline ID: {analysis.pipeline_id}
                 </Typography>
                 <ChipStrip labels={analyses} color="primary" />
                 <ChipStrip labels={pipelineParams} color="secondary" />

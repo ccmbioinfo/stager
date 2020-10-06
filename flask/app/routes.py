@@ -3,10 +3,13 @@ from enum import Enum
 from functools import wraps
 import json
 from typing import Any, Dict, List, Union
+from dataclasses import asdict
+import inspect
 
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
+from sqlalchemy.orm import aliased, joinedload
 
 from app import app, db, login, models
 
@@ -249,3 +252,91 @@ def update_entity(model_name:str, id:int):
 
     return jsonify(table)
 
+@app.route('/api/participants', methods=['GET'], endpoint='participants_list')
+@login_required
+def participants_list():
+    db_participants = models.Participant.query.options(
+        joinedload(models.Participant.family),
+        joinedload(models.Participant.tissue_samples).
+        joinedload(models.TissueSample.datasets)
+    ).all()
+
+    participants = [
+        {
+            **asdict(participant),
+            'family_codename': participant.family.family_codename,
+            'tissue_samples': [
+                {
+                    **asdict(tissue_sample),
+                    'datasets': tissue_sample.datasets
+                } for tissue_sample in participant.tissue_samples
+            ]
+        } for participant in db_participants
+    ]
+    return jsonify(participants)
+
+@app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
+@login_required
+def analyses_list():
+    u1 = aliased(models.User)
+    u2 = aliased(models.User)
+    u3 = aliased(models.User)
+    db_analyses = db.session.query(models.Analysis, u1, u2, u3).join(
+        u1, models.Analysis.requester == u1.user_id
+    ).join(
+        u2, models.Analysis.updated_by == u2.user_id
+    ).outerjoin(
+        u3, models.Analysis.assignee == u3.user_id
+    ).all()
+
+    analyses = [
+        {
+            **asdict(analysis),
+            "requester": requester and requester.username,
+            "updated_by": updated_by and updated_by.username,
+            "assignee": assignee and assignee.username,
+        } for analysis, requester, updated_by, assignee in db_analyses
+    ]
+
+    return jsonify(analyses)
+
+
+@app.route('/api/pipelines', methods=['GET'], endpoint='pipelines_list')
+@login_required
+def pipelines_list():
+    db_pipelines = db.session.query(models.Pipeline).options(
+        joinedload(models.Pipeline.supported)
+    ).all()
+
+    return jsonify(db_pipelines)
+
+
+@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@login_required
+def datasets_list():
+    db_datasets = db.session.query(models.Dataset).options(
+        joinedload(models.Dataset.tissue_sample).
+        joinedload(models.TissueSample.participant).
+        joinedload(models.Participant.family)
+    ).all()
+    datasets = [
+        {
+            **asdict(dataset),
+            'tissue_sample_type' : dataset.tissue_sample.tissue_sample_type,
+            'participant_codename' : dataset.tissue_sample.participant.participant_codename,
+            'participant_type' : dataset.tissue_sample.participant.participant_type,
+            'sex' : dataset.tissue_sample.participant.sex,
+            'family_codename' : dataset.tissue_sample.participant.family.family_codename
+        } for dataset in db_datasets
+    ]
+    return jsonify(datasets)
+
+
+@app.route('/api/enums', methods = ['GET'])
+@login_required
+def get_enums():
+    enums = {}
+    for name, obj in inspect.getmembers(models, inspect.isclass):
+        if issubclass(obj, Enum) and name != 'Enum':
+            enums[name] = [e.value for e in getattr(models, name)]
+    return jsonify(enums)
