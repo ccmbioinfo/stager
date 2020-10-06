@@ -4,7 +4,6 @@ import { Chip, IconButton } from '@material-ui/core';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { Cancel } from '@material-ui/icons';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import copy from 'copy-to-clipboard';
 
 import { Participant, rows } from './MockData';
 import Note from './Note';
@@ -37,10 +36,10 @@ export default function ParticipantTable() {
     const classes = useStyles();
     const [centre, setCentre] = useState("");
 
-    const CopyToClipboard = (event: React.MouseEvent, rowData: Participant | Participant []) => {
+    async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant []) {
         if(!Array.isArray(rowData)){
             const toCopy = rowData.participantCodename + "_" + rowData.familyCodename;
-            copy(toCopy)
+            await navigator.clipboard.writeText(toCopy);
         }
     }
     
