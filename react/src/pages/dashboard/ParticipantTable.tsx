@@ -39,12 +39,12 @@ const getLookupValues = (values: string[]) => {
 
 export default function ParticipantTable() {
     const classes = useStyles();
-    const [filter, setFilter] = useState("");
+    const [filter, setFilter] = useState<string[]>([]);
     const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
     const datasetTypes = getLookupValues(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
     const participantTypes = getLookupValues(['Proband', 'Mother', 'Father', 'Sibling']);
 
-    async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant []) {
+    async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if(!Array.isArray(rowData)){
             const toCopy = rowData.participantCodename + "_" + rowData.familyCodename;
             await navigator.clipboard.writeText(toCopy);
@@ -78,11 +78,11 @@ export default function ParticipantTable() {
                         <div>
                             <MTableToolbar {...props} />
                             <div style={{ marginLeft: '24px' }}>
-                                <Chip label="Proband" clickable className={classes.chip} onClick={() => setFilter("Proband")} />
-                                <Chip label="Mother" clickable className={classes.chip} onClick={() => setFilter("Mother")} />
-                                <Chip label="Father" clickable className={classes.chip} onClick={() => setFilter("Father")} />
-                                <Chip label="Sibling" clickable className={classes.chip} onClick={() => setFilter("Sibling")} />
-                                <IconButton className={classes.chip} onClick={() => setFilter("")}> <Cancel /> </IconButton>
+                                <Chip label="Proband" clickable className={classes.chip} onClick={() => setFilter(["Proband"])} />
+                                <Chip label="Mother" clickable className={classes.chip} onClick={() => setFilter(["Mother"])} />
+                                <Chip label="Father" clickable className={classes.chip} onClick={() => setFilter(["Father"])} />
+                                <Chip label="Sibling" clickable className={classes.chip} onClick={() => setFilter(["Sibling"])} />
+                                <IconButton className={classes.chip} onClick={() => setFilter([])}> <Cancel /> </IconButton>
                             </div>
                         </div>
                     ),
