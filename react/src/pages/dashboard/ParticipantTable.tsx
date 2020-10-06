@@ -78,14 +78,14 @@ export default function ParticipantTable() {
                 actions={[
                     {
                         icon: () => <FileCopy className={classes.copyIcon}/>,
-                        tooltip: 'Copy Participant Codename_Family Codename',
+                        tooltip: "Copy combined codename",
                         onClick: CopyToClipboard,
                     },
                 ]}
                 localization={{
                     header: {
                         //remove action buttons' header 
-                        actions: '',
+                        actions: "",
                     },
                 }}
             />
