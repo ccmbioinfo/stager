@@ -7,7 +7,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface DatasetTypeProps{
+interface DatasetTypeProps {
     type: string,
     number: number,
 }

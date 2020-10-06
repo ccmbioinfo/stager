@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { makeStyles, Chip, IconButton } from '@material-ui/core';
+import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { Cancel } from '@material-ui/icons';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { Participant, rows } from './MockData';
 import Note from './Note';
 import DatasetTypes from './DatasetTypes';
@@ -19,7 +18,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const organizeDatasetTypes = (types: string[]) => {
-    const newTypes : {[key: string]: number}= {};
+    const newTypes: {[key: string]: number} = {};
     types.map(type => {
         if(newTypes.hasOwnProperty(type)){
             newTypes[type] += 1;
@@ -79,13 +78,14 @@ export default function ParticipantTable() {
                 }}
                 actions={[
                     {
-                        icon: () => <FileCopyIcon className={classes.copyIcon}/>,
+                        icon: () => <FileCopy className={classes.copyIcon}/>,
                         tooltip: 'Copy Participant Codename_Family Codename',
                         onClick: CopyToClipboard,
                     },
                 ]}
                 localization={{
                     header: {
+                        //remove action buttons' header 
                         actions: '',
                     },
                 }}

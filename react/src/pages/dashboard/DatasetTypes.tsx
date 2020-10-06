@@ -1,7 +1,7 @@
 import React from 'react';
 import DatasetType from './DatasetType';
 
-interface DatasetTypesProps{
+interface DatasetTypesProps {
     datasetTypes: {[key: string]: number},
 }
 

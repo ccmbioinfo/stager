@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles, Paper, Box, Typography, Switch, Collapse } from '@material-ui/core';
-import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
+import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
 import { AnalysisRun } from '../analysis/Analysis';
 
@@ -42,7 +42,7 @@ export default function NotificationPanel({analyses}: NotificationPanelProps) {
     return (
         <Paper className={classes.paper}>
             <Box className={classes.titleBox}>
-                <NotificationsActiveIcon />
+                <NotificationsActive />
                 <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} display="inline">
                     Notifications
                 </Typography>
