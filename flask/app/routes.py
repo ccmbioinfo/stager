@@ -274,13 +274,15 @@ def participants_list():
     ]
     return jsonify(participants)
 
-@app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
+@app.route('/api/analyses', defaults={'updated_date': 1-1-1}, methods=['GET'], endpoint='analyses_list')
+@app.route('/api/analyses/<updated_date>', methods=['GET'], endpoint='analyses_list')
 @login_required
-def analyses_list():
+def analyses_list(updated_date):
     u1 = aliased(models.User)
     u2 = aliased(models.User)
     u3 = aliased(models.User)
-    db_analyses = db.session.query(models.Analysis, u1, u2, u3).join(
+    db_analyses = db.session.query(models.Analysis, u1, u2, u3).filter(
+        models.Analysis.updated >= updated_date).join(
         u1, models.Analysis.requester == u1.user_id
     ).join(
         u2, models.Analysis.updated_by == u2.user_id
