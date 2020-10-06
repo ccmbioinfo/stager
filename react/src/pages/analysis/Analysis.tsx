@@ -170,10 +170,6 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
 // Default: 1 min
 const refreshTimeDelay = 1000 * 60;
 
-type ParamTypes = {
-    analysis_id: string | undefined
-}
-
 /**
  * Convert the provided JSON Array to a valid array of AnalysisRows.
  */
@@ -234,11 +230,8 @@ export default function Analysis() {
         });
 
         // For when the user comes from the notification panel
-        if (activeRow && analysis_id) 
+        if (activeRows.length > 0 && analysis_id) 
             setDetail(true);
-        
-        // TODO: Fetch data here
-        setRows(analyses);
 
     }, []);
 
