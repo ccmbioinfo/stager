@@ -1,8 +1,8 @@
-"""adding month of birth to participant table
+"""adding month of birth field with check
 
-Revision ID: c16337c9fc89
+Revision ID: 0e8799c17f5a
 Revises: f8862eed0498
-Create Date: 2020-10-06 22:17:17.030988
+Create Date: 2020-10-07 16:52:17.103358
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c16337c9fc89'
+revision = '0e8799c17f5a'
 down_revision = 'f8862eed0498'
 branch_labels = None
 depends_on = None

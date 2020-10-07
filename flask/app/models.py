@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from typing import List
-
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint
@@ -70,7 +69,7 @@ class Participant(db.Model):
     sex: Sex = db.Column(db.Enum(Sex), nullable=False)
     # Sample.SampleType
     participant_type: ParticipantType = db.Column(db.Enum(ParticipantType), nullable=False)
-    month_of_birth: datetime.date = db.Column(db.Date)
+    month_of_birth: date = db.Column(db.Date, CheckConstraint('DAY(month_of_birth) = 1'))
     # Sample.AffectedStatus
     affected: bool = db.Column(db.Boolean)
     # Dataset.SolvedStatus
