@@ -4,8 +4,8 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 
-import Card from './Card';
-import ParticipantsTable, { DisplayType } from './ParticipantsTable';
+import Card from '../Card';
+import DatasetTable from './DatasetTable';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -32,12 +32,11 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function Participants() {
+export default function Datasets() {
     const classes = useStyles();
-    const [display, setDisplay] = React.useState(DisplayType.PARTICIPANT);
 
     useEffect(() => {
-        document.title = "Participants | ST2020";
+        document.title = "Datasets | ST2020";
     }, []);
 
     return (
@@ -66,7 +65,7 @@ export default function Participants() {
             <Container >
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-                        <ParticipantsTable display={display} />
+                        <DatasetTable />
                     </Grid>
                 </Grid>
             </Container>

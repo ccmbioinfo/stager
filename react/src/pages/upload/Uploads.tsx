@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 
-import Card from '../participants/Card';
+import Card from '../Card';
 import FilesTable from './FilesTable';
 import UploadDialog from './UploadDialog';
 
