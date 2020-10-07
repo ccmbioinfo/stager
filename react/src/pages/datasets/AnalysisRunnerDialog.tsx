@@ -1,11 +1,11 @@
-import React, { ReactElement, forwardRef } from 'react';
+import React from 'react';
 import {
     Button, Dialog, DialogActions, DialogContent, DialogTitle,
     FormControl, FormControlLabel, FormLabel, Paper, Radio, RadioGroup,
-    Slide, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Typography, makeStyles
 } from '@material-ui/core';
-import { TransitionProps } from '@material-ui/core/transitions';
+import { SlideUpTransition } from "../utils";
 import { Dataset } from './DatasetTable';
 
 export interface Pipeline {
@@ -25,11 +25,6 @@ const useStyles = makeStyles(theme => ({
         paddingBottom: theme.spacing(1)
     }
 }));
-
-const SlideUpTransition = forwardRef((
-    props: TransitionProps & { children?: ReactElement },
-    ref: React.Ref<unknown>,
-) => <Slide direction="up" ref={ref} {...props} />);
 
 export default function AnalysisRunnerDialog({ open, onClose, datasets, pipelines }: AnalysisRunnerDialogProps) {
     const classes = useStyles();
