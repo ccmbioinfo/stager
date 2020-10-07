@@ -1,17 +1,23 @@
 export interface Participant {
     participantID: string,
     participantCodename: string,
-    familyCodename: string,
+    familyID: string,
+    familyCodename: string, //not in participant schema, need to request separately
     participantType: string,
     affected: boolean,
     solved: boolean,
     sex: string,
     note: string,
     datasetTypes: string[],
+    created: string,
+    createdBy: number,
+    updated: string,
+    updatedBy: number,
 }
 export function createParticipant(
     participantID: string,
     participantCodename: string,
+    familyID: string,
     familyCodename: string,
     participantType: string,
     affected: boolean,
@@ -19,8 +25,13 @@ export function createParticipant(
     sex: string,
     note: string,
     datasetTypes: string[],
+    created: string,
+    createdBy: number,
+    updated: string,
+    updatedBy: number,
     ) {
-    return { participantID, participantCodename, familyCodename, participantType, affected, solved, sex, note, datasetTypes
+    return { participantID, participantCodename, familyID, familyCodename, participantType, affected, solved, sex, note, 
+        datasetTypes, created, createdBy, updated, updatedBy
     };
 }
 
@@ -129,7 +140,7 @@ export function createAnalysis(
     finished: string,
     notes: string,
     updated: string,
-	 updatedBy: number,
+	updatedBy: number,
     ) {
     return { analysisID, datasetID, analysisState, pipelineID, qsubID, resultHpfPath, assignee, requester, requested, started, finished, notes, updated, updatedBy, 
     };
@@ -141,17 +152,17 @@ export const note5 = 'consequuntur';
 const datetime = '2020-06-19 4:32 AM';
 
 export const rows: Participant[] = [
-    createParticipant('ID1', 'AA0001', 'FA0001', 'Proband', true, false, 'F', note1, ['CES','RLM','CES','RLM','RGS']),
-    createParticipant('ID2', 'AA0002', 'FA0002', 'Mother', true, false, 'F', note2, ['CES']),
-    createParticipant('ID3', 'AA0003', 'FA3001', 'Father', false, true, 'M', note1, ['RLM']),
-    createParticipant('ID4', 'BB0001', 'FA2001', 'Proband', false, false, 'F', note3, ['CES','RTA']),
-    createParticipant('ID5', 'BB0002', 'FA2002', 'Proband', true, false, 'M', note2, ['CGS','RGS','RGS']),
-    createParticipant('ID6', 'CC0003', 'FA2003', 'Proband', true, false, 'F', note3, ['CGS']),
-    createParticipant('ID7', 'CC0004', 'FA2003', 'Father', false, true, 'M', note1, ['RGS']),
-    createParticipant('ID8', 'AA0005', 'FA3012', 'Proband', false, false, 'M', note3, ['CES','CGS']),
-    createParticipant('ID9', 'AA0047', 'F3001', 'Proband', false, false, 'M', note3, ['RLM']),
-    createParticipant('ID10', 'AA0049', 'FA3001', 'Sibling', true, true, 'F', note5, ['RTA']),
-    createParticipant('ID11', 'AA0048', 'FA3001', 'Father', true, true, 'M', note2, ['RGS']),
+    createParticipant('ID1', 'AA0001', 'FAID01', 'FA0001', 'Proband', true, false, 'F', note1, ['CES','RLM','CES','RLM','RGS'], 'created', 1, 'updated', 1),
+    createParticipant('ID2', 'AA0002', 'FAID02', 'FA0002', 'Mother', true, false, 'F', note2, ['CES'], 'created', 1, 'updated', 1),
+    createParticipant('ID3', 'AA0003', 'FAID03', 'FA3001', 'Father', false, true, 'M', note1, ['RLM'], 'created', 1, 'updated', 1),
+    createParticipant('ID4', 'BB0001', 'FAID04', 'FA2001', 'Proband', false, false, 'F', note3, ['CES','RTA'], 'created', 1, 'updated', 1),
+    createParticipant('ID5', 'BB0002', 'FAID05', 'FA2002', 'Proband', true, false, 'M', note2, ['CGS','RGS','RGS'], 'created', 1, 'updated', 1),
+    createParticipant('ID6', 'CC0003', 'FAID06', 'FA2003', 'Proband', true, false, 'F', note3, ['CGS'], 'created', 1, 'updated', 1),
+    createParticipant('ID7', 'CC0004', 'FAID07', 'FA2003', 'Father', false, true, 'M', note1, ['RGS'], 'created', 1, 'updated', 1),
+    createParticipant('ID8', 'AA0005', 'FAID08', 'FA3012', 'Proband', false, false, 'M', note3, ['CES','CGS'], 'created', 1, 'updated', 1),
+    createParticipant('ID9', 'AA0047', 'FAID09', 'F3001', 'Proband', false, false, 'M', note3, ['RLM'], 'created', 1, 'updated', 1),
+    createParticipant('ID10', 'AA0049', 'FAID10', 'FA3001', 'Sibling', true, true, 'F', note5, ['RTA'], 'created', 1, 'updated', 1),
+    createParticipant('ID11', 'AA0048', 'FAID11', 'FA3001', 'Father', true, true, 'M', note2, ['RGS'], 'created', 1, 'updated', 1),
 ];
 
 //samples for participant ID1
@@ -170,25 +181,24 @@ const analyses: Analysis[] = [
     createAnalysis('analysis2', 'dataset1', 'pending', 'pipeline1', 'qsubID', 'resultHpfPath', 1, 1, 'requested', 'started', 'finished', 'notes', 'updated', 1),
 ]
 
-export interface participantInfo{
-    samples: Sample[],
-    datasets: Dataset[],
-    analyses: Analysis[],
-}
-export function createParticipantInfo(
-    samples: Sample[],
-    datasets: Dataset[],
-    analyses: Analysis[],
-){
-    return {samples, datasets, analyses}
-}
-const participantInfo = createParticipantInfo(samples, datasets, analyses);
-
 //mocking reuqest behaviour
-export function getParticipantInfo(participantID: string){
+export function getAnalyses(participantID: string){
     if(participantID === 'ID1') {
-        return participantInfo;
+        return analyses;
     }else{
-        return createParticipantInfo([], [], [])
+        return [];
+    }
+}
+export function getSamplesAndDatasets(participantID: string){
+    if(participantID === 'ID1') {
+        return {
+            samples: samples,
+            datasets: datasets,
+        };
+    }else{
+        return {
+            samples: [],
+            datasets: [],
+        }
     }
 }

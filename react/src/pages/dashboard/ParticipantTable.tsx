@@ -4,6 +4,7 @@ import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { Participant, rows } from './MockData';
 import DatasetTypes from './DatasetTypes';
+import ParticipantInfoDialog from './ParticipantInfoDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -38,6 +39,9 @@ const getLookupValues = (values: string[]) => {
 export default function ParticipantTable() {
     const classes = useStyles();
     const [filter, setFilter] = useState<string[]>([]);
+    const [detail, setDetail] = useState(true);
+    const [activeRow, setActiveRow] = useState<Participant | undefined>(rows[0]);
+
     const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
     const datasetTypes = getLookupValues(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
     const participantTypes = getLookupValues(['Proband', 'Mother', 'Father', 'Sibling']);
@@ -51,6 +55,12 @@ export default function ParticipantTable() {
     
     return (
         <div>
+            {activeRow &&
+                <ParticipantInfoDialog
+                    open={detail}
+                    participant={activeRow}
+                    onClose={() => {setDetail(false);}}
+                />}
            <MaterialTable
                 columns={[
                     { title: 'Participant Codename', field: 'participantCodename', align: 'center'},
@@ -98,6 +108,7 @@ export default function ParticipantTable() {
                         actions: "",
                     },
                 }}
+                onRowClick={(event, rowData) => {setActiveRow((rowData as Participant)); setDetail(true)}}
             />
         </div>
     )
