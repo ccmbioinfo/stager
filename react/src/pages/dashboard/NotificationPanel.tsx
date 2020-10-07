@@ -1,11 +1,6 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import Switch from "@material-ui/core/Switch";
-import Collapse from "@material-ui/core/Collapse";
-import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
+import { makeStyles, Paper, Box, Typography, Switch, Collapse } from '@material-ui/core';
+import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
 import { AnalysisRow } from '../analysis/Analysis';
 
@@ -47,7 +42,7 @@ export default function NotificationPanel({analyses}: NotificationPanelProps) {
     return (
         <Paper className={classes.paper}>
             <Box className={classes.titleBox}>
-                <NotificationsActiveIcon />
+                <NotificationsActive />
                 <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} display="inline">
                     Notifications
                 </Typography>

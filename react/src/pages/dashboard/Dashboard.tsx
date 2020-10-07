@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
-import Grid from '@material-ui/core/Grid';
-import SamplesTable from './SamplesTable';
+import { makeStyles, Container, Grid } from '@material-ui/core';
+import ParticipantTable from './ParticipantTable';
 import NotificationPanel from './NotificationPanel';
 import { PipelineStatus, createAnalysis } from '../analysis/Analysis';
 
@@ -46,7 +44,7 @@ export default function Dashboard() {
             <Container>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-                        <SamplesTable />
+                        <ParticipantTable />
                     </Grid>
                 </Grid>
             </Container>
