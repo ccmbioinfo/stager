@@ -19,7 +19,7 @@ export default function AddAnalysisAlert(props: AddAnalysisAlertProps) {
             <DialogTitle id="alert-dialog-title">Request Analysis</DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description">
-                New analyses are created in the Participants panel. Would you like to be moved to the Participants panel?
+                New analyses are created in the Datasets panel. Would you like to be moved to the Datasets panel?
             </DialogContentText>
             </DialogContent>
             <DialogActions>
