@@ -200,7 +200,7 @@ export default function Analysis() {
             <AddAnalysisAlert
                 open={direct}
                 onClose={() => { setDirect(false) }}
-                onAccept={() => { setDirect(false); history.push("/participants") }}
+                onAccept={() => { setDirect(false); history.push("/datasets") }}
             />
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable

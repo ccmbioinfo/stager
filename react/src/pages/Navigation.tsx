@@ -27,7 +27,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
-import Participants from './participants/Participants';
+import Datasets from './datasets/Datasets';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
 import Admin from './admin/Admin';
@@ -180,7 +180,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                         <ListItemRouterLink to="/uploads" primary="Upload">
                             <UploadIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/participants" primary="Participants">
+                        <ListItemRouterLink to="/datasets" primary="Datasets">
                             <PeopleIcon />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/analysis" primary="Analyses">
@@ -207,7 +207,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                     <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
                     <Route path="/analysis/:analysis_id" render={() => {setPageName("Analyses"); return <Analysis />}} />
                     <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analysis />}} />
-                    <Route path="/participants" render={() => {setPageName("Participants"); return <Participants />}}  />
+                    <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
                     <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
                     <Route path={["/", "/dashboard"]} render={() => {setPageName("Dashboard"); return <Dashboard />}}  />
