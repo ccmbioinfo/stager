@@ -10,7 +10,9 @@ from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 
-from app import app, db, login, models
+from app import app, db, login, models, util
+
+app.url_map.converters['date'] = util.DateConverter
 
 @login.user_loader
 def load_user(uid: int):
@@ -274,8 +276,8 @@ def participants_list():
     ]
     return jsonify(participants)
 
-@app.route('/api/analyses', defaults={'updated_date': 1-1-1}, methods=['GET'], endpoint='analyses_list')
-@app.route('/api/analyses/<updated_date>', methods=['GET'], endpoint='analyses_list')
+@app.route('/api/analyses', defaults={'updated_date': 0000-00-00}, methods=['GET'], endpoint='analyses_list')
+@app.route('/api/analyses/<date:updated_date>', methods=['GET'], endpoint='analyses_list')
 @login_required
 def analyses_list(updated_date):
     u1 = aliased(models.User)
