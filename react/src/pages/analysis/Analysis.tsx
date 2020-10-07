@@ -294,8 +294,8 @@ export default function Analysis() {
 
             <AddAnalysisAlert
                 open={direct}
-                onClose={() => { setDirect(false); }}
-                onAccept={() => { setDirect(false); history.push("/participants"); }}
+                onClose={() => { setDirect(false) }}
+                onAccept={() => { setDirect(false); history.push("/datasets") }}
             />
 
             {activeRows.length > 0 && 
