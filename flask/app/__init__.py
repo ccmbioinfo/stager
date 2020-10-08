@@ -3,7 +3,7 @@ from flask import Flask, logging as flask_logging
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from app.config import Config, DevConfig
+from . import config
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -20,7 +20,7 @@ def create_app():
     """
 
     app = Flask(__name__)
-    app.config.from_object(DevConfig)
+    app.config.from_object(config.DevConfig)
 
     flask_logging.create_logger(app)
 
@@ -31,9 +31,9 @@ def create_app():
     migrate.init_app(app, db)
 
     with app.app_context():
-        import app.manage
-        import app.routes
-        import app.buckets
+        from . import manage
+        from . import routes
+        from . import buckets
 
         db.create_all()
 

@@ -1,5 +1,5 @@
-from flask import current_app as app
-from app import db, models
+from flask import g, current_app as app
+from . import db, models
 from datetime import datetime
 
 @app.cli.command('add-default-admin')

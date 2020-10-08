@@ -7,7 +7,7 @@ from dataclasses import asdict
 import inspect
 from io import StringIO
 
-from app import db, login
+from . import db, login, models
 
 from flask import abort, jsonify, request, Response, g, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
