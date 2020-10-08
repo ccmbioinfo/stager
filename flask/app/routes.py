@@ -10,7 +10,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 
-from app import app, db, login, models, util
+from app import app, db, login, models
 
 app.url_map.converters['date'] = util.DateConverter
 
@@ -276,15 +276,20 @@ def participants_list():
     ]
     return jsonify(participants)
 
-@app.route('/api/analyses', defaults={'updated_date': 0000-00-00}, methods=['GET'], endpoint='analyses_list')
-@app.route('/api/analyses/<date:updated_date>', methods=['GET'], endpoint='analyses_list')
+@app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
 @login_required
-def analyses_list(updated_date):
+def analyses_list():
+    since_date = request.args.get('since', default='0001-01-01')
+    try:
+        since_date = datetime.strptime(since_date, "%Y-%m-%d").date()
+    except:
+        return 'Malformed query date', 401
+
     u1 = aliased(models.User)
     u2 = aliased(models.User)
     u3 = aliased(models.User)
     db_analyses = db.session.query(models.Analysis, u1, u2, u3).filter(
-        models.Analysis.updated >= updated_date).join(
+        models.Analysis.updated >= since_date).join(
         u1, models.Analysis.requester == u1.user_id
     ).join(
         u2, models.Analysis.updated_by == u2.user_id
