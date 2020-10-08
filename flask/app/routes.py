@@ -278,9 +278,9 @@ def participants_list():
 @app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
 @login_required
 def analyses_list():
-    since_date = request.args.get('since', default='0001-01-01T00:00:00')
+    since_date = request.args.get('since', default='0001-01-01T00:00:00-04:00')
     try: 
-        since_date = datetime.strptime(since_date, "%Y-%m-%dT%H:%M:%S")
+        since_date = datetime.strptime(since_date, '%Y-%m-%dT%H:%M:%S%z')
     except:
         return 'Malformed query date', 400
 
