@@ -1,4 +1,5 @@
 from datetime import datetime
+import pandas as pd
 from enum import Enum
 from functools import wraps
 import json
@@ -8,7 +9,7 @@ import inspect
 
 from flask import jsonify, request
 from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc
+from sqlalchemy import exc, inspect
 from sqlalchemy.orm import aliased, joinedload
 
 from app import app, db, login, models
@@ -340,3 +341,189 @@ def get_enums():
         if issubclass(obj, Enum) and name != 'Enum':
             enums[name] = [e.value for e in getattr(models, name)]
     return jsonify(enums)
+
+
+# TODO: text/csv content type does not seem to be working, ie. request.files['file'] throws a KeyError
+# TODO: decorator for the try...catch.. statements? 
+# TODO: flesh out the fields to be updated for each entity from Hillary's slack message
+# TODO: enum errors are not super informative rn, eg for condition, mentions the field was truncated in the row
+# TODO: month of birth  
+
+@app.route('/api/_bulk', methods = ['POST'])
+@login_required
+def bulk_update():
+
+    # if 'application/json' in request.headers['Content-Type']:
+    #     if not request.json:
+    #         return 'Request body must be JSON', 415
+    #     dat = request.json
+
+
+    if 'multipart' in request.headers['Content-Type']:
+        try: 
+            f = request.files['file']
+        except Exception as err:
+            raise err
+
+        dat = pd.read_csv(f)
+    else:
+       return 'Content-Type Not Supported', 415
+
+    try: 
+        updated_by = current_user.user_id
+        created_by = current_user.user_id
+    except:
+        updated_by = 1
+        created_by = 1
+
+    # sqlalchemy.exc.IntegrityError: (pymysql.err.IntegrityError)
+    dataset_ids = [] # list for querying
+
+    for row in dat.to_dict(orient = 'records'):
+
+        fam_query = models.Family.query.\
+            filter(models.Family.family_codename == row.get('family_codename'))
+
+        # check if the entry exists, if not add it 
+        # this will also create an instance with defaults in nullable fields 
+        if not fam_query.value('family_id'): 
+
+            fam_objs = models.Family(
+                    family_codename = row.get('family_codename'),
+                    created_by = created_by, 
+                    updated_by = updated_by
+                    )
+            db.session.add(fam_objs)
+
+            try:
+                db.session.flush()
+            except exc.DataError as err:
+                db.session.rollback()
+                return err.orig.args[1], 400
+            except exc.StatementError as err:
+                db.session.rollback()
+                return str(err.orig), 400
+            except Exception as err:
+                db.session.rollback()
+                raise err
+
+        print(fam_query.value('family_id'))
+
+
+        ptp_objs = models.Participant(
+            family_id = fam_query.value('family_id'),
+            participant_codename = row.get('participant_codename'),
+            sex = row.get('sex'),
+            participant_type = row.get('participant_type'),
+            affected = row.get('affected'), 
+            notes = row.get('notes'),
+            created_by = created_by,
+            updated_by = updated_by
+        )
+
+        db.session.add(ptp_objs)
+        try:
+            db.session.flush()
+        except exc.DataError as err:
+            db.session.rollback()
+            return err.orig.args[1], 400
+        except exc.StatementError as err:
+            db.session.rollback()
+            return str(err.orig), 400
+        except Exception as err:
+            db.session.rollback()
+            raise err # InvalidRequestError, pymysql.err.InternalError ?
+
+        # query both participant codename and family id else we will get the participant ID for the first member
+        # of the family and no subsequent entities will be updated
+        ptp_query =  models.Participant.query\
+            .filter(models.Participant.family_id == fam_query.value('family_id'),
+                    models.Participant.participant_codename == row.get('participant_codename'))
+
+
+        tis_query = models.TissueSample.query\
+            .filter(models.TissueSample.participant_id == ptp_query.value('participant_id'))
+
+
+        if not tis_query.value('tissue_sample_id'):
+            tis_objs = models.TissueSample(
+                participant_id = ptp_query.value('participant_id'),
+                tissue_sample_type = row.get('tissue_sample_type'),
+                notes = row.get('notes'),
+                created_by = created_by,
+                updated_by = updated_by,
+            )
+            db.session.add(tis_objs)
+            try:
+                db.session.flush()
+            except exc.DataError as err:
+                db.session.rollback()
+                return err.orig.args[1], 400
+            except exc.StatementError as err:
+                db.session.rollback()
+                return str(err.orig), 400
+            except Exception as err:
+                db.session.rollback()
+                raise err
+
+        dts_query  = models.Dataset.query\
+            .filter(models.Dataset.tissue_sample_id == tis_query.value('tissue_sample_id'))
+
+        if not dts_query.value('dataset_id'):
+            dts_objs = models.Dataset(
+                tissue_sample_id = tis_query.value('tissue_sample_id'),
+                dataset_type = row.get('dataset_type'),
+                created_by = created_by,
+                updated_by = updated_by,
+                condition = row.get('condition', None)
+            )
+            db.session.add(dts_objs)
+            try:
+                db.session.flush()
+            except exc.DataError as err:
+                db.session.rollback()
+                return err.orig.args[1], 400
+            except exc.StatementError as err:
+                db.session.rollback()
+                return str(err.orig), 400
+            except Exception as err:
+                db.session.rollback()
+                raise err
+
+        dataset_ids.append(dts_query.value('dataset_id'))
+
+
+    try:
+        db.session.commit()
+    except exc.DataError as err:
+        db.session.rollback()
+        return err.orig.args[1], 400
+    except exc.StatementError as err:
+        db.session.rollback()
+        return str(err.orig), 400
+    except Exception as err:
+        db.session.rollback()
+        raise err
+  
+    # credit goes to Madeline and Kevin for the dataset GET endpoint
+    # filter by the newly added dataset ids
+
+    db_datasets = db.session.query(models.Dataset).options(
+            joinedload(models.Dataset.tissue_sample).
+            joinedload(models.TissueSample.participant).
+            joinedload(models.Participant.family)
+        )\
+        .filter(models.Dataset.tissue_sample_id.in_(dataset_ids)).all()
+
+    datasets = [
+        {
+            **asdict(dataset),
+            'tissue_sample_type' : dataset.tissue_sample.tissue_sample_type,
+            'participant_codename' : dataset.tissue_sample.participant.participant_codename,
+            'participant_type' : dataset.tissue_sample.participant.participant_type,
+            'sex' : dataset.tissue_sample.participant.sex,
+            'family_codename' : dataset.tissue_sample.participant.family.family_codename
+        } for dataset in db_datasets
+    ]
+
+    return jsonify(datasets) 

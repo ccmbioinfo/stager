@@ -8,3 +8,4 @@ minio
 pymysql[rsa]
 sqlalchemy
 werkzeug
+pandas
