@@ -14,16 +14,18 @@ login = LoginManager()
 migrate = Migrate()
 
 
-def create_app():
+def create_app(testing=False):
     """
     The application factory. Returns an instance of the app.
     """
 
+    # Create the application object
     app = Flask(__name__)
+
+    # Setup configs
     app.config.from_object(config.DevConfig)
 
     flask_logging.create_logger(app)
-
     login.session_protection = 'strong'
 
     db.init_app(app)
@@ -31,6 +33,7 @@ def create_app():
     migrate.init_app(app, db)
 
     with app.app_context():
+        # Import here so that other modules have access to the app context
         from . import manage
         from . import routes
         from . import buckets

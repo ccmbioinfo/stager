@@ -14,5 +14,6 @@ if [[ "$1" == "prod" ]]; then
     shift
     gunicorn wsgi:app "$@"
 else
+    export FLASK_ENV=development
     $COMMAND run "$@"
 fi
