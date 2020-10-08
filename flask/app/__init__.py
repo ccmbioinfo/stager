@@ -22,6 +22,9 @@ def create_app(testing=False):
     # Create the application object
     app = Flask(__name__)
 
+    if testing:
+        app.testing = True
+
     # Setup configs
     app.config.from_object(config.DevConfig)
 

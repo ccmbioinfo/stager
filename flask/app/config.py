@@ -25,4 +25,6 @@ class DevConfig(Config):
     DEBUG = True
     TESTING = True
 
+    # TODO: Separate database for testing goes here.
+
 
