@@ -418,7 +418,8 @@ def bulk_update():
             affected = row.get('affected'), 
             notes = row.get('notes'),
             created_by = created_by,
-            updated_by = updated_by
+            updated_by = updated_by,
+            month_of_birth = row.get('month_of_birth')
         )
 
         db.session.add(ptp_objs)
@@ -522,7 +523,8 @@ def bulk_update():
             'participant_codename' : dataset.tissue_sample.participant.participant_codename,
             'participant_type' : dataset.tissue_sample.participant.participant_type,
             'sex' : dataset.tissue_sample.participant.sex,
-            'family_codename' : dataset.tissue_sample.participant.family.family_codename
+            'family_codename' : dataset.tissue_sample.participant.family.family_codename,
+            'month_of_birth' : dataset.tissue_sample.participant.month_of_birth
         } for dataset in db_datasets
     ]
 
