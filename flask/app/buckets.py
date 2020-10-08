@@ -1,5 +1,4 @@
-from app import app
-from flask import request, json, jsonify
+from flask import request, json, jsonify, current_app as app
 from minio import Minio
 from minio.error import ResponseError
 
