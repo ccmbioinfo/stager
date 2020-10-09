@@ -60,6 +60,22 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+function sendFile(file: File | null) {
+    if (file !== null) {
+        fetch('/api/_bulk', {
+            method: 'POST',
+            body: file
+        })
+        .then(response => response.json())
+        .then(data => {
+
+        })
+        .catch(error => {
+
+        })
+    }
+}
+
 export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const classes = useStyles();
     const [tab, changeTab] = React.useState(0);
@@ -82,7 +98,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     }
     else {
         // tabContent = (<Button variant="outlined"> Upload Excel Sample Sheet <DescriptionIcon/> </Button>);
-        
+
         tabContent = (
             <>
             <InputFileUpload onUpload={onUpload}/>
@@ -127,7 +143,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                     <Grid item xs={2} className={classes.gridItem} >
                         <ButtonGroup variant="contained">
                             <Button onClick={onClose}>Cancel</Button>
-                            <Button onClick={onClose} color="primary">Add</Button>
+                            <Button onClick={() => {sendFile(file); onClose()}} color="primary">Add</Button>
                         </ButtonGroup>
                     </Grid>
                 </Grid>

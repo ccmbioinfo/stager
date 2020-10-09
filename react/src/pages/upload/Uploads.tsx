@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box, Container, Grid, Paper, Typography } from '@material-ui/core';
-import Card from '../participants/Card';
+import Card from '../Card';
 import FilesTable from './FilesTable';
 import UploadDialog from './UploadDialog';
 
