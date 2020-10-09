@@ -12,11 +12,11 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const getInfo = (name: string, value: string) => {
-    return (<Typography variant="body2">{name}: {value}</Typography>)
+function Entry({ name, value }: { name: string, value: string }) {
+    return (<Typography variant="body2">{name}: {value}</Typography>);
 }
 
-const getAccordion = (dataset: Dataset) => {
+function DatasetAccordion({ dataset }: { dataset: Dataset }) {
     return (
         <Accordion >
             <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
@@ -25,42 +25,42 @@ const getAccordion = (dataset: Dataset) => {
             <AccordionDetails>
                 <Grid container spacing={2} justify="space-evenly">
                     <Grid item xs={6}>
-                        {getInfo("Input HPF Path", dataset.inputHpfPath)}
-                        {getInfo("Condition", dataset.condition)}
-                        {getInfo("Extraction Protocol", dataset.extractionProtocol)}
-                        {getInfo("Capture Kit", dataset.captureKit)}
-                        {getInfo("Library Prep Method", dataset.libraryPrepMethod)}
-                        {getInfo("Library Prep Date", dataset.libraryPrepDate)}
-                        {getInfo("Read Length", dataset.readLength.toString())}
-                        {getInfo("Read Type", dataset.readType)}
+                        <Entry name={"Input HPF Path"} value={dataset.inputHpfPath} />
+                        <Entry name={"Condition"} value={dataset.condition} />
+                        <Entry name={"Extraction Protocol"} value={dataset.extractionProtocol} />
+                        <Entry name={"Capture Kit"} value={dataset.captureKit} />
+                        <Entry name={"Library Prep Method"} value={dataset.libraryPrepMethod} />
+                        <Entry name={"Library Prep Date"} value={dataset.libraryPrepDate} />
+                        <Entry name={"Read Length"} value={dataset.readLength.toString()} />
+                        <Entry name={"Read Type"} value={dataset.readType} />
                     </Grid>
                     <Grid item xs={6}>
-                        {getInfo("Sequencing ID", dataset.sequencingID)}
-                        {getInfo("Sequencing Centre", dataset.sequencingCentre)}
-                        {getInfo("Creation Time", dataset.created)}
-                        {getInfo("Created By", dataset.createdBy.toString())}
-                        {getInfo("Update Time", dataset.updated)}
-                        {getInfo("Updated By", dataset.updatedBy.toString())}
-                        {getInfo("Discriminator", dataset.discriminator)}
+                        <Entry name={"Sequencing ID"} value={dataset.sequencingID} />
+                        <Entry name={"Sequencing Centre"} value={dataset.sequencingCentre} />
+                        <Entry name={"Creation Time"} value={dataset.created} />
+                        <Entry name={"Created By"} value={dataset.createdBy.toString()} />
+                        <Entry name={"Update Time"} value={dataset.updated} />
+                        <Entry name={"Updated By"} value={dataset.updatedBy.toString()} />
+                        <Entry name={"Discriminator"} value={dataset.discriminator} />
                     </Grid>
                 </Grid>
             </AccordionDetails>
         </Accordion>
-    )
+    );
 }
 
 interface DatasetAccordionProp {
     datasets: Dataset[],
 }
 
-export default function DatasetAccordion({ datasets }: DatasetAccordionProp) {
+export default function DatasetAccordions({ datasets }: DatasetAccordionProp) {
     const classes = useStyles();
     
     return (
         <div className={classes.root}>
             {
                 datasets.length === 0 ? (<Typography variant="body2" align="center">No records to display</Typography>) :
-                                        (datasets.map(dataset => getAccordion(dataset)))
+                                        (datasets.map(dataset => <DatasetAccordion dataset={dataset} />))
             }
         </div>
     );
