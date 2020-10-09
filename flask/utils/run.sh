@@ -12,8 +12,8 @@ if [[ "$1" == "prod" ]]; then
     shift
     gunicorn wsgi:app "$@"
 elif [[ "$1" == "test" ]]; then
-    echo 'Hello world!'
-    $PYTHON -m pytest
+    shift
+    $PYTHON -m pytest "$@"
 else
     $COMMAND add-default-admin
     $COMMAND add-dummy-data

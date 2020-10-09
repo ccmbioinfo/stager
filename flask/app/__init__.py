@@ -23,10 +23,13 @@ def create_app(testing=False):
     app = Flask(__name__)
 
     if testing:
+        # Set testing parameters
+        # Make sure that a separate DB is used for testing. All tables are dropped after each test.
         app.testing = True
-
-    # Setup configs
-    app.config.from_object(config.DevConfig)
+        app.config.from_object(config.TestConfig)
+    else:
+        # Setup configs
+        app.config.from_object(config.DevConfig)
 
     flask_logging.create_logger(app)
     login.session_protection = 'strong'

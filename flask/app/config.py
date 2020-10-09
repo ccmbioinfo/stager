@@ -23,8 +23,10 @@ class DevConfig(Config):
     """
     FLASK_ENV = 'development'
     DEBUG = True
-    TESTING = True
 
-    # TODO: Separate database for testing goes here.
-
-
+class TestConfig(DevConfig):
+    """
+    Pytest config settings.
+    Uses MySQL database called "st2020testing" for adding/removing test data.
+    """
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://admin:admin@localhost/st2020testing'
