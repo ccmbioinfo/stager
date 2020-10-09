@@ -9,8 +9,10 @@ import { SlideUpTransition } from "../utils";
 import { Dataset } from './DatasetTable';
 
 export interface Pipeline {
-    name: string;
-    version: string;
+    pipeline_id: number;
+    pipeline_name: string;
+    pipeline_version: string;
+    supported_types: string[];
 }
 
 interface AnalysisRunnerDialogProps {
@@ -55,10 +57,10 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
                     </FormLabel>
                     <RadioGroup row aria-label="Pipelines" name="pipelines" defaultValue="top">
                         {pipelines.map(
-                            ({ name, version }) =>
+                            ({ pipeline_id, pipeline_name, pipeline_version }) =>
                                 <FormControlLabel
-                                    label={`${name} v${version}`}
-                                    value={`${name}|${version}`}
+                                    label={`${pipeline_name} ${pipeline_version}`}
+                                    value={pipeline_id}
                                     control={<Radio color="primary" />} />
                         )}
                     </RadioGroup>

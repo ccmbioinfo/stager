@@ -3,7 +3,7 @@ import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { toKeyValue, KeyValue } from "../utils";
-import AnalysisRunnerDialog from './AnalysisRunnerDialog';
+import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
 
 export interface Dataset {
     dataset_id: number;
@@ -32,40 +32,6 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-function createDataset(
-    dataset_id: number,
-    tissue_sample_type: string,
-    participant_codename: string,
-    family_codename: string,
-    dataset_type: string,
-    condition: string,
-    created: Date,
-    created_by: string,
-    updated: Date,
-    updated_by: string) {
-    return {
-        dataset_id, tissue_sample_type, participant_codename, family_codename,
-        dataset_type, condition, created, created_by, updated, updated_by
-    };
-}
-
-const rows: Dataset[] = [
-    createDataset(1, 'Blood', 'AA0001', '3001', 'WGS', 'Somatic', new Date(), 'CHEO', new Date(), 'CHEO'),
-    createDataset(2, 'Blood', 'AA0002', '3002', 'WGS', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(3, 'Blood', 'AA0003', '3003', 'WGS', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(4, 'Skin', 'BB0001', '2001', 'WES', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(5, 'Blood', 'BB0002', '2002', 'WGS', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(6, 'Saliva', 'BB0003', '2003', 'WES', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
-    createDataset(7, 'Blood', 'AA0004', '3012', 'WGS', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
-    createDataset(8, 'Skin', 'AA0005', '3013', 'WES', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
-];
-
-const pipelines = [
-    { name: "CRG", version: "1.1" },
-    { name: "CRG", version: "2.0" },
-    { name: "CRE", version: "1.5" },
-];
-
 export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
@@ -73,6 +39,7 @@ export default function DatasetTable() {
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
     const [datasets, setDatasets] = useState<Dataset[]>([]);
+    const [pipelines, setPipelines] = useState<Pipeline[]>([]);
     const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [conditions, setConditions] = useState<KeyValue>({});
@@ -92,9 +59,16 @@ export default function DatasetTable() {
             if (response.ok) {
                 setDatasets(await response.json());
             } else {
-                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`)
+                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
             }
         });
+        fetch("/api/pipelines").then(async response => {
+            if (response.ok) {
+                setPipelines(await response.json());
+            } else {
+                console.error(`GET /api/pipelines failed with ${response.status}: ${response.statusText}`);
+            }
+        })
     }, []);
 
     return (
