@@ -70,15 +70,15 @@ export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
-    const [datasetType, setDatasetType] = useState<string[]>([]);
+    const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
+    const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [conditions, setConditions] = useState<KeyValue>({});
 
     useEffect(() => {
-        (async () => {
-            const response = await fetch("/api/enums");
+        fetch("/api/enums").then(async response => {
             if (response.ok) {
                 const enums = await response.json();
                 setTissueSampleTypes(toKeyValue(enums.TissueSampleType));
@@ -87,7 +87,14 @@ export default function DatasetTable() {
             } else {
                 console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
             }
-        })();
+        });
+        fetch("/api/datasets").then(async response => {
+            if (response.ok) {
+                setDatasets(await response.json());
+            } else {
+                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`)
+            }
+        });
     }, []);
 
     return (
@@ -103,7 +110,7 @@ export default function DatasetTable() {
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
                     { title: 'Tissue Sample', field: 'tissue_sample_type', lookup: tissueSampleTypes },
-                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetType, lookup: datasetTypes },
+                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes },
                     { title: 'Condition', field: 'condition', lookup: conditions },
                     { title: 'Notes', field: 'notes' },
                     // { title: 'Created', field: 'created', type: 'datetime' },
@@ -111,7 +118,7 @@ export default function DatasetTable() {
                     { title: 'Updated', field: 'updated', type: 'datetime' },
                     { title: 'Updated By', field: 'updated_by' },
                 ]}
-                data={rows}
+                data={datasets}
                 title="Datasets"
                 options={{
                     pageSize: 10,
@@ -137,10 +144,10 @@ export default function DatasetTable() {
                         <div>
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
-                                {[...new Set(rows.map(e => e.dataset_type))].map(type => (
-                                    <Chip label={type} onClick={() => setDatasetType([type])} clickable className={classes.chip} />
+                                {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
+                                    <Chip label={type} onClick={() => setDatasetTypeFilter([type])} clickable className={classes.chip} />
                                 ))}
-                                <IconButton onClick={() => setDatasetType([])} className={classes.chip}>
+                                <IconButton onClick={() => setDatasetTypeFilter([])} className={classes.chip}>
                                     <Cancel />
                                 </IconButton>
                             </div>
