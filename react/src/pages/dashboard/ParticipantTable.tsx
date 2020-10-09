@@ -59,7 +59,7 @@ export default function ParticipantTable() {
                 <ParticipantDetailDialog
                     open={detail}
                     participant={activeRow}
-                    onClose={() => {setDetail(false);}}
+                    onClose={() => setDetail(false)}
                 />}
            <MaterialTable
                 columns={[
