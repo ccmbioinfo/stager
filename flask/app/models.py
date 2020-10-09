@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from typing import List
-
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import CheckConstraint
 
 from app import db
 
@@ -43,7 +43,7 @@ class Family(db.Model):
     created_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated: str = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    participants = db.relationship('Participant', backref='family', lazy='dynamic')
+    participants = db.relationship('Participant', backref='family')
 
 
 class Sex(str, Enum):
@@ -69,6 +69,7 @@ class Participant(db.Model):
     sex: Sex = db.Column(db.Enum(Sex), nullable=False)
     # Sample.SampleType
     participant_type: ParticipantType = db.Column(db.Enum(ParticipantType), nullable=False)
+    month_of_birth: date = db.Column(db.Date, CheckConstraint('DAY(month_of_birth) = 1'))
     # Sample.AffectedStatus
     affected: bool = db.Column(db.Boolean)
     # Dataset.SolvedStatus
@@ -78,7 +79,7 @@ class Participant(db.Model):
     created_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    tissue_samples = db.relationship('TissueSample', backref='participant', lazy='dynamic')
+    tissue_samples = db.relationship('TissueSample', backref='participant')
 
 
 class TissueSampleType(str, Enum):
@@ -113,7 +114,7 @@ class TissueSample(db.Model):
     created_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
     updated: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.now)
     updated_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
-    datasets = db.relationship('Dataset', backref='tissue_sample', lazy='dynamic')
+    datasets = db.relationship('Dataset', backref='tissue_sample')
 
 
 class DatasetType(str, Enum):
@@ -211,7 +212,7 @@ class Dataset(db.Model):
         'polymorphic_on': discriminator
     }
 
-    analyses = db.relationship('Analysis', secondary=datasets_analyses_table, backref='datasets', lazy='dynamic')
+    analyses = db.relationship('Analysis', secondary=datasets_analyses_table, backref='datasets')
 
 
 @dataclass

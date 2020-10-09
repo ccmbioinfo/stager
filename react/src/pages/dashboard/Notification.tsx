@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
-import Alert from '@material-ui/lab/Alert';
-import Button from '@material-ui/core/Button';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import { PipelineStatus, AnalysisRun } from '../analysis/Analysis';
+import { makeStyles, Button } from '@material-ui/core';
+import { OpenInNew } from '@material-ui/icons';
+import { Alert } from '@material-ui/lab';
+import { PipelineStatus, AnalysisRow } from '../analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     msgBox: {
@@ -19,7 +18,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export interface NotificationProps {
-    analysis: AnalysisRun,
+    analysis: AnalysisRow,
 }
 
 enum Severity {
@@ -30,40 +29,40 @@ enum Severity {
 }
 
 export interface NotificationObj {
-    analysisID: string;
+    analysis_id: string;
     msg: string;
     severity: Severity
 }
 
 function createNotification(
-    analysisID: string,
+    analysis_id: string,
     msg: string,
     severity: Severity): NotificationObj {
-    return { analysisID, msg, severity };
+    return { analysis_id, msg, severity };
 }
 
-const getNotificationInfo = (analysis: AnalysisRun) => {
-    const msg = `The status of ${analysis.analysisID} has changed to `;
-    switch (analysis.status) {
+const getNotificationInfo = (analysis: AnalysisRow) => {
+    const msg = `The status of ${analysis.analysis_id} has changed to `;
+    switch (analysis.state) {
         case PipelineStatus.PENDING:
-            return createNotification(analysis.analysisID, `${msg}PENDING`, Severity.PENDING)
+            return createNotification(analysis.analysis_id, `${msg}PENDING`, Severity.PENDING)
         case PipelineStatus.RUNNING:
-            return createNotification(analysis.analysisID, `${msg}RUNNING`, Severity.RUNNING)
+            return createNotification(analysis.analysis_id, `${msg}RUNNING`, Severity.RUNNING)
         case PipelineStatus.COMPLETED:
-            return createNotification(analysis.analysisID, `${msg}COMPLETED`, Severity.COMPLETED)
+            return createNotification(analysis.analysis_id, `${msg}COMPLETED`, Severity.COMPLETED)
         case PipelineStatus.ERROR:
-            return createNotification(analysis.analysisID, `${msg}ERROR`, Severity.ERROR)
+            return createNotification(analysis.analysis_id, `${msg}ERROR`, Severity.ERROR)
     }
 }
 
 export default function Notification({ analysis } : NotificationProps) {
     const classes = useStyles();
-    const {analysisID, msg, severity} = getNotificationInfo(analysis)
+    const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
 
     return (
     <Alert className={classes.msgBox} severity={severity}>
         <span>{msg}</span>
-        <Button component={Link} to={`/analysis/${analysisID}`} className={classes.msgButton} variant="contained" color="default" endIcon={<OpenInNewIcon color="primary"/>} disableElevation>
+        <Button component={Link} to={`/analysis/${analysis_id}`} className={classes.msgButton} variant="contained" color="default" endIcon={<OpenInNew color="primary"/>} disableElevation>
             See Detail
         </Button>
     </Alert>   
