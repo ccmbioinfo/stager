@@ -65,8 +65,8 @@ interface DialogProp {
 }
 
 export default function ParticipantDetailDialog({ participant, open, onClose  }: DialogProp) {
-    const classes = useStyles()
-    const labeledBy = "participant-info-dialog-slide-title"
+    const classes = useStyles();
+    const labeledBy = "participant-info-dialog-slide-title";
 
     return (
         <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='lg' fullWidth={true}>
