@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { toKeyValue } from "../utils";
+import { toKeyValue, KeyValue } from "../utils";
 import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 export interface Dataset {
@@ -72,10 +72,23 @@ export default function DatasetTable() {
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetType, setDatasetType] = useState<string[]>([]);
 
-    // TODO: replace with enum values from backend
-    const tissueSampleTypes = toKeyValue(["Blood", "Saliva", "Skin"]);
-    const datasetTypes = toKeyValue(["WGS", "WES"]);
-    const conditions = toKeyValue(["Control", "GermLine", "Somatic"]);
+    const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
+    const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
+    const [conditions, setConditions] = useState<KeyValue>({});
+
+    useEffect(() => {
+        (async () => {
+            const response = await fetch("/api/enums");
+            if (response.ok) {
+                const enums = await response.json();
+                setTissueSampleTypes(toKeyValue(enums.TissueSampleType));
+                setDatasetTypes(toKeyValue(enums.DatasetType));
+                setConditions(toKeyValue(enums.DatasetCondition));
+            } else {
+                console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
+            }
+        })();
+    }, []);
 
     return (
         <div>
