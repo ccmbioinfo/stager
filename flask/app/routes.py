@@ -3,14 +3,15 @@ import pandas as pd
 from enum import Enum
 from functools import wraps
 import json
-from typing import Any, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 import inspect
 
-from flask import jsonify, request
+from flask import abort, jsonify, request, Response
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc, inspect
 from sqlalchemy.orm import aliased, joinedload
+from werkzeug.exceptions import HTTPException
 
 from app import app, db, login, models
 
@@ -70,6 +71,28 @@ def check_admin(handler):
         return handler(*args, **kwargs)
 
     return decorated_handler
+
+
+def transaction_or_abort(callback: Callable) -> None:
+    try:
+        callback()
+    except exc.DataError as err:
+        db.session.rollback()
+        abort(400, description=err.orig.args[1])
+    except exc.StatementError as err:
+        db.session.rollback()
+        abort(400, description=str(err.orig))
+    except Exception as err:
+        db.session.rollback()
+        raise err
+
+
+@app.errorhandler(HTTPException)
+def on_http_exception(error: HTTPException) -> Response:
+    response = error.get_response()
+    response.content_type = "text/plain"
+    response.data = error.description
+    return response
 
 
 def validate_user(request_user: dict):
@@ -239,17 +262,7 @@ def update_entity(model_name:str, id:int):
     except:
         pass  # LOGIN_DISABLED
 
-    try:
-        db.session.commit()
-    except exc.DataError as err:
-        db.session.rollback()
-        return err.orig.args[1], 400
-    except exc.StatementError as err:
-        db.session.rollback()
-        return str(err.orig), 400
-    except Exception as err:
-        db.session.rollback()
-        raise err
+    transaction_or_abort(db.session.commit)
 
     return jsonify(table)
 
@@ -344,10 +357,10 @@ def get_enums():
 
 
 # TODO: text/csv content type does not seem to be working, ie. request.files['file'] throws a KeyError
-# TODO: decorator for the try...catch.. statements? 
+# TODO: decorator for the try...catch.. statements?
 # TODO: flesh out the fields to be updated for each entity from Hillary's slack message
 # TODO: enum errors are not super informative rn, eg for condition, mentions the field was truncated in the row
-# TODO: month of birth  
+# TODO: month of birth
 
 @app.route('/api/_bulk', methods = ['POST'])
 @login_required
@@ -360,7 +373,7 @@ def bulk_update():
 
 
     if 'multipart' in request.headers['Content-Type']:
-        try: 
+        try:
             f = request.files['file']
         except Exception as err:
             raise err
@@ -369,7 +382,7 @@ def bulk_update():
     else:
        return 'Content-Type Not Supported', 415
 
-    try: 
+    try:
         updated_by = current_user.user_id
         created_by = current_user.user_id
     except:
@@ -384,28 +397,18 @@ def bulk_update():
         fam_query = models.Family.query.\
             filter(models.Family.family_codename == row.get('family_codename'))
 
-        # check if the entry exists, if not add it 
-        # this will also create an instance with defaults in nullable fields 
-        if not fam_query.value('family_id'): 
+        # check if the entry exists, if not add it
+        # this will also create an instance with defaults in nullable fields
+        if not fam_query.value('family_id'):
 
             fam_objs = models.Family(
                     family_codename = row.get('family_codename'),
-                    created_by = created_by, 
+                    created_by = created_by,
                     updated_by = updated_by
                     )
             db.session.add(fam_objs)
 
-            try:
-                db.session.flush()
-            except exc.DataError as err:
-                db.session.rollback()
-                return err.orig.args[1], 400
-            except exc.StatementError as err:
-                db.session.rollback()
-                return str(err.orig), 400
-            except Exception as err:
-                db.session.rollback()
-                raise err
+            transaction_or_abort(db.session.flush)
 
         print(fam_query.value('family_id'))
 
@@ -415,7 +418,7 @@ def bulk_update():
             participant_codename = row.get('participant_codename'),
             sex = row.get('sex'),
             participant_type = row.get('participant_type'),
-            affected = row.get('affected'), 
+            affected = row.get('affected'),
             notes = row.get('notes'),
             created_by = created_by,
             updated_by = updated_by,
@@ -423,17 +426,8 @@ def bulk_update():
         )
 
         db.session.add(ptp_objs)
-        try:
-            db.session.flush()
-        except exc.DataError as err:
-            db.session.rollback()
-            return err.orig.args[1], 400
-        except exc.StatementError as err:
-            db.session.rollback()
-            return str(err.orig), 400
-        except Exception as err:
-            db.session.rollback()
-            raise err # InvalidRequestError, pymysql.err.InternalError ?
+        transaction_or_abort(db.session.flush)
+        # InvalidRequestError, pymysql.err.InternalError ?
 
         # query both participant codename and family id else we will get the participant ID for the first member
         # of the family and no subsequent entities will be updated
@@ -455,17 +449,7 @@ def bulk_update():
                 updated_by = updated_by,
             )
             db.session.add(tis_objs)
-            try:
-                db.session.flush()
-            except exc.DataError as err:
-                db.session.rollback()
-                return err.orig.args[1], 400
-            except exc.StatementError as err:
-                db.session.rollback()
-                return str(err.orig), 400
-            except Exception as err:
-                db.session.rollback()
-                raise err
+            transaction_or_abort(db.session.flush)
 
         dts_query  = models.Dataset.query\
             .filter(models.Dataset.tissue_sample_id == tis_query.value('tissue_sample_id'))
@@ -479,33 +463,13 @@ def bulk_update():
                 condition = row.get('condition', None)
             )
             db.session.add(dts_objs)
-            try:
-                db.session.flush()
-            except exc.DataError as err:
-                db.session.rollback()
-                return err.orig.args[1], 400
-            except exc.StatementError as err:
-                db.session.rollback()
-                return str(err.orig), 400
-            except Exception as err:
-                db.session.rollback()
-                raise err
+            transaction_or_abort(db.session.flush)
 
         dataset_ids.append(dts_query.value('dataset_id'))
 
 
-    try:
-        db.session.commit()
-    except exc.DataError as err:
-        db.session.rollback()
-        return err.orig.args[1], 400
-    except exc.StatementError as err:
-        db.session.rollback()
-        return str(err.orig), 400
-    except Exception as err:
-        db.session.rollback()
-        raise err
-  
+    transaction_or_abort(db.session.commit)
+
     # credit goes to Madeline and Kevin for the dataset GET endpoint
     # filter by the newly added dataset ids
 
@@ -528,4 +492,4 @@ def bulk_update():
         } for dataset in db_datasets
     ]
 
-    return jsonify(datasets) 
+    return jsonify(datasets)
