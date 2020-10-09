@@ -280,7 +280,7 @@ def participants_list():
 def analyses_list():
     since_date = request.args.get('since', default='0001-01-01T00:00:00-04:00')
     try: 
-        since_date = datetime.strptime(since_date, '%Y-%m-%dT%H:%M:%S%z')
+        since_date = datetime.fromisoformat(since_date)
     except:
         return 'Malformed query date', 400
 
