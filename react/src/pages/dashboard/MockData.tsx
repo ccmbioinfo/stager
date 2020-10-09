@@ -7,7 +7,7 @@ export interface Participant {
     affected: boolean,
     solved: boolean,
     sex: string,
-    note: string,
+    notes: string,
     datasetTypes: string[],
     created: string,
     createdBy: number,
@@ -23,14 +23,14 @@ export function createParticipant(
     affected: boolean,
     solved: boolean,
     sex: string,
-    note: string,
+    notes: string,
     datasetTypes: string[],
     created: string,
     createdBy: number,
     updated: string,
     updatedBy: number,
     ) {
-    return { participantID, participantCodename, familyID, familyCodename, participantType, affected, solved, sex, note, 
+    return { participantID, participantCodename, familyID, familyCodename, participantType, affected, solved, sex, notes, 
         datasetTypes, created, createdBy, updated, updatedBy
     };
 }

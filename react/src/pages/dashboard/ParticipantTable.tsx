@@ -4,7 +4,7 @@ import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { Participant, rows } from './MockData';
 import DatasetTypes from './DatasetTypes';
-import ParticipantInfoDialog from './ParticipantInfoDialog';
+import ParticipantDetailDialog from './ParticipantDetailDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -39,8 +39,8 @@ const getLookupValues = (values: string[]) => {
 export default function ParticipantTable() {
     const classes = useStyles();
     const [filter, setFilter] = useState<string[]>([]);
-    const [detail, setDetail] = useState(true);
-    const [activeRow, setActiveRow] = useState<Participant | undefined>(rows[0]);
+    const [detail, setDetail] = useState(false);
+    const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
 
     const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
     const datasetTypes = getLookupValues(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
@@ -56,7 +56,7 @@ export default function ParticipantTable() {
     return (
         <div>
             {activeRow &&
-                <ParticipantInfoDialog
+                <ParticipantDetailDialog
                     open={detail}
                     participant={activeRow}
                     onClose={() => {setDetail(false);}}
@@ -69,7 +69,7 @@ export default function ParticipantTable() {
                     { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
                     { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
                     { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
-                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{ rowData.note }</Typography>},
+                    { title: 'Notes', field: 'notes', width: "50%", render: (rowData) => <Typography>{ rowData.notes }</Typography>},
                     { title: 'Dataset Types', field: 'datasetTypes', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={organizeDatasetTypes(rowData.datasetTypes)} />}
                 ]}
                 data={rows}
