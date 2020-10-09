@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { toKeyValue } from "../utils";
 import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 export interface Dataset {
@@ -65,15 +66,6 @@ const pipelines = [
     { name: "CRE", version: "1.5" },
 ];
 
-type Hash = { [key: string]: string };
-
-function toKVPair(array: string[]) {
-    return array.reduce<Hash>((obj, value) => {
-        obj[value] = value;
-        return obj;
-    }, {});
-}
-
 export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
@@ -81,9 +73,9 @@ export default function DatasetTable() {
     const [datasetType, setDatasetType] = useState<string[]>([]);
 
     // TODO: replace with enum values from backend
-    const tissueSampleTypes = toKVPair(["Blood", "Saliva", "Skin"]);
-    const datasetTypes = toKVPair(["WGS", "WES"]);
-    const conditions = toKVPair(["Control", "GermLine", "Somatic"]);
+    const tissueSampleTypes = toKeyValue(["Blood", "Saliva", "Skin"]);
+    const datasetTypes = toKeyValue(["WGS", "WES"]);
+    const conditions = toKeyValue(["Control", "GermLine", "Somatic"]);
 
     return (
         <div>
