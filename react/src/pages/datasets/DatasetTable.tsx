@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { makeStyles, Chip, IconButton } from '@material-ui/core';
+import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { toKeyValue, KeyValue } from "../utils";
@@ -83,14 +83,22 @@ export default function DatasetTable() {
                 columns={[
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
-                    { title: 'Tissue Sample', field: 'tissue_sample_type', lookup: tissueSampleTypes },
+                    { title: 'Tissue Sample', field: 'tissue_sample_type', editable: 'never', lookup: tissueSampleTypes },
                     { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes },
                     { title: 'Condition', field: 'condition', lookup: conditions },
-                    { title: 'Notes', field: 'notes' },
+                    { title: 'Notes', field: 'notes', editComponent: props => (
+                        <TextField
+                            multiline
+                            value={props.value}
+                            onChange={event => props.onChange(event.target.value)}
+                            rows={4}
+                            fullWidth
+                        />
+                    )},
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
-                    { title: 'Updated', field: 'updated', type: 'datetime' },
-                    { title: 'Updated By', field: 'updated_by' },
+                    { title: 'Updated', field: 'updated', type: 'datetime', editable: 'never' },
+                    { title: 'Updated By', field: 'updated_by', editable: 'never' },
                 ]}
                 data={datasets}
                 title="Datasets"
@@ -101,17 +109,27 @@ export default function DatasetTable() {
                     search: false
                 }}
                 editable={{
-                    onRowUpdate: (newData, oldData) =>
-                        new Promise((resolve, reject) => {
-                            setTimeout(() => {
-                                // const dataUpdate = [...data];
-                                // const index = oldData.tableData.id;
-                                // dataUpdate[index] = newData;
-                                // setData([...dataUpdate]);
-
-                                resolve();
-                            }, 1000);
-                        }),
+                    onRowUpdate: async (newDataset, oldDataset) => {
+                        const response = await fetch(`/api/datasets/${newDataset.dataset_id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newDataset)
+                        });
+                        if (response.ok) {
+                            const updatedDataset = await response.json();
+                            // Functional style: make a copy of the current state but replace
+                            // the element that changed with the server's response. Mix in with
+                            // the old because the PATCH endpoint does not respond with the
+                            // participant codename, family codename, or tissue sample type.
+                            setDatasets(datasets.map(dataset =>
+                                dataset.dataset_id === newDataset.dataset_id
+                                ? { ...dataset, ...updatedDataset }
+                                : dataset
+                            ));
+                        } else {
+                            console.error(`PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`);
+                        }
+                    }
                 }}
                 components={{
                     Toolbar: props => (
