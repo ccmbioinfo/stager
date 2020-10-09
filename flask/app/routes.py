@@ -9,7 +9,7 @@ from io import StringIO
 
 from . import db, login, models
 
-from flask import abort, jsonify, request, Response, g, current_app as app
+from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload

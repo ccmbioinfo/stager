@@ -1,4 +1,4 @@
-from flask import g, current_app as app
+from flask import current_app as app
 from . import db, models
 from datetime import datetime
 
