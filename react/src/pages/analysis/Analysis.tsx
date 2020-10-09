@@ -85,8 +85,8 @@ export interface AnalysisRow {
     selected: boolean; // used for optimizing data updating
     /*
     More fields can go here as required;
-    MaterialTable columns only need to cover a subset of 
-    fields in this interface. 
+    MaterialTable columns only need to cover a subset of
+    fields in this interface.
     */
 }
 
@@ -101,7 +101,7 @@ export function createAnalysis(
     updated: string,
     notes: string): AnalysisRow {
 
-    return { 
+    return {
         analysis_id,
         pipeline_id,
         result_hpf_path,
@@ -159,7 +159,7 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
     } else {
         rows.forEach((row, index, arr) => (
             returnStr = returnStr.concat(
-            index < arr.length-1 
+            index < arr.length-1
             ? `${row.analysis_id}, `
             : `${row.analysis_id}`
         )));
@@ -196,7 +196,7 @@ function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
                 row.state = null;
                 break;
         }
-        
+
         return { ...row, selected: false } as AnalysisRow;
     });
     return rows;
@@ -246,7 +246,7 @@ export default function Analysis() {
         });
 
         // For when the user comes from the notification panel
-        if (activeRows.length > 0 && analysis_id) 
+        if (activeRows.length > 0 && analysis_id)
             setDetail(true);
 
     }, []);
@@ -259,12 +259,12 @@ export default function Analysis() {
                     open={cancel}
                     affectedRows={activeRows}
                     title={
-                        activeRows.length == 1 
-                        ? `Stop Analysis?` 
+                        activeRows.length == 1
+                        ? `Stop Analysis?`
                         : `Stop Analyses?`
                     }
                     onClose={() => { setCancel(false) }}
-                    onAccept={() => { 
+                    onAccept={() => {
                         // TODO: PATCH goes here for cancelling analyses
 
                         // If successful...
@@ -284,7 +284,7 @@ export default function Analysis() {
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />}
-                
+
             {activeRows.length > 0 &&
                 <AnalysisInfoDialog
                     open={detail}
@@ -298,12 +298,12 @@ export default function Analysis() {
                 onAccept={() => { setDirect(false); history.push("/datasets") }}
             />
 
-            {activeRows.length > 0 && 
+            {activeRows.length > 0 &&
                 <SetAssigneeDialog
                     affectedRows={activeRows}
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
-                    onSubmit={(username) => { 
+                    onSubmit={(username) => {
                         // TODO: PATCH goes here for setting assignees
 
                         // If successful...
@@ -318,10 +318,10 @@ export default function Analysis() {
 
                         setRows(newRows);
                         setAssignment(false);
-                    
+
                     }}
                 />}
-            
+
             <Container maxWidth="lg" className={classes.container}>
                 <MaterialTable
                     columns={[
@@ -347,13 +347,13 @@ export default function Analysis() {
                         setActiveRows(selectedRows);
                         // Use hidden 'selected' field to optimize mass cancellation, reassignment, etc.
                         const newRows = [...rows];
-                        
+
                         if (row) {  // one row changed
                             const index = rows.indexOf(row);
                             const newRow: AnalysisRow = { ...newRows[index] };
                             newRow.selected = !row.selected;
                             newRows[index] = newRow;
-                        } 
+                        }
                         else {  // all rows changed
                             if (selectedRows.length === rows.length)
                                 newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: true });
@@ -390,6 +390,7 @@ export default function Analysis() {
                             position: 'row',
                             onClick: (event, rowData) => {
                                 // We can only view details of one row at a time
+                                setActiveRows([rowData as AnalysisRow]);
                                 setDetail(true);
                                 history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
                             }
