@@ -211,7 +211,7 @@ def change_password():
         return 'Server error', 500
 
 
-def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> Union[None, str]:
+def mixin( entity: db.Model, json_mixin: Dict[str, Any], columns: List[str], edit: bool(True)) -> Union[None, str]:
     for field in columns:
         if field in json_mixin:
             column = getattr(entity, field)
@@ -220,8 +220,8 @@ def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> U
                 if not hasattr(type(column), str(value)):
                     allowed = [e.value for e in type(column)]
                     return f'"{field}" must be one of {allowed}'
-            setattr(entity, field, value)
-
+            if edit:
+                setattr(entity, field, value)
 
 @app.route('/api/<model_name>/<int:id>', methods = ['PATCH'])
 @login_required
@@ -357,20 +357,21 @@ def get_enums():
 
 
 # TODO: text/csv content type does not seem to be working, ie. request.files['file'] throws a KeyError
-# TODO: decorator for the try...catch.. statements?
-# TODO: flesh out the fields to be updated for each entity from Hillary's slack message
-# TODO: enum errors are not super informative rn, eg for condition, mentions the field was truncated in the row
-# TODO: month of birth
 
 @app.route('/api/_bulk', methods = ['POST'])
 @login_required
 def bulk_update():
 
-    # if 'application/json' in request.headers['Content-Type']:
-    #     if not request.json:
-    #         return 'Request body must be JSON', 415
-    #     dat = request.json
+    
+    dataset_ids = [] 
 
+    editable_dict = {'participant' : ['participant_codename', 'sex', 'participant_type',
+                                     'month_of_birth', 'affected', 'solved', 'notes'],
+                     'dataset' : ['dataset_type', 'input_hpf_path', 'notes', 'condition',
+                                    'extraction_protocol', 'capture_kit', 'library_prep_method',
+                                    'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
+                                    'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator' ],
+                    'tissue_sample': ['extraction_date', 'tissue_sample_type','tissue_processing', 'notes']}
 
     if 'multipart' in request.headers['Content-Type']:
         try:
@@ -379,6 +380,12 @@ def bulk_update():
             raise err
 
         dat = pd.read_csv(f)
+        dat = dat.where(pd.notnull(dat), None)
+
+    # if 'csv' in request.headers['Content-Type']:
+    #     # f = request.files['file']
+    #     #f = request.body
+    #     return jsonify({'CT': request.headers['Content-Type']})
     else:
        return 'Content-Type Not Supported', 415
 
@@ -389,16 +396,14 @@ def bulk_update():
         updated_by = 1
         created_by = 1
 
-    # sqlalchemy.exc.IntegrityError: (pymysql.err.IntegrityError)
-    dataset_ids = [] # list for querying
 
     for row in dat.to_dict(orient = 'records'):
+
+        # family logic
 
         fam_query = models.Family.query.\
             filter(models.Family.family_codename == row.get('family_codename'))
 
-        # check if the entry exists, if not add it
-        # this will also create an instance with defaults in nullable fields
         if not fam_query.value('family_id'):
 
             fam_objs = models.Family(
@@ -410,68 +415,91 @@ def bulk_update():
 
             transaction_or_abort(db.session.flush)
 
-        print(fam_query.value('family_id'))
-
-
-        ptp_objs = models.Participant(
-            family_id = fam_query.value('family_id'),
-            participant_codename = row.get('participant_codename'),
-            sex = row.get('sex'),
-            participant_type = row.get('participant_type'),
-            affected = row.get('affected'),
-            notes = row.get('notes'),
-            created_by = created_by,
-            updated_by = updated_by,
-            month_of_birth = row.get('month_of_birth')
-        )
-
-        db.session.add(ptp_objs)
-        transaction_or_abort(db.session.flush)
-        # InvalidRequestError, pymysql.err.InternalError ?
+        # participant logic
 
         # query both participant codename and family id else we will get the participant ID for the first member
         # of the family and no subsequent entities will be updated
         ptp_query =  models.Participant.query\
             .filter(models.Participant.family_id == fam_query.value('family_id'),
                     models.Participant.participant_codename == row.get('participant_codename'))
+                
+        # to validate the enums, an instance for an existing record must be the input
+        enum_error = mixin(models.Participant.query.get(1), row, editable_dict['participant'], edit = False)
 
+        if enum_error:
+            return enum_error, 400
+
+        ptp_objs = models.Participant(
+            family_id = fam_query.value('family_id'),
+            participant_codename = row.get('participant_codename'),
+            sex = row.get('sex'),
+            notes = row.get('notes'),
+            affected = row.get('affected'),
+            solved = row.get('solved'),
+            participant_type = row.get('participant_type'),
+            month_of_birth = row.get('month_of_birth'),
+            created_by = created_by,
+            updated_by = updated_by
+        )
+
+        db.session.add(ptp_objs)
+        transaction_or_abort(db.session.flush)
+        
+        # tissue logic  
 
         tis_query = models.TissueSample.query\
             .filter(models.TissueSample.participant_id == ptp_query.value('participant_id'))
 
-
         if not tis_query.value('tissue_sample_id'):
+            
+            enum_error = mixin(models.TissueSample.query.get(1), row, editable_dict['tissue_sample'], edit = False)
+
+            if enum_error:
+                return enum_error, 400
+
             tis_objs = models.TissueSample(
                 participant_id = ptp_query.value('participant_id'),
                 tissue_sample_type = row.get('tissue_sample_type'),
                 notes = row.get('notes'),
                 created_by = created_by,
-                updated_by = updated_by,
+                updated_by = updated_by
             )
             db.session.add(tis_objs)
             transaction_or_abort(db.session.flush)
+
+        # dataset logic
 
         dts_query  = models.Dataset.query\
             .filter(models.Dataset.tissue_sample_id == tis_query.value('tissue_sample_id'))
 
         if not dts_query.value('dataset_id'):
+
+            enum_error = mixin(models.Dataset.query.get(1), row, editable_dict['dataset'], edit = False)
+
+            if enum_error:
+                return enum_error, 400
+
             dts_objs = models.Dataset(
                 tissue_sample_id = tis_query.value('tissue_sample_id'),
                 dataset_type = row.get('dataset_type'),
                 created_by = created_by,
                 updated_by = updated_by,
-                condition = row.get('condition', None)
+                condition = row.get('condition'),
+                extraction_protocol = row.get('extraction_protocol'),
+                capture_kit = row.get('capture_kit'),
+                library_prep_method = row.get('library_prep_method'),
+                read_length = row.get('read_length'),
+                read_type = row.get('read_type'),
+                sequencing_centre = row.get('sequencing_centre'),
+                sequencing_date = row.get('sequencing_date'),
+                batch_id = row.get('batch_id')
             )
             db.session.add(dts_objs)
             transaction_or_abort(db.session.flush)
 
         dataset_ids.append(dts_query.value('dataset_id'))
 
-
     transaction_or_abort(db.session.commit)
-
-    # credit goes to Madeline and Kevin for the dataset GET endpoint
-    # filter by the newly added dataset ids
 
     db_datasets = db.session.query(models.Dataset).options(
             joinedload(models.Dataset.tissue_sample).
