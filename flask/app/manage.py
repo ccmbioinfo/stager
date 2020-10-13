@@ -1,11 +1,13 @@
 from app import app, db, models
+from datetime import datetime
 
 @app.cli.command('add-default-admin')
 def add_default_admin():
     if len(db.session.query(models.User).all()) == 0:
         default_admin = models.User(
             username=app.config.get('DEFAULT_ADMIN'),
-            email=app.config.get('DEFAULT_ADMIN_EMAIL')
+            email=app.config.get('DEFAULT_ADMIN_EMAIL'),
+            last_login=datetime.now()
         )
         default_admin.set_password(app.config.get('DEFAULT_PASSWORD'))
         db.session.add(default_admin)
@@ -56,9 +58,9 @@ def add_dummy_data():
     if len(db.session.query(models.Participant).all()) == 0:
         # codename is key, sex, type
         default_participants = [
-            {'family_id': 1, 'codename': 'AA001', 'sex': 'Female', 'type': 'Proband', 'affected': True, 'notes': 'Extra info about sample here', 'created_by': 1, 'updated_by': 1},
-            {'family_id': 1, 'codename': 'AA002', 'sex': 'Male', 'type': 'Father', 'affected': False, 'notes': '', 'created_by': 1, 'updated_by': 1},
-            {'family_id': 1, 'codename': 'AA003', 'sex': 'Female', 'type': 'Mother', 'affected': False, 'notes': '', 'created_by': 1, 'updated_by': 1},
+            {'family_id': 1, 'codename': 'AA001', 'sex': 'Female', 'type': 'Proband', 'affected': True, 'month_of_birth': "2000-01-01", 'notes': 'Extra info about sample here', 'created_by': 1, 'updated_by': 1},
+            {'family_id': 1, 'codename': 'AA002', 'sex': 'Male', 'type': 'Father', 'affected': False, 'month_of_birth': "1970-01-01", 'notes': '', 'created_by': 1, 'updated_by': 1},
+            {'family_id': 1, 'codename': 'AA003', 'sex': 'Female', 'type': 'Mother', 'affected': False, 'month_of_birth': "1970-02-01", 'notes': '', 'created_by': 1, 'updated_by': 1}
         ]
         for p in default_participants:
             participant = models.Participant(
@@ -67,6 +69,7 @@ def add_dummy_data():
                 sex = p['sex'],
                 participant_type = p['type'],
                 affected = p['affected'],
+                month_of_birth = p['month_of_birth'],
                 notes = p['notes'],
                 created_by = p['created_by'],
                 updated_by = p['updated_by']

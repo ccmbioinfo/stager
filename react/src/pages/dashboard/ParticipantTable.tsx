@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { makeStyles, Chip, IconButton, Typography } from '@material-ui/core';
 import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { countArray, toKeyValue } from '../utils';
 import { Participant, rows } from './MockData';
 import DatasetTypes from './DatasetTypes';
+import ParticipantDetailDialog from './ParticipantDetailDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -16,31 +18,15 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-type DatasetHash = { [key: string]: number }
-const organizeDatasetTypes = (types: string[]) => types.reduce<DatasetHash>(
-    (newTypes, type) => {
-        if (newTypes[type]) {
-            newTypes[type] += 1;
-        } else {
-            newTypes[type] = 1;
-        }
-        return newTypes;
-    }, Object.create(null));
-
-type LookupHash = { [key: string]: string };
-const getLookupValues = (values: string[]) => {
-    return values.reduce<LookupHash>((lookupValues, value) => {
-        lookupValues[value] = value;
-        return lookupValues
-    }, {})
-}
-
 export default function ParticipantTable() {
     const classes = useStyles();
     const [filter, setFilter] = useState<string[]>([]);
+    const [detail, setDetail] = useState(false);
+    const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
+
     const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
-    const datasetTypes = getLookupValues(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
-    const participantTypes = getLookupValues(['Proband', 'Mother', 'Father', 'Sibling']);
+    const datasetTypes = toKeyValue(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
+    const participantTypes = toKeyValue(['Proband', 'Mother', 'Father', 'Sibling']);
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if(!Array.isArray(rowData)){
@@ -48,9 +34,15 @@ export default function ParticipantTable() {
             await navigator.clipboard.writeText(toCopy);
         }
     }
-    
+
     return (
         <div>
+            {activeRow &&
+                <ParticipantDetailDialog
+                    open={detail}
+                    participant={activeRow}
+                    onClose={() => setDetail(false)}
+                />}
            <MaterialTable
                 columns={[
                     { title: 'Participant Codename', field: 'participantCodename', align: 'center'},
@@ -59,8 +51,8 @@ export default function ParticipantTable() {
                     { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
                     { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
                     { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
-                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{ rowData.note }</Typography>},
-                    { title: 'Dataset Types', field: 'datasetTypes', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={organizeDatasetTypes(rowData.datasetTypes)} />}
+                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{ rowData.notes }</Typography>},
+                    { title: 'Dataset Types', field: 'datasetTypes', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.datasetTypes)} />}
                 ]}
                 data={rows}
                 title='Participants'
@@ -94,10 +86,11 @@ export default function ParticipantTable() {
                 ]}
                 localization={{
                     header: {
-                        //remove action buttons' header 
+                        //remove action buttons' header
                         actions: "",
                     },
                 }}
+                onRowClick={(event, rowData) => {setActiveRow((rowData as Participant)); setDetail(true)}}
             />
         </div>
     )

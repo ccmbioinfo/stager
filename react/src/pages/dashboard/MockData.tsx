@@ -1,13 +1,22 @@
 export interface Participant {
+<<<<<<< HEAD
     participant_id: string,
     participant_codename: string,
     family_id: string,
     family_codename: string,
     participant_type: string,
+=======
+    participantID: string,
+    participantCodename: string,
+    familyID: string,
+    familyCodename: string, //not in participant schema, need to request separately
+    participantType: string,
+>>>>>>> master
     affected: boolean,
     solved: boolean,
     sex: string,
     notes: string,
+<<<<<<< HEAD
     dataset_types: string[],
     created: string,
     created_by: number,
@@ -20,10 +29,25 @@ export function createParticipant(
     family_id: string,
     family_codename: string,
     participant_type: string,
+=======
+    datasetTypes: string[],
+    created: string,
+    createdBy: number,
+    updated: string,
+    updatedBy: number,
+}
+export function createParticipant(
+    participantID: string,
+    participantCodename: string,
+    familyID: string,
+    familyCodename: string,
+    participantType: string,
+>>>>>>> master
     affected: boolean,
     solved: boolean,
     sex: string,
     notes: string,
+<<<<<<< HEAD
     dataset_types: string[],
     created: string,
     created_by: number,
@@ -32,6 +56,16 @@ export function createParticipant(
     ) {
     return { participant_id, participant_codename, family_id, family_codename, participant_type, affected, solved, sex, notes, 
         dataset_types, created, created_by, updated, updated_by
+=======
+    datasetTypes: string[],
+    created: string,
+    createdBy: number,
+    updated: string,
+    updatedBy: number,
+    ) {
+    return { participantID, participantCodename, familyID, familyCodename, participantType, affected, solved, sex, notes, 
+        datasetTypes, created, createdBy, updated, updatedBy
+>>>>>>> master
     };
 }
 
@@ -56,6 +90,7 @@ export function createSample(
     createBy: number,
     updated: string,
     updatedBy: number,
+<<<<<<< HEAD
     ) {
     return { sampleID, extractionDate, sampleType, tissueProcessing, notes, created, createBy, updated, updatedBy,
     };
@@ -110,6 +145,62 @@ export function createDataset(
     };
 }
 
+=======
+    ) {
+    return { sampleID, extractionDate, sampleType, tissueProcessing, notes, created, createBy, updated, updatedBy,
+    };
+}
+
+export interface Dataset {
+    datasetID: string,
+    sampleID: string,
+    datasetType: string,
+    inputHpfPath: string,
+    notes: string,
+    condition: string,
+    extractionProtocol: string,
+    captureKit: string,
+    libraryPrepMethod: string,
+    libraryPrepDate: string	,
+    readLength: number,
+    readType: string,
+    sequencingID: string,
+    sequencingCentre: string,
+    batchID: string,
+    created: string,
+    createdBy: number,
+    updated: string,
+    updatedBy: number,
+    discriminator: string,
+}
+export function createDataset(
+    sampleID: string,
+    datasetID: string,
+    datasetType: string,
+    inputHpfPath: string,
+    notes: string,
+    condition: string,
+    extractionProtocol: string,
+    captureKit: string,
+    libraryPrepMethod: string,
+    libraryPrepDate: string	,
+    readLength: number,
+    readType: string,
+    sequencingID: string,
+    sequencingCentre: string,
+    batchID: string,
+    created: string,
+    createdBy: number,
+    updated: string,
+    updatedBy: number,
+    discriminator: string,
+    ) {
+    return { sampleID, datasetID, datasetType, inputHpfPath, notes, condition, extractionProtocol, captureKit, libraryPrepMethod, libraryPrepDate,
+ readLength, readType, sequencingID, sequencingCentre, batchID, created, createdBy, updated, updatedBy, discriminator,
+    };
+}
+
+>>>>>>> master
 export interface Analysis {
     analysisID: string,
     datasetID: string,

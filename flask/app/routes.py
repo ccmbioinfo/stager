@@ -13,6 +13,7 @@ from sqlalchemy.orm import aliased, joinedload
 
 from app import app, db, login, models
 
+
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
@@ -278,10 +279,17 @@ def participants_list():
 @app.route('/api/analyses', methods=['GET'], endpoint='analyses_list')
 @login_required
 def analyses_list():
+    since_date = request.args.get('since', default='0001-01-01T00:00:00-04:00')
+    try: 
+        since_date = datetime.fromisoformat(since_date)
+    except:
+        return 'Malformed query date', 400
+
     u1 = aliased(models.User)
     u2 = aliased(models.User)
     u3 = aliased(models.User)
-    db_analyses = db.session.query(models.Analysis, u1, u2, u3).join(
+    db_analyses = db.session.query(models.Analysis, u1, u2, u3).filter(
+        models.Analysis.updated >= since_date).join(
         u1, models.Analysis.requester == u1.user_id
     ).join(
         u2, models.Analysis.updated_by == u2.user_id
