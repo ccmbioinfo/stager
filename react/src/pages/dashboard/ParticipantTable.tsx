@@ -5,6 +5,7 @@ import MaterialTable, { MTableToolbar } from 'material-table';
 import { countArray, toKeyValue } from '../utils';
 import { Participant, rows } from './MockData';
 import DatasetTypes from './DatasetTypes';
+import ParticipantDetailDialog from './ParticipantDetailDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -20,6 +21,9 @@ const useStyles = makeStyles(theme => ({
 export default function ParticipantTable() {
     const classes = useStyles();
     const [filter, setFilter] = useState<string[]>([]);
+    const [detail, setDetail] = useState(false);
+    const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
+
     const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
     const datasetTypes = toKeyValue(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
     const participantTypes = toKeyValue(['Proband', 'Mother', 'Father', 'Sibling']);
@@ -33,6 +37,12 @@ export default function ParticipantTable() {
 
     return (
         <div>
+            {activeRow &&
+                <ParticipantDetailDialog
+                    open={detail}
+                    participant={activeRow}
+                    onClose={() => setDetail(false)}
+                />}
            <MaterialTable
                 columns={[
                     { title: 'Participant Codename', field: 'participantCodename', align: 'center'},
@@ -41,7 +51,7 @@ export default function ParticipantTable() {
                     { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
                     { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
                     { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
-                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{ rowData.note }</Typography>},
+                    { title: 'Note', field: 'note', width: "50%", render: (rowData) => <Typography>{ rowData.notes }</Typography>},
                     { title: 'Dataset Types', field: 'datasetTypes', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.datasetTypes)} />}
                 ]}
                 data={rows}
@@ -80,6 +90,7 @@ export default function ParticipantTable() {
                         actions: "",
                     },
                 }}
+                onRowClick={(event, rowData) => {setActiveRow((rowData as Participant)); setDetail(true)}}
             />
         </div>
     )

@@ -1,14 +1,24 @@
 import React from 'react';
-import DatasetType from './DatasetType';
+import { makeStyles, Chip, Avatar } from '@material-ui/core';
+
+const useStyles = makeStyles(theme => ({
+    chip: {
+        margin: theme.spacing(.5)
+    },
+}));
 
 interface DatasetTypesProps {
     datasetTypes: {[key: string]: number},
 }
 
 export default function DatasetTypes({ datasetTypes }: DatasetTypesProps) {
+    const classes = useStyles();
+
     return (
         <div>
-            {Object.keys(datasetTypes).map(type => <DatasetType type={type} number={datasetTypes[type]} />)}
+            {Object.keys(datasetTypes).map(type => {
+                return <Chip className={classes.chip} label={type} avatar={<Avatar>{datasetTypes[type]}</Avatar>} />
+            })}
         </div>
-    )
+    );
 }
