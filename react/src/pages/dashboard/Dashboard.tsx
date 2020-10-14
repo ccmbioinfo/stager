@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles, Container, Grid } from '@material-ui/core';
 import ParticipantTable from './ParticipantTable';
 import NotificationPanel from './NotificationPanel';
@@ -27,6 +27,7 @@ const analyses = [
 
 export default function Dashboard() {
     const classes = useStyles();
+
     useEffect(() => {
         document.title = "Dashboard | ST2020";
     }, []);

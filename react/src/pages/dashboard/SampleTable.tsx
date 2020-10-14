@@ -1,42 +1,45 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import MaterialTable from 'material-table';
-import { getSamplesAndDatasets } from './MockData';
-import DatasetAccordions from './DatasetAccordion'
+import DatasetAccordions from './DatasetAccordion';
+import { Dataset, Sample } from './MockData';
 
 const useStyles = makeStyles(theme => ({
     table: {
-        marginBottom: theme.spacing(3)
-    }
+        marginBottom: theme.spacing(3),
+    },
 }));
 
-interface ParticipantInfoProp {
-    participantID: string
+const getDatasets = (samples: Sample[]) => {
+    return samples.reduce((datasetList, sample) => {
+        return datasetList.concat(sample.datasets);
+    }, [] as Dataset[]);
 }
 
-export default function SamplesTable({ participantID }: ParticipantInfoProp) {
+interface ParticipantInfoProp {
+    samples: Sample[],
+}
+
+export default function SamplesTable({ samples }: ParticipantInfoProp) {
     const classes = useStyles();
-    
-    //fetch participant samples and datasets for each sample
-    const info = getSamplesAndDatasets(participantID);
 
     return (
         <div className={classes.table}>
             <MaterialTable
                 columns={[
-                    { title: 'Sample ID', field: 'sampleID' },
-                    { title: 'Extraction Date', field: 'extractionDate' },
-                    { title: 'Sample Type', field: 'sampleType' },
-                    { title: 'Tissue Processing', field: 'tissueProcessing' },
+                    { title: 'Sample ID', field: 'tissue_sample_id' },
+                    { title: 'Extraction Date', field: 'extraction_date' },
+                    { title: 'Sample Type', field: 'tissue_sample_type' },
+                    { title: 'Tissue Processing', field: 'tissue_processing' },
                     { title: 'Notes', field: 'notes' },
                     { title: 'Creation Time', field: 'created' },
-                    { title: 'Create By', field: 'createBy' },
+                    { title: 'Create By', field: 'create_by' },
                     { title: 'Update Time', field: 'updated' },
-                    { title: 'Updated By', field: 'updatedBy' },
+                    { title: 'Updated By', field: 'updated_by' },
                 ]}
-                data={info.samples}
+                data={samples}
                 title="Samples"
-                detailPanel={rowData => <DatasetAccordions datasets={info.datasets.filter(dataset => dataset.sampleID === rowData.sampleID)} />}
+                detailPanel={rowData => <DatasetAccordions datasets={getDatasets(samples)} />}
                 options={{
                     paging: false,
                     selection: false,
