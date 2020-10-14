@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import MaterialTable from 'material-table';
 import DatasetAccordions from './DatasetAccordion';
-import { Dataset, Sample } from './MockData';
+import { Sample } from './MockData';
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -10,17 +10,11 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const getDatasets = (samples: Sample[]) => {
-    return samples.reduce((datasetList, sample) => {
-        return datasetList.concat(sample.datasets);
-    }, [] as Dataset[]);
-}
-
-interface ParticipantInfoProp {
+interface SamplesTableProp {
     samples: Sample[],
 }
 
-export default function SamplesTable({ samples }: ParticipantInfoProp) {
+export default function SamplesTable({ samples }: SamplesTableProp) {
     const classes = useStyles();
 
     return (
@@ -39,7 +33,7 @@ export default function SamplesTable({ samples }: ParticipantInfoProp) {
                 ]}
                 data={samples}
                 title="Samples"
-                detailPanel={rowData => <DatasetAccordions datasets={getDatasets(samples)} />}
+                detailPanel={rowData => <DatasetAccordions datasets={rowData.datasets} />}
                 options={{
                     paging: false,
                     selection: false,

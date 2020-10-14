@@ -40,11 +40,11 @@ export default function ParticipantTable() {
         fetch("/api/participants").then(async response => {
             if (response.ok) {
                 const participants = await response.json();
-                participants.map((participant: Participant) => {
+                participants.forEach((participant: Participant) => {
                     const samples = participant.tissue_samples;
-                    samples.map((sample: Sample) => {
+                    samples.forEach((sample: Sample) => {
                         const datasets = sample.datasets;
-                        datasets.map((dataset: Dataset) => {
+                        datasets.forEach((dataset: Dataset) => {
                             participant['dataset_types'] ? 
                             participant['dataset_types'].push(dataset.dataset_type) :
                             participant['dataset_types'] = [dataset.dataset_type];
