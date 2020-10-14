@@ -319,14 +319,20 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
-@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@app.route('/api/datasets', defaults={'id': None}, methods=['GET'], endpoint='datasets_list')
+@app.route('/api/datasets/<int:id>', methods=['GET'], endpoint='datasets_list')
 @login_required
-def datasets_list():
-    db_datasets = db.session.query(models.Dataset).options(
-        joinedload(models.Dataset.tissue_sample).
-        joinedload(models.TissueSample.participant).
-        joinedload(models.Participant.family)
-    ).all()
+def datasets_list(id:int):
+    if id:
+        db_datasets = db.session.query(models.Dataset).filter_by(dataset_id=id)
+    else:
+        db_datasets = db.session.query(models.Dataset)
+        
+    db_datasets = db_datasets.options(
+            joinedload(models.Dataset.tissue_sample).
+            joinedload(models.TissueSample.participant).
+            joinedload(models.Participant.family)
+     ).all()
     datasets = [
         {
             **asdict(dataset),
