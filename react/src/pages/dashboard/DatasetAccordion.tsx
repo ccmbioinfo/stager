@@ -59,8 +59,9 @@ export default function DatasetAccordions({ datasets }: DatasetAccordionProp) {
     return (
         <div className={classes.root}>
             {
-                datasets.length === 0 ? (<Typography variant="body2" align="center">No records to display</Typography>) :
-                                        (datasets.map(dataset => <DatasetAccordion dataset={dataset} />))
+                datasets.length === 0
+                ? (<Typography variant="body2" align="center">No records to display</Typography>)
+                : (datasets.map(dataset => <DatasetAccordion dataset={dataset} />))
             }
         </div>
     );

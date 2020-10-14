@@ -21,7 +21,6 @@ const useStyles = makeStyles(theme => ({
 export default function ParticipantTable() {
     const classes = useStyles();
     const [filter, setFilter] = useState<string[]>([]);
-    const [isError, setError] = useState(false);
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
@@ -57,15 +56,6 @@ export default function ParticipantTable() {
                 console.error(`GET /api/participants failed with ${response.status}: ${response.statusText}`);
             }
         });
-        // fetch("/api/analyses")
-        // .then(res => res.json())
-        // .then(analyses => {
-            
-        //     console.log(analyses)
-        // })
-        // .catch(error=>{
-        //     setError(true)
-        // })
       }, [])
 
     return (

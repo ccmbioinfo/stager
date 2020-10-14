@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles, Container, Grid } from '@material-ui/core';
 import ParticipantTable from './ParticipantTable';
 import NotificationPanel from './NotificationPanel';

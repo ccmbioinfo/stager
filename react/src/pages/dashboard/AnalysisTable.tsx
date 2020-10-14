@@ -3,7 +3,7 @@ import MaterialTable from 'material-table';
 import { Analysis } from './MockData';
 
 interface ParticipantInfoProp {
-    participantID: string
+    participantID: string,
 }
 
 export default function AnalysisTable({ participantID }: ParticipantInfoProp) {

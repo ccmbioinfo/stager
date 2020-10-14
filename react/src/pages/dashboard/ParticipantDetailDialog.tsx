@@ -88,7 +88,7 @@ export default function ParticipantDetailDialog({ participant, open, onClose  }:
                             {getInfo('Notes', participant.notes)}
                             {getInfo('Time of Creation', participant.created)}
                             {getInfo('Created By', participant.created_by.toString())}
-                            {getInfo('Time of Last Update', participant.updated)}
+                            {getInfo('Time of Update', participant.updated)}
                             {getInfo('Updated By', participant.updated_by.toString())}
                         </Grid>
                     </Grid>
