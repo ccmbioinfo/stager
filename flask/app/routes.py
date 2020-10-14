@@ -211,7 +211,7 @@ def change_password():
         return 'Server error', 500
 
 
-def mixin( entity: db.Model, json_mixin: Dict[str, Any], columns: List[str], edit: bool(True)) -> Union[None, str]:
+def mixin( entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> Union[None, str]:
     for field in columns:
         if field in json_mixin:
             column = getattr(entity, field)
@@ -220,8 +220,9 @@ def mixin( entity: db.Model, json_mixin: Dict[str, Any], columns: List[str], edi
                 if not hasattr(type(column), str(value)):
                     allowed = [e.value for e in type(column)]
                     return f'"{field}" must be one of {allowed}'
-            if edit:
                 setattr(entity, field, value)
+
+
 
 @app.route('/api/<model_name>/<int:id>', methods = ['PATCH'])
 @login_required
@@ -356,18 +357,27 @@ def get_enums():
     return jsonify(enums)
 
 
-# TODO: text/csv content type does not seem to be working, ie. request.files['file'] throws a KeyError
+def enum_validate(entity_name: str, json_mixin: Dict[str, any], columns: List[str]) -> Union[None, str]:
+    entity = eval(entity_name) # returns an instance of the entity 
+    for field in columns: 
+        if field in json_mixin:
+            column = getattr(entity, field) # the column type from the entities
+            value = json_mixin[field]
+            if hasattr(column.type, 'enums'): # check if enum
+                if value not in column.type.enums:
+                    allowed = column.type.enums
+                    return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
+
 
 @app.route('/api/_bulk', methods = ['POST'])
 @login_required
 def bulk_update():
 
-    
     dataset_ids = [] 
 
     editable_dict = {'participant' : ['participant_codename', 'sex', 'participant_type',
-                                     'month_of_birth', 'affected', 'solved', 'notes'],
-                     'dataset' : ['dataset_type', 'input_hpf_path', 'notes', 'condition',
+                                        'month_of_birth', 'affected', 'solved', 'notes'],
+                        'dataset' : ['dataset_type', 'input_hpf_path', 'notes', 'condition',
                                     'extraction_protocol', 'capture_kit', 'library_prep_method',
                                     'library_prep_date', 'read_length', 'read_type', 'sequencing_id',
                                     'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator' ],
@@ -381,13 +391,6 @@ def bulk_update():
 
         dat = pd.read_csv(f)
         dat = dat.where(pd.notnull(dat), None)
-
-    # if 'csv' in request.headers['Content-Type']:
-    #     # f = request.files['file']
-    #     #f = request.body
-    #     return jsonify({'CT': request.headers['Content-Type']})
-    else:
-       return 'Content-Type Not Supported', 415
 
     try:
         updated_by = current_user.user_id
@@ -423,8 +426,7 @@ def bulk_update():
             .filter(models.Participant.family_id == fam_query.value('family_id'),
                     models.Participant.participant_codename == row.get('participant_codename'))
                 
-        # to validate the enums, an instance for an existing record must be the input
-        enum_error = mixin(models.Participant.query.get(1), row, editable_dict['participant'], edit = False)
+        enum_error = enum_validate('models.Participant', row, editable_dict['participant'])
 
         if enum_error:
             return enum_error, 400
@@ -452,7 +454,7 @@ def bulk_update():
 
         if not tis_query.value('tissue_sample_id'):
             
-            enum_error = mixin(models.TissueSample.query.get(1), row, editable_dict['tissue_sample'], edit = False)
+            enum_error = enum_validate('models.TissueSample', row, editable_dict['tissue_sample'])
 
             if enum_error:
                 return enum_error, 400
@@ -474,7 +476,7 @@ def bulk_update():
 
         if not dts_query.value('dataset_id'):
 
-            enum_error = mixin(models.Dataset.query.get(1), row, editable_dict['dataset'], edit = False)
+            enum_error = enum_validate('models.Dataset', row,  editable_dict['dataset'])
 
             if enum_error:
                 return enum_error, 400
@@ -521,3 +523,4 @@ def bulk_update():
     ]
 
     return jsonify(datasets)
+
