@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Button, Dialog, DialogActions, DialogContent, DialogTitle,
     FormControl, FormControlLabel, FormLabel, Paper, Radio, RadioGroup,
@@ -9,8 +9,10 @@ import { SlideUpTransition } from "../utils";
 import { Dataset } from './DatasetTable';
 
 export interface Pipeline {
-    name: string;
-    version: string;
+    pipeline_id: number;
+    pipeline_name: string;
+    pipeline_version: string;
+    supported_types: string[];
 }
 
 interface AnalysisRunnerDialogProps {
@@ -30,6 +32,7 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
     const classes = useStyles();
     const titleId = "analysis-runner-alert-dialog-slide-title";
     const descriptionId = "analysis-runner-alert-dialog-slide-description";
+    const [pipeline, setPipeline] = useState(NaN);
 
     return (
         <Dialog
@@ -53,12 +56,13 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
                     <FormLabel component="legend" className={classes.text}>
                         Pipelines:
                     </FormLabel>
-                    <RadioGroup row aria-label="Pipelines" name="pipelines" defaultValue="top">
+                    <RadioGroup row aria-label="Pipelines" name="pipelines"
+                        value={pipeline} onChange={event => setPipeline(parseInt(event.target.value))}>
                         {pipelines.map(
-                            ({ name, version }) =>
+                            ({ pipeline_id, pipeline_name, pipeline_version }) =>
                                 <FormControlLabel
-                                    label={`${name} v${version}`}
-                                    value={`${name}|${version}`}
+                                    label={`${pipeline_name} ${pipeline_version}`}
+                                    value={pipeline_id}
                                     control={<Radio color="primary" />} />
                         )}
                     </RadioGroup>
