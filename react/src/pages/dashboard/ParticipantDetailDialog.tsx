@@ -71,15 +71,15 @@ export default function ParticipantDetailDialog({ participant, open, onClose  }:
     return (
         <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='lg' fullWidth={true}>
             <DialogHeader id={labeledBy} onClose={onClose}>
-                Participant: {participant.participantCodename}
+                Participant: {participant.participant_codename}
             </DialogHeader>
             <DialogContent className={classes.participantInfo} dividers>
                 <Paper className={classes.paper} elevation={2}>
                     <Grid container spacing={2} justify="space-evenly">
                         <Grid item xs={6}>
-                            {getInfo('Participant ID', participant.participantID)}
-                            {getInfo('Family ID', participant.familyID)}
-                            {getInfo('Family Codename', participant.familyCodename)}
+                            {getInfo('Participant ID', participant.participant_id)}
+                            {getInfo('Family ID', participant.family_id)}
+                            {getInfo('Family Codename', participant.family_codename)}
                             {getInfo('Sex', participant.sex)}
                             {getInfo('Affected', stringifyBool(participant.affected))}
                             {getInfo('Solved', stringifyBool(participant.solved))}
@@ -87,14 +87,14 @@ export default function ParticipantDetailDialog({ participant, open, onClose  }:
                         <Grid item xs={6}>
                             {getInfo('Notes', participant.notes)}
                             {getInfo('Time of Creation', participant.created)}
-                            {getInfo('Created By', participant.createdBy.toString())}
-                            {getInfo('Time of Last Update', participant.updated)}
-                            {getInfo('Updated By', participant.updatedBy.toString())}
+                            {getInfo('Created By', participant.created_by.toString())}
+                            {getInfo('Time of Update', participant.updated)}
+                            {getInfo('Updated By', participant.updated_by.toString())}
                         </Grid>
                     </Grid>
                 </Paper>
-                <SampleTable participantID={participant.participantID} />
-                <AnalysisTable participantID={participant.participantID} />
+                <SampleTable samples={participant.tissue_samples} />
+                <AnalysisTable participantID={participant.participant_id} />
             </DialogContent>
         </Dialog>
     );

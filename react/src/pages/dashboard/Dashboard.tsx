@@ -27,6 +27,7 @@ const analyses = [
 
 export default function Dashboard() {
     const classes = useStyles();
+
     useEffect(() => {
         document.title = "Dashboard | ST2020";
     }, []);

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { makeStyles, Chip, IconButton } from '@material-ui/core';
+import React, { useEffect, useState } from 'react';
+import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import AnalysisRunnerDialog from './AnalysisRunnerDialog';
+import { toKeyValue, KeyValue } from "../utils";
+import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
 
 export interface Dataset {
     dataset_id: number;
@@ -31,59 +32,44 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-function createDataset(
-    dataset_id: number,
-    tissue_sample_type: string,
-    participant_codename: string,
-    family_codename: string,
-    dataset_type: string,
-    condition: string,
-    created: Date,
-    created_by: string,
-    updated: Date,
-    updated_by: string) {
-    return {
-        dataset_id, tissue_sample_type, participant_codename, family_codename,
-        dataset_type, condition, created, created_by, updated, updated_by
-    };
-}
-
-const rows: Dataset[] = [
-    createDataset(1, 'Blood', 'AA0001', '3001', 'WGS', 'Somatic', new Date(), 'CHEO', new Date(), 'CHEO'),
-    createDataset(2, 'Blood', 'AA0002', '3002', 'WGS', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(3, 'Blood', 'AA0003', '3003', 'WGS', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(4, 'Skin', 'BB0001', '2001', 'WES', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(5, 'Blood', 'BB0002', '2002', 'WGS', 'Somatic', new Date('2020-09-01'), 'CHEO', new Date('2020-09-01'), 'CHEO'),
-    createDataset(6, 'Saliva', 'BB0003', '2003', 'WES', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
-    createDataset(7, 'Blood', 'AA0004', '3012', 'WGS', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
-    createDataset(8, 'Skin', 'AA0005', '3013', 'WES', 'Somatic', new Date('2020-08-22'), 'ACH', new Date(), 'ACH'),
-];
-
-const pipelines = [
-    { name: "CRG", version: "1.1" },
-    { name: "CRG", version: "2.0" },
-    { name: "CRE", version: "1.5" },
-];
-
-type Hash = { [key: string]: string };
-
-function toKVPair(array: string[]) {
-    return array.reduce<Hash>((obj, value) => {
-        obj[value] = value;
-        return obj;
-    }, {});
-}
-
 export default function DatasetTable() {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
-    const [datasetType, setDatasetType] = useState<string[]>([]);
+    const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
-    // TODO: replace with enum values from backend
-    const tissueSampleTypes = toKVPair(["Blood", "Saliva", "Skin"]);
-    const datasetTypes = toKVPair(["WGS", "WES"]);
-    const conditions = toKVPair(["Control", "GermLine", "Somatic"]);
+    const [datasets, setDatasets] = useState<Dataset[]>([]);
+    const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+    const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
+    const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
+    const [conditions, setConditions] = useState<KeyValue>({});
+
+    useEffect(() => {
+        fetch("/api/enums").then(async response => {
+            if (response.ok) {
+                const enums = await response.json();
+                setTissueSampleTypes(toKeyValue(enums.TissueSampleType));
+                setDatasetTypes(toKeyValue(enums.DatasetType));
+                setConditions(toKeyValue(enums.DatasetCondition));
+            } else {
+                console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
+            }
+        });
+        fetch("/api/datasets").then(async response => {
+            if (response.ok) {
+                setDatasets(await response.json());
+            } else {
+                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
+            }
+        });
+        fetch("/api/pipelines").then(async response => {
+            if (response.ok) {
+                setPipelines(await response.json());
+            } else {
+                console.error(`GET /api/pipelines failed with ${response.status}: ${response.statusText}`);
+            }
+        })
+    }, []);
 
     return (
         <div>
@@ -97,16 +83,24 @@ export default function DatasetTable() {
                 columns={[
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
-                    { title: 'Tissue Sample', field: 'tissue_sample_type', lookup: tissueSampleTypes },
-                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetType, lookup: datasetTypes },
+                    { title: 'Tissue Sample', field: 'tissue_sample_type', editable: 'never', lookup: tissueSampleTypes },
+                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes },
                     { title: 'Condition', field: 'condition', lookup: conditions },
-                    { title: 'Notes', field: 'notes' },
+                    { title: 'Notes', field: 'notes', editComponent: props => (
+                        <TextField
+                            multiline
+                            value={props.value}
+                            onChange={event => props.onChange(event.target.value)}
+                            rows={4}
+                            fullWidth
+                        />
+                    )},
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
-                    { title: 'Updated', field: 'updated', type: 'datetime' },
-                    { title: 'Updated By', field: 'updated_by' },
+                    { title: 'Updated', field: 'updated', type: 'datetime', editable: 'never' },
+                    { title: 'Updated By', field: 'updated_by', editable: 'never' },
                 ]}
-                data={rows}
+                data={datasets}
                 title="Datasets"
                 options={{
                     pageSize: 10,
@@ -115,27 +109,37 @@ export default function DatasetTable() {
                     search: false
                 }}
                 editable={{
-                    onRowUpdate: (newData, oldData) =>
-                        new Promise((resolve, reject) => {
-                            setTimeout(() => {
-                                // const dataUpdate = [...data];
-                                // const index = oldData.tableData.id;
-                                // dataUpdate[index] = newData;
-                                // setData([...dataUpdate]);
-
-                                resolve();
-                            }, 1000);
-                        }),
+                    onRowUpdate: async (newDataset, oldDataset) => {
+                        const response = await fetch(`/api/datasets/${newDataset.dataset_id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newDataset)
+                        });
+                        if (response.ok) {
+                            const updatedDataset = await response.json();
+                            // Functional style: make a copy of the current state but replace
+                            // the element that changed with the server's response. Mix in with
+                            // the old because the PATCH endpoint does not respond with the
+                            // participant codename, family codename, or tissue sample type.
+                            setDatasets(datasets.map(dataset =>
+                                dataset.dataset_id === newDataset.dataset_id
+                                ? { ...dataset, ...updatedDataset }
+                                : dataset
+                            ));
+                        } else {
+                            console.error(`PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`);
+                        }
+                    }
                 }}
                 components={{
                     Toolbar: props => (
                         <div>
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
-                                {[...new Set(rows.map(e => e.dataset_type))].map(type => (
-                                    <Chip label={type} onClick={() => setDatasetType([type])} clickable className={classes.chip} />
+                                {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
+                                    <Chip label={type} onClick={() => setDatasetTypeFilter([type])} clickable className={classes.chip} />
                                 ))}
-                                <IconButton onClick={() => setDatasetType([])} className={classes.chip}>
+                                <IconButton onClick={() => setDatasetTypeFilter([])} className={classes.chip}>
                                     <Cancel />
                                 </IconButton>
                             </div>
