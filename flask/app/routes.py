@@ -6,6 +6,7 @@ import json
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 import inspect
+from io import StringIO
 
 from flask import abort, jsonify, request, Response
 from flask_login import login_user, logout_user, current_user, login_required
@@ -368,7 +369,7 @@ def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[st
                     allowed = column.type.enums
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
-from io import StringIO
+
 @app.route('/api/_bulk', methods = ['POST'])
 @login_required
 def bulk_update():
