@@ -64,7 +64,10 @@ function sendFile(file: File | null) {
     if (file !== null) {
         fetch('/api/_bulk', {
             method: 'POST',
-            body: file
+            body: file,
+            headers: new Headers({
+                'Content-Type': 'text/csv'
+            })
         })
         .then(response => response.json())
         .then(data => {
