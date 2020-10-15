@@ -5,7 +5,7 @@ flask_migrate
 flask_wtf
 gunicorn
 minio
+pandas
 pymysql[rsa]
 sqlalchemy
 werkzeug
-pandas
