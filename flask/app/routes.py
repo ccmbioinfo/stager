@@ -388,8 +388,11 @@ def bulk_update():
         return "Only Content Type 'text/csv' Supported", 415
     else:
 
-        dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
-        dat = dat.where(pd.notnull(dat), None)
+        try:
+            dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
+            dat = dat.where(pd.notnull(dat), None)
+        except Exception as err:
+            return str(err), 400
     try:
         updated_by = current_user.user_id
         created_by = current_user.user_id
@@ -506,7 +509,7 @@ def bulk_update():
             joinedload(models.TissueSample.participant).
             joinedload(models.Participant.family)
         )\
-        .filter(models.Dataset.tissue_sample_id.in_(dataset_ids)).all()
+        .filter(models.Dataset.dataset_id.in_(dataset_ids)).all()
 
     datasets = [
         {
