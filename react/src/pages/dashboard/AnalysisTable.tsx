@@ -1,15 +1,15 @@
 import React from 'react';
 import MaterialTable from 'material-table';
-import { getAnalyses } from './MockData';
+import { Analysis } from './MockData';
 
 interface ParticipantInfoProp {
-    participantID: string
+    participantID: string,
 }
 
 export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
 
     //fetch participant analyses
-    const analyses = getAnalyses(participantID);
+    const analyses = [] as Analysis[];
 
     return (
         <MaterialTable
