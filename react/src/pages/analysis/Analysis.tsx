@@ -467,6 +467,12 @@ export default function Analysis() {
                                 resolve();
                             })
                     }}
+                    cellEditable={{
+                        onCellEditApproved: (newValue, oldValue, row, columnDef) =>
+                            new Promise((resolve, reject) => {
+                                setTimeout(resolve, 2000);
+                            })
+                    }}
                     components={{
                         Toolbar: props => (
                             <div>
