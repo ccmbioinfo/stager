@@ -100,13 +100,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
         tabContent = (<UploadForm />);
     }
     else {
-        // tabContent = (<Button variant="outlined"> Upload Excel Sample Sheet <DescriptionIcon/> </Button>);
-
-        tabContent = (
-            <>
-            <InputFileUpload onUpload={onUpload}/>
-            </>
-        );
+        tabContent = (<InputFileUpload onUpload={onUpload} />);
     }
 
     return (
@@ -117,7 +111,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
             maxWidth='md'
         >
             <DialogTitle>
-                Enter Sample Metadata
+                Upload Sample Data
             </DialogTitle>
             <DialogContent dividers className={classes.dialog}>
                 <Tabs
@@ -131,16 +125,6 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                 <Grid container className={classes.tabPanel}>
                     <Grid item xs={12} className={classes.gridItem} >
                         {tabContent}
-                    </Grid>
-                    <Grid item xs={12} className={classes.gridItem}>
-                        <ExpansionPanel >
-                            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography>Link to Existing Dataset</Typography>
-                            </ExpansionPanelSummary>
-                            <ExpansionPanelDetails>
-                                <FilesTable />
-                            </ExpansionPanelDetails>
-                        </ExpansionPanel>
                     </Grid>
                     <Grid item xs={10}></Grid>
                     <Grid item xs={2} className={classes.gridItem} >
