@@ -357,8 +357,8 @@ def get_enums():
     return jsonify(enums)
 
 
-def enum_validate(entity_name: str, json_mixin: Dict[str, any], columns: List[str]) -> Union[None, str]:
-    entity = eval(entity_name) # returns an instance of the entity 
+def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[str]) -> Union[None, str]:
+
     for field in columns: 
         if field in json_mixin:
             column = getattr(entity, field) # the column type from the entities
@@ -368,7 +368,7 @@ def enum_validate(entity_name: str, json_mixin: Dict[str, any], columns: List[st
                     allowed = column.type.enums
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
-
+from io import StringIO
 @app.route('/api/_bulk', methods = ['POST'])
 @login_required
 def bulk_update():
@@ -383,14 +383,14 @@ def bulk_update():
                                     'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator' ],
                     'tissue_sample': ['extraction_date', 'tissue_sample_type','tissue_processing', 'notes']}
 
-    if 'multipart' in request.headers['Content-Type']:
+    if 'csv' not in request.headers['Content-Type']:
+        return "Only Content Type 'text/csv' Supported", 415
+    else:
         try:
-            f = request.files['file']
+            dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
+            dat = dat.where(pd.notnull(dat), None)
         except Exception as err:
             raise err
-
-        dat = pd.read_csv(f)
-        dat = dat.where(pd.notnull(dat), None)
 
     try:
         updated_by = current_user.user_id
@@ -400,7 +400,7 @@ def bulk_update():
         created_by = 1
 
 
-    for row in dat.to_dict(orient = 'records'):
+    for i, row in enumerate(dat.to_dict(orient = 'records')):
 
         # family logic
 
@@ -426,10 +426,10 @@ def bulk_update():
             .filter(models.Participant.family_id == fam_query.value('family_id'),
                     models.Participant.participant_codename == row.get('participant_codename'))
                 
-        enum_error = enum_validate('models.Participant', row, editable_dict['participant'])
+        enum_error = enum_validate(models.Participant, row, editable_dict['participant'])
 
         if enum_error:
-            return enum_error, 400
+            return  f'Error on line {str(i + 1)} - ' + enum_error, 400
 
         ptp_objs = models.Participant(
             family_id = fam_query.value('family_id'),
@@ -454,10 +454,10 @@ def bulk_update():
 
         if not tis_query.value('tissue_sample_id'):
             
-            enum_error = enum_validate('models.TissueSample', row, editable_dict['tissue_sample'])
+            enum_error = enum_validate(models.TissueSample, row, editable_dict['tissue_sample'])
 
             if enum_error:
-                return enum_error, 400
+                return  f'Error on line {str(i + 1)}: ' + enum_error, 400
 
             tis_objs = models.TissueSample(
                 participant_id = ptp_query.value('participant_id'),
@@ -476,10 +476,10 @@ def bulk_update():
 
         if not dts_query.value('dataset_id'):
 
-            enum_error = enum_validate('models.Dataset', row,  editable_dict['dataset'])
+            enum_error = enum_validate(models.Dataset, row,  editable_dict['dataset'])
 
             if enum_error:
-                return enum_error, 400
+                return  f'Error on line {str(i + 1)} - ' + enum_error, 400
 
             dts_objs = models.Dataset(
                 tissue_sample_id = tis_query.value('tissue_sample_id'),
@@ -523,4 +523,6 @@ def bulk_update():
     ]
 
     return jsonify(datasets)
+
+
 
