@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { toKeyValue, KeyValue } from "../utils";
+import { toKeyValue, KeyValue, formatDateString } from "../utils";
 import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
 
 export interface Dataset {
@@ -14,9 +14,9 @@ export interface Dataset {
     input_hpf_path?: string;
     notes?: string;
     condition: string;
-    created: Date;
+    created: string; // date
     created_by: string;
-    updated: Date;
+    updated: string; // date
     updated_by: string;
 }
 
@@ -57,7 +57,12 @@ export default function DatasetTable() {
         });
         fetch("/api/datasets").then(async response => {
             if (response.ok) {
-                setDatasets(await response.json());
+                const data = await response.json() as any[];
+                data.forEach((row, index, arr) => {
+                    row.updated = formatDateString(row.updated);
+                    return row;
+                })
+                setDatasets(data);
             } else {
                 console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
             }
@@ -97,7 +102,7 @@ export default function DatasetTable() {
                     )},
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
-                    { title: 'Updated', field: 'updated', type: 'datetime', editable: 'never' },
+                    { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
                     { title: 'Updated By', field: 'updated_by', editable: 'never' },
                 ]}
                 data={datasets}

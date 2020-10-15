@@ -9,6 +9,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
+import { formatDateString } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -176,6 +177,8 @@ const refreshTimeDelay = 1000 * 60;
  */
 function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
     const rows: AnalysisRow[] = data.map((row, index, arr) => {
+        row.updated = formatDateString(row.updated);
+
         switch (row.analysis_state) {
             case 'Requested':
                 row.state = PipelineStatus.PENDING;
