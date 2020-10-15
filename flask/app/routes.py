@@ -1,5 +1,4 @@
 from datetime import datetime
-import pandas as pd
 from enum import Enum
 from functools import wraps
 import json
@@ -13,6 +12,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc, inspect
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
+import pandas as pd
 
 from app import app, db, login, models
 
@@ -212,7 +212,7 @@ def change_password():
         return 'Server error', 500
 
 
-def mixin( entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> Union[None, str]:
+def mixin(entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> Union[None, str]:
     for field in columns:
         if field in json_mixin:
             column = getattr(entity, field)
@@ -221,7 +221,7 @@ def mixin( entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]) -> 
                 if not hasattr(type(column), str(value)):
                     allowed = [e.value for e in type(column)]
                     return f'"{field}" must be one of {allowed}'
-                setattr(entity, field, value)
+            setattr(entity, field, value)
 
 
 
@@ -365,7 +365,7 @@ def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[st
             column = getattr(entity, field) # the column type from the entities
             value = json_mixin[field]
             if hasattr(column.type, 'enums'): # check if enum
-                if value not in column.type.enums:
+                if value not in column.type.enums and value is not None:
                     allowed = column.type.enums
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
@@ -384,19 +384,16 @@ def bulk_update():
                                     'sequencing_date', 'sequencing_centre', 'batch_id', 'discriminator' ],
                     'tissue_sample': ['extraction_date', 'tissue_sample_type','tissue_processing', 'notes']}
 
-    if 'csv' not in request.headers['Content-Type']:
+    if request.content_type != 'text/csv':
         return "Only Content Type 'text/csv' Supported", 415
     else:
-        try:
-            dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
-            dat = dat.where(pd.notnull(dat), None)
-        except Exception as err:
-            raise err
 
+        dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
+        dat = dat.where(pd.notnull(dat), None)
     try:
         updated_by = current_user.user_id
         created_by = current_user.user_id
-    except:
+    except:  # LOGIN_DISABLED
         updated_by = 1
         created_by = 1
 
