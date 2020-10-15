@@ -319,16 +319,10 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
-@app.route('/api/datasets', defaults={'id': None}, methods=['GET'], endpoint='datasets_list')
-@app.route('/api/datasets/<int:id>', methods=['GET'], endpoint='datasets_list')
+@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
 @login_required
-def datasets_list(id:int):
-    if id:
-        db_datasets = db.session.query(models.Dataset).filter_by(dataset_id=id)
-    else:
-        db_datasets = db.session.query(models.Dataset)
-        
-    db_datasets = db_datasets.options(
+def datasets_list():
+    db_datasets = db.session.query(models.Dataset).options(
             joinedload(models.Dataset.tissue_sample).
             joinedload(models.TissueSample.participant).
             joinedload(models.Participant.family)
@@ -344,6 +338,34 @@ def datasets_list(id:int):
         } for dataset in db_datasets
     ]
     return jsonify(datasets)
+
+@app.route('/api/datasets/<int:id>', methods=['GET'], endpoint='dataset')
+@login_required
+def dataset(id:int):
+    if not db.session.query(models.Dataset).get(id):
+        return 'Not Found', 404
+    else:
+        db_dataset = db.session.query(models.Dataset).filter_by(dataset_id=id).options(
+            joinedload(models.Dataset.analyses),
+            joinedload(models.Dataset.tissue_sample).
+            joinedload(models.TissueSample.participant).
+            joinedload(models.Participant.family)
+        ).one()
+        dataset = {
+                **asdict(db_dataset),
+                'analyses' : [
+                    {
+                        **asdict(analysis),
+                    } for analysis in db_dataset.analyses
+                ],
+                **asdict(db_dataset.tissue_sample),
+                'participant_codename' : db_dataset.tissue_sample.participant.participant_codename,
+                'participant_type' : db_dataset.tissue_sample.participant.participant_type,
+                'sex' : db_dataset.tissue_sample.participant.sex,
+                'family_codename' : db_dataset.tissue_sample.participant.family.family_codename
+            }
+        return jsonify(dataset)
+
 
 
 @app.route('/api/enums', methods = ['GET'])
