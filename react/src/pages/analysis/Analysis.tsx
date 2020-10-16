@@ -468,9 +468,30 @@ export default function Analysis() {
                             })
                     }}
                     cellEditable={{
-                        onCellEditApproved: (newValue, oldValue, row, columnDef) =>
+                        onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
                             new Promise((resolve, reject) => {
-                                setTimeout(resolve, 2000);
+                                const dataUpdate = [...rows];
+                                const index = dataUpdate.findIndex((row, index, obj) => {
+                                    return row.analysis_id === editedRow.analysis_id;
+                                });
+                                const newRow: AnalysisRow = { ...dataUpdate[index] };
+
+                                if (newValue === '')
+                                    newValue = null;
+
+                                switch (columnDef.field) {
+                                    case 'result_hpf_path':
+                                        newRow.result_hpf_path = newValue;
+                                        break;
+                                    case 'notes':
+                                        newRow.notes = newValue;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                dataUpdate[index] = newRow;
+                                setRows(dataUpdate);
+                                resolve();
                             }),
 
                     }}
