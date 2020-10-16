@@ -446,7 +446,6 @@ export default function Analysis() {
                         onRowUpdate: (newData, oldData) =>
                             new Promise((resolve, reject) => {
                                 // TODO: Send PATCH here for editing notes or path
-
                                 const dataUpdate = [...rows];
                                 // find the row; assume analysis_id is unique
                                 const index = dataUpdate.findIndex((row, index, obj) => {
@@ -459,7 +458,26 @@ export default function Analysis() {
                                 newRow.notes = newData.notes;
                                 newRow.result_hpf_path = newData.result_hpf_path;
                                 dataUpdate[index] = newRow;
-                                setRows(dataUpdate);
+
+                                fetch('/api/analyses/' + newRow.analysis_id, {
+                                    method: "PATCH",
+                                    body: JSON.stringify(newRow)
+                                })
+                                .then(response => {
+                                    console.log(response);
+                                    return response.json();
+                                })
+                                .then(resData => { // success
+                                    console.log("Successful PATCH");
+                                    setRows(dataUpdate);
+                                    resolve();
+                                })
+                                .catch(error => { // error
+                                    console.error(error);
+                                    reject(error);
+                                })
+
+
 
                                 resolve();
                             })
