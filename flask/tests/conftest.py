@@ -1,19 +1,32 @@
 import pytest
 from app import *
 
+@pytest.fixture(scope="session")
+def application():
+    """
+    A test instance of the app.
+    Will be reused for all tests.
+    """
+    test_app = create_app(testing=True)
+    yield test_app
 
-@pytest.fixture(scope="class")
-def client():
-    """ A test client that can issue requests. """
+
+@pytest.fixture()
+def client(application):
+    """
+    A test client that can issue requests.
+    Will create a fresh empty db for every test.
+    """
 
     # Setup
-    test_app = create_app(testing=True)
+    with application.app_context():
+        db.create_all()
 
     # Do the things
-    with test_app.test_client() as test_client:
-        with test_app.app_context():
+    with application.test_client() as test_client:
+        with application.app_context():
             yield test_client
 
     # Teardown
-    with test_app.app_context():
+    with application.app_context():
         db.drop_all()

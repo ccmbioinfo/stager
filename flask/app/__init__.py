@@ -44,6 +44,7 @@ def create_app(testing=False):
         from . import routes
         from . import buckets
 
-        db.create_all()
+        if not testing:
+            db.create_all()
 
         return app
