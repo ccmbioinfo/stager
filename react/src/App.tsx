@@ -25,7 +25,6 @@ export default function App() {
             if (result.ok) {
                 const loginInfo = await result.json();
                 setUsername(loginInfo.username);
-                console.log(loginInfo.last_login)
                 setLastLoginTime(loginInfo.last_login);
             }
             setAuthenticated(result.ok);

@@ -138,7 +138,6 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
     const handleDrawerClose = () => {
         setOpen(false);
     };
-    console.log(lastLoginTime)
     return (
         <div className={classes.root}>
             <BrowserRouter>

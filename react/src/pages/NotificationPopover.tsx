@@ -47,31 +47,6 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
     const popoverOpen = Boolean(anchorEl);
 
-    useEffect(() => {
-        // fetch("/api/enums").then(async response => {
-        //     if (response.ok) {
-        //         const enums = await response.json();
-        //     } else {
-        //         console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
-        //     }
-        // });
-        fetch("/api/participants").then(async response => {
-            if (response.ok) {
-                console.log(await response.json())
-                // setDatasets(await response.json());
-            } else {
-                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
-            }
-        });
-        // fetch("/api/pipelines").then(async response => {
-        //     if (response.ok) {
-        //         // setPipelines(await response.json());
-        //     } else {
-        //         console.error(`GET /api/pipelines failed with ${response.status}: ${response.statusText}`);
-        //     }
-        // })
-    }, []);
-
     const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };

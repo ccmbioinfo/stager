@@ -47,7 +47,6 @@ export default function LoginForm({
         if (result.ok) {
             const data = await result.json()
             setGlobalUsername(data["username"]);
-            console.log(data["last_login"])
             setLastLoginTime(data["last_login"]);
             setError("");
         } else {
