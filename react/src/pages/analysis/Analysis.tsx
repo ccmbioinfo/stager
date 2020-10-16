@@ -3,7 +3,7 @@ import { useParams, useHistory, useLocation } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
-import MaterialTable, { MTableToolbar } from 'material-table';
+import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -333,9 +333,9 @@ export default function Analysis() {
                         { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
-                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
+                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string', emptyValue: '<empty>' },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
-                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', /* render: renderNotes, */
+                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', emptyValue: '<empty>',
                         editComponent: props => (
                             <TextField
                             multiline
@@ -471,7 +471,8 @@ export default function Analysis() {
                         onCellEditApproved: (newValue, oldValue, row, columnDef) =>
                             new Promise((resolve, reject) => {
                                 setTimeout(resolve, 2000);
-                            })
+                            }),
+
                     }}
                     components={{
                         Toolbar: props => (
@@ -487,8 +488,7 @@ export default function Analysis() {
                                 </div>
                             </div>
                             )
-                        }
-                    }
+                    }}
                 />
             </Container>
         </main>
