@@ -24,7 +24,7 @@ export default function Dashboard() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container>
+            <Container className={classes.container} maxWidth="lg">
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
                         <ParticipantTable />

@@ -75,7 +75,11 @@ export default function NotificationPopover() {
                 <Paper className={classes.paper}>
                     <Box className={classes.titleBox}>
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} display="inline">
-                            Notifications
+                            {
+                                analyses.length === 0
+                                ? "No Notifications"
+                                : "Notifications"
+                            }
                         </Typography>
                     </Box>
                     <Box>
