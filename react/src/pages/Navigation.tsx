@@ -32,6 +32,7 @@ import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
 import Admin from './admin/Admin';
 import ListItemRouterLink from './ListItemRouterLink';
+import NotificationPopover from './dashboard/NotificationPopover';
 
 const drawerWidth = 240;
 
@@ -155,6 +156,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
                             {pageName}
                         </Typography>
+                        <NotificationPopover />
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize='large' />
                         </Tooltip>
