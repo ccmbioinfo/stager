@@ -16,7 +16,7 @@ interface ParticipantInfoProp {
 
 export default function SamplesTable({ participantID }: ParticipantInfoProp) {
     const classes = useStyles();
-    
+
     //fetch participant samples and datasets for each sample
     const info = getSamplesAndDatasets(participantID);
 
@@ -41,8 +41,9 @@ export default function SamplesTable({ participantID }: ParticipantInfoProp) {
                     paging: false,
                     selection: false,
                     search: false,
+                    padding: "dense"
                 }}
-            />            
+            />
         </div>
     );
 }

@@ -35,6 +35,7 @@ export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
                 paging: false,
                 selection: false,
                 search: false,
+                padding: "dense"
             }}
         />
     );

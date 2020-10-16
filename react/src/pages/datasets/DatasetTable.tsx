@@ -111,7 +111,8 @@ export default function DatasetTable() {
                     pageSize: 10,
                     selection: true,
                     filtering: true,
-                    search: false
+                    search: false,
+                    padding: "dense"
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
