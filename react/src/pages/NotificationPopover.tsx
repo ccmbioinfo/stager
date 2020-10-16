@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
-import { AnalysisRow, PipelineStatus, createAnalysis } from '../analysis/Analysis';
+import { AnalysisRow, PipelineStatus, createAnalysis } from './analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -37,13 +37,40 @@ const analyses = [
 ];
 
 export interface NotificationPopoverProps {
-    analyses: AnalysisRow[];
+    // analyses: AnalysisRow[];
+    lastLoginTime: string;
+
 }
 
-export default function NotificationPopover() {
+export default function NotificationPopover({ lastLoginTime }: NotificationPopoverProps) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
     const popoverOpen = Boolean(anchorEl);
+
+    useEffect(() => {
+        // fetch("/api/enums").then(async response => {
+        //     if (response.ok) {
+        //         const enums = await response.json();
+        //     } else {
+        //         console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
+        //     }
+        // });
+        fetch("/api/participants").then(async response => {
+            if (response.ok) {
+                console.log(await response.json())
+                // setDatasets(await response.json());
+            } else {
+                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
+            }
+        });
+        // fetch("/api/pipelines").then(async response => {
+        //     if (response.ok) {
+        //         // setPipelines(await response.json());
+        //     } else {
+        //         console.error(`GET /api/pipelines failed with ${response.status}: ${response.statusText}`);
+        //     }
+        // })
+    }, []);
 
     const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);

@@ -32,7 +32,7 @@ import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
 import Admin from './admin/Admin';
 import ListItemRouterLink from './ListItemRouterLink';
-import NotificationPopover from './dashboard/NotificationPopover';
+import NotificationPopover from './NotificationPopover';
 
 const drawerWidth = 240;
 
@@ -125,9 +125,10 @@ const useStyles = makeStyles(theme => ({
 export interface NavigationProps {
     signout: () => void;
     username: string;
+    lastLoginTime: string;
 }
 
-export default function Navigation({ username, signout }: NavigationProps) {
+export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(true);
     const [pageName, setPageName] = React.useState("Dashboard");
@@ -137,7 +138,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
     const handleDrawerClose = () => {
         setOpen(false);
     };
-
+    console.log(lastLoginTime)
     return (
         <div className={classes.root}>
             <BrowserRouter>
@@ -156,7 +157,7 @@ export default function Navigation({ username, signout }: NavigationProps) {
                         <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
                             {pageName}
                         </Typography>
-                        <NotificationPopover />
+                        <NotificationPopover lastLoginTime={lastLoginTime} />
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize='large' />
                         </Tooltip>

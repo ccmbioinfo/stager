@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { makeStyles, Tooltip, Button } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { PipelineStatus, AnalysisRow } from '../analysis/Analysis';
+import { PipelineStatus, AnalysisRow } from './analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     msgBox: {

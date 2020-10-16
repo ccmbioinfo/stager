@@ -26,7 +26,9 @@ const useStyles = makeStyles(theme => ({
 
 export default function LoginForm({
     setAuthenticated = (auth: boolean) => { },
+    setLastLoginTime = (lastLogin: string) => { },
     setGlobalUsername = (username: string) => { }
+    
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -43,7 +45,10 @@ export default function LoginForm({
             body: JSON.stringify({ username, password })
         });
         if (result.ok) {
-            setGlobalUsername((await result.json())["username"]);
+            const data = await result.json()
+            setGlobalUsername(data["username"]);
+            console.log(data["last_login"])
+            setLastLoginTime(data["last_login"]);
             setError("");
         } else {
             setError(await result.text());
