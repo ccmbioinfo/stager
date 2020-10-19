@@ -1,29 +1,16 @@
 import React from 'react';
 import clsx from 'clsx';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import Drawer from '@material-ui/core/Drawer';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Typography from '@material-ui/core/Typography';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import PeopleIcon from '@material-ui/icons/People';
-import UploadIcon from '@material-ui/icons/Publish';
-import SettingsIcon from '@material-ui/icons/Settings';
-import ShowChartIcon from '@material-ui/icons/ShowChart';
-import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
-import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import Tooltip from '@material-ui/core/Tooltip';
+import { 
+    makeStyles, CssBaseline, Drawer, AppBar, Toolbar, List, ListItem, ListItemIcon, ListItemText,
+    Typography, Divider, IconButton, Tooltip
+} from '@material-ui/core';
+import {
+    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dashboard as DashboardIcon, 
+    People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon, 
+    ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon, 
+    AccountCircle as AccountCircleIcon
+} from '@material-ui/icons';
 
 import Dashboard from './dashboard/Dashboard';
 import Analysis from './analysis/Analysis';
