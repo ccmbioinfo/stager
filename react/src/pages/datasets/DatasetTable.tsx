@@ -97,7 +97,7 @@ export default function DatasetTable() {
                     )},
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
-                    { title: 'Updated', field: 'updated', type: 'datetime', editable: 'never' },
+                    { title: 'Updated', field: 'updated', type: 'date', editable: 'never', render: (rowData) => new Date(rowData.updated).toLocaleDateString() },
                     { title: 'Updated By', field: 'updated_by', editable: 'never' },
                 ]}
                 data={datasets}

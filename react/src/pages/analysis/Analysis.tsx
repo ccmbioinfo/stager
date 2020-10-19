@@ -329,7 +329,7 @@ export default function Analysis() {
                         { title: 'Pipeline', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
-                        { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
+                        { title: 'Updated', field: 'updated', type: 'date', editable: 'never', render: (rowData) => new Date(rowData.updated).toLocaleDateString() },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
                         { title: 'Notes', field: 'notes', type: 'string', width: '30%', /* render: renderNotes, */
