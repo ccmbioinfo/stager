@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Button, ButtonBase, IconButton, makeStyles, Paper, Typography } from '@material-ui/core';
+import { Box, IconButton, makeStyles, Typography } from '@material-ui/core';
 import { FileDrop } from 'react-file-drop';
-import { flexbox } from '@material-ui/system';
 import { Add } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
