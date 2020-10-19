@@ -119,12 +119,14 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
     const classes = useStyles();
     const [open, setOpen] = React.useState(true);
     const [pageName, setPageName] = React.useState("Dashboard");
+    
     const handleDrawerOpen = () => {
         setOpen(true);
     };
     const handleDrawerClose = () => {
         setOpen(false);
     };
+
     return (
         <div className={classes.root}>
             <BrowserRouter>

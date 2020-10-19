@@ -33,7 +33,7 @@ export default function App() {
     if (authenticated === null) {
         return <></>;
     } else if (authenticated) {
-        return <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime}/>;
+        return <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />;
     } else {
         return <LoginForm setAuthenticated={setAuthenticated} setLastLoginTime={setLastLoginTime} setGlobalUsername={setUsername} />;
     }

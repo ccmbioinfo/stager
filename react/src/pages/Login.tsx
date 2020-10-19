@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import { makeStyles, Button, Container, Paper, TextField, Typography } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -45,7 +40,7 @@ export default function LoginForm({
             body: JSON.stringify({ username, password })
         });
         if (result.ok) {
-            const data = await result.json()
+            const data = await result.json();
             setGlobalUsername(data["username"]);
             setLastLoginTime(data["last_login"]);
             setError("");
