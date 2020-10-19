@@ -7,11 +7,9 @@ import { AnalysisRow, PipelineStatus, createAnalysis } from './analysis/Analysis
 const useStyles = makeStyles(theme => ({
     paper: {
         padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
+        minWidth: '200px',
     },
-    alert: {
+    notifications: {
         '& > * + *': {
           marginTop: theme.spacing(2),
         },
@@ -29,7 +27,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 //generate fake data
-const analyses = [
+const a = [
     createAnalysis("A0000", "P01", '/path/to/file/', "User 2", "User 3", PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', "Notes example"),
     createAnalysis("1", "P02", '/example/path/', "User 4", "User 3", PipelineStatus.RUNNING, '2020-06-13 1:09 AM', ""),
     createAnalysis("A0002", "P01", '/foo/', "User 2", "User 5", PipelineStatus.ERROR, '2020-06-19 4:32 AM', ""),
@@ -37,14 +35,13 @@ const analyses = [
 ];
 
 export interface NotificationPopoverProps {
-    // analyses: AnalysisRow[];
     lastLoginTime: string;
-
 }
 
 export default function NotificationPopover({ lastLoginTime }: NotificationPopoverProps) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+    const [analyses, setAnalyses] = React.useState([]);
     const popoverOpen = Boolean(anchorEl);
 
     const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -53,6 +50,16 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const handlePopoverClose = () => {
         setAnchorEl(null);
     };
+    useEffect(() => {
+        const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
+        fetch(`/api/analyses?since=${lastLoginISO}`).then(async response => {
+            if (response.ok) {
+                setAnalyses(await response.json());
+            } else {
+                console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);
+            }
+        });
+    }, []);
 
     return (
         <div>
@@ -85,7 +92,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                         </Typography>
                     </Box>
                     <Box>
-                        <div className={classes.alert}>
+                        <div className={classes.notifications}>
                             {analyses.map(analysis => <Notification analysis={analysis} />)}
                         </div>
                     </Box> 
