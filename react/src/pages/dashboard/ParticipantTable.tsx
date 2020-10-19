@@ -45,7 +45,7 @@ export default function ParticipantTable() {
                     samples.forEach((sample: Sample) => {
                         const datasets = sample.datasets;
                         datasets.forEach((dataset: Dataset) => {
-                            participant['dataset_types'] ? 
+                            participant['dataset_types'] ?
                             participant['dataset_types'].push(dataset.dataset_type) :
                             participant['dataset_types'] = [dataset.dataset_type];
                         })
@@ -74,7 +74,7 @@ export default function ParticipantTable() {
                     { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
                     { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
                     { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
-                    { title: 'Notes', field: 'notes', width: "50%", render: (rowData) => <Typography>{ rowData.notes }</Typography>},
+                    { title: 'Notes', field: 'notes', width: "50%" },
                     { title: 'Dataset Types', field: 'dataset_types', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />}
                 ]}
                 data={participants}
