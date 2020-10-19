@@ -79,7 +79,6 @@ def add_dummy_data():
         db.session.commit()
         print('Created default participants: {}'.format(", ".join([a['codename'] for a in default_participants])))
 
-
     # add tissue samples
     if len(db.session.query(models.TissueSample).all()) == 0:
         default_tissues = [
@@ -172,15 +171,23 @@ def add_dummy_data():
 
         db.session.commit()
         print("Created default analysis with states: {}".format(", ".join([a['analysis_state'] for a in default_analyses])))
+    
+    # add dataset/analysis linking table
+    if len(db.session.query(models.datasets_analyses_table).all()) == 0:
+        default_dataset_analyses = [
+            {'dataset_id': 1, 'analysis_id': 1},
+            {'dataset_id': 1, 'analysis_id': 2},
+            {'dataset_id': 2, 'analysis_id': 2},
+            {'dataset_id': 3, 'analysis_id': 2}
+        ]
+        for d in default_dataset_analyses:
+            # note different syntax because joining table doesn't inherit model
+            insert_statement = models.datasets_analyses_table.insert().values(
+                dataset_id=d['dataset_id'],
+                analysis_id=d['analysis_id'],
+            )
+            db.session.execute(insert_statement)
+            db.session.commit()
+        print("Joined datasets to analyses")
 
-    # need to add to the users_groups, groups_datasets, and datasets_analyses tables as well
-
-
-
-
-
-
-
-
-
-
+    # TODO: add to the users_groups and groups_datasets tables for permissions testing
