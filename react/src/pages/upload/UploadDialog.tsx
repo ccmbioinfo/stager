@@ -22,9 +22,9 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import FilesTable from './FilesTable';
 import UploadForm from './UploadForm';
-import { FormControlLabel } from '@material-ui/core';
+import { FormControlLabel, Paper } from '@material-ui/core';
 import { InputFileUpload } from './UploadCSV';
-
+import ParticipantDetailDialog from '../dashboard/ParticipantDetailDialog';
 
 interface UploadDialogProps {
     open: boolean,
@@ -62,6 +62,7 @@ const useStyles = makeStyles(theme => ({
 
 function sendFile(file: File | null) {
     if (file !== null) {
+        // Upload
         fetch('/api/_bulk', {
             method: 'POST',
             body: file,
@@ -71,10 +72,10 @@ function sendFile(file: File | null) {
         })
         .then(response => response.json())
         .then(data => {
-
+            console.log(data);
         })
         .catch(error => {
-
+            console.error(error);
         })
     }
 }
@@ -96,11 +97,15 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     }
 
     let tabContent;
-    if (tab == 0) {
+    if (tab == 1) {
         tabContent = (<UploadForm />);
     }
     else {
-        tabContent = (<InputFileUpload onUpload={onUpload} />);
+        tabContent = (
+        <>
+            <InputFileUpload onUpload={onUpload} />
+        </>
+        );
     }
 
     return (
@@ -119,8 +124,8 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                     className={classes.tabs}
                     onChange={(event: React.ChangeEvent<{}>, newTab: number) => changeTab(newTab)}
                 >
-                    <Tab label="Form Entry" />
-                    <Tab label="Excel Entry" />
+                    <Tab label="CSV Upload" />
+                    <Tab label="Manual Form Entry" />
                 </Tabs>
                 <Grid container className={classes.tabPanel}>
                     <Grid item xs={12} className={classes.gridItem} >

@@ -52,7 +52,7 @@ export function InputFileUpload(props: InputFileUploadProps) {
             setHelperText(helperDefault);
         }
     }
-    
+
     return (
     <>
         <input
@@ -74,10 +74,10 @@ export function InputFileUpload(props: InputFileUploadProps) {
                 onFrameDragEnter={(event) => {setIsDragging(true)}}
                 onFrameDragLeave={(event) => {setIsDragging(false)}}
             >
-                <Box 
-                    display="flex" 
-                    boxShadow={isDragging ? 0 : 1} 
-                    className={classes.dropzone} 
+                <Box
+                    display="flex"
+                    boxShadow={isDragging ? 0 : 1}
+                    className={classes.dropzone}
                     py={isDragging ? 20 : 0}
                 >
                     <Box alignItems="center">
