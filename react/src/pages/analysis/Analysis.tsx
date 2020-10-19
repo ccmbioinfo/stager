@@ -9,6 +9,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
+import { rowToJSON } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -459,16 +460,21 @@ export default function Analysis() {
                                 newRow.result_hpf_path = newData.result_hpf_path;
                                 dataUpdate[index] = newRow;
 
-                                fetch('/api/analyses/' + newRow.analysis_id, {
+                                console.log("Sending PATCH request...");
+                                console.log(rowToJSON(newRow));
+
+                                fetch('/api/analyses/'+newRow.analysis_id, {
                                     method: "PATCH",
-                                    body: JSON.stringify(newRow)
+                                    body: rowToJSON(newRow),
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
                                 })
                                 .then(response => {
                                     console.log(response);
                                     return response.json();
                                 })
                                 .then(resData => { // success
-                                    console.log("Successful PATCH");
                                     setRows(dataUpdate);
                                     resolve();
                                 })
