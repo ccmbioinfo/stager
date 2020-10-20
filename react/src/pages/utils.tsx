@@ -27,11 +27,3 @@ export function toKeyValue(items: string[]) {
         return map;
     }, Object.create(null));
 }
-
-/**
- * Returns JSON string of table row with material-table metadata removed.
- */
-export function rowToJSON(row: any): string {
-    var newRow = Object.assign({}, {...row}, {selected: undefined, tableData: undefined});
-    return JSON.stringify(newRow);
-}
