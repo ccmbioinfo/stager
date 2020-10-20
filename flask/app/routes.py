@@ -353,10 +353,10 @@ def pipelines_list():
 @login_required
 def datasets_list():
     db_datasets = db.session.query(models.Dataset).options(
-            joinedload(models.Dataset.tissue_sample).
-            joinedload(models.TissueSample.participant).
-            joinedload(models.Participant.family)
-     ).all()
+        joinedload(models.Dataset.tissue_sample).
+        joinedload(models.TissueSample.participant).
+        joinedload(models.Participant.family)
+    ).all()
     datasets = [
         {
             **asdict(dataset),
