@@ -21,15 +21,12 @@ import Admin from './admin/Admin';
 import ListItemRouterLink from './ListItemRouterLink';
 import NotificationPopover from './NotificationPopover';
 
-const drawerWidth = 240;
+const drawerWidth = 180;
 
 const useStyles = makeStyles(theme => ({
     root: {
         display: 'flex',
         height: '100%',
-    },
-    toolbar: {
-        paddingRight: 24, // keep right padding when drawer closed
     },
     toolbarIcon: {
         display: 'flex',
@@ -53,10 +50,19 @@ const useStyles = makeStyles(theme => ({
             duration: theme.transitions.duration.enteringScreen,
         }),
     },
+    toolbar: {
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3)
+    },
+    toolbarShift: {
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(3)
+    },
     menuButton: {
-        marginRight: 36,
+        marginRight: theme.spacing(4),
     },
     menuButtonHidden: {
+        marginRight: theme.spacing(3),
         display: 'none',
     },
     title: {
@@ -78,35 +84,10 @@ const useStyles = makeStyles(theme => ({
             duration: theme.transitions.duration.leavingScreen,
         }),
         width: theme.spacing(7),
-        [theme.breakpoints.up('sm')]: {
-            width: theme.spacing(9),
-        },
-    },
-    appBarSpacer: theme.mixins.toolbar,
-    content: {
-        flexGrow: 1,
-        height: '100vh',
-        overflow: 'auto',
-    },
-    container: {
-        paddingTop: theme.spacing(3),
-        paddingBottom: theme.spacing(3),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-    },
-    fixedHeight: {
-        height: 240,
     },
     bottomItems: {
         marginTop: 'auto',
     },
-    icon: {
-        paddingLeft: theme.spacing(1)
-    }
 }));
 
 export interface NavigationProps {
@@ -132,13 +113,13 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
             <BrowserRouter>
                 <CssBaseline />
                 <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
-                    <Toolbar className={classes.toolbar}>
+                    <Toolbar disableGutters className={open ? classes.toolbar : classes.toolbarShift}>
                         <IconButton
                             edge="start"
                             color="inherit"
                             aria-label="open drawer"
                             onClick={handleDrawerOpen}
-                            className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
+                            className={open ? classes.menuButtonHidden : classes.menuButton}
                         >
                             <MenuIcon />
                         </IconButton>

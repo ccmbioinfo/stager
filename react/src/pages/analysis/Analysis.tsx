@@ -3,12 +3,13 @@ import { useParams, useHistory, useLocation } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
-import MaterialTable, { MTableToolbar } from 'material-table';
+import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
+import { emptyCellValue, formatDateString } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -176,6 +177,8 @@ const refreshTimeDelay = 1000 * 60;
  */
 function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
     const rows: AnalysisRow[] = data.map((row, index, arr) => {
+        row.updated = formatDateString(row.updated);
+
         switch (row.analysis_state) {
             case 'Requested':
                 row.state = PipelineStatus.PENDING;
@@ -329,10 +332,10 @@ export default function Analysis() {
                         { title: 'Pipeline', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
-                        { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
-                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
+                        { title: 'Updated', field: 'updated', type: 'string', editable: 'never', render: rowData => formatDateString(rowData.updated) },
+                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string', emptyValue: emptyCellValue },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
-                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', /* render: renderNotes, */
+                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', emptyValue: emptyCellValue,
                         editComponent: props => (
                             <TextField
                             multiline
@@ -464,6 +467,34 @@ export default function Analysis() {
                                 resolve();
                             })
                     }}
+                    cellEditable={{
+                        onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
+                            new Promise((resolve, reject) => {
+                                const dataUpdate = [...rows];
+                                const index = dataUpdate.findIndex((row, index, obj) => {
+                                    return row.analysis_id === editedRow.analysis_id;
+                                });
+                                const newRow: AnalysisRow = { ...dataUpdate[index] };
+
+                                if (newValue === '')
+                                    newValue = null;
+
+                                switch (columnDef.field) {
+                                    case 'result_hpf_path':
+                                        newRow.result_hpf_path = newValue;
+                                        break;
+                                    case 'notes':
+                                        newRow.notes = newValue;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                dataUpdate[index] = newRow;
+                                setRows(dataUpdate);
+                                resolve();
+                            }),
+
+                    }}
                     components={{
                         Toolbar: props => (
                             <div>
@@ -478,8 +509,7 @@ export default function Analysis() {
                                 </div>
                             </div>
                             )
-                        }
-                    }
+                    }}
                 />
             </Container>
         </main>
