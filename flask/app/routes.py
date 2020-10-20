@@ -534,4 +534,55 @@ def bulk_update():
     return jsonify(datasets)
 
 
+@app.route('/api/analyses', methods = ['POST'])
+@login_required
+def post_analyses():
+
+    if not request.json:
+        return 'Request body must be JSON!', 400
+
+    dts_pks = request.json['datasets']
+    pipeline_pk = request.json['pipeline_id']
+
+    pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
+
+    if not pipeline_id:
+        return 'Pipeline ID does not exist', 400
+
+    now = datetime.now()
+    requested = now
+    updated = now
+    analysis_state = 'Requested'
+    try:
+        requester = updated_by = current_user.user_id
+    except: # LOGIN DISABLED
+        requester = updated_by = 1
+
+  
+    obj = models.Analysis(**{'requested' : requested, 
+                            'analysis_state' : analysis_state, 
+                            'requester' : requester, 
+                            'updated_by': updated_by,
+                            'updated': updated,
+                            'requested': requested,
+                            'pipeline_id': pipeline_id})
+
+    db.session.add(obj)
+    transaction_or_abort(db.session.flush)
+    
+    # update the dataset_analyses table
+    dataset_analyses_obj  = [{'dataset_id': x, 
+                              'analysis_id': obj.analysis_id} 
+                              for x in dts_pks]
+
+    inst = models.datasets_analyses_table.insert().values(dataset_analyses_obj)
+    try:
+        db.session.execute(inst)
+    except:
+        db.session.rollback()
+        return 'Server error', 500
+
+    transaction_or_abort(db.session.commit)
+
+    return jsonify(obj)
 
