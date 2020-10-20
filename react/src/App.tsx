@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';
 
-export default function App() {
+const globalTheme = createMuiTheme({
+    typography: {
+        fontSize: 12
+    },
+    mixins: {
+        toolbar: {
+            minHeight: 48
+        }
+    }
+});
+
+function BaseApp() {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [username, setUsername] = useState("");
     async function signout() {
@@ -33,4 +45,14 @@ export default function App() {
     } else {
         return <LoginForm setAuthenticated={setAuthenticated} setGlobalUsername={setUsername} />;
     }
+}
+
+export default function App() {
+    return (
+        <React.StrictMode>
+            <ThemeProvider theme={globalTheme}>
+                <BaseApp />
+            </ThemeProvider>
+        </React.StrictMode>
+    );
 }

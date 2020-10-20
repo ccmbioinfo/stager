@@ -12,8 +12,8 @@ const useStyles = makeStyles(theme => ({
         overflow: 'auto',
     },
     container: {
-        paddingTop: theme.spacing(3),
-        paddingBottom: theme.spacing(3),
+        marginTop: theme.spacing(3),
+        marginBottom: theme.spacing(3),
     },
 }));
 
@@ -42,7 +42,7 @@ export default function Dashboard() {
                     </Grid>
                 </Grid>
             </Container>
-            <Container>
+            <Container className={classes.container}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
                         <ParticipantTable />
