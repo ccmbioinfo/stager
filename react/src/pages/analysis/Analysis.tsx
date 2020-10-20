@@ -175,7 +175,7 @@ const refreshTimeDelay = 1000 * 60;
 /**
  * Convert the provided JSON Array to a valid array of AnalysisRows.
  */
-function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
+export function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
     const rows: AnalysisRow[] = data.map((row, index, arr) => {
         row.updated = formatDateString(row.updated);
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
-import { AnalysisRow } from './analysis/Analysis';
+import { AnalysisRow, jsonToAnalysisRows } from './analysis/Analysis';
 
 const useStyles = makeStyles(theme => ({
     popover: {
@@ -48,7 +48,8 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
         fetch(`/api/analyses?since=${lastLoginISO}`).then(async response => {
             if (response.ok) {
-                setAnalyses((await response.json()) as AnalysisRow[]);
+                const result = jsonToAnalysisRows(await response.json());
+                setAnalyses(result);
             } else {
                 console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);
             }
