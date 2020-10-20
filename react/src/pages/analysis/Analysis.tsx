@@ -443,42 +443,25 @@ export default function Analysis() {
                         }
                     ]}
                     editable={{
-                        onRowUpdate: (newData, oldData) =>
-                            new Promise((resolve, reject) => {
-                                // TODO: Send PATCH here for editing notes or path
-                                const dataUpdate = [...rows];
-                                // find the row; assume analysis_id is unique
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === oldData?.analysis_id
-                                });
-
-                                const newRow: AnalysisRow = { ...dataUpdate[index] };
-
-                                // only update the columns that are allowed
-                                newRow.notes = newData.notes;
-                                newRow.result_hpf_path = newData.result_hpf_path;
-                                dataUpdate[index] = newRow;
-
-                                fetch('/api/analyses/'+newRow.analysis_id, {
+                        onRowUpdate: async (newData, oldData) => {
+                                const response = await fetch('/api/analyses/'+newData.analysis_id, {
                                     method: "PATCH",
-                                    body: JSON.stringify({ notes: newRow.notes, result_hpf_path: newRow.result_hpf_path }),
+                                    body: JSON.stringify({ notes: newData.notes, result_hpf_path: newData.result_hpf_path }),
                                     headers: {
                                         'Content-Type': 'application/json'
                                     }
-                                })
-                                .then(response => {
-                                    console.log(response);
-                                    return response.json();
-                                })
-                                .then(resData => { // success
-                                    setRows(dataUpdate);
-                                    resolve();
-                                })
-                                .catch(error => { // error
-                                    console.error(error);
-                                    reject(error);
-                                })
-                            })
+                                });
+                                if (response.ok) {
+                                    const newRow = await response.json();
+                                    setRows(rows.map((row) =>
+                                        row.analysis_id === newRow.analysis_id
+                                        ? { ...row, ...newRow }
+                                        : row
+                                    ));
+                                } else {
+                                    console.error(response);
+                                }
+                            }
                     }}
                     components={{
                         Toolbar: props => (
