@@ -303,7 +303,26 @@ export default function Analysis() {
                     affectedRows={activeRows}
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
-                    onSubmit={(username) => {
+                    onSubmit={async (username) => {
+                        activeRows.forEach(async (row) => {
+                            const response = await fetch('/api/analyses/'+row.analysis_id, {
+                                method: "PATCH",
+                                body: JSON.stringify({ assignee: username }),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (response.ok) {
+                                const newRow = await response.json();
+                                setRows(rows.map((oldRow) =>
+                                    oldRow.analysis_id === newRow.analysis_id
+                                    ? { ...oldRow, ...newRow }
+                                    : oldRow
+                                ));
+                            } else {
+                                console.error(response);
+                            }
+                        })
                         // TODO: PATCH goes here for setting assignees
 
                         // If successful...
