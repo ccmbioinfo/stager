@@ -1,43 +1,40 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import MaterialTable from 'material-table';
-import { getSamplesAndDatasets } from './MockData';
-import DatasetAccordions from './DatasetAccordion'
 import { formatDateString } from '../utils';
+import DatasetAccordions from './DatasetAccordion';
+import { Sample } from './MockData';
 
 const useStyles = makeStyles(theme => ({
     table: {
-        marginBottom: theme.spacing(3)
-    }
+        marginBottom: theme.spacing(3),
+    },
 }));
 
-interface ParticipantInfoProp {
-    participantID: string
+interface SamplesTableProp {
+    samples: Sample[],
 }
 
-export default function SamplesTable({ participantID }: ParticipantInfoProp) {
+export default function SamplesTable({ samples }: SamplesTableProp) {
     const classes = useStyles();
-
-    //fetch participant samples and datasets for each sample
-    const info = getSamplesAndDatasets(participantID);
 
     return (
         <div className={classes.table}>
             <MaterialTable
                 columns={[
-                    { title: 'Sample ID', field: 'sampleID' },
-                    { title: 'Extraction Date', field: 'extractionDate' },
-                    { title: 'Sample Type', field: 'sampleType' },
-                    { title: 'Tissue Processing', field: 'tissueProcessing' },
+                    { title: 'Sample ID', field: 'tissue_sample_id' },
+                    { title: 'Extraction Date', field: 'extraction_date' },
+                    { title: 'Sample Type', field: 'tissue_sample_type' },
+                    { title: 'Tissue Processing', field: 'tissue_processing' },
                     { title: 'Notes', field: 'notes' },
                     { title: 'Creation Time', field: 'created', render: rowData => formatDateString(rowData.created) },
-                    { title: 'Create By', field: 'createBy' },
+                    { title: 'Create By', field: 'create_by' },
                     { title: 'Update Time', field: 'updated', render: rowData => formatDateString(rowData.updated) },
-                    { title: 'Updated By', field: 'updatedBy' },
+                    { title: 'Updated By', field: 'updated_by' },
                 ]}
-                data={info.samples}
+                data={samples}
                 title="Samples"
-                detailPanel={rowData => <DatasetAccordions datasets={info.datasets.filter(dataset => dataset.sampleID === rowData.sampleID)} />}
+                detailPanel={rowData => <DatasetAccordions datasets={rowData.datasets} />}
                 options={{
                     paging: false,
                     selection: false,
