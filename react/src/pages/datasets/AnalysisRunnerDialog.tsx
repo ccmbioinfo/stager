@@ -7,6 +7,7 @@ import {
 } from '@material-ui/core';
 import { SlideUpTransition } from "../utils";
 import { Dataset } from './DatasetTable';
+import { useSnackbar } from 'notistack';
 
 export interface Pipeline {
     pipeline_id: number;
@@ -33,6 +34,8 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
     const titleId = "analysis-runner-alert-dialog-slide-title";
     const descriptionId = "analysis-runner-alert-dialog-slide-description";
     const [pipeline, setPipeline] = useState(NaN);
+
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     return (
         <Dialog
@@ -101,7 +104,18 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
                 <Button variant="outlined" onClick={onClose} color="primary">
                     Cancel
                 </Button>
-                <Button variant="contained" onClick={onClose} color="primary">
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        onClose();
+                        let p = pipelines.find((p) => p.pipeline_id === pipeline);
+                        if (p)
+                            enqueueSnackbar(`Analysis queued of ${datasets.length} datasets using pipeline ${p?.pipeline_name} ${p?.pipeline_version}`);
+                        else
+                            enqueueSnackbar(`Analysis cancelled, no pipeline selected!`, { variant: 'error' });
+                    }}
+                    color="primary"
+                >
                     Run analysis
                 </Button>
             </DialogActions>

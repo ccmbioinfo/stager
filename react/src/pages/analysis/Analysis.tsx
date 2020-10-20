@@ -9,6 +9,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
+import { useSnackbar } from 'notistack';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -234,6 +235,8 @@ export default function Analysis() {
 
     const history = useHistory();
 
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
@@ -269,16 +272,19 @@ export default function Analysis() {
 
                         // If successful...
                         const newRows = [...rows];
+                        let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected && cancelFilter(row)) {
                                 const newRow: AnalysisRow = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
+                                count++;
                             }
                         });
 
                         setRows(newRows);
                         setCancel(false);
+                        enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -308,17 +314,19 @@ export default function Analysis() {
 
                         // If successful...
                         const newRows = [...rows];
+                        let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected) {
                                 const newRow: AnalysisRow = { ...newRows[index] };
                                 newRow.assignee = username;
                                 newRows[index] = newRow;
+                                count++;
                             }
                         });
 
                         setRows(newRows);
                         setAssignment(false);
-
+                        enqueueSnackbar(`${count} analyses assigned to user '${username}'`)
                     }}
                 />}
 
@@ -421,15 +429,18 @@ export default function Analysis() {
 
                                 // If successful...
                                 const newRows = [...rows];
+                                let count = 0;
                                 newRows.forEach((row, index, arr) => {
                                     if (row.selected && runFilter(row)) {
                                         const newRow: AnalysisRow = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
+                                        count++;
                                     }
                                 });
 
                                 setRows(newRows);
+                                enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
                             },
                         },
                         {
@@ -460,7 +471,7 @@ export default function Analysis() {
                                 newRow.result_hpf_path = newData.result_hpf_path;
                                 dataUpdate[index] = newRow;
                                 setRows(dataUpdate);
-
+                                enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
                                 resolve();
                             })
                     }}
