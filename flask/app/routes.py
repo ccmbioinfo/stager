@@ -349,7 +349,7 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
-@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@app.route('/api/datasets', methods=['GET'])
 @login_required
 def datasets_list():
     db_datasets = db.session.query(models.Dataset).options(
@@ -369,33 +369,33 @@ def datasets_list():
     ]
     return jsonify(datasets)
 
-@app.route('/api/datasets/<int:id>', methods=['GET'], endpoint='dataset')
+
+@app.route('/api/datasets/<int:id>', methods=['GET'])
 @login_required
-def dataset(id:int):
-    if not db.session.query(models.Dataset).get(id):
+def get_dataset(id: int):
+    dataset = db.session.query(models.Dataset).filter_by(dataset_id=id).options(
+        joinedload(models.Dataset.analyses),
+        joinedload(models.Dataset.tissue_sample).
+        joinedload(models.TissueSample.participant).
+        joinedload(models.Participant.family)
+     ).one()
+    if not dataset:
         return 'Not Found', 404
     else:
-        db_dataset = db.session.query(models.Dataset).filter_by(dataset_id=id).options(
-            joinedload(models.Dataset.analyses),
-            joinedload(models.Dataset.tissue_sample).
-            joinedload(models.TissueSample.participant).
-            joinedload(models.Participant.family)
-        ).one()
-        dataset = {
-                **asdict(db_dataset),
-                'analyses' : [
-                    {
-                        **asdict(analysis),
-                    } for analysis in db_dataset.analyses
-                ],
-                **asdict(db_dataset.tissue_sample),
-                'participant_codename' : db_dataset.tissue_sample.participant.participant_codename,
-                'participant_type' : db_dataset.tissue_sample.participant.participant_type,
-                'sex' : db_dataset.tissue_sample.participant.sex,
-                'family_codename' : db_dataset.tissue_sample.participant.family.family_codename
-            }
-        return jsonify(dataset)
-
+        return jsonify({
+            **asdict(dataset),
+            'tissue_sample': dataset.tissue_sample,
+            'participant_codename': dataset.tissue_sample.participant.participant_codename,
+            'participant_type': dataset.tissue_sample.participant.participant_type,
+            'sex': dataset.tissue_sample.participant.sex,
+            'family_codename': dataset.tissue_sample.participant.family.family_codename,
+            'analyses': [{
+                **asdict(analysis),
+                'requester': analysis.requester_user.username,
+                'updated_by': analysis.updated_by_user.username,
+                'assignee': analysis.assignee_user and analysis.assignee_user.username
+            } for analysis in dataset.analyses]
+        })
 
 
 @app.route('/api/enums', methods = ['GET'])
