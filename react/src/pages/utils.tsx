@@ -1,6 +1,8 @@
-import React, { forwardRef, ReactElement, Ref } from "react";
-import { Slide } from "@material-ui/core";
+import React, { forwardRef, ReactElement, Ref, useState } from "react";
+import { IconButton, Slide, Snackbar } from "@material-ui/core";
 import { TransitionProps } from "@material-ui/core/transitions";
+import { Close } from "@material-ui/icons";
+import { SnackbarKey } from "notistack";
 
 export const SlideUpTransition = forwardRef((
     props: TransitionProps & { children?: ReactElement },

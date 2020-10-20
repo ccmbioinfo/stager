@@ -4,6 +4,7 @@ import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { toKeyValue, KeyValue } from "../utils";
 import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
+import { useSnackbar } from 'notistack';
 
 export interface Dataset {
     dataset_id: number;
@@ -43,6 +44,8 @@ export default function DatasetTable() {
     const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [conditions, setConditions] = useState<KeyValue>({});
+
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     useEffect(() => {
         fetch("/api/enums").then(async response => {
@@ -126,6 +129,7 @@ export default function DatasetTable() {
                                 ? { ...dataset, ...updatedDataset }
                                 : dataset
                             ));
+                            enqueueSnackbar(`Row ID ${newDataset.dataset_id} updated successfully`);
                         } else {
                             console.error(`PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`);
                         }

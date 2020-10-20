@@ -1,7 +1,15 @@
+import { IconButton } from '@material-ui/core';
+import { Close } from '@material-ui/icons';
+import { SnackbarKey, SnackbarProvider } from 'notistack';
 import React, { useState, useEffect } from 'react';
 
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';
+
+const notistackRef = React.createRef<any>();
+const onClickDismiss = (key: SnackbarKey) => () => {
+    notistackRef.current.closeSnackbar(key);
+}
 
 export default function App() {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -29,7 +37,19 @@ export default function App() {
     if (authenticated === null) {
         return <></>;
     } else if (authenticated) {
-        return <Navigation signout={signout} username={username} />;
+        return (
+            <SnackbarProvider
+                ref={notistackRef}
+                action={(key) => (
+                    <IconButton aria-label="close" color="inherit" onClick={onClickDismiss(key)}>
+                        <Close fontSize="small" />
+                    </IconButton>
+                )}
+                autoHideDuration={6000}
+            >
+                <Navigation signout={signout} username={username} />
+            </SnackbarProvider>
+        );
     } else {
         return <LoginForm setAuthenticated={setAuthenticated} setGlobalUsername={setUsername} />;
     }
