@@ -274,6 +274,13 @@ def update_entity(model_name:str, id:int):
 
     transaction_or_abort(db.session.commit)
 
+    if model_name == 'analyses':
+        return jsonify({
+            **asdict(table),
+            "assignee": table.assignee_user and table.assignee_user.username,
+            "requester": table.requester_user and table.requester_user.username,
+            "updated_by": table.updated_by_user and table.updated_by_user.username
+        })
     return jsonify(table)
 
 @app.route('/api/participants', methods=['GET'], endpoint='participants_list')

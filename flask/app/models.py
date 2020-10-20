@@ -257,8 +257,10 @@ class Analysis(db.Model):
     qsub_id: int = db.Column(db.Integer)
     # Analysis.ResultsDirectory
     result_hpf_path: str = db.Column(db.String(500))
-    assignee: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
-    requester: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    assignee = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'))
+    assignee_user = db.relationship("User", foreign_keys=[assignee])
+    requester = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    requester_user = db.relationship("User", foreign_keys=[requester])
     # Analysis.RequestedDate
     requested: datetime = db.Column(db.DateTime, nullable=False)
     started: datetime = db.Column(db.DateTime)
@@ -267,7 +269,8 @@ class Analysis(db.Model):
     # AnalysisStatus.UpdateDate
     updated: datetime = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
     # AnalysisStatus.UpdateUser
-    updated_by: int = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.user_id', onupdate='cascade'), nullable=False)
+    updated_by_user = db.relationship("User", foreign_keys=[updated_by])
 
 
 @dataclass
