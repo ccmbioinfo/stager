@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core';
 import MaterialTable from 'material-table';
 import { getSamplesAndDatasets } from './MockData';
 import DatasetAccordions from './DatasetAccordion'
+import { formatDateString } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -29,9 +30,9 @@ export default function SamplesTable({ participantID }: ParticipantInfoProp) {
                     { title: 'Sample Type', field: 'sampleType' },
                     { title: 'Tissue Processing', field: 'tissueProcessing' },
                     { title: 'Notes', field: 'notes' },
-                    { title: 'Creation Time', field: 'created' },
+                    { title: 'Creation Time', field: 'created', render: rowData => formatDateString(rowData.created) },
                     { title: 'Create By', field: 'createBy' },
-                    { title: 'Update Time', field: 'updated' },
+                    { title: 'Update Time', field: 'updated', render: rowData => formatDateString(rowData.updated) },
                     { title: 'Updated By', field: 'updatedBy' },
                 ]}
                 data={info.samples}
