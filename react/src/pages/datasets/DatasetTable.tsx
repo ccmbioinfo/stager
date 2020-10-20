@@ -133,6 +133,36 @@ export default function DatasetTable() {
                         }
                     }
                 }}
+                cellEditable={{
+                    onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
+                            new Promise((resolve, reject) => {
+                                const dataUpdate = [...datasets];
+                                const index = dataUpdate.findIndex((row, index, obj) => {
+                                    return row.dataset_id === editedRow.dataset_id;
+                                });
+                                const newRow: Dataset = { ...dataUpdate[index] };
+
+                                if (newValue === '')
+                                    newValue = null;
+
+                                switch (columnDef.field) {
+                                    case 'dataset_type':
+                                        newRow.dataset_type = newValue;
+                                        break;
+                                    case 'condition':
+                                        newRow.condition = newValue;
+                                        break;
+                                    case 'notes':
+                                        newRow.notes = newValue;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                dataUpdate[index] = newRow;
+                                setDatasets(dataUpdate);
+                                resolve();
+                            }),
+                }}
                 components={{
                     Toolbar: props => (
                         <div>
