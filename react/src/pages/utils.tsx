@@ -60,3 +60,5 @@ export function formatDateString(date: string) {
     }
     return date;
 }
+
+export const emptyCellValue = "<empty>";

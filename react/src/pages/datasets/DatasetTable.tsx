@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
-import { toKeyValue, KeyValue, formatDateString } from "../utils";
+import { toKeyValue, KeyValue, formatDateString, emptyCellValue } from "../utils";
 import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
 
 export interface Dataset {
@@ -85,9 +85,9 @@ export default function DatasetTable() {
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
                     { title: 'Tissue Sample', field: 'tissue_sample_type', editable: 'never', lookup: tissueSampleTypes },
-                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes },
-                    { title: 'Condition', field: 'condition', lookup: conditions },
-                    { title: 'Notes', field: 'notes', editComponent: props => (
+                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes, emptyValue: emptyCellValue },
+                    { title: 'Condition', field: 'condition', lookup: conditions, emptyValue: emptyCellValue },
+                    { title: 'Notes', field: 'notes', emptyValue: emptyCellValue, editComponent: props => (
                         <TextField
                             multiline
                             value={props.value}

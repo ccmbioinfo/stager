@@ -9,7 +9,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { formatDateString } from '../utils';
+import { emptyCellValue, formatDateString } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -333,9 +333,9 @@ export default function Analysis() {
                         { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never', render: rowData => formatDateString(rowData.updated) },
-                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string', emptyValue: '<empty>' },
+                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string', emptyValue: emptyCellValue },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
-                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', emptyValue: '<empty>',
+                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', emptyValue: emptyCellValue,
                         editComponent: props => (
                             <TextField
                             multiline
