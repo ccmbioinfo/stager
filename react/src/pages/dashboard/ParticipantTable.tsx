@@ -3,7 +3,7 @@ import { makeStyles, Chip, IconButton, Typography } from '@material-ui/core';
 import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { countArray, toKeyValue } from '../utils';
-import { Participant, Sample, Dataset } from './MockData';
+import { Participant, Sample, Dataset } from '../utils';
 import DatasetTypes from './DatasetTypes';
 import ParticipantDetailDialog from './ParticipantDetailDialog';
 

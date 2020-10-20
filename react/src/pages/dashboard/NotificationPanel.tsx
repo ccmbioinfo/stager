@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles, Paper, Box, Typography, Switch, Collapse } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
-import { AnalysisRow } from '../analysis/Analysis';
+import { Analysis } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export interface NotificationPanelProps {
-    analyses: AnalysisRow[];
+    analyses: Analysis[];
 }
 
 export default function NotificationPanel({analyses}: NotificationPanelProps) {

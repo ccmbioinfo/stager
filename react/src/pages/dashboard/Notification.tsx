@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { makeStyles, Button } from '@material-ui/core';
 import { OpenInNew } from '@material-ui/icons';
 import { Alert } from '@material-ui/lab';
-import { PipelineStatus, AnalysisRow } from '../analysis/Analysis';
+import { PipelineStatus, Analysis } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     msgBox: {
@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export interface NotificationProps {
-    analysis: AnalysisRow,
+    analysis: Analysis,
 }
 
 enum Severity {
@@ -41,7 +41,7 @@ function createNotification(
     return { analysis_id, msg, severity };
 }
 
-const getNotificationInfo = (analysis: AnalysisRow) => {
+const getNotificationInfo = (analysis: Analysis) => {
     const msg = `The status of ${analysis.analysis_id} has changed to `;
     switch (analysis.state) {
         case PipelineStatus.PENDING:

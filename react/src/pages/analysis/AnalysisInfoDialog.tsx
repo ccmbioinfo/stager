@@ -7,12 +7,12 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import DatasetTable from './DatasetTable';
-import { AnalysisRow } from './Analysis';
+import { Analysis } from '../utils';
 import ChipStrip from './ChipStrip';
 
 interface AlertInfoDialogProp {
     open: boolean,
-    analysis: AnalysisRow,
+    analysis: Analysis,
     onClose: (() => void),
 }
 

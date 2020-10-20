@@ -2,7 +2,7 @@
 import { makeStyles } from '@material-ui/core/styles';
 import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton } from '@material-ui/core';
 import { Close } from '@material-ui/icons';
-import { Participant } from './MockData';
+import { Participant } from '../utils';
 import SampleTable from './SampleTable';
 import AnalysisTable from './AnalysisTable';
 

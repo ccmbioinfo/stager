@@ -5,8 +5,7 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Typography, makeStyles
 } from '@material-ui/core';
-import { SlideUpTransition } from "../utils";
-import { Dataset } from './DatasetTable';
+import { SlideUpTransition, Dataset } from "../utils";
 
 export interface Pipeline {
     pipeline_id: number;

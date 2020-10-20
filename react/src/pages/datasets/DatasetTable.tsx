@@ -2,23 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { toKeyValue, KeyValue } from "../utils";
+import { toKeyValue, KeyValue, Dataset } from "../utils";
 import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
-
-export interface Dataset {
-    dataset_id: number;
-    tissue_sample_type: string;
-    participant_codename: string;
-    family_codename: string;
-    dataset_type: string;
-    input_hpf_path?: string;
-    notes?: string;
-    condition: string;
-    created: Date;
-    created_by: string;
-    updated: Date;
-    updated_by: string;
-}
 
 const useStyles = makeStyles(theme => ({
     chip: {
