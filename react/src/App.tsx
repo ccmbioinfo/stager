@@ -18,6 +18,8 @@ const globalTheme = createMuiTheme({
 function BaseApp() {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [username, setUsername] = useState("");
+    const [lastLoginTime, setLastLoginTime] = useState("");
+
     async function signout() {
         const result = await fetch("/api/logout", {
             method: "POST",
@@ -33,7 +35,9 @@ function BaseApp() {
         (async () => {
             const result = await fetch("/api/login", { method: "POST" });
             if (result.ok) {
-                setUsername((await result.json()).username);
+                const loginInfo = await result.json();
+                setUsername(loginInfo.username);
+                setLastLoginTime(loginInfo.last_login);
             }
             setAuthenticated(result.ok);
         })();
@@ -41,9 +45,9 @@ function BaseApp() {
     if (authenticated === null) {
         return <></>;
     } else if (authenticated) {
-        return <Navigation signout={signout} username={username} />;
+        return <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />;
     } else {
-        return <LoginForm setAuthenticated={setAuthenticated} setGlobalUsername={setUsername} />;
+        return <LoginForm setAuthenticated={setAuthenticated} setLastLoginTime={setLastLoginTime} setGlobalUsername={setUsername} />;
     }
 }
 
