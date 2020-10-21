@@ -1,26 +1,22 @@
 import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import DialogContent from '@material-ui/core/DialogContent';
-import Typography from '@material-ui/core/Typography';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import DescriptionIcon from '@material-ui/icons/Description';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    Typography,
+    Button,
+    ButtonGroup,
+    ExpansionPanel,
+    ExpansionPanelDetails,
+    ExpansionPanelSummary,
+    Tabs,
+    Tab,
+    Grid
+} from '@material-ui/core';
+import { Description, ExpandMore } from '@material-ui/icons';
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
 import FilesTable from './FilesTable';
 import UploadForm from './UploadForm';
 
@@ -64,11 +60,11 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const [tab, changeTab] = React.useState(0);
 
     let tabContent;
-    if (tab == 0) {
+    if (tab === 0) {
         tabContent = <UploadForm />
     }
     else {
-        tabContent = <Button variant="outlined"> Upload Excel Sample Sheet <DescriptionIcon/> </Button>
+        tabContent = <Button variant="outlined"> Upload Excel Sample Sheet <Description/> </Button>
     }
 
     return (
@@ -96,7 +92,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                     </Grid>
                     <Grid item xs={12} className={classes.gridItem}>
                         <ExpansionPanel >
-                            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+                            <ExpansionPanelSummary expandIcon={<ExpandMore />}>
                                 <Typography>Link to Existing Dataset</Typography>
                             </ExpansionPanelSummary>
                             <ExpansionPanelDetails>
