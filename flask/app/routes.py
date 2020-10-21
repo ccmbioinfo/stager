@@ -544,10 +544,17 @@ def post_analyses():
     dts_pks = request.json['datasets']
     pipeline_pk = request.json['pipeline_id']
 
+    if not dts_pks:
+        return 'No Dataset IDs provided', 400  
+
+    if not pipeline_pk:
+        return 'No Pipeline ID provided', 400
+        
+    if len(pipeline_pk) > 1:
+        return 'Only 1 Pipeline ID accepted', 400
+
     pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
 
-    if not pipeline_id:
-        return 'Pipeline ID does not exist', 400
 
     now = datetime.now()
     requested = now
