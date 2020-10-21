@@ -54,7 +54,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                 console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);
             }
         });
-    }, []);
+    }, [lastLoginTime]);
 
     return (
         <div>
