@@ -1,20 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { makeStyles, Button } from '@material-ui/core';
-import { OpenInNew } from '@material-ui/icons';
+import { makeStyles, Tooltip, Button } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { PipelineStatus, Analysis } from '../utils';
+import { PipelineStatus, Analysis } from './utils';
 
 const useStyles = makeStyles(theme => ({
     msgBox: {
         display: 'flex',
         alignItems: 'center',
-        paddingTop: theme.spacing(.5),
-        paddingBottom: theme.spacing(.5),
+        padding: theme.spacing(1),
+        paddingRight: theme.spacing(2),
+        border: "1px solid white",
     },
-    msgButton: {
-        marginLeft: theme.spacing(1),
+    msgBoxOnHover: {
+        display: 'flex',
+        alignItems: 'center',
+        padding: theme.spacing(1),
+        paddingRight: theme.spacing(2),
     },
+    button: {
+        padding: theme.spacing(0),
+        display: "block",
+        width: "100%",
+        textTransform: "none",
+    }
 }));
 
 export interface NotificationProps {
@@ -57,14 +66,20 @@ const getNotificationInfo = (analysis: Analysis) => {
 
 export default function Notification({ analysis } : NotificationProps) {
     const classes = useStyles();
+    const [hover, setHover] = useState(false);
     const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
 
     return (
-    <Alert className={classes.msgBox} severity={severity}>
-        <span>{msg}</span>
-        <Button component={Link} to={`/analysis/${analysis_id}`} className={classes.msgButton} variant="contained" color="default" endIcon={<OpenInNew color="primary"/>} disableElevation>
-            See Detail
+        <Button className={classes.button} component={Link} to={`/analysis/${analysis_id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+            
+            <Tooltip title="Click to see detail">
+                {
+                    hover 
+                    ? <Alert variant="filled" className={classes.msgBoxOnHover} severity={severity}>{ msg }</Alert>
+                    : <Alert className={classes.msgBox} severity={severity}>{ msg }</Alert> 
+                }
+            </Tooltip>
         </Button>
-    </Alert>   
+      
     );
 }

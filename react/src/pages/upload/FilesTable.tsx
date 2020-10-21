@@ -2,6 +2,7 @@ import React, { useState, useEffect }  from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { formatDateString } from '../utils';
 
 
 const useStyles = makeStyles(theme => ({
@@ -33,7 +34,7 @@ export default function FilesTable() {
             setIserror(true)
           })
       }, [])
-    
+
 
     return (
         <MaterialTable

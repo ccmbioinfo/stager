@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { makeStyles, Container, Grid } from '@material-ui/core';
 import ParticipantTable from './ParticipantTable';
-import NotificationPanel from './NotificationPanel';
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -11,8 +10,8 @@ const useStyles = makeStyles(theme => ({
         overflow: 'auto',
     },
     container: {
-        paddingTop: theme.spacing(3),
-        paddingBottom: theme.spacing(3),
+        marginTop: theme.spacing(3),
+        marginBottom: theme.spacing(3),
     },
 }));
 
@@ -26,14 +25,7 @@ export default function Dashboard() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container}>
-                <Grid container spacing={0}>
-                    <Grid item xs={12}>
-                        <NotificationPanel analyses={[]} />
-                    </Grid>
-                </Grid>
-            </Container>
-            <Container>
+            <Container className={classes.container} maxWidth="lg">
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
                         <ParticipantTable />

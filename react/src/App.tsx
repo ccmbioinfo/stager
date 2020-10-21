@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';
 
-export default function App() {
+const globalTheme = createMuiTheme({
+    typography: {
+        fontSize: 12
+    },
+    mixins: {
+        toolbar: {
+            minHeight: 48
+        }
+    }
+});
+
+function BaseApp() {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [username, setUsername] = useState("");
+    const [lastLoginTime, setLastLoginTime] = useState("");
+
     async function signout() {
         const result = await fetch("/api/logout", {
             method: "POST",
@@ -21,7 +35,9 @@ export default function App() {
         (async () => {
             const result = await fetch("/api/login", { method: "POST" });
             if (result.ok) {
-                setUsername((await result.json()).username);
+                const loginInfo = await result.json();
+                setUsername(loginInfo.username);
+                setLastLoginTime(loginInfo.last_login);
             }
             setAuthenticated(result.ok);
         })();
@@ -29,8 +45,18 @@ export default function App() {
     if (authenticated === null) {
         return <></>;
     } else if (authenticated) {
-        return <Navigation signout={signout} username={username} />;
+        return <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />;
     } else {
-        return <LoginForm setAuthenticated={setAuthenticated} setGlobalUsername={setUsername} />;
+        return <LoginForm setAuthenticated={setAuthenticated} setLastLoginTime={setLastLoginTime} setGlobalUsername={setUsername} />;
     }
+}
+
+export default function App() {
+    return (
+        <React.StrictMode>
+            <ThemeProvider theme={globalTheme}>
+                <BaseApp />
+            </ThemeProvider>
+        </React.StrictMode>
+    );
 }
