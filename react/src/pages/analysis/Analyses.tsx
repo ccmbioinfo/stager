@@ -3,13 +3,13 @@ import { useParams, useHistory, useLocation } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
-import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
+import MaterialTable, { MTableToolbar } from 'material-table';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { emptyCellValue, formatDateString, Analysis} from '../utils';
+import { emptyCellValue, formatDateString, Analysis, PipelineStatus } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -65,14 +65,6 @@ const useStyles = makeStyles(theme => ({
         colorPrimary: theme.palette.primary,
     }
 }));
-
-export enum PipelineStatus {
-    PENDING = "Pending",
-    RUNNING = "Running",
-    COMPLETED = "Completed",
-    ERROR = "Error",
-    CANCELLED = "Cancelled"
-}
 
 // generate fake analysis data
 export function createAnalysis(

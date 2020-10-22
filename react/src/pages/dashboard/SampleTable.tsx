@@ -1,9 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import MaterialTable from 'material-table';
-import { formatDateString } from '../utils';
+import { formatDateString, Sample } from '../utils';
 import DatasetAccordions from './DatasetAccordion';
-import { Sample } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     table: {

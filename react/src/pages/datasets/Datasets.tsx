@@ -1,9 +1,5 @@
 import React, { useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-
+import { makeStyles, Container, Grid, Paper } from '@material-ui/core';
 import Card from '../Card';
 import DatasetTable from './DatasetTable';
 
