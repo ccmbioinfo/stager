@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
-import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
-import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
+import { Chip, IconButton, TextField, Container } from '@material-ui/core';
+import { Cancel, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -121,19 +122,6 @@ type ParamTypes = {
     analysis_id: string | undefined
 }
 
-// Displays notes as an interactive tooltip
-function renderNotes(rowData: Analysis) {
-    return (
-    <Tooltip title={
-        <>
-        <Typography variant="body1">{rowData.notes}</Typography>
-        </>
-    } interactive placement="left">
-        <IconButton><Description/></IconButton>
-    </Tooltip>
-    );
-}
-
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
     let returnStr = "";
@@ -149,10 +137,6 @@ function rowsToString(rows: Analysis[], delim?: string) {
     }
     return returnStr;
 }
-
-// How long to wait before refreshing data, in milliseconds
-// Default: 1 min
-const refreshTimeDelay = 1000 * 60;
 
 /**
  * Returns whether this analysis is allowed to be cancelled.
@@ -182,9 +166,9 @@ export default function Analyses() {
 
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
-    const [cancelAllowed, setCancelAllowed] = useState<boolean>(true);
-
     const history = useHistory();
+
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
@@ -196,11 +180,6 @@ export default function Analyses() {
             const rows = jsonToAnalyses(data);
             setRows(rows);
         });
-
-        // For when the user comes from the notification panel
-        if (activeRows.length > 0 && analysis_id)
-            setDetail(true);
-
     }, []);
 
     return (
@@ -211,7 +190,7 @@ export default function Analyses() {
                     open={cancel}
                     affectedRows={activeRows}
                     title={
-                        activeRows.length == 1
+                        activeRows.length === 1
                         ? `Stop Analysis?`
                         : `Stop Analyses?`
                     }
@@ -221,16 +200,19 @@ export default function Analyses() {
 
                         // If successful...
                         const newRows = [...rows];
+                        let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected && cancelFilter(row)) {
                                 const newRow: Analysis = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
+                                count++;
                             }
                         });
 
                         setRows(newRows);
                         setCancel(false);
+                        enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -255,22 +237,30 @@ export default function Analyses() {
                     affectedRows={activeRows}
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
-                    onSubmit={(username) => {
-                        // TODO: PATCH goes here for setting assignees
-
-                        // If successful...
-                        const newRows = [...rows];
-                        newRows.forEach((row, index, arr) => {
-                            if (row.selected) {
-                                const newRow: Analysis = { ...newRows[index] };
-                                newRow.assignee = username;
-                                newRows[index] = newRow;
+                    onSubmit={async (username) => {
+                        let count = 0;
+                        for (const row of activeRows) {
+                            const response = await fetch('/api/analyses/'+row.analysis_id, {
+                                method: "PATCH",
+                                body: JSON.stringify({ assignee: username }),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (response.ok) {
+                                const newRow = await response.json();
+                                setRows(rows.map((oldRow) =>
+                                    oldRow.analysis_id === newRow.analysis_id
+                                    ? { ...oldRow, ...newRow }
+                                    : oldRow
+                                ));
+                                count++;
+                            } else {
+                                console.error(response);
                             }
-                        });
-
-                        setRows(newRows);
+                        }
                         setAssignment(false);
-
+                        enqueueSnackbar(`${count} analyses assigned to user '${username}'`)
                     }}
                 />}
 
@@ -313,16 +303,6 @@ export default function Analyses() {
                                 newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: false });
                         }
                         setRows(newRows);
-
-                        // Check what actions are allowed
-                        let cancelAllowed = true;
-                        for (const row of selectedRows) {
-                            if ( !(row.state in [PipelineStatus.RUNNING, PipelineStatus.PENDING]) ) {
-                                cancelAllowed = false;
-                                break;
-                            }
-                        }
-                        setCancelAllowed(cancelAllowed);
                     }}
                     data={rows}
                     title={
@@ -373,15 +353,18 @@ export default function Analyses() {
 
                                 // If successful...
                                 const newRows = [...rows];
+                                let count = 0;
                                 newRows.forEach((row, index, arr) => {
                                     if (row.selected && runFilter(row)) {
                                         const newRow: Analysis = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
+                                        count++;
                                     }
                                 });
 
                                 setRows(newRows);
+                                enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
                             },
                         },
                         {
@@ -395,26 +378,26 @@ export default function Analyses() {
                         }
                     ]}
                     editable={{
-                        onRowUpdate: (newData, oldData) =>
-                            new Promise((resolve, reject) => {
-                                // TODO: Send PATCH here for editing notes or path
-
-                                const dataUpdate = [...rows];
-                                // find the row; assume analysis_id is unique
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === oldData?.analysis_id
+                        onRowUpdate: async (newData, oldData) => {
+                                const response = await fetch('/api/analyses/'+newData.analysis_id, {
+                                    method: "PATCH",
+                                    body: JSON.stringify({ notes: newData.notes, result_hpf_path: newData.result_hpf_path }),
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
                                 });
-
-                                const newRow: Analysis = { ...dataUpdate[index] };
-
-                                // only update the columns that are allowed
-                                newRow.notes = newData.notes;
-                                newRow.result_hpf_path = newData.result_hpf_path;
-                                dataUpdate[index] = newRow;
-                                setRows(dataUpdate);
-
-                                resolve();
-                            })
+                                if (response.ok) {
+                                    const newRow = await response.json();
+                                    setRows(rows.map((row) =>
+                                        row.analysis_id === newRow.analysis_id
+                                        ? { ...row, ...newRow }
+                                        : row
+                                    ));
+                                    enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
+                                } else {
+                                    console.error(response);
+                                }
+                            }
                     }}
                     cellEditable={{
                         onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>

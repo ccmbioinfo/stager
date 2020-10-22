@@ -45,7 +45,7 @@ export default function ParticipantTable() {
                 console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
             }
         });
-        
+
         fetch("/api/participants").then(async response => {
             if (response.ok) {
                 const participants = await response.json();

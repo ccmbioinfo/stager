@@ -1,18 +1,14 @@
 import React from 'react';
 
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-
-
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
-import FilesTable from './FilesTable';
+import {
+    FormControl,
+    Input,
+    InputLabel,
+    Select,
+    MenuItem
+} from '@material-ui/core';
 
 
 interface UploadDialogProps {

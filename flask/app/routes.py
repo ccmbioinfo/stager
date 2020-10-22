@@ -9,7 +9,7 @@ from io import StringIO
 
 from flask import abort, jsonify, request, Response
 from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc, inspect
+from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
 import pandas as pd
@@ -246,9 +246,16 @@ def update_entity(model_name:str, id:int):
     elif model_name == 'analyses':
         table = models.Analysis.query.get(id)
         editable_columns = ['analysis_state', 'pipeline_id', 'qsub_id', 'result_hpf_path',
-                            'assignee','requester', 'requested',  'started','finished',
-                            'notes'
-                            ]
+                            'requested', 'started','finished', 'notes']
+        if 'assignee' in request.json:
+            if not request.json['assignee']:
+                table.assignee = None
+            else:
+                assignee = models.User.query.filter(models.User.username == request.json['assignee']).first()
+                if assignee:
+                    table.assignee = assignee.user_id
+                else:
+                    return "assignee not found", 400
     else:
         return 'Not Found', 404
 
@@ -267,6 +274,13 @@ def update_entity(model_name:str, id:int):
 
     transaction_or_abort(db.session.commit)
 
+    if model_name == 'analyses':
+        return jsonify({
+            **asdict(table),
+            "assignee": table.assignee_user and table.assignee_user.username,
+            "requester": table.requester_user and table.requester_user.username,
+            "updated_by": table.updated_by_user and table.updated_by_user.username
+        })
     return jsonify(table)
 
 @app.route('/api/participants', methods=['GET'], endpoint='participants_list')
@@ -296,7 +310,7 @@ def participants_list():
 @login_required
 def analyses_list():
     since_date = request.args.get('since', default='0001-01-01T00:00:00-04:00')
-    try: 
+    try:
         since_date = datetime.fromisoformat(since_date)
     except:
         return 'Malformed query date', 400
@@ -335,7 +349,7 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
-@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@app.route('/api/datasets', methods=['GET'])
 @login_required
 def datasets_list():
     db_datasets = db.session.query(models.Dataset).options(
@@ -356,6 +370,34 @@ def datasets_list():
     return jsonify(datasets)
 
 
+@app.route('/api/datasets/<int:id>', methods=['GET'])
+@login_required
+def get_dataset(id: int):
+    dataset = models.Dataset.query.filter_by(dataset_id=id).options(
+        joinedload(models.Dataset.analyses),
+        joinedload(models.Dataset.tissue_sample).
+        joinedload(models.TissueSample.participant).
+        joinedload(models.Participant.family)
+     ).one_or_none()
+    if not dataset:
+        return 'Not Found', 404
+    else:
+        return jsonify({
+            **asdict(dataset),
+            'tissue_sample': dataset.tissue_sample,
+            'participant_codename': dataset.tissue_sample.participant.participant_codename,
+            'participant_type': dataset.tissue_sample.participant.participant_type,
+            'sex': dataset.tissue_sample.participant.sex,
+            'family_codename': dataset.tissue_sample.participant.family.family_codename,
+            'analyses': [{
+                **asdict(analysis),
+                'requester': analysis.requester_user.username,
+                'updated_by': analysis.updated_by_user.username,
+                'assignee': analysis.assignee_user and analysis.assignee_user.username
+            } for analysis in dataset.analyses]
+        })
+
+
 @app.route('/api/enums', methods = ['GET'])
 @login_required
 def get_enums():
@@ -368,7 +410,7 @@ def get_enums():
 
 def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[str]) -> Union[None, str]:
 
-    for field in columns: 
+    for field in columns:
         if field in json_mixin:
             column = getattr(entity, field) # the column type from the entities
             value = json_mixin[field]
@@ -382,7 +424,7 @@ def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[st
 @login_required
 def bulk_update():
 
-    dataset_ids = [] 
+    dataset_ids = []
 
     editable_dict = {'participant' : ['participant_codename', 'sex', 'participant_type',
                                         'month_of_birth', 'affected', 'solved', 'notes'],
@@ -434,7 +476,7 @@ def bulk_update():
         ptp_query =  models.Participant.query\
             .filter(models.Participant.family_id == fam_query.value('family_id'),
                     models.Participant.participant_codename == row.get('participant_codename'))
-                
+
         enum_error = enum_validate(models.Participant, row, editable_dict['participant'])
 
         if enum_error:
@@ -455,14 +497,14 @@ def bulk_update():
 
         db.session.add(ptp_objs)
         transaction_or_abort(db.session.flush)
-        
-        # tissue logic  
+
+        # tissue logic
 
         tis_query = models.TissueSample.query\
             .filter(models.TissueSample.participant_id == ptp_query.value('participant_id'))
 
         if not tis_query.value('tissue_sample_id'):
-            
+
             enum_error = enum_validate(models.TissueSample, row, editable_dict['tissue_sample'])
 
             if enum_error:
@@ -534,4 +576,67 @@ def bulk_update():
     return jsonify(datasets)
 
 
+@app.route('/api/analyses', methods = ['POST'])
+@login_required
+def post_analyses():
+
+    if not request.json:
+        return 'Request body must be JSON!', 400
+    try:
+        dts_pks = request.json['datasets']
+    except KeyError:
+        return 'No Dataset field provided', 400
+    try:
+        pipeline_pk = request.json['pipeline_id']
+    except KeyError:
+        return 'No Pipeline field provided', 400
+
+    if not dts_pks:
+        return 'No Dataset IDs provided', 400  
+
+    if not pipeline_pk:
+        return 'No Pipeline ID provided', 400
+        
+    if len(pipeline_pk) > 1:
+        return 'Only 1 Pipeline ID accepted', 400
+
+    pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
+
+
+    now = datetime.now()
+    requested = now
+    updated = now
+    analysis_state = 'Requested'
+    try:
+        requester = updated_by = current_user.user_id
+    except: # LOGIN DISABLED
+        requester = updated_by = 1
+
+  
+    obj = models.Analysis(**{'requested' : requested, 
+                            'analysis_state' : analysis_state, 
+                            'requester' : requester, 
+                            'updated_by': updated_by,
+                            'updated': updated,
+                            'requested': requested,
+                            'pipeline_id': pipeline_id})
+
+    db.session.add(obj)
+    transaction_or_abort(db.session.flush)
+    
+    # update the dataset_analyses table
+    dataset_analyses_obj  = [{'dataset_id': x, 
+                              'analysis_id': obj.analysis_id} 
+                              for x in dts_pks]
+
+    inst = models.datasets_analyses_table.insert().values(dataset_analyses_obj)
+    try:
+        db.session.execute(inst)
+    except:
+        db.session.rollback()
+        return 'Server error', 500
+
+    transaction_or_abort(db.session.commit)
+
+    return jsonify(obj)
 
