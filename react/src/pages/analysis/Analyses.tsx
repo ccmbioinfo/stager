@@ -227,7 +227,7 @@ export default function Analyses() {
                         setRows(newRows);
                         setCancel(false);
                         if (count > 0)
-                            enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
+                            enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`, { variant: "success" });
                         if (skipped > 0)
                             enqueueSnackbar(`${skipped} ${skipped !== 1 ? 'analyses were' : 'analysis was'} not running, and ${skipped !== 1 ? 'were' : 'was'} skipped`);
                         if (failed > 0)
@@ -281,7 +281,7 @@ export default function Analyses() {
                             }
                         }
                         setAssignment(false);
-                        enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`);
+                        enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`, { variant: "success" });
                         if (failed > 0) {
                             enqueueSnackbar(`${failed} analyses could not be assigned to '${username}'`, { variant: "error" });
                         }
@@ -406,7 +406,7 @@ export default function Analyses() {
                                 setRows(newRows);
                                 setCancel(false);
                                 if (count > 0)
-                                    enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
+                                    enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`, { variant: "success" });
                                 if (skipped > 0)
                                     enqueueSnackbar(`${skipped} ${skipped !== 1 ? 'analyses were' : 'analysis was'} already queued, and ${skipped !== 1 ? 'were' : 'was'} skipped`);
                                 if (failed > 0)
@@ -441,6 +441,7 @@ export default function Analyses() {
                                     ));
                                     enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
                                 } else {
+                                    enqueueSnackbar(`Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`, { variant: "error" });
                                     console.error(response);
                                 }
                             }
