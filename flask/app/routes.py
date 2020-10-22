@@ -540,9 +540,14 @@ def post_analyses():
 
     if not request.json:
         return 'Request body must be JSON!', 400
-
-    dts_pks = request.json['datasets']
-    pipeline_pk = request.json['pipeline_id']
+    try:
+        dts_pks = request.json['datasets']
+    except KeyError:
+        return 'No Dataset field provided', 400
+    try:
+        pipeline_pk = request.json['pipeline_id']
+    except KeyError:
+        return 'No Pipeline field provided', 400
 
     if not dts_pks:
         return 'No Dataset IDs provided', 400  
