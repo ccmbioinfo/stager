@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { makeStyles, Chip, IconButton, Typography } from '@material-ui/core';
+import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { countArray, toKeyValue } from '../utils';
-import { Participant, Sample, Dataset } from './MockData';
+import { countArray, toKeyValue, KeyValue, Participant, Sample, Dataset } from '../utils';
 import DatasetTypes from './DatasetTypes';
 import ParticipantDetailDialog from './ParticipantDetailDialog';
 
@@ -15,7 +14,7 @@ const useStyles = makeStyles(theme => ({
     },
     copyIcon: {
         marginLeft: theme.spacing(1),
-    }
+    },
 }));
 
 export default function ParticipantTable() {
@@ -24,10 +23,9 @@ export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-
-    const sexTypes = { 'F': 'Female', 'M': 'Male', 'O': 'Other' };
-    const datasetTypes = toKeyValue(['CES', 'CGS', 'CPS', 'RES', 'RGS', 'RLM', 'RMM', 'RRS', 'RTA','WES', 'WGS','RNASeq', 'RCS', 'RDC', 'RDE']);
-    const participantTypes = toKeyValue(['Proband', 'Mother', 'Father', 'Sibling']);
+    const [sexTypes, setSexTypes] = useState<KeyValue>({});
+    const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
+    const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if(!Array.isArray(rowData)){
@@ -37,6 +35,17 @@ export default function ParticipantTable() {
     }
 
     useEffect(() => {
+        fetch("/api/enums").then(async response => {
+            if (response.ok) {
+                const enums = await response.json();
+                setSexTypes(toKeyValue(enums.Sex));
+                setDatasetTypes(toKeyValue(enums.DatasetType));
+                setParticipantTypes(toKeyValue(enums.ParticipantType));
+            } else {
+                console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
+            }
+        });
+
         fetch("/api/participants").then(async response => {
             if (response.ok) {
                 const participants = await response.json();
@@ -45,13 +54,13 @@ export default function ParticipantTable() {
                     samples.forEach((sample: Sample) => {
                         const datasets = sample.datasets;
                         datasets.forEach((dataset: Dataset) => {
-                            participant['dataset_types'] ? 
+                            participant['dataset_types'] ?
                             participant['dataset_types'].push(dataset.dataset_type) :
                             participant['dataset_types'] = [dataset.dataset_type];
                         })
                     })
                 })
-                setParticipants(participants);
+                setParticipants(participants as Participant[]);
             } else {
                 console.error(`GET /api/participants failed with ${response.status}: ${response.statusText}`);
             }
@@ -74,7 +83,7 @@ export default function ParticipantTable() {
                     { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
                     { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
                     { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
-                    { title: 'Notes', field: 'notes', width: "50%", render: (rowData) => <Typography>{ rowData.notes }</Typography>},
+                    { title: 'Notes', field: 'notes', width: "50%" },
                     { title: 'Dataset Types', field: 'dataset_types', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />}
                 ]}
                 data={participants}

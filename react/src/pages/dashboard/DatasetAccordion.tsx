@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles, Accordion, AccordionSummary, AccordionDetails, Typography, Grid } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
-import { Dataset } from './MockData';
+import { Dataset } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {

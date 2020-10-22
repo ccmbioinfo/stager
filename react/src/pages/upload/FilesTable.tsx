@@ -1,8 +1,7 @@
 import React, { useState, useEffect }  from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Chip from '@material-ui/core/Chip';
+import { Chip } from '@material-ui/core';
 import MaterialTable, { MTableToolbar } from 'material-table';
-
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -12,28 +11,21 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-
-function createFile(object_name: string, owner_id: string, size: number, etag: string, last_modified : string) {
-    return { object_name, owner_id, size, etag, last_modified };
-}
-
-
 export default function FilesTable() {
     const classes = useStyles();
 
     const [data, setData] = useState([]);
-    const [iserror, setIserror] = useState(false)
-
 
     useEffect(() => {
         fetch("/api/objects").then(res => res.json()).then(res => {
             setData(res);
           })
           .catch(error=>{
-            setIserror(true)
+            console.error(error);
+            setData([]);
           })
       }, [])
-    
+
 
     return (
         <MaterialTable

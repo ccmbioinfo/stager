@@ -5,15 +5,8 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Typography, makeStyles
 } from '@material-ui/core';
-import { SlideUpTransition } from "../utils";
-import { Dataset } from './DatasetTable';
-
-export interface Pipeline {
-    pipeline_id: number;
-    pipeline_name: string;
-    pipeline_version: string;
-    supported_types: string[];
-}
+import { useSnackbar } from 'notistack';
+import { Dataset, Pipeline } from "../utils";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[],
@@ -34,11 +27,12 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
     const descriptionId = "analysis-runner-alert-dialog-slide-description";
     const [pipeline, setPipeline] = useState(NaN);
 
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
     return (
         <Dialog
             open={open}
             onClose={onClose}
-            TransitionComponent={SlideUpTransition}
             keepMounted
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
@@ -101,7 +95,18 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
                 <Button variant="outlined" onClick={onClose} color="primary">
                     Cancel
                 </Button>
-                <Button variant="contained" onClick={onClose} color="primary">
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        onClose();
+                        let p = pipelines.find((p) => p.pipeline_id === pipeline);
+                        if (p)
+                            enqueueSnackbar(`Analysis queued of ${datasets.length} datasets using pipeline ${p?.pipeline_name} ${p?.pipeline_version}`);
+                        else
+                            enqueueSnackbar(`Analysis cancelled, no pipeline selected!`, { variant: 'error' });
+                    }}
+                    color="primary"
+                >
                     Run analysis
                 </Button>
             </DialogActions>

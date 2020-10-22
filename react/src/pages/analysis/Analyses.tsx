@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useHistory, useLocation } from 'react-router';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
-import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
-import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
+import { Chip, IconButton, TextField, Container } from '@material-ui/core';
+import { Cancel, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
+import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -65,31 +67,6 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-export enum PipelineStatus {
-    PENDING = "Pending",
-    RUNNING = "Running",
-    COMPLETED = "Completed",
-    ERROR = "Error",
-    CANCELLED = "Cancelled"
-}
-
-export interface AnalysisRow {
-    analysis_id: string;
-    pipeline_id: string; // Display pipeline name?
-    result_hpf_path: string;
-    assignee: string;  // show ID or username?
-    requester: string; // show ID or username?
-    state: PipelineStatus;
-    updated: string; // Date type maybe?
-    notes: string;
-    selected: boolean; // used for optimizing data updating
-    /*
-    More fields can go here as required;
-    MaterialTable columns only need to cover a subset of
-    fields in this interface.
-    */
-}
-
 // generate fake analysis data
 export function createAnalysis(
     analysis_id: string,
@@ -99,7 +76,7 @@ export function createAnalysis(
     requester: string,
     state: PipelineStatus,
     updated: string,
-    notes: string): AnalysisRow {
+    notes: string): Analysis {
 
     return {
         analysis_id,
@@ -110,7 +87,14 @@ export function createAnalysis(
         state,
         updated,
         notes,
-        selected: false
+        selected: false,
+        datasetID: "ID",
+        analysisState: "state",
+        qsubID: "qsubID",
+        requested: "requested",
+        started: "started",
+        finished: "finished",
+        updatedBy: 1
     };
 }
 
@@ -138,21 +122,8 @@ type ParamTypes = {
     analysis_id: string | undefined
 }
 
-// Displays notes as an interactive tooltip
-function renderNotes(rowData: AnalysisRow) {
-    return (
-    <Tooltip title={
-        <>
-        <Typography variant="body1">{rowData.notes}</Typography>
-        </>
-    } interactive placement="left">
-        <IconButton><Description/></IconButton>
-    </Tooltip>
-    );
-}
-
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
-function rowsToString(rows: AnalysisRow[], delim?: string) {
+function rowsToString(rows: Analysis[], delim?: string) {
     let returnStr = "";
     if (delim) {
         rows.forEach((row) => returnStr = returnStr.concat(`${row.analysis_id}${delim}`));
@@ -167,72 +138,37 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
     return returnStr;
 }
 
-// How long to wait before refreshing data, in milliseconds
-// Default: 1 min
-const refreshTimeDelay = 1000 * 60;
-
-/**
- * Convert the provided JSON Array to a valid array of AnalysisRows.
- */
-function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
-    const rows: AnalysisRow[] = data.map((row, index, arr) => {
-        switch (row.analysis_state) {
-            case 'Requested':
-                row.state = PipelineStatus.PENDING;
-                break;
-            case 'Running':
-                row.state = PipelineStatus.RUNNING;
-                break;
-            case 'Done':
-                row.state = PipelineStatus.COMPLETED;
-                break;
-            case 'Error':
-                row.state = PipelineStatus.ERROR;
-                break;
-            case 'Cancelled':
-                row.state = PipelineStatus.CANCELLED;
-                break;
-            default:
-                row.state = null;
-                break;
-        }
-
-        return { ...row, selected: false } as AnalysisRow;
-    });
-    return rows;
-}
-
 /**
  * Returns whether this analysis is allowed to be cancelled.
  */
-function cancelFilter(row: AnalysisRow) {
+function cancelFilter(row: Analysis) {
     return row.state === PipelineStatus.RUNNING || row.state === PipelineStatus.PENDING;
 }
 
 /**
  * Returns whether this analysis is allowed to be run.
  */
-function runFilter(row: AnalysisRow) {
+function runFilter(row: Analysis) {
     return row.state === PipelineStatus.ERROR || row.state === PipelineStatus.CANCELLED;
 }
 
-export default function Analysis() {
+export default function Analyses() {
     const classes = useStyles();
     const { analysis_id }= useParams<ParamTypes>();
-    const [rows, setRows] = useState<AnalysisRow[]>([]);
+    const [rows, setRows] = useState<Analysis[]>([]);
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
 
     const detailRow = analyses.find(analysis => analysis.analysis_id === analysis_id);
-    const [activeRows, setActiveRows] = useState<AnalysisRow[]>(detailRow ? [detailRow] : []);
+    const [activeRows, setActiveRows] = useState<Analysis[]>(detailRow ? [detailRow] : []);
 
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
-    const [cancelAllowed, setCancelAllowed] = useState<boolean>(true);
-
     const history = useHistory();
+
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
@@ -241,14 +177,9 @@ export default function Analysis() {
         fetch('/api/analyses', { method: "GET" })
         .then(response => response.json())
         .then(data => {
-            const rows = jsonToAnalysisRows(data);
+            const rows = jsonToAnalyses(data);
             setRows(rows);
         });
-
-        // For when the user comes from the notification panel
-        if (activeRows.length > 0 && analysis_id)
-            setDetail(true);
-
     }, []);
 
     return (
@@ -259,7 +190,7 @@ export default function Analysis() {
                     open={cancel}
                     affectedRows={activeRows}
                     title={
-                        activeRows.length == 1
+                        activeRows.length === 1
                         ? `Stop Analysis?`
                         : `Stop Analyses?`
                     }
@@ -269,16 +200,19 @@ export default function Analysis() {
 
                         // If successful...
                         const newRows = [...rows];
+                        let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected && cancelFilter(row)) {
-                                const newRow: AnalysisRow = { ...newRows[index] };
+                                const newRow: Analysis = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
+                                count++;
                             }
                         });
 
                         setRows(newRows);
                         setCancel(false);
+                        enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -303,22 +237,30 @@ export default function Analysis() {
                     affectedRows={activeRows}
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
-                    onSubmit={(username) => {
-                        // TODO: PATCH goes here for setting assignees
-
-                        // If successful...
-                        const newRows = [...rows];
-                        newRows.forEach((row, index, arr) => {
-                            if (row.selected) {
-                                const newRow: AnalysisRow = { ...newRows[index] };
-                                newRow.assignee = username;
-                                newRows[index] = newRow;
+                    onSubmit={async (username) => {
+                        let count = 0;
+                        for (const row of activeRows) {
+                            const response = await fetch('/api/analyses/'+row.analysis_id, {
+                                method: "PATCH",
+                                body: JSON.stringify({ assignee: username }),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (response.ok) {
+                                const newRow = await response.json();
+                                setRows(rows.map((oldRow) =>
+                                    oldRow.analysis_id === newRow.analysis_id
+                                    ? { ...oldRow, ...newRow }
+                                    : oldRow
+                                ));
+                                count++;
+                            } else {
+                                console.error(response);
                             }
-                        });
-
-                        setRows(newRows);
+                        }
                         setAssignment(false);
-
+                        enqueueSnackbar(`${count} analyses assigned to user '${username}'`)
                     }}
                 />}
 
@@ -329,10 +271,10 @@ export default function Analysis() {
                         { title: 'Pipeline', field: 'pipeline_id', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Assignee', field: 'assignee', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
-                        { title: 'Updated', field: 'updated', type: 'string', editable: 'never' },
-                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string' },
+                        { title: 'Updated', field: 'updated', type: 'string', editable: 'never', render: rowData => formatDateString(rowData.updated) },
+                        { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string', emptyValue: emptyCellValue },
                         { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
-                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', /* render: renderNotes, */
+                        { title: 'Notes', field: 'notes', type: 'string', width: '30%', emptyValue: emptyCellValue,
                         editComponent: props => (
                             <TextField
                             multiline
@@ -350,7 +292,7 @@ export default function Analysis() {
 
                         if (row) {  // one row changed
                             const index = rows.indexOf(row);
-                            const newRow: AnalysisRow = { ...newRows[index] };
+                            const newRow: Analysis = { ...newRows[index] };
                             newRow.selected = !row.selected;
                             newRows[index] = newRow;
                         }
@@ -361,16 +303,6 @@ export default function Analysis() {
                                 newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: false });
                         }
                         setRows(newRows);
-
-                        // Check what actions are allowed
-                        let cancelAllowed = true;
-                        for (const row of selectedRows) {
-                            if ( !(row.state in [PipelineStatus.RUNNING, PipelineStatus.PENDING]) ) {
-                                cancelAllowed = false;
-                                break;
-                            }
-                        }
-                        setCancelAllowed(cancelAllowed);
                     }}
                     data={rows}
                     title={
@@ -390,9 +322,9 @@ export default function Analysis() {
                             position: 'row',
                             onClick: (event, rowData) => {
                                 // We can only view details of one row at a time
-                                setActiveRows([rowData as AnalysisRow]);
+                                setActiveRows([rowData as Analysis]);
                                 setDetail(true);
-                                history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
+                                history.push(`/analysis/${(rowData as Analysis).analysis_id}`);
                             }
                         },
                         {
@@ -400,7 +332,7 @@ export default function Analysis() {
                             tooltip: 'Cancel analysis',
                             position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as AnalysisRow[]);
+                                setActiveRows(rowData as Analysis[]);
                                 setCancel(true);
                             },
                         },
@@ -416,20 +348,23 @@ export default function Analysis() {
                             tooltip: 'Run analysis',
                             position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as AnalysisRow[]);
+                                setActiveRows(rowData as Analysis[]);
                                 // TODO: PATCH here to start pending analyses
 
                                 // If successful...
                                 const newRows = [...rows];
+                                let count = 0;
                                 newRows.forEach((row, index, arr) => {
                                     if (row.selected && runFilter(row)) {
-                                        const newRow: AnalysisRow = { ...newRows[index] };
+                                        const newRow: Analysis = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
+                                        count++;
                                     }
                                 });
 
                                 setRows(newRows);
+                                enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
                             },
                         },
                         {
@@ -437,32 +372,60 @@ export default function Analysis() {
                             tooltip: "Assign to...",
                             onClick: (event, rowData) => {
                                 // Data handled by SetAssigneeDialog onSubmit
-                                setActiveRows(rowData as AnalysisRow[]);
+                                setActiveRows(rowData as Analysis[]);
                                 setAssignment(true);
                             }
                         }
                     ]}
                     editable={{
-                        onRowUpdate: (newData, oldData) =>
-                            new Promise((resolve, reject) => {
-                                // TODO: Send PATCH here for editing notes or path
-
-                                const dataUpdate = [...rows];
-                                // find the row; assume analysis_id is unique
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === oldData?.analysis_id
+                        onRowUpdate: async (newData, oldData) => {
+                                const response = await fetch('/api/analyses/'+newData.analysis_id, {
+                                    method: "PATCH",
+                                    body: JSON.stringify({ notes: newData.notes, result_hpf_path: newData.result_hpf_path }),
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
                                 });
+                                if (response.ok) {
+                                    const newRow = await response.json();
+                                    setRows(rows.map((row) =>
+                                        row.analysis_id === newRow.analysis_id
+                                        ? { ...row, ...newRow }
+                                        : row
+                                    ));
+                                    enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
+                                } else {
+                                    console.error(response);
+                                }
+                            }
+                    }}
+                    cellEditable={{
+                        onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
+                            new Promise((resolve, reject) => {
+                                const dataUpdate = [...rows];
+                                const index = dataUpdate.findIndex((row, index, obj) => {
+                                    return row.analysis_id === editedRow.analysis_id;
+                                });
+                                const newRow: Analysis = { ...dataUpdate[index] };
 
-                                const newRow: AnalysisRow = { ...dataUpdate[index] };
+                                if (newValue === '')
+                                    newValue = null;
 
-                                // only update the columns that are allowed
-                                newRow.notes = newData.notes;
-                                newRow.result_hpf_path = newData.result_hpf_path;
+                                switch (columnDef.field) {
+                                    case 'result_hpf_path':
+                                        newRow.result_hpf_path = newValue;
+                                        break;
+                                    case 'notes':
+                                        newRow.notes = newValue;
+                                        break;
+                                    default:
+                                        break;
+                                }
                                 dataUpdate[index] = newRow;
                                 setRows(dataUpdate);
-
                                 resolve();
-                            })
+                            }),
+
                     }}
                     components={{
                         Toolbar: props => (
@@ -478,8 +441,7 @@ export default function Analysis() {
                                 </div>
                             </div>
                             )
-                        }
-                    }
+                    }}
                 />
             </Container>
         </main>

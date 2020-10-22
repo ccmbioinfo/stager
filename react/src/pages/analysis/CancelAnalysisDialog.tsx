@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider } from "@material-ui/core";
-import { SlideUpTransition } from "../utils";
-import { AnalysisRow } from './Analysis';
+import { Analysis } from "../utils";
 
 interface CancelAnalysisDialogProp {
     title: string,
@@ -10,8 +9,8 @@ interface CancelAnalysisDialogProp {
     describedByPrefix: string,
     onClose: (() => void),
     onAccept: (() => void),
-    affectedRows: AnalysisRow[],
-    cancelFilter: ((row: AnalysisRow) => boolean) // What rows are allowed to be cancelled
+    affectedRows: Analysis[],
+    cancelFilter: ((row: Analysis) => boolean) // What rows are allowed to be cancelled
 }
 
 export default function CancelAnalysisDialog({ title, open, labeledByPrefix, describedByPrefix, onClose, onAccept, affectedRows, cancelFilter }: CancelAnalysisDialogProp) {
@@ -28,7 +27,6 @@ export default function CancelAnalysisDialog({ title, open, labeledByPrefix, des
         <div>
             <Dialog
                 open={open}
-                TransitionComponent={SlideUpTransition}
                 keepMounted
                 onClose={onClose}
                 aria-labelledby={labeledBy}
@@ -48,7 +46,7 @@ export default function CancelAnalysisDialog({ title, open, labeledByPrefix, des
                 <DialogActions>
                     <Button onClick={onClose} color="primary">
                         Cancel
-          </Button>
+                    </Button>
                     <Button onClick={onAccept} color="primary">
                         Stop Analysis
           </Button>

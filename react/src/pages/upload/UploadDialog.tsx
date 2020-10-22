@@ -1,6 +1,4 @@
 import React from 'react';
-
-import { makeStyles } from '@material-ui/core/styles';
 import {
     Dialog,
     DialogTitle,
@@ -10,12 +8,8 @@ import {
     Tabs,
     Tab,
     Grid,
-    withStyles,
-    DialogTitleProps,
-    Typography,
-    IconButton
+    makeStyles
 } from '@material-ui/core';
-import { HelpOutline } from '@material-ui/icons';
 import UploadForm from './UploadForm';
 import { InputFileUpload } from './UploadCSV';
 
@@ -90,15 +84,11 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     }
 
     let tabContent;
-    if (tab == 1) {
+    if (tab === 1) {
         tabContent = (<UploadForm />);
     }
     else {
-        tabContent = (
-        <>
-            <InputFileUpload onUpload={onUpload} />
-        </>
-        );
+        tabContent = (<InputFileUpload onUpload={onUpload} />);
     }
 
     return (

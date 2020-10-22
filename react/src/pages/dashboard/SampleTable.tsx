@@ -1,8 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import MaterialTable from 'material-table';
+import { formatDateString, Sample } from '../utils';
 import DatasetAccordions from './DatasetAccordion';
-import { Sample } from './MockData';
 
 const useStyles = makeStyles(theme => ({
     table: {
@@ -26,9 +26,9 @@ export default function SamplesTable({ samples }: SamplesTableProp) {
                     { title: 'Sample Type', field: 'tissue_sample_type' },
                     { title: 'Tissue Processing', field: 'tissue_processing' },
                     { title: 'Notes', field: 'notes' },
-                    { title: 'Creation Time', field: 'created' },
+                    { title: 'Creation Time', field: 'created', render: rowData => formatDateString(rowData.created) },
                     { title: 'Create By', field: 'create_by' },
-                    { title: 'Update Time', field: 'updated' },
+                    { title: 'Update Time', field: 'updated', render: rowData => formatDateString(rowData.updated) },
                     { title: 'Updated By', field: 'updated_by' },
                 ]}
                 data={samples}
@@ -38,8 +38,9 @@ export default function SamplesTable({ samples }: SamplesTableProp) {
                     paging: false,
                     selection: false,
                     search: false,
+                    padding: "dense"
                 }}
-            />            
+            />
         </div>
     );
 }

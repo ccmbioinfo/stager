@@ -2,23 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { toKeyValue, KeyValue } from "../utils";
-import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
-
-export interface Dataset {
-    dataset_id: number;
-    tissue_sample_type: string;
-    participant_codename: string;
-    family_codename: string;
-    dataset_type: string;
-    input_hpf_path?: string;
-    notes?: string;
-    condition: string;
-    created: Date;
-    created_by: string;
-    updated: Date;
-    updated_by: string;
-}
+import { useSnackbar } from 'notistack';
+import { toKeyValue, KeyValue, Dataset, formatDateString, emptyCellValue, Pipeline } from "../utils";
+import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -44,6 +30,8 @@ export default function DatasetTable() {
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [conditions, setConditions] = useState<KeyValue>({});
 
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
     useEffect(() => {
         fetch("/api/enums").then(async response => {
             if (response.ok) {
@@ -57,7 +45,8 @@ export default function DatasetTable() {
         });
         fetch("/api/datasets").then(async response => {
             if (response.ok) {
-                setDatasets(await response.json());
+                const data = await response.json() as any[];
+                setDatasets(data);
             } else {
                 console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
             }
@@ -84,9 +73,9 @@ export default function DatasetTable() {
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
                     { title: 'Family', field: 'family_codename', editable: 'never' },
                     { title: 'Tissue Sample', field: 'tissue_sample_type', editable: 'never', lookup: tissueSampleTypes },
-                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes },
-                    { title: 'Condition', field: 'condition', lookup: conditions },
-                    { title: 'Notes', field: 'notes', editComponent: props => (
+                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes, emptyValue: emptyCellValue },
+                    { title: 'Condition', field: 'condition', lookup: conditions, emptyValue: emptyCellValue },
+                    { title: 'Notes', field: 'notes', emptyValue: emptyCellValue, editComponent: props => (
                         <TextField
                             multiline
                             value={props.value}
@@ -97,7 +86,7 @@ export default function DatasetTable() {
                     )},
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
-                    { title: 'Updated', field: 'updated', type: 'datetime', editable: 'never' },
+                    { title: 'Updated', field: 'updated', type: 'string', editable: 'never', render: rowData => formatDateString(rowData.updated) },
                     { title: 'Updated By', field: 'updated_by', editable: 'never' },
                 ]}
                 data={datasets}
@@ -106,7 +95,8 @@ export default function DatasetTable() {
                     pageSize: 10,
                     selection: true,
                     filtering: true,
-                    search: false
+                    search: false,
+                    padding: "dense"
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
@@ -126,10 +116,41 @@ export default function DatasetTable() {
                                 ? { ...dataset, ...updatedDataset }
                                 : dataset
                             ));
+                            enqueueSnackbar(`Row ID ${newDataset.dataset_id} updated successfully`);
                         } else {
                             console.error(`PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`);
                         }
                     }
+                }}
+                cellEditable={{
+                    onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
+                            new Promise((resolve, reject) => {
+                                const dataUpdate = [...datasets];
+                                const index = dataUpdate.findIndex((row, index, obj) => {
+                                    return row.dataset_id === editedRow.dataset_id;
+                                });
+                                const newRow: Dataset = { ...dataUpdate[index] };
+
+                                if (newValue === '')
+                                    newValue = null;
+
+                                switch (columnDef.field) {
+                                    case 'dataset_type':
+                                        newRow.dataset_type = newValue;
+                                        break;
+                                    case 'condition':
+                                        newRow.condition = newValue;
+                                        break;
+                                    case 'notes':
+                                        newRow.notes = newValue;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                dataUpdate[index] = newRow;
+                                setDatasets(dataUpdate);
+                                resolve();
+                            }),
                 }}
                 components={{
                     Toolbar: props => (

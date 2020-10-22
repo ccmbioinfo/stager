@@ -1,6 +1,6 @@
 import React from 'react';
 import MaterialTable from 'material-table';
-import { Analysis } from './MockData';
+import { Analysis, formatDateString } from '../utils';
 
 interface ParticipantInfoProp {
     participantID: string,
@@ -22,11 +22,11 @@ export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
                 { title: 'Result HPF Path', field: 'resultHpfPath' },
                 { title: 'Assignee', field: 'assignee' },
                 { title: 'Requester', field: 'requester' },
-                { title: 'Requested', field: 'requested' },
-                { title: 'Started', field: 'started' },
-                { title: 'Finished', field: 'finished' },
+                { title: 'Requested', field: 'requested', render: rowData => formatDateString(rowData.requested) },
+                { title: 'Started', field: 'started', render: rowData => formatDateString(rowData.started) },
+                { title: 'Finished', field: 'finished', render: rowData => formatDateString(rowData.finished) },
                 { title: 'Notes', field: 'notes' },
-                { title: 'Updated', field: 'updated' },
+                { title: 'Updated', field: 'updated', render: rowData => formatDateString(rowData.updated) },
                 { title: 'Updated By', field: 'updatedBy' },
             ]}
             data={analyses}
@@ -35,6 +35,7 @@ export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
                 paging: false,
                 selection: false,
                 search: false,
+                padding: "dense"
             }}
         />
     );
