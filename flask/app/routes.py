@@ -9,7 +9,7 @@ from io import StringIO
 
 from flask import abort, jsonify, request, Response
 from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc, inspect
+from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
 import pandas as pd
@@ -349,7 +349,7 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
-@app.route('/api/datasets', methods=['GET'], endpoint='datasets_list')
+@app.route('/api/datasets', methods=['GET'])
 @login_required
 def datasets_list():
     db_datasets = db.session.query(models.Dataset).options(
@@ -368,6 +368,34 @@ def datasets_list():
         } for dataset in db_datasets
     ]
     return jsonify(datasets)
+
+
+@app.route('/api/datasets/<int:id>', methods=['GET'])
+@login_required
+def get_dataset(id: int):
+    dataset = models.Dataset.query.filter_by(dataset_id=id).options(
+        joinedload(models.Dataset.analyses),
+        joinedload(models.Dataset.tissue_sample).
+        joinedload(models.TissueSample.participant).
+        joinedload(models.Participant.family)
+     ).one_or_none()
+    if not dataset:
+        return 'Not Found', 404
+    else:
+        return jsonify({
+            **asdict(dataset),
+            'tissue_sample': dataset.tissue_sample,
+            'participant_codename': dataset.tissue_sample.participant.participant_codename,
+            'participant_type': dataset.tissue_sample.participant.participant_type,
+            'sex': dataset.tissue_sample.participant.sex,
+            'family_codename': dataset.tissue_sample.participant.family.family_codename,
+            'analyses': [{
+                **asdict(analysis),
+                'requester': analysis.requester_user.username,
+                'updated_by': analysis.updated_by_user.username,
+                'assignee': analysis.assignee_user and analysis.assignee_user.username
+            } for analysis in dataset.analyses]
+        })
 
 
 @app.route('/api/enums', methods = ['GET'])
