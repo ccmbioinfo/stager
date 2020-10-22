@@ -246,9 +246,16 @@ def update_entity(model_name:str, id:int):
     elif model_name == 'analyses':
         table = models.Analysis.query.get(id)
         editable_columns = ['analysis_state', 'pipeline_id', 'qsub_id', 'result_hpf_path',
-                            'assignee','requester', 'requested',  'started','finished',
-                            'notes'
-                            ]
+                            'requested', 'started','finished', 'notes']
+        if 'assignee' in request.json:
+            if not request.json['assignee']:
+                table.assignee = None
+            else:
+                assignee = models.User.query.filter(models.User.username == request.json['assignee']).first()
+                if assignee:
+                    table.assignee = assignee.user_id
+                else:
+                    return "assignee not found", 400
     else:
         return 'Not Found', 404
 
@@ -267,6 +274,13 @@ def update_entity(model_name:str, id:int):
 
     transaction_or_abort(db.session.commit)
 
+    if model_name == 'analyses':
+        return jsonify({
+            **asdict(table),
+            "assignee": table.assignee_user and table.assignee_user.username,
+            "requester": table.requester_user and table.requester_user.username,
+            "updated_by": table.updated_by_user and table.updated_by_user.username
+        })
     return jsonify(table)
 
 @app.route('/api/participants', methods=['GET'], endpoint='participants_list')
@@ -296,7 +310,7 @@ def participants_list():
 @login_required
 def analyses_list():
     since_date = request.args.get('since', default='0001-01-01T00:00:00-04:00')
-    try: 
+    try:
         since_date = datetime.fromisoformat(since_date)
     except:
         return 'Malformed query date', 400
@@ -368,7 +382,7 @@ def get_enums():
 
 def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[str]) -> Union[None, str]:
 
-    for field in columns: 
+    for field in columns:
         if field in json_mixin:
             column = getattr(entity, field) # the column type from the entities
             value = json_mixin[field]
@@ -382,7 +396,7 @@ def enum_validate(entity: db.Model, json_mixin: Dict[str, any], columns: List[st
 @login_required
 def bulk_update():
 
-    dataset_ids = [] 
+    dataset_ids = []
 
     editable_dict = {'participant' : ['participant_codename', 'sex', 'participant_type',
                                         'month_of_birth', 'affected', 'solved', 'notes'],
@@ -434,7 +448,7 @@ def bulk_update():
         ptp_query =  models.Participant.query\
             .filter(models.Participant.family_id == fam_query.value('family_id'),
                     models.Participant.participant_codename == row.get('participant_codename'))
-                
+
         enum_error = enum_validate(models.Participant, row, editable_dict['participant'])
 
         if enum_error:
@@ -455,14 +469,14 @@ def bulk_update():
 
         db.session.add(ptp_objs)
         transaction_or_abort(db.session.flush)
-        
-        # tissue logic  
+
+        # tissue logic
 
         tis_query = models.TissueSample.query\
             .filter(models.TissueSample.participant_id == ptp_query.value('participant_id'))
 
         if not tis_query.value('tissue_sample_id'):
-            
+
             enum_error = enum_validate(models.TissueSample, row, editable_dict['tissue_sample'])
 
             if enum_error:
