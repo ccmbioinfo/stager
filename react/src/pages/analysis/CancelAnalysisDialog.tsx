@@ -48,7 +48,7 @@ export default function CancelAnalysisDialog({ title, open, labeledByPrefix, des
                 <DialogActions>
                     <Button onClick={onClose} color="primary">
                         Cancel
-          </Button>
+                    </Button>
                     <Button onClick={onAccept} color="primary">
                         Stop Analysis
           </Button>

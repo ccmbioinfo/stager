@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Container } from '@material-ui/core';
 import { Cancel, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -218,6 +219,8 @@ export default function Analysis() {
 
     const history = useHistory();
 
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
@@ -248,16 +251,19 @@ export default function Analysis() {
 
                         // If successful...
                         const newRows = [...rows];
+                        let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected && cancelFilter(row)) {
                                 const newRow: AnalysisRow = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
+                                count++;
                             }
                         });
 
                         setRows(newRows);
                         setCancel(false);
+                        enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -282,22 +288,30 @@ export default function Analysis() {
                     affectedRows={activeRows}
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
-                    onSubmit={(username) => {
-                        // TODO: PATCH goes here for setting assignees
-
-                        // If successful...
-                        const newRows = [...rows];
-                        newRows.forEach((row, index, arr) => {
-                            if (row.selected) {
-                                const newRow: AnalysisRow = { ...newRows[index] };
-                                newRow.assignee = username;
-                                newRows[index] = newRow;
+                    onSubmit={async (username) => {
+                        let count = 0;
+                        for (const row of activeRows) {
+                            const response = await fetch('/api/analyses/'+row.analysis_id, {
+                                method: "PATCH",
+                                body: JSON.stringify({ assignee: username }),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (response.ok) {
+                                const newRow = await response.json();
+                                setRows(rows.map((oldRow) =>
+                                    oldRow.analysis_id === newRow.analysis_id
+                                    ? { ...oldRow, ...newRow }
+                                    : oldRow
+                                ));
+                                count++;
+                            } else {
+                                console.error(response);
                             }
-                        });
-
-                        setRows(newRows);
+                        }
                         setAssignment(false);
-
+                        enqueueSnackbar(`${count} analyses assigned to user '${username}'`)
                     }}
                 />}
 
@@ -390,15 +404,18 @@ export default function Analysis() {
 
                                 // If successful...
                                 const newRows = [...rows];
+                                let count = 0;
                                 newRows.forEach((row, index, arr) => {
                                     if (row.selected && runFilter(row)) {
                                         const newRow: AnalysisRow = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
+                                        count++;
                                     }
                                 });
 
                                 setRows(newRows);
+                                enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
                             },
                         },
                         {
@@ -412,26 +429,26 @@ export default function Analysis() {
                         }
                     ]}
                     editable={{
-                        onRowUpdate: (newData, oldData) =>
-                            new Promise((resolve, reject) => {
-                                // TODO: Send PATCH here for editing notes or path
-
-                                const dataUpdate = [...rows];
-                                // find the row; assume analysis_id is unique
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === oldData?.analysis_id
+                        onRowUpdate: async (newData, oldData) => {
+                                const response = await fetch('/api/analyses/'+newData.analysis_id, {
+                                    method: "PATCH",
+                                    body: JSON.stringify({ notes: newData.notes, result_hpf_path: newData.result_hpf_path }),
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
                                 });
-
-                                const newRow: AnalysisRow = { ...dataUpdate[index] };
-
-                                // only update the columns that are allowed
-                                newRow.notes = newData.notes;
-                                newRow.result_hpf_path = newData.result_hpf_path;
-                                dataUpdate[index] = newRow;
-                                setRows(dataUpdate);
-
-                                resolve();
-                            })
+                                if (response.ok) {
+                                    const newRow = await response.json();
+                                    setRows(rows.map((row) =>
+                                        row.analysis_id === newRow.analysis_id
+                                        ? { ...row, ...newRow }
+                                        : row
+                                    ));
+                                    enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
+                                } else {
+                                    console.error(response);
+                                }
+                            }
                     }}
                     cellEditable={{
                         onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>

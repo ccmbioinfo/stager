@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core';
+import { IconButton, createMuiTheme, ThemeProvider } from '@material-ui/core';
+import { Close } from '@material-ui/icons';
+import { SnackbarKey, SnackbarProvider } from 'notistack';
 
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';
+
+const notistackRef = React.createRef<SnackbarProvider>();
+const onClickDismiss = (key: SnackbarKey) => () => {
+    notistackRef.current!.closeSnackbar(key);
+}
 
 const globalTheme = createMuiTheme({
     typography: {
@@ -45,7 +52,19 @@ function BaseApp() {
     if (authenticated === null) {
         return <></>;
     } else if (authenticated) {
-        return <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />;
+        return (
+            <SnackbarProvider
+                ref={notistackRef}
+                action={(key) => (
+                    <IconButton aria-label="close" color="inherit" onClick={onClickDismiss(key)}>
+                        <Close fontSize="small" />
+                    </IconButton>
+                )}
+                autoHideDuration={6000}
+            >
+                <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />
+            </SnackbarProvider>
+        );
     } else {
         return <LoginForm setAuthenticated={setAuthenticated} setLastLoginTime={setLastLoginTime} setGlobalUsername={setUsername} />;
     }

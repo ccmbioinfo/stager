@@ -98,7 +98,7 @@ export interface NavigationProps {
 
 export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
     const classes = useStyles();
-    const [open, setOpen] = React.useState(true);
+    const [open, setOpen] = React.useState(false);
     const [pageName, setPageName] = React.useState("Dashboard");
     
     const handleDrawerOpen = () => {
