@@ -75,7 +75,7 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
                     Requested by: {analysis.requester}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    Status: {analysis.state}
+                    Status: {analysis.analysis_state}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                     Last Updated: {analysis.updated}
