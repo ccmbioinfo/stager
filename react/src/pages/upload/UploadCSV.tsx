@@ -69,9 +69,9 @@ export function InputFileUpload(props: InputFileUploadProps) {
         />
         <label htmlFor="contained-button-file">
             <FileDrop
-                onDrop={(files, event) => {props.onUpload(files); onChange(files); setIsDragging(false)}}
-                onFrameDragEnter={(event) => {setIsDragging(true)}}
-                onFrameDragLeave={(event) => {setIsDragging(false)}}
+                onDrop={(files: FileList | null, event: React.DragEvent<HTMLDivElement>) => {props.onUpload(files); onChange(files); setIsDragging(false)}}
+                onFrameDragEnter={(event: DragEvent) => {setIsDragging(true)}}
+                onFrameDragLeave={(event: DragEvent) => {setIsDragging(false)}}
             >
                 <Box
                     display="flex"
