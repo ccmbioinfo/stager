@@ -548,4 +548,67 @@ def bulk_update():
     return jsonify(datasets)
 
 
+@app.route('/api/analyses', methods = ['POST'])
+@login_required
+def post_analyses():
+
+    if not request.json:
+        return 'Request body must be JSON!', 400
+    try:
+        dts_pks = request.json['datasets']
+    except KeyError:
+        return 'No Dataset field provided', 400
+    try:
+        pipeline_pk = request.json['pipeline_id']
+    except KeyError:
+        return 'No Pipeline field provided', 400
+
+    if not dts_pks:
+        return 'No Dataset IDs provided', 400  
+
+    if not pipeline_pk:
+        return 'No Pipeline ID provided', 400
+        
+    if len(pipeline_pk) > 1:
+        return 'Only 1 Pipeline ID accepted', 400
+
+    pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
+
+
+    now = datetime.now()
+    requested = now
+    updated = now
+    analysis_state = 'Requested'
+    try:
+        requester = updated_by = current_user.user_id
+    except: # LOGIN DISABLED
+        requester = updated_by = 1
+
+  
+    obj = models.Analysis(**{'requested' : requested, 
+                            'analysis_state' : analysis_state, 
+                            'requester' : requester, 
+                            'updated_by': updated_by,
+                            'updated': updated,
+                            'requested': requested,
+                            'pipeline_id': pipeline_id})
+
+    db.session.add(obj)
+    transaction_or_abort(db.session.flush)
+    
+    # update the dataset_analyses table
+    dataset_analyses_obj  = [{'dataset_id': x, 
+                              'analysis_id': obj.analysis_id} 
+                              for x in dts_pks]
+
+    inst = models.datasets_analyses_table.insert().values(dataset_analyses_obj)
+    try:
+        db.session.execute(inst)
+    except:
+        db.session.rollback()
+        return 'Server error', 500
+
+    transaction_or_abort(db.session.commit)
+
+    return jsonify(obj)
 
