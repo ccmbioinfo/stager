@@ -28,6 +28,7 @@ const useStyles = makeStyles(theme => ({
 
 export interface NotificationProps {
     analysis: Analysis,
+    onClick: () => void
 }
 
 enum Severity {
@@ -50,36 +51,37 @@ function createNotification(
     return { analysis_id, msg, severity };
 }
 
-const getNotificationInfo = (analysis: Analysis) => {
+function getNotificationInfo(analysis: Analysis) {
     const msg = `The status of ${analysis.analysis_id} has changed to `;
     switch (analysis.state) {
         case PipelineStatus.PENDING:
-            return createNotification(analysis.analysis_id, `${msg}PENDING`, Severity.PENDING)
+            return createNotification(analysis.analysis_id, `${msg}PENDING`, Severity.PENDING);
         case PipelineStatus.RUNNING:
-            return createNotification(analysis.analysis_id, `${msg}RUNNING`, Severity.RUNNING)
+            return createNotification(analysis.analysis_id, `${msg}RUNNING`, Severity.RUNNING);
         case PipelineStatus.COMPLETED:
-            return createNotification(analysis.analysis_id, `${msg}COMPLETED`, Severity.COMPLETED)
+            return createNotification(analysis.analysis_id, `${msg}COMPLETED`, Severity.COMPLETED);
         case PipelineStatus.ERROR:
-            return createNotification(analysis.analysis_id, `${msg}ERROR`, Severity.ERROR)
+            return createNotification(analysis.analysis_id, `${msg}ERROR`, Severity.ERROR);
     }
 }
 
-export default function Notification({ analysis } : NotificationProps) {
+export default function Notification({ analysis, onClick } : NotificationProps) {
     const classes = useStyles();
     const [hover, setHover] = useState(false);
+    console.log(analysis);
     const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
 
     return (
-        <Button className={classes.button} component={Link} to={`/analysis/${analysis_id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
-            
+        <Button className={classes.button} onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+
             <Tooltip title="Click to see detail">
                 {
-                    hover 
+                    hover
                     ? <Alert variant="filled" className={classes.msgBoxOnHover} severity={severity}>{ msg }</Alert>
-                    : <Alert className={classes.msgBox} severity={severity}>{ msg }</Alert> 
+                    : <Alert className={classes.msgBox} severity={severity}>{ msg }</Alert>
                 }
             </Tooltip>
         </Button>
-      
+
     );
 }

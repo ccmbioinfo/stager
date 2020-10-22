@@ -3,13 +3,14 @@ import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
 import { Analysis, jsonToAnalyses } from './utils';
+import AnalysisInfoDialog from './AnalysisInfoDialog';
 
 const useStyles = makeStyles(theme => ({
     popover: {
         minWidth: '450px',
     },
     paper: {
-        padding: theme.spacing(2), 
+        padding: theme.spacing(2),
     },
     notifications: {
         '& > * + *': {
@@ -37,6 +38,8 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [analyses, setAnalyses] = useState<Analysis[]>([] as Analysis[]);
     const popoverOpen = Boolean(anchorEl);
+    const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
 
     const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -45,7 +48,8 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         setAnchorEl(null);
     };
     useEffect(() => {
-        const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
+        const lastLoginISO = new Date(Date.UTC(0, 0)).toISOString().slice(0, -1);
+        // const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
         fetch(`/api/analyses?since=${lastLoginISO}`).then(async response => {
             if (response.ok) {
                 const result = jsonToAnalyses(await response.json());
@@ -89,12 +93,18 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                         </Box>
                         <Box>
                             <div className={classes.notifications}>
-                                {analyses.map(analysis => <Notification analysis={analysis} />)}
+                                {analyses.map(analysis => <Notification analysis={analysis} onClick={() => { setClickedAnalysis(analysis); setOpenDialog(true); }}/>)}
                             </div>
                         </Box>
                     </Paper>
                 </div>
-            </Popover>  
+            </Popover>
+            {clickedAnalysis !== null &&
+            <AnalysisInfoDialog
+            open={openDialog}
+            onClose={() => { setOpenDialog(false); }}
+            analysis={clickedAnalysis}
+            />}
         </div>
     );
 }

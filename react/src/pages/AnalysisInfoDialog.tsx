@@ -6,9 +6,9 @@ import MuiDialogContent from '@material-ui/core/DialogContent';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
-import DatasetTable from './DatasetTable';
-import { Analysis } from '../utils';
-import ChipStrip from './ChipStrip';
+import DatasetTable from './analysis/DatasetTable';
+import { Analysis } from './utils';
+import ChipStrip from './analysis/ChipStrip';
 
 interface AlertInfoDialogProp {
     open: boolean,

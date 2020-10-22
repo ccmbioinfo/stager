@@ -7,7 +7,7 @@ import MaterialTable, { MTableToolbar } from 'material-table';
 import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
-import AnalysisInfoDialog from './AnalysisInfoDialog';
+import AnalysisInfoDialog from '../AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
 import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses } from '../utils';
