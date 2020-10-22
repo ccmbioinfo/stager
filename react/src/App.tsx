@@ -6,9 +6,9 @@ import React, { useState, useEffect } from 'react';
 import LoginForm from './pages/Login';
 import Navigation from './pages/Navigation';
 
-const notistackRef = React.createRef<any>();
+const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
-    notistackRef.current.closeSnackbar(key);
+    notistackRef.current!.closeSnackbar(key);
 }
 
 export default function App() {
