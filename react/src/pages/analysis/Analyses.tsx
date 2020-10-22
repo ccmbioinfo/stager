@@ -86,7 +86,14 @@ export function createAnalysis(
         state,
         updated,
         notes,
-        selected: false
+        selected: false,
+        datasetID: "ID",
+        analysisState: "state",
+        qsubID: "qsubID",
+        requested: "requested",
+        started: "started",
+        finished: "finished",
+        updatedBy: 1
     };
 }
 

@@ -152,14 +152,13 @@ export interface Analysis {
     updated: string,
     notes: string,
     selected: boolean,
-    //TODO: need to remove "?" after fake analyses are removed from Analyses.tsx
-    datasetID?: string,
-    analysisState?: string,
-    qsubID?: string,
-    requested?: string,
-    started?: string,
-    finished?: string,
-    updatedBy?: number,
+    datasetID: string,
+    analysisState: string,
+    qsubID: string,
+    requested: string,
+    started: string,
+    finished: string,
+    updatedBy: number,
 }
 export interface Pipeline {
     pipeline_id: number;

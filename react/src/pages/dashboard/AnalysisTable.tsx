@@ -22,12 +22,11 @@ export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
                 { title: 'Result HPF Path', field: 'resultHpfPath' },
                 { title: 'Assignee', field: 'assignee' },
                 { title: 'Requester', field: 'requester' },
-                //need to change back to formatDateString(rowData.requested) after createAnalysis in Analyses.tsx is removed
-                { title: 'Requested', field: 'requested', render: rowData => rowData.requested ? formatDateString(rowData.requested) : "" },
-                { title: 'Started', field: 'started', render: rowData => rowData.started ? formatDateString(rowData.started) : "" },
-                { title: 'Finished', field: 'finished', render: rowData => rowData.finished ? formatDateString(rowData.finished) : "" },
+                { title: 'Requested', field: 'requested', render: rowData => formatDateString(rowData.requested) },
+                { title: 'Started', field: 'started', render: rowData => formatDateString(rowData.started) },
+                { title: 'Finished', field: 'finished', render: rowData => formatDateString(rowData.finished) },
                 { title: 'Notes', field: 'notes' },
-                { title: 'Updated', field: 'updated', render: rowData => rowData.updated ? formatDateString(rowData.updated) : "" },
+                { title: 'Updated', field: 'updated', render: rowData => formatDateString(rowData.updated) },
                 { title: 'Updated By', field: 'updatedBy' },
             ]}
             data={analyses}
