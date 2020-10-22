@@ -62,13 +62,14 @@ function getNotificationInfo(analysis: Analysis) {
             return createNotification(analysis.analysis_id, `${msg}COMPLETED`, Severity.COMPLETED);
         case PipelineStatus.ERROR:
             return createNotification(analysis.analysis_id, `${msg}ERROR`, Severity.ERROR);
+        case PipelineStatus.CANCELLED:
+            return createNotification(analysis.analysis_id, `${msg}CANCELLED`, Severity.ERROR);
     }
 }
 
 export default function Notification({ analysis, onClick } : NotificationProps) {
     const classes = useStyles();
     const [hover, setHover] = useState(false);
-    console.log(analysis);
     const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
 
     return (
