@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { countArray, toKeyValue, KeyValue } from '../utils';
-import { Participant, Sample, Dataset } from './MockData';
+import { countArray, toKeyValue, KeyValue, Participant, Sample, Dataset } from '../utils';
 import DatasetTypes from './DatasetTypes';
 import ParticipantDetailDialog from './ParticipantDetailDialog';
 

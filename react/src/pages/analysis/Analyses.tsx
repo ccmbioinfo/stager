@@ -10,7 +10,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { emptyCellValue, formatDateString } from '../utils';
+import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -67,31 +67,6 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-export enum PipelineStatus {
-    PENDING = "Pending",
-    RUNNING = "Running",
-    COMPLETED = "Completed",
-    ERROR = "Error",
-    CANCELLED = "Cancelled"
-}
-
-export interface AnalysisRow {
-    analysis_id: string;
-    pipeline_id: string; // Display pipeline name?
-    result_hpf_path: string;
-    assignee: string;  // show ID or username?
-    requester: string; // show ID or username?
-    state: PipelineStatus;
-    updated: string; // Date type maybe?
-    notes: string;
-    selected: boolean; // used for optimizing data updating
-    /*
-    More fields can go here as required;
-    MaterialTable columns only need to cover a subset of
-    fields in this interface.
-    */
-}
-
 // generate fake analysis data
 export function createAnalysis(
     analysis_id: string,
@@ -101,7 +76,7 @@ export function createAnalysis(
     requester: string,
     state: PipelineStatus,
     updated: string,
-    notes: string): AnalysisRow {
+    notes: string): Analysis {
 
     return {
         analysis_id,
@@ -112,7 +87,14 @@ export function createAnalysis(
         state,
         updated,
         notes,
-        selected: false
+        selected: false,
+        datasetID: "ID",
+        analysisState: "state",
+        qsubID: "qsubID",
+        requested: "requested",
+        started: "started",
+        finished: "finished",
+        updatedBy: 1
     };
 }
 
@@ -141,7 +123,7 @@ type ParamTypes = {
 }
 
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
-function rowsToString(rows: AnalysisRow[], delim?: string) {
+function rowsToString(rows: Analysis[], delim?: string) {
     let returnStr = "";
     if (delim) {
         rows.forEach((row) => returnStr = returnStr.concat(`${row.analysis_id}${delim}`));
@@ -157,63 +139,30 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
 }
 
 /**
- * Convert the provided JSON Array to a valid array of AnalysisRows.
- */
-export function jsonToAnalysisRows(data: Array<any>): AnalysisRow[] {
-    const rows: AnalysisRow[] = data.map((row, index, arr) => {
-        row.updated = formatDateString(row.updated);
-
-        switch (row.analysis_state) {
-            case 'Requested':
-                row.state = PipelineStatus.PENDING;
-                break;
-            case 'Running':
-                row.state = PipelineStatus.RUNNING;
-                break;
-            case 'Done':
-                row.state = PipelineStatus.COMPLETED;
-                break;
-            case 'Error':
-                row.state = PipelineStatus.ERROR;
-                break;
-            case 'Cancelled':
-                row.state = PipelineStatus.CANCELLED;
-                break;
-            default:
-                row.state = null;
-                break;
-        }
-
-        return { ...row, selected: false } as AnalysisRow;
-    });
-    return rows;
-}
-
-/**
  * Returns whether this analysis is allowed to be cancelled.
  */
-function cancelFilter(row: AnalysisRow) {
+function cancelFilter(row: Analysis) {
     return row.state === PipelineStatus.RUNNING || row.state === PipelineStatus.PENDING;
 }
 
 /**
  * Returns whether this analysis is allowed to be run.
  */
-function runFilter(row: AnalysisRow) {
+function runFilter(row: Analysis) {
     return row.state === PipelineStatus.ERROR || row.state === PipelineStatus.CANCELLED;
 }
 
-export default function Analysis() {
+export default function Analyses() {
     const classes = useStyles();
     const { analysis_id }= useParams<ParamTypes>();
-    const [rows, setRows] = useState<AnalysisRow[]>([]);
+    const [rows, setRows] = useState<Analysis[]>([]);
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
 
     const detailRow = analyses.find(analysis => analysis.analysis_id === analysis_id);
-    const [activeRows, setActiveRows] = useState<AnalysisRow[]>(detailRow ? [detailRow] : []);
+    const [activeRows, setActiveRows] = useState<Analysis[]>(detailRow ? [detailRow] : []);
 
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
@@ -228,7 +177,7 @@ export default function Analysis() {
         fetch('/api/analyses', { method: "GET" })
         .then(response => response.json())
         .then(data => {
-            const rows = jsonToAnalysisRows(data);
+            const rows = jsonToAnalyses(data);
             setRows(rows);
         });
     }, []);
@@ -254,7 +203,7 @@ export default function Analysis() {
                         let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected && cancelFilter(row)) {
-                                const newRow: AnalysisRow = { ...newRows[index] };
+                                const newRow: Analysis = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
                                 count++;
@@ -343,7 +292,7 @@ export default function Analysis() {
 
                         if (row) {  // one row changed
                             const index = rows.indexOf(row);
-                            const newRow: AnalysisRow = { ...newRows[index] };
+                            const newRow: Analysis = { ...newRows[index] };
                             newRow.selected = !row.selected;
                             newRows[index] = newRow;
                         }
@@ -373,9 +322,9 @@ export default function Analysis() {
                             position: 'row',
                             onClick: (event, rowData) => {
                                 // We can only view details of one row at a time
-                                setActiveRows([rowData as AnalysisRow]);
+                                setActiveRows([rowData as Analysis]);
                                 setDetail(true);
-                                history.push(`/analysis/${(rowData as AnalysisRow).analysis_id}`);
+                                history.push(`/analysis/${(rowData as Analysis).analysis_id}`);
                             }
                         },
                         {
@@ -383,7 +332,7 @@ export default function Analysis() {
                             tooltip: 'Cancel analysis',
                             position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as AnalysisRow[]);
+                                setActiveRows(rowData as Analysis[]);
                                 setCancel(true);
                             },
                         },
@@ -399,7 +348,7 @@ export default function Analysis() {
                             tooltip: 'Run analysis',
                             position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as AnalysisRow[]);
+                                setActiveRows(rowData as Analysis[]);
                                 // TODO: PATCH here to start pending analyses
 
                                 // If successful...
@@ -407,7 +356,7 @@ export default function Analysis() {
                                 let count = 0;
                                 newRows.forEach((row, index, arr) => {
                                     if (row.selected && runFilter(row)) {
-                                        const newRow: AnalysisRow = { ...newRows[index] };
+                                        const newRow: Analysis = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
                                         count++;
@@ -423,7 +372,7 @@ export default function Analysis() {
                             tooltip: "Assign to...",
                             onClick: (event, rowData) => {
                                 // Data handled by SetAssigneeDialog onSubmit
-                                setActiveRows(rowData as AnalysisRow[]);
+                                setActiveRows(rowData as Analysis[]);
                                 setAssignment(true);
                             }
                         }
@@ -457,7 +406,7 @@ export default function Analysis() {
                                 const index = dataUpdate.findIndex((row, index, obj) => {
                                     return row.analysis_id === editedRow.analysis_id;
                                 });
-                                const newRow: AnalysisRow = { ...dataUpdate[index] };
+                                const newRow: Analysis = { ...dataUpdate[index] };
 
                                 if (newValue === '')
                                     newValue = null;

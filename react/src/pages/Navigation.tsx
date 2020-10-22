@@ -13,7 +13,7 @@ import {
 } from '@material-ui/icons';
 
 import Dashboard from './dashboard/Dashboard';
-import Analysis from './analysis/Analysis';
+import Analyses from './analysis/Analyses';
 import Datasets from './datasets/Datasets';
 import Uploads from './upload/Uploads';
 import Settings from './settings/Settings';
@@ -177,8 +177,8 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                 </Drawer>
                 <Switch>
                     <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
-                    <Route path="/analysis/:analysis_id" render={() => {setPageName("Analyses"); return <Analysis />}} />
-                    <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analysis />}} />
+                    <Route path="/analysis/:analysis_id" render={() => {setPageName("Analyses"); return <Analyses />}} />
+                    <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analyses />}} />
                     <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
                     <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />

@@ -1,7 +1,6 @@
 import React from 'react';
 import MaterialTable from 'material-table';
-import { formatDateString } from '../utils';
-import { Analysis } from './MockData';
+import { Analysis, formatDateString } from '../utils';
 
 interface ParticipantInfoProp {
     participantID: string,

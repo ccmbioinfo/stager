@@ -6,15 +6,7 @@ import {
     Typography, makeStyles
 } from '@material-ui/core';
 import { useSnackbar } from 'notistack';
-import { SlideUpTransition } from "../utils";
-import { Dataset } from './DatasetTable';
-
-export interface Pipeline {
-    pipeline_id: number;
-    pipeline_name: string;
-    pipeline_version: string;
-    supported_types: string[];
-}
+import { Dataset, Pipeline } from "../utils";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[],
@@ -41,7 +33,6 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
         <Dialog
             open={open}
             onClose={onClose}
-            TransitionComponent={SlideUpTransition}
             keepMounted
             aria-labelledby={titleId}
             aria-describedby={descriptionId}

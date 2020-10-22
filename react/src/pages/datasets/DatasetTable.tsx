@@ -3,23 +3,8 @@ import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { useSnackbar } from 'notistack';
-import { toKeyValue, KeyValue, formatDateString, emptyCellValue } from "../utils";
-import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
-
-export interface Dataset {
-    dataset_id: number;
-    tissue_sample_type: string;
-    participant_codename: string;
-    family_codename: string;
-    dataset_type: string;
-    input_hpf_path?: string;
-    notes?: string;
-    condition: string;
-    created: string; // date
-    created_by: string;
-    updated: string; // date
-    updated_by: string;
-}
+import { toKeyValue, KeyValue, Dataset, formatDateString, emptyCellValue, Pipeline } from "../utils";
+import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {

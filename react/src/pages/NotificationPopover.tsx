@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
-import { AnalysisRow, jsonToAnalysisRows } from './analysis/Analysis';
+import { Analysis, jsonToAnalyses } from './utils';
 
 const useStyles = makeStyles(theme => ({
     popover: {
@@ -35,7 +35,7 @@ export interface NotificationPopoverProps {
 export default function NotificationPopover({ lastLoginTime }: NotificationPopoverProps) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [analyses, setAnalyses] = useState<AnalysisRow[]>([] as AnalysisRow[]);
+    const [analyses, setAnalyses] = useState<Analysis[]>([] as Analysis[]);
     const popoverOpen = Boolean(anchorEl);
 
     const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -48,7 +48,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
         fetch(`/api/analyses?since=${lastLoginISO}`).then(async response => {
             if (response.ok) {
-                const result = jsonToAnalysisRows(await response.json());
+                const result = jsonToAnalyses(await response.json());
                 setAnalyses(result);
             } else {
                 console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);

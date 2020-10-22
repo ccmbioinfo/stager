@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button, ButtonGroup,  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@material-ui/core';
-import { AnalysisRow } from './Analysis';
+import { Analysis } from '../utils';
 
 interface SetAssigneeDialogProps {
-    affectedRows: AnalysisRow[],
+    affectedRows: Analysis[],
     open: boolean,
     onSubmit: (username: string) => void,
     onClose: () => void
