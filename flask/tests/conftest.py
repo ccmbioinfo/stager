@@ -11,7 +11,7 @@ def application():
     yield test_app
 
 
-@pytest.fixture()
+@pytest.fixture(scope="class")
 def client(application):
     """
     A test client that can issue requests.
