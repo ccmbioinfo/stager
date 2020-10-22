@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useHistory, useLocation } from 'react-router';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
@@ -9,7 +9,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { emptyCellValue, formatDateString, Analysis, PipelineStatus } from '../utils';
+import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -146,37 +146,6 @@ function rowsToString(rows: Analysis[], delim?: string) {
 // How long to wait before refreshing data, in milliseconds
 // Default: 1 min
 const refreshTimeDelay = 1000 * 60;
-
-/**
- * Convert the provided JSON Array to a valid array of Analysiss.
- */
-export function jsonToAnalyses(data: Array<any>): Analysis[] {
-    const rows: Analysis[] = data.map((row, index, arr) => {
-        switch (row.analysis_state) {
-            case 'Requested':
-                row.state = PipelineStatus.PENDING;
-                break;
-            case 'Running':
-                row.state = PipelineStatus.RUNNING;
-                break;
-            case 'Done':
-                row.state = PipelineStatus.COMPLETED;
-                break;
-            case 'Error':
-                row.state = PipelineStatus.ERROR;
-                break;
-            case 'Cancelled':
-                row.state = PipelineStatus.CANCELLED;
-                break;
-            default:
-                row.state = null;
-                break;
-        }
-
-        return { ...row, selected: false } as Analysis;
-    });
-    return rows;
-}
 
 /**
  * Returns whether this analysis is allowed to be cancelled.

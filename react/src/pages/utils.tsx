@@ -1,12 +1,4 @@
-import React, { forwardRef, ReactElement, Ref } from "react";
-import { Slide, Transitions as TransitionProps } from "@material-ui/core";
-
 /*****   CONSTANTS   *****/
-export const SlideUpTransition = forwardRef((
-    props: TransitionProps & { children?: ReactElement },
-    ref: Ref<unknown>,
-) => <Slide direction="up" ref={ref} {...props} />);
-
 export const emptyCellValue = "<empty>";
 
 const months = [
@@ -65,6 +57,36 @@ export function formatDateString(date: string) {
     return date;
 }
 
+/**
+ * Convert the provided JSON Array to a valid array of Analysis.
+ */
+export function jsonToAnalyses(data: Array<any>): Analysis[] {
+    const rows: Analysis[] = data.map((row, index, arr) => {
+        switch (row.analysis_state) {
+            case 'Requested':
+                row.state = PipelineStatus.PENDING;
+                break;
+            case 'Running':
+                row.state = PipelineStatus.RUNNING;
+                break;
+            case 'Done':
+                row.state = PipelineStatus.COMPLETED;
+                break;
+            case 'Error':
+                row.state = PipelineStatus.ERROR;
+                break;
+            case 'Cancelled':
+                row.state = PipelineStatus.CANCELLED;
+                break;
+            default:
+                row.state = null;
+                break;
+        }
+        return { ...row, selected: false } as Analysis;
+    });
+    return rows;
+}
+
 /*****   INTERFACES   *****/
 export interface Participant {
     participant_id: string,
@@ -121,15 +143,15 @@ export interface Dataset {
     discriminator: string,
 }
 export interface Analysis {
-    analysis_id: string;
-    pipeline_id: string;
-    result_hpf_path: string;
-    assignee: string;
-    requester: string;
-    state: PipelineStatus;
-    updated: string;
-    notes: string;
-    selected: boolean;
+    analysis_id: string,
+    pipeline_id: string,
+    result_hpf_path: string,
+    assignee: string,
+    requester: string,
+    state: PipelineStatus,
+    updated: string,
+    notes: string,
+    selected: boolean,
     //TODO: need to remove "?" after fake analyses are removed from Analyses.tsx
     datasetID?: string,
     analysisState?: string,
@@ -138,6 +160,12 @@ export interface Analysis {
     started?: string,
     finished?: string,
     updatedBy?: number,
+}
+export interface Pipeline {
+    pipeline_id: number;
+    pipeline_name: string;
+    pipeline_version: string;
+    supported_types: string[];
 }
 
 /*****   ENUMS   *****/

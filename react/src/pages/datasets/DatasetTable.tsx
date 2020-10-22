@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
-import { toKeyValue, KeyValue, Dataset, formatDateString, emptyCellValue } from "../utils";
-import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
+import { toKeyValue, KeyValue, Dataset, formatDateString, emptyCellValue, Pipeline } from "../utils";
+import AnalysisRunnerDialog from './AnalysisRunnerDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {

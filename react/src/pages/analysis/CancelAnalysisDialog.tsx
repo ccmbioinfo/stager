@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider } from "@material-ui/core";
-import { SlideUpTransition, Analysis } from "../utils";
+import { Analysis } from "../utils";
 
 interface CancelAnalysisDialogProp {
     title: string,
@@ -27,7 +27,6 @@ export default function CancelAnalysisDialog({ title, open, labeledByPrefix, des
         <div>
             <Dialog
                 open={open}
-                TransitionComponent={SlideUpTransition}
                 keepMounted
                 onClose={onClose}
                 aria-labelledby={labeledBy}

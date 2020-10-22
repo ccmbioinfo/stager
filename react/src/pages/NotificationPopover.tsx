@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
-import { jsonToAnalyses } from './analysis/Analyses';
-import { Analysis } from './utils';
+import { Analysis, jsonToAnalyses } from './utils';
 
 const useStyles = makeStyles(theme => ({
     popover: {
