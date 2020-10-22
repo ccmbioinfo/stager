@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
 import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
@@ -237,6 +238,8 @@ export default function Analysis() {
 
     const history = useHistory();
 
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
@@ -272,16 +275,19 @@ export default function Analysis() {
 
                         // If successful...
                         const newRows = [...rows];
+                        let count = 0;
                         newRows.forEach((row, index, arr) => {
                             if (row.selected && cancelFilter(row)) {
                                 const newRow: AnalysisRow = { ...newRows[index] };
                                 newRow.state = PipelineStatus.CANCELLED;
                                 newRows[index] = newRow;
+                                count++;
                             }
                         });
 
                         setRows(newRows);
                         setCancel(false);
+                        enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -307,6 +313,7 @@ export default function Analysis() {
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
                     onSubmit={async (username) => {
+                        let count = 0;
                         for (const row of activeRows) {
                             const response = await fetch('/api/analyses/'+row.analysis_id, {
                                 method: "PATCH",
@@ -322,12 +329,13 @@ export default function Analysis() {
                                     ? { ...oldRow, ...newRow }
                                     : oldRow
                                 ));
+                                count++;
                             } else {
                                 console.error(response);
                             }
                         }
                         setAssignment(false);
-
+                        enqueueSnackbar(`${count} analyses assigned to user '${username}'`)
                     }}
                 />}
 
@@ -430,15 +438,18 @@ export default function Analysis() {
 
                                 // If successful...
                                 const newRows = [...rows];
+                                let count = 0;
                                 newRows.forEach((row, index, arr) => {
                                     if (row.selected && runFilter(row)) {
                                         const newRow: AnalysisRow = { ...newRows[index] };
                                         newRow.state = PipelineStatus.RUNNING;
                                         newRows[index] = newRow;
+                                        count++;
                                     }
                                 });
 
                                 setRows(newRows);
+                                enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
                             },
                         },
                         {
@@ -467,6 +478,7 @@ export default function Analysis() {
                                         ? { ...row, ...newRow }
                                         : row
                                     ));
+                                    enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
                                 } else {
                                     console.error(response);
                                 }
