@@ -1,14 +1,14 @@
 import React from 'react';
 import clsx from 'clsx';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
-import { 
+import {
     makeStyles, CssBaseline, Drawer, AppBar, Toolbar, List, ListItem, ListItemIcon, ListItemText,
     Typography, Divider, IconButton, Tooltip
 } from '@material-ui/core';
 import {
-    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dashboard as DashboardIcon, 
-    People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon, 
-    ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon, 
+    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dashboard as DashboardIcon,
+    People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon,
+    ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon,
     AccountCircle as AccountCircleIcon
 } from '@material-ui/icons';
 
@@ -100,7 +100,7 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const [pageName, setPageName] = React.useState("Dashboard");
-    
+
     const handleDrawerOpen = () => {
         setOpen(true);
     };
@@ -177,7 +177,6 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                 </Drawer>
                 <Switch>
                     <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
-                    <Route path="/analysis/:analysis_id" render={() => {setPageName("Analyses"); return <Analyses />}} />
                     <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analyses />}} />
                     <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />

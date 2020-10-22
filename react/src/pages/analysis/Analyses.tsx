@@ -223,7 +223,7 @@ export default function Analyses() {
                 <AnalysisInfoDialog
                     open={detail}
                     analysis={activeRows[0]}
-                    onClose={() => {setDetail(false); if(analysis_id){history.goBack()}}}
+                    onClose={() => { setDetail(false) }}
                 />}
 
             <AddAnalysisAlert
@@ -324,7 +324,6 @@ export default function Analyses() {
                                 // We can only view details of one row at a time
                                 setActiveRows([rowData as Analysis]);
                                 setDetail(true);
-                                history.push(`/analysis/${(rowData as Analysis).analysis_id}`);
                             }
                         },
                         {
