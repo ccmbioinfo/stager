@@ -373,12 +373,12 @@ def datasets_list():
 @app.route('/api/datasets/<int:id>', methods=['GET'])
 @login_required
 def get_dataset(id: int):
-    dataset = db.session.query(models.Dataset).filter_by(dataset_id=id).options(
+    dataset = models.Dataset.query.filter_by(dataset_id=id).options(
         joinedload(models.Dataset.analyses),
         joinedload(models.Dataset.tissue_sample).
         joinedload(models.TissueSample.participant).
         joinedload(models.Participant.family)
-     ).one()
+     ).one_or_none()
     if not dataset:
         return 'Not Found', 404
     else:
