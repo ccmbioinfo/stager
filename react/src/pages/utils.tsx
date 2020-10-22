@@ -1,15 +1,34 @@
 import React, { forwardRef, ReactElement, Ref } from "react";
-import { Slide } from "@material-ui/core";
-import { TransitionProps } from "@material-ui/core/transitions";
+import { Slide, Transitions as TransitionProps } from "@material-ui/core";
 
+/*****   CONSTANTS   *****/
 export const SlideUpTransition = forwardRef((
     props: TransitionProps & { children?: ReactElement },
     ref: Ref<unknown>,
 ) => <Slide direction="up" ref={ref} {...props} />);
 
+export const emptyCellValue = "<empty>";
+
+const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+];
+
+/*****   TYPINGS   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
 
+/*****   FUNCTIONS   *****/
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
         if (counts[item]) {
@@ -27,28 +46,6 @@ export function toKeyValue(items: string[]) {
         return map;
     }, Object.create(null));
 }
-
-export enum PipelineStatus {
-    PENDING = "Pending",
-    RUNNING = "Running",
-    COMPLETED = "Completed",
-    ERROR = "Error",
-    CANCELLED = "Cancelled"
-}
-const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-];
 
 /**
  * Return a date string in the format "YYYY-MM-DD", if possible.
@@ -68,9 +65,7 @@ export function formatDateString(date: string) {
     return date;
 }
 
-export const emptyCellValue = "<empty>";
-
-/*****   COMMON TYPINGS   *****/
+/*****   INTERFACES   *****/
 export interface Participant {
     participant_id: string,
     participant_codename: string,
@@ -88,7 +83,6 @@ export interface Participant {
     updated_by: number,
     tissue_samples: Sample[]
 }
-
 export interface Sample {
     sampleID: string,
     extractionDate: string,
@@ -101,7 +95,6 @@ export interface Sample {
     updated: string,
     updatedBy: number,
 }
-
 export interface Dataset {
     dataset_id: string,
     participant_codename: string,
@@ -127,18 +120,17 @@ export interface Dataset {
     updated_by: number,
     discriminator: string,
 }
-
 export interface Analysis {
     analysis_id: string;
-    pipeline_id: string; // Display pipeline name?
+    pipeline_id: string;
     result_hpf_path: string;
-    assignee: string;  // show ID or username?
-    requester: string; // show ID or username?
+    assignee: string;
+    requester: string;
     state: PipelineStatus;
-    updated: string; // Date type maybe?
+    updated: string;
     notes: string;
     selected: boolean;
-    
+    //TODO: need to remove "?" after fake analyses are removed from Analyses.tsx
     datasetID?: string,
     analysisState?: string,
     qsubID?: string,
@@ -146,4 +138,13 @@ export interface Analysis {
     started?: string,
     finished?: string,
     updatedBy?: number,
+}
+
+/*****   ENUMS   *****/
+export enum PipelineStatus {
+    PENDING = "Pending",
+    RUNNING = "Running",
+    COMPLETED = "Completed",
+    ERROR = "Error",
+    CANCELLED = "Cancelled"
 }
