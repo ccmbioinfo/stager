@@ -9150,6 +9150,13 @@ react-error-overlay@^6.0.7:
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.7.tgz#1dcfb459ab671d53f660a991513cb2f0a0553108"
   integrity sha512-TAv1KJFh3RhqxNvhzxj6LeT5NWklP6rDr2a0jaTfsZ5wSZWHOGeqQyejUp3xxLfPt2UpyJEcVQB/zyPcmonNFA==
 
+react-file-drop@^3.0.7:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/react-file-drop/-/react-file-drop-3.1.0.tgz#54f2f433f306f9179997b632f7c349c6ff0e0d4e"
+  integrity sha512-VaDXCU2DNLKwlistNEc0yWy3VEr7UyokLEs0Dz6FHSdXtoCRYmA1i1bBaDG5i1DAhrtQueOuBAI40C1keI38cw==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-is@^16.12.0, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.0, react-is@^16.8.1, react-is@^16.8.4, react-is@^16.9.0:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"

@@ -1,25 +1,17 @@
 import React from 'react';
-
-import { makeStyles } from '@material-ui/core/styles';
 import {
     Dialog,
     DialogTitle,
     DialogContent,
-    Typography,
     Button,
     ButtonGroup,
-    ExpansionPanel,
-    ExpansionPanelDetails,
-    ExpansionPanelSummary,
     Tabs,
     Tab,
-    Grid
+    Grid,
+    makeStyles
 } from '@material-ui/core';
-import { Description, ExpandMore } from '@material-ui/icons';
-
-import FilesTable from './FilesTable';
 import UploadForm from './UploadForm';
-
+import { InputFileUpload } from './UploadCSV';
 
 interface UploadDialogProps {
     open: boolean,
@@ -55,16 +47,48 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+function sendFile(file: File | null) {
+    if (file !== null) {
+        // Upload
+        fetch('/api/_bulk', {
+            method: 'POST',
+            body: file,
+            headers: new Headers({
+                'Content-Type': 'text/csv'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error(error);
+        })
+    }
+}
+
 export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const classes = useStyles();
     const [tab, changeTab] = React.useState(0);
+    const [file, setFile] = React.useState<File | null>(null);
+
+    // File reference gets set here
+    function onUpload(files: FileList | null) {
+        if (files && files[0]) {
+            setFile(files[0]);
+            console.log(files[0].name);
+        }
+        else {
+            setFile(null);
+        }
+    }
 
     let tabContent;
-    if (tab === 0) {
-        tabContent = <UploadForm />
+    if (tab === 1) {
+        tabContent = (<UploadForm />);
     }
     else {
-        tabContent = <Button variant="outlined"> Upload Excel Sample Sheet <Description/> </Button>
+        tabContent = (<InputFileUpload onUpload={onUpload} />);
     }
 
     return (
@@ -75,7 +99,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
             maxWidth='md'
         >
             <DialogTitle>
-                Enter Sample Metadata
+                Upload Sample Data
             </DialogTitle>
             <DialogContent dividers className={classes.dialog}>
                 <Tabs
@@ -83,28 +107,18 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                     className={classes.tabs}
                     onChange={(event: React.ChangeEvent<{}>, newTab: number) => changeTab(newTab)}
                 >
-                    <Tab label="Form Entry" />
-                    <Tab label="Excel Entry" />
+                    <Tab label="CSV Upload" />
+                    <Tab label="Manual Form Entry" />
                 </Tabs>
                 <Grid container className={classes.tabPanel}>
                     <Grid item xs={12} className={classes.gridItem} >
                         {tabContent}
                     </Grid>
-                    <Grid item xs={12} className={classes.gridItem}>
-                        <ExpansionPanel >
-                            <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                                <Typography>Link to Existing Dataset</Typography>
-                            </ExpansionPanelSummary>
-                            <ExpansionPanelDetails>
-                                <FilesTable />
-                            </ExpansionPanelDetails>
-                        </ExpansionPanel>
-                    </Grid>
                     <Grid item xs={10}></Grid>
                     <Grid item xs={2} className={classes.gridItem} >
                         <ButtonGroup variant="contained">
                             <Button onClick={onClose}>Cancel</Button>
-                            <Button onClick={onClose} color="primary">Add</Button>
+                            <Button onClick={() => {sendFile(file); onClose()}} color="primary">Add</Button>
                         </ButtonGroup>
                     </Grid>
                 </Grid>
