@@ -48,8 +48,10 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         setAnchorEl(null);
     };
     useEffect(() => {
-        const lastLoginISO = new Date(Date.UTC(0, 0)).toISOString().slice(0, -1);
-        // const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
+        // debugging
+        // const lastLoginISO = new Date(Date.UTC(0, 0)).toISOString().slice(0, -1);
+        // actual
+        const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
         fetch(`/api/analyses?since=${lastLoginISO}`).then(async response => {
             if (response.ok) {
                 const result = jsonToAnalyses(await response.json());
