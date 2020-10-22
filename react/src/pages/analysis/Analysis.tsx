@@ -306,20 +306,26 @@ export default function Analysis() {
                     affectedRows={activeRows}
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
-                    onSubmit={(username) => {
-                        // TODO: PATCH goes here for setting assignees
-
-                        // If successful...
-                        const newRows = [...rows];
-                        newRows.forEach((row, index, arr) => {
-                            if (row.selected) {
-                                const newRow: AnalysisRow = { ...newRows[index] };
-                                newRow.assignee = username;
-                                newRows[index] = newRow;
+                    onSubmit={async (username) => {
+                        for (const row of activeRows) {
+                            const response = await fetch('/api/analyses/'+row.analysis_id, {
+                                method: "PATCH",
+                                body: JSON.stringify({ assignee: username }),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (response.ok) {
+                                const newRow = await response.json();
+                                setRows(rows.map((oldRow) =>
+                                    oldRow.analysis_id === newRow.analysis_id
+                                    ? { ...oldRow, ...newRow }
+                                    : oldRow
+                                ));
+                            } else {
+                                console.error(response);
                             }
-                        });
-
-                        setRows(newRows);
+                        }
                         setAssignment(false);
 
                     }}
@@ -446,26 +452,25 @@ export default function Analysis() {
                         }
                     ]}
                     editable={{
-                        onRowUpdate: (newData, oldData) =>
-                            new Promise((resolve, reject) => {
-                                // TODO: Send PATCH here for editing notes or path
-
-                                const dataUpdate = [...rows];
-                                // find the row; assume analysis_id is unique
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === oldData?.analysis_id
+                        onRowUpdate: async (newData, oldData) => {
+                                const response = await fetch('/api/analyses/'+newData.analysis_id, {
+                                    method: "PATCH",
+                                    body: JSON.stringify({ notes: newData.notes, result_hpf_path: newData.result_hpf_path }),
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
                                 });
-
-                                const newRow: AnalysisRow = { ...dataUpdate[index] };
-
-                                // only update the columns that are allowed
-                                newRow.notes = newData.notes;
-                                newRow.result_hpf_path = newData.result_hpf_path;
-                                dataUpdate[index] = newRow;
-                                setRows(dataUpdate);
-
-                                resolve();
-                            })
+                                if (response.ok) {
+                                    const newRow = await response.json();
+                                    setRows(rows.map((row) =>
+                                        row.analysis_id === newRow.analysis_id
+                                        ? { ...row, ...newRow }
+                                        : row
+                                    ));
+                                } else {
+                                    console.error(response);
+                                }
+                            }
                     }}
                     cellEditable={{
                         onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
