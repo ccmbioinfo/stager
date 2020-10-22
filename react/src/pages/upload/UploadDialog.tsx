@@ -1,7 +1,21 @@
 import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
-import { Dialog, DialogTitle, DialogContent, Button, ButtonGroup, Tabs, Tab, Grid } from '@material-ui/core';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    Button,
+    ButtonGroup,
+    Tabs,
+    Tab,
+    Grid,
+    withStyles,
+    DialogTitleProps,
+    Typography,
+    IconButton
+} from '@material-ui/core';
+import { HelpOutline } from '@material-ui/icons';
 import UploadForm from './UploadForm';
 import { InputFileUpload } from './UploadCSV';
 

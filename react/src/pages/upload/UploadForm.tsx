@@ -1,21 +1,7 @@
 import React, { useState } from 'react';
 
-import { makeStyles, Theme } from '@material-ui/core/styles';
-
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-
-
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
-import FilesTable from './FilesTable';
+import { makeStyles } from '@material-ui/core/styles';
 import MaterialTable from 'material-table';
-import { Divider, IconButton } from '@material-ui/core';
-import { AddCircle } from '@material-ui/icons';
 
 
 interface UploadDialogProps {
@@ -145,13 +131,13 @@ export default function UploadForm() {
         columns={columns}
         data={rows}
         editable={{
-          onRowAdd: newRow => 
+          onRowAdd: newRow =>
             new Promise((resolve, reject) => {
               // TODO: check that FamilyID and ParticipantID are unique
               setRows([...rows, newRow]);
               resolve();
             }),
-          onRowUpdate: (newRow, oldRow) => 
+          onRowUpdate: (newRow, oldRow) =>
             new Promise((resolve, reject) => {
               // TODO: check that FamilyID and ParticipantID are unique
               if (!oldRow)
