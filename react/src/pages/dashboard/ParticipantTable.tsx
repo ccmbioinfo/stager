@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { makeStyles, Chip, IconButton, Typography } from '@material-ui/core';
+import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { countArray, toKeyValue, KeyValue } from '../utils';
@@ -46,7 +46,7 @@ export default function ParticipantTable() {
                 console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
             }
         });
-        
+
         fetch("/api/participants").then(async response => {
             if (response.ok) {
                 const participants = await response.json();

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useHistory, useLocation } from 'react-router';
+import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
-import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
-import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
-import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
+import { Chip, IconButton, TextField, Container } from '@material-ui/core';
+import { Cancel, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
+import MaterialTable, { MTableToolbar } from 'material-table';
 import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
@@ -140,19 +140,6 @@ type ParamTypes = {
     analysis_id: string | undefined
 }
 
-// Displays notes as an interactive tooltip
-function renderNotes(rowData: AnalysisRow) {
-    return (
-    <Tooltip title={
-        <>
-        <Typography variant="body1">{rowData.notes}</Typography>
-        </>
-    } interactive placement="left">
-        <IconButton><Description/></IconButton>
-    </Tooltip>
-    );
-}
-
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: AnalysisRow[], delim?: string) {
     let returnStr = "";
@@ -168,10 +155,6 @@ function rowsToString(rows: AnalysisRow[], delim?: string) {
     }
     return returnStr;
 }
-
-// How long to wait before refreshing data, in milliseconds
-// Default: 1 min
-const refreshTimeDelay = 1000 * 60;
 
 /**
  * Convert the provided JSON Array to a valid array of AnalysisRows.
@@ -234,8 +217,6 @@ export default function Analysis() {
 
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
-    const [cancelAllowed, setCancelAllowed] = useState<boolean>(true);
-
     const history = useHistory();
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -250,11 +231,6 @@ export default function Analysis() {
             const rows = jsonToAnalysisRows(data);
             setRows(rows);
         });
-
-        // For when the user comes from the notification panel
-        if (activeRows.length > 0 && analysis_id)
-            setDetail(true);
-
     }, []);
 
     return (
@@ -265,7 +241,7 @@ export default function Analysis() {
                     open={cancel}
                     affectedRows={activeRows}
                     title={
-                        activeRows.length == 1
+                        activeRows.length === 1
                         ? `Stop Analysis?`
                         : `Stop Analyses?`
                     }
@@ -378,16 +354,6 @@ export default function Analysis() {
                                 newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: false });
                         }
                         setRows(newRows);
-
-                        // Check what actions are allowed
-                        let cancelAllowed = true;
-                        for (const row of selectedRows) {
-                            if ( !(row.state in [PipelineStatus.RUNNING, PipelineStatus.PENDING]) ) {
-                                cancelAllowed = false;
-                                break;
-                            }
-                        }
-                        setCancelAllowed(cancelAllowed);
                     }}
                     data={rows}
                     title={
