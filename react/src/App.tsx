@@ -1,7 +1,7 @@
+import React, { useState, useEffect } from 'react';
 import { IconButton } from '@material-ui/core';
 import { Close } from '@material-ui/icons';
 import { SnackbarKey, SnackbarProvider } from 'notistack';
-import React, { useState, useEffect } from 'react';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
 import LoginForm from './pages/Login';

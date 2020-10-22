@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
 import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
 import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import { toKeyValue, KeyValue, formatDateString, emptyCellValue } from "../utils";
 import AnalysisRunnerDialog, { Pipeline } from './AnalysisRunnerDialog';
-import { useSnackbar } from 'notistack';
 
 export interface Dataset {
     dataset_id: number;

@@ -4,12 +4,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Tooltip, Typography, Container } from '@material-ui/core';
 import { Cancel, Description, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
 import MaterialTable, { MTableCell, MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import Title from '../Title';
 import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from './AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { useSnackbar } from 'notistack';
 import { emptyCellValue, formatDateString } from '../utils';
 
 const useStyles = makeStyles(theme => ({
