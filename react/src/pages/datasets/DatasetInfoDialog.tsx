@@ -10,7 +10,7 @@ const useStyles = makeStyles(theme => ({
         paddingRight: theme.spacing(2),
     },
     paper: {
-        padding: theme.spacing(2),
+        padding: theme.spacing(1),
         marginBottom: theme.spacing(3),
     },
     root: {
@@ -89,8 +89,8 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
         .then(data => {
             let temp = Object.assign({}, { ...data, analyses: undefined, tissue_sample: undefined });
             setDataset(temp as Dataset);
-            setAnalyses(temp.analyses as Analysis[]);
-            setSample(temp.tissue_sample as Sample);
+            setAnalyses(data.analyses as Analysis[]);
+            setSample(data.tissue_sample as Sample);
         })
         .catch(error => {console.error(error)});
 
@@ -148,12 +148,18 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                     </>
                     }
                 </Paper>
-                <Paper>
+
+                {sample &&
+                <Paper className={classes.paper} elevation={2}>
                     Associated Sample goes here
                 </Paper>
-                <Paper>
+                }
+
+                {analyses.length > 0 &&
+                <Paper className={classes.paper} elevation={2}>
                     Analyses go here
                 </Paper>
+                }
             </DialogContent>
         </Dialog>
     );
