@@ -63,7 +63,6 @@ export default function ParticipantTable() {
                     })
                 })
                 setParticipants(participants as Participant[]);
-                console.log(participants)
             } else {
                 console.error(`GET /api/participants failed with ${response.status}: ${response.statusText}`);
             }
@@ -128,7 +127,7 @@ export default function ParticipantTable() {
                             ));
                             enqueueSnackbar(`Participant ${newParticipant.participant_codename} updated successfully`);
                         } else {
-                            console.error(`PATCH /api/datasets/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`);
+                            console.error(`PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`);
                         }
                     }
                 }}
