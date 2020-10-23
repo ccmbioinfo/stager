@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton } from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton, Collapse, Button, Divider } from '@material-ui/core';
 import { Close } from '@material-ui/icons';
 import { Dataset, Analysis, Sample } from '../utils';
 
@@ -23,6 +23,9 @@ const useStyles = makeStyles(theme => ({
         top: theme.spacing(1),
         color: theme.palette.grey[500],
     },
+    grid: {
+        paddingBottom: theme.spacing(2)
+    }
 }));
 
 interface DialogTitleProps {
@@ -78,6 +81,8 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
+    const [moreDetails, setMoreDetails] = useState(false);
+
     useEffect(() => {
         fetch('/api/datasets/'+dataset_id)
         .then(response => response.json())
@@ -99,7 +104,8 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             <DialogContent className={classes.datasetInfo} dividers>
                 <Paper className={classes.paper} elevation={2}>
                     {dataset &&
-                    <Grid container spacing={2} justify="space-evenly">
+                    <>
+                    <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
                         <Grid item xs={6}>
                             {getInfo('Dataset ID', dataset.dataset_id)}
                             {getInfo('Dataset Type', dataset.dataset_type)}
@@ -115,6 +121,9 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             {getInfo('Updated', dataset.updated)}
                             {getInfo('Updated By', dataset.updated_by)}
                         </Grid>
+                    </Grid>
+                    <Collapse in={moreDetails}>
+                    <Grid container spacing={2} justify="space-evenly">
                         <Grid item xs={6}>
                             {getInfo('Batch ID', dataset.batch_id)}
                             {getInfo('HPF Path', dataset.input_hpf_path)}
@@ -132,7 +141,18 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             {getInfo('Sequencing Centre', dataset.sequencing_centre)}
                         </Grid>
                     </Grid>
+                    </Collapse>
+                    <Button onClick={() => {setMoreDetails(!moreDetails)}}>
+                        Show {moreDetails ? 'fewer' : 'more'} details
+                    </Button>
+                    </>
                     }
+                </Paper>
+                <Paper>
+                    Associated Sample goes here
+                </Paper>
+                <Paper>
+                    Analyses go here
                 </Paper>
             </DialogContent>
         </Dialog>
