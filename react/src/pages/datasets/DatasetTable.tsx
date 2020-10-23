@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
-import { PlayArrow, Delete, Cancel } from '@material-ui/icons';
+import { PlayArrow, Delete, Cancel, Visibility } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { useSnackbar } from 'notistack';
 import { toKeyValue, KeyValue, Dataset, formatDateString, emptyCellValue, Pipeline } from "../utils";
 import AnalysisRunnerDialog from './AnalysisRunnerDialog';
+import DatasetInfoDialog from './DatasetInfoDialog';
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -29,6 +30,10 @@ export default function DatasetTable() {
     const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [conditions, setConditions] = useState<KeyValue>({});
+
+    const [showInfo, setShowInfo] = useState(false);
+    const [infoDataset, setInfoDataset] = useState<Dataset>();
+
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -68,6 +73,11 @@ export default function DatasetTable() {
                 open={showRunner}
                 onClose={() => setRunner(false)}
             />
+            {infoDataset && <DatasetInfoDialog
+                dataset={infoDataset}
+                open={showInfo}
+                onClose={() => setShowInfo(false)}
+            />}
             <MaterialTable
                 columns={[
                     { title: 'Participant', field: 'participant_codename', editable: 'never' },
@@ -171,6 +181,7 @@ export default function DatasetTable() {
                     {
                         tooltip: 'Delete selected datasets',
                         icon: Delete,
+                        position: 'toolbarOnSelect',
                         onClick: (evt, data) => {
                             const sampleString = (data as Dataset[])
                                 .map(dataset => `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`)
@@ -181,9 +192,19 @@ export default function DatasetTable() {
                     {
                         tooltip: 'Analyze selected datasets',
                         icon: PlayArrow,
+                        position: 'toolbarOnSelect',
                         onClick: (evt, data) => {
                             setSelectedDatasets(data as Dataset[])
                             setRunner(true)
+                        }
+                    },
+                    {
+                        tooltip: 'View dataset details',
+                        icon: Visibility,
+                        position: 'row',
+                        onClick: (event, data) => {
+                            setInfoDataset(data as Dataset);
+                            setShowInfo(true);
                         }
                     }
                 ]}
