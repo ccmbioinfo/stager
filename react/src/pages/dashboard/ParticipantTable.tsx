@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles, Chip, IconButton } from '@material-ui/core';
 import { Cancel, FileCopy } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
+import { useSnackbar } from 'notistack';
 import { countArray, toKeyValue, KeyValue, Participant, Sample, Dataset } from '../utils';
 import DatasetTypes from './DatasetTypes';
 import ParticipantDetailDialog from './ParticipantDetailDialog';
@@ -26,6 +27,7 @@ export default function ParticipantTable() {
     const [sexTypes, setSexTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if(!Array.isArray(rowData)){
@@ -61,6 +63,7 @@ export default function ParticipantTable() {
                     })
                 })
                 setParticipants(participants as Participant[]);
+                console.log(participants)
             } else {
                 console.error(`GET /api/participants failed with ${response.status}: ${response.statusText}`);
             }
@@ -77,14 +80,14 @@ export default function ParticipantTable() {
                 />}
            <MaterialTable
                 columns={[
-                    { title: 'Participant Codename', field: 'participant_codename', align: 'center'},
-                    { title: 'Family Codename', field: 'family_codename', align: 'center'},
-                    { title: 'Participant Type', field: 'participant_type' , align: 'center', lookup: participantTypes, defaultFilter: filter},
-                    { title: 'Affected', field: 'affected', type: 'boolean', align: 'center'},
-                    { title: 'Solved', field: 'solved', type: 'boolean', align: 'center'},
-                    { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes},
+                    { title: 'Participant Codename', field: 'participant_codename', align: 'center' },
+                    { title: 'Family Codename', field: 'family_codename', align: 'center' },
+                    { title: 'Participant Type', field: 'participant_type' , align: 'center', lookup: participantTypes, defaultFilter: filter },
+                    { title: 'Affected', field: 'affected', type: 'boolean', align: 'center' },
+                    { title: 'Solved', field: 'solved', type: 'boolean', align: 'center' },
+                    { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes },
                     { title: 'Notes', field: 'notes', width: "50%" },
-                    { title: 'Dataset Types', field: 'dataset_types', align: 'center', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />}
+                    { title: 'Dataset Types', field: 'dataset_types', align: 'center', editable:'never', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} /> }
                 ]}
                 data={participants}
                 title='Participants'
@@ -108,6 +111,26 @@ export default function ParticipantTable() {
                             </div>
                         </div>
                     ),
+                }}
+                editable={{
+                    onRowUpdate: async (newParticipant, oldParticipant) => {
+                        const response = await fetch(`/api/participants/${newParticipant.participant_id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newParticipant)
+                        });
+                        if (response.ok) {
+                            const updatedParticipant = await response.json();
+                            setParticipants(participants.map(participant =>
+                                participant.participant_id === newParticipant.participant_id
+                                ? { ...participant, ...updatedParticipant }
+                                : participant
+                            ));
+                            enqueueSnackbar(`Participant ${newParticipant.participant_codename} updated successfully`);
+                        } else {
+                            console.error(`PATCH /api/datasets/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`);
+                        }
+                    }
                 }}
                 actions={[
                     {
