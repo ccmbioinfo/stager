@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton } from '@material-ui/core';
 import { Close } from '@material-ui/icons';
-import { Dataset } from '../utils';
+import { Dataset, Analysis, Sample } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -66,21 +66,39 @@ const stringifyBool = (value: boolean) => {
 
 interface DialogProp {
     open: boolean,
-    dataset: Dataset,
+    dataset_id: string,
     onClose: (() => void),
 }
 
-export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp) {
+export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
+
+    const [dataset, setDataset] = useState<Dataset>();
+    const [analyses, setAnalyses] = useState<Analysis[]>([]);
+    const [sample, setSample] = useState<Sample>();
+
+    useEffect(() => {
+        fetch('/api/datasets/'+dataset_id)
+        .then(response => response.json())
+        .then(data => {
+            let temp = Object.assign({}, { ...data, analyses: undefined, tissue_sample: undefined });
+            setDataset(temp as Dataset);
+            setAnalyses(temp.analyses as Analysis[]);
+            setSample(temp.tissue_sample as Sample);
+        })
+        .catch(error => {console.error(error)});
+
+    }, [dataset_id]);
 
     return (
         <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='lg' fullWidth={true}>
             <DialogHeader id={labeledBy} onClose={onClose}>
-                Details of Dataset ID {dataset.dataset_id}
+                Details of Dataset ID {dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <Paper className={classes.paper} elevation={2}>
+                    {dataset &&
                     <Grid container spacing={2} justify="space-evenly">
                         <Grid item xs={6}>
                             {getInfo('Dataset ID', dataset.dataset_id)}
@@ -114,6 +132,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp
                             {getInfo('Sequencing Centre', dataset.sequencing_centre)}
                         </Grid>
                     </Grid>
+                    }
                 </Paper>
             </DialogContent>
         </Dialog>

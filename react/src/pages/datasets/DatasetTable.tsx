@@ -74,7 +74,7 @@ export default function DatasetTable() {
                 onClose={() => setRunner(false)}
             />
             {infoDataset && <DatasetInfoDialog
-                dataset={infoDataset}
+                dataset_id={infoDataset.dataset_id}
                 open={showInfo}
                 onClose={() => setShowInfo(false)}
             />}
