@@ -344,7 +344,7 @@ def analyses_list():
 def get_analysis(id: int):
     analysis = models.Analysis.query.filter(
         models.Analysis.analysis_id == id
-    ).outerjoin(models.Analysis.datasets).one_or_none()
+    ).outerjoin(models.Analysis.datasets).join(models.Pipeline).one_or_none()
     if not analysis:
         return 'Not Found', 404
     else:
@@ -353,6 +353,7 @@ def get_analysis(id: int):
             'requester': analysis.requester_user.username,
             'updated_by': analysis.updated_by_user.username,
             'assignee': analysis.assignee_user and analysis.assignee_user.username,
+            'pipeline': analysis.pipeline,
             'datasets': [{
                 **asdict(dataset),
                 'tissue_sample_type': dataset.tissue_sample.tissue_sample_type,
