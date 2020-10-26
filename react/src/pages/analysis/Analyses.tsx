@@ -67,61 +67,6 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-// generate fake analysis data
-export function createAnalysis(
-    analysis_id: string,
-    pipeline_id: string,
-    result_hpf_path: string,
-    assignee: string,
-    requester: string,
-    state: PipelineStatus,
-    updated: string,
-    notes: string): Analysis {
-
-    return {
-        analysis_id,
-        pipeline_id,
-        result_hpf_path,
-        assignee,
-        requester,
-        state,
-        updated,
-        notes,
-        selected: false,
-        datasetID: "ID",
-        analysisState: "state",
-        qsubID: "qsubID",
-        requested: "requested",
-        started: "started",
-        finished: "finished",
-        updatedBy: 1
-    };
-}
-
-// fake notes
-const loremIpsum = [
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vestibulum, urna ac iaculis congue, urna justo accumsan ligula.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas rhoncus libero at ornare pellentesque. Etiam consequat nullam.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce rutrum hendrerit mi, at dignissim mauris porttitor ut. Cras odio."
-]
-
-const analyses = [
-    createAnalysis("A0000", "P01", '/path/to/file/', "User 2", "User 3", PipelineStatus.COMPLETED, '2020-05-23 12:09 PM', loremIpsum[0]),
-    createAnalysis("A0001", "P02", '/example/path/', "User 4", "User 3", PipelineStatus.RUNNING, '2020-06-13 1:09 AM', loremIpsum[1]),
-    createAnalysis("A0002", "P01", '/foo/', "User 2", "User 5", PipelineStatus.ERROR, '2020-06-19 4:32 AM', loremIpsum[2]),
-    createAnalysis("A0003", "P02", '/foo/bar/', "User 3", "User 1", PipelineStatus.PENDING, '2020-06-22 8:56 PM', loremIpsum[2]),
-    createAnalysis("A0004", "P03", '/foo/bar/', "User 1", "User 2", PipelineStatus.PENDING, '2020-06-21 8:09 AM', loremIpsum[0]),
-    createAnalysis("A0005", "P03", '/foo/baz/', "User 4", "User 4", PipelineStatus.RUNNING, '2020-06-21 1:22 PM', loremIpsum[1]),
-    createAnalysis("A0006", "P02", '/bar/baz/', "User 1", "User 5", PipelineStatus.PENDING, '2020-06-19 10:00 AM', loremIpsum[2]),
-    createAnalysis("A0007", "P03", '/example/path/', "User 2", "User 5", PipelineStatus.RUNNING, '2020-06-19 9:09 AM', loremIpsum[0]),
-    createAnalysis("A0008", "P03", '/example/path/', "User 5", "User 4", PipelineStatus.COMPLETED, '2020-06-20 7:07 AM', loremIpsum[1])
-];
-
-
-type ParamTypes = {
-    analysis_id: string | undefined
-}
-
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
     let returnStr = "";
@@ -154,15 +99,13 @@ function runFilter(row: Analysis) {
 
 export default function Analyses() {
     const classes = useStyles();
-    const { analysis_id }= useParams<ParamTypes>();
     const [rows, setRows] = useState<Analysis[]>([]);
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
 
-    const detailRow = analyses.find(analysis => analysis.analysis_id === analysis_id);
-    const [activeRows, setActiveRows] = useState<Analysis[]>(detailRow ? [detailRow] : []);
+    const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
     const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
 
