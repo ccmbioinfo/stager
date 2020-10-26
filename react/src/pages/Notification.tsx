@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { makeStyles, Tooltip, Button } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { PipelineStatus, Analysis } from './utils';
@@ -28,6 +27,7 @@ const useStyles = makeStyles(theme => ({
 
 export interface NotificationProps {
     analysis: Analysis,
+    onClick: () => void
 }
 
 enum Severity {
@@ -50,27 +50,29 @@ function createNotification(
     return { analysis_id, msg, severity };
 }
 
-const getNotificationInfo = (analysis: Analysis) => {
+function getNotificationInfo(analysis: Analysis) {
     const msg = `The status of ${analysis.analysis_id} has changed to `;
     switch (analysis.analysis_state) {
         case PipelineStatus.PENDING:
-            return createNotification(analysis.analysis_id, `${msg}PENDING`, Severity.PENDING)
+            return createNotification(analysis.analysis_id, `${msg}PENDING`, Severity.PENDING);
         case PipelineStatus.RUNNING:
-            return createNotification(analysis.analysis_id, `${msg}RUNNING`, Severity.RUNNING)
+            return createNotification(analysis.analysis_id, `${msg}RUNNING`, Severity.RUNNING);
         case PipelineStatus.COMPLETED:
-            return createNotification(analysis.analysis_id, `${msg}COMPLETED`, Severity.COMPLETED)
+            return createNotification(analysis.analysis_id, `${msg}COMPLETED`, Severity.COMPLETED);
         case PipelineStatus.ERROR:
-            return createNotification(analysis.analysis_id, `${msg}ERROR`, Severity.ERROR)
+            return createNotification(analysis.analysis_id, `${msg}ERROR`, Severity.ERROR);
+        case PipelineStatus.CANCELLED:
+            return createNotification(analysis.analysis_id, `${msg}CANCELLED`, Severity.ERROR);
     }
 }
 
-export default function Notification({ analysis } : NotificationProps) {
+export default function Notification({ analysis, onClick } : NotificationProps) {
     const classes = useStyles();
     const [hover, setHover] = useState(false);
     const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
 
     return (
-        <Button className={classes.button} component={Link} to={`/analysis/${analysis_id}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+        <Button className={classes.button} onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
 
             <Tooltip title="Click to see detail">
                 {
