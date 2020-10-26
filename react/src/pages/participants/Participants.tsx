@@ -15,11 +15,11 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function Dashboard() {
+export default function Participants() {
     const classes = useStyles();
 
     useEffect(() => {
-        document.title = "Dashboard | ST2020";
+        document.title = "Participants | ST2020";
     }, []);
 
     return (
