@@ -6,13 +6,13 @@ import {
     Typography, Divider, IconButton, Tooltip
 } from '@material-ui/core';
 import {
-    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dashboard as DashboardIcon,
+    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dns as DnsIcon,
     People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon,
     ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon,
     AccountCircle as AccountCircleIcon
 } from '@material-ui/icons';
 
-import Dashboard from './dashboard/Dashboard';
+import Participants from './participants/Participants';
 import Analyses from './analysis/Analyses';
 import Datasets from './datasets/Datasets';
 import Uploads from './upload/Uploads';
@@ -99,7 +99,7 @@ export interface NavigationProps {
 export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
-    const [pageName, setPageName] = React.useState("Dashboard");
+    const [pageName, setPageName] = React.useState("Participants");
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -146,14 +146,14 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     </div>
                     <Divider />
                     <List>
-                        <ListItemRouterLink to="/dashboard" primary="Dashboard">
-                            <DashboardIcon />
+                        <ListItemRouterLink to="/participants" primary="Participants">
+                            <PeopleIcon />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/uploads" primary="Upload">
                             <UploadIcon />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/datasets" primary="Datasets">
-                            <PeopleIcon />
+                            <DnsIcon />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/analysis" primary="Analyses">
                             <ShowChartIcon />
@@ -181,7 +181,7 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
                     <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
-                    <Route path={["/", "/dashboard"]} render={() => {setPageName("Dashboard"); return <Dashboard />}}  />
+                    <Route path={["/", "/participants"]} render={() => {setPageName("Participants"); return <Participants />}}  />
                 </Switch>
             </BrowserRouter>
         </div>
