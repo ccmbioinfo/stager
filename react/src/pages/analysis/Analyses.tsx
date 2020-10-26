@@ -162,7 +162,7 @@ function cancelFilter(row: Analysis) {
  * Returns whether this analysis is allowed to be run.
  */
 function runFilter(row: Analysis) {
-    return row.analysis_state === PipelineStatus.ERROR || row.analysis_state === PipelineStatus.COMPLETED;
+    return row.analysis_state === PipelineStatus.PENDING;
 }
 
 
@@ -317,7 +317,9 @@ export default function Analyses() {
                             }
                         }
                         setAssignment(false);
-                        enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`, { variant: "success" });
+                        if (count > 0) {
+                            enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`, { variant: "success" });
+                        }
                         if (failed > 0) {
                             enqueueSnackbar(`${failed} analyses could not be assigned to '${username}'`, { variant: "error" });
                         }

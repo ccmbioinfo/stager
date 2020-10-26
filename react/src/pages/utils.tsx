@@ -24,7 +24,7 @@ export type KeyValue = { [key: string]: string };
 export enum PipelineStatus {
     PENDING = "Requested",
     RUNNING = "Running",
-    COMPLETED = "Completed",
+    COMPLETED = "Done",
     ERROR = "Error",
     CANCELLED = "Cancelled"
 }
