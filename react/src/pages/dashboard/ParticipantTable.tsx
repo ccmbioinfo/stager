@@ -80,7 +80,7 @@ export default function ParticipantTable() {
            <MaterialTable
                 columns={[
                     { title: 'Participant Codename', field: 'participant_codename', align: 'center' },
-                    { title: 'Family Codename', field: 'family_codename', align: 'center' },
+                    { title: 'Family Codename', field: 'family_codename', align: 'center', editable:'never' },
                     { title: 'Participant Type', field: 'participant_type' , align: 'center', lookup: participantTypes, defaultFilter: filter },
                     { title: 'Affected', field: 'affected', type: 'boolean', align: 'center' },
                     { title: 'Solved', field: 'solved', type: 'boolean', align: 'center' },
