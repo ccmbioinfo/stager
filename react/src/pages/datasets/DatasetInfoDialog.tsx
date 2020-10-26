@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton, Collapse, Button, Divider } from '@material-ui/core';
-import { Close } from '@material-ui/icons';
+import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton, Collapse, Button, List, ListItem, ListItemAvatar, ListItemText, ListItemIcon, Box } from '@material-ui/core';
+import { Close, ShowChart, ExpandLess, ExpandMore } from '@material-ui/icons';
 import { Dataset, Analysis, Sample } from '../utils';
 
 const useStyles = makeStyles(theme => ({
@@ -10,8 +10,12 @@ const useStyles = makeStyles(theme => ({
         paddingRight: theme.spacing(2),
     },
     paper: {
-        padding: theme.spacing(1),
+        padding: theme.spacing(2),
         marginBottom: theme.spacing(3),
+    },
+    listPaper: {
+        padding: theme.spacing(1),
+        margin: theme.spacing(1)
     },
     root: {
         margin: 0,
@@ -25,6 +29,10 @@ const useStyles = makeStyles(theme => ({
     },
     grid: {
         paddingBottom: theme.spacing(2)
+    },
+    box: {
+        padding: theme.spacing(2),
+        margin: theme.spacing(1)
     }
 }));
 
@@ -80,8 +88,19 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
     const [dataset, setDataset] = useState<Dataset>();
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
-
     const [moreDetails, setMoreDetails] = useState(false);
+    const [showAnalysis, setShowAnalysis] = useState<boolean[]>([]);
+
+    function clickAnalysis(index: number) {
+        try {
+            // toggle
+            setShowAnalysis(
+                showAnalysis.map((val, i) => index === i ? !val : val)
+            );
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     useEffect(() => {
         fetch('/api/datasets/'+dataset_id)
@@ -90,6 +109,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             let temp = Object.assign({}, { ...data, analyses: undefined, tissue_sample: undefined });
             setDataset(temp as Dataset);
             setAnalyses(data.analyses as Analysis[]);
+            setShowAnalysis((data.analyses as Analysis[]).map(val => false));
             setSample(data.tissue_sample as Sample);
         })
         .catch(error => {console.error(error)});
@@ -151,6 +171,9 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 {sample &&
                 <Paper className={classes.paper} elevation={2}>
                    <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
+                        <Grid item xs={12}>
+                            <Typography variant="h6">Associated Tissue Sample</Typography>
+                        </Grid>
                         <Grid item xs={6}>
                             {getInfo('Sample ID', sample.tissue_sample_id)}
                             {getInfo('Sample Type', sample.tissue_sample_type)}
@@ -168,9 +191,46 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 </Paper>
                 }
 
-                {analyses.length > 0 &&
+                {analyses.length > 0 && showAnalysis.length === analyses.length &&
                 <Paper className={classes.paper} elevation={2}>
-                    Analyses go here
+                    <Typography variant="h6">Analyses which use this dataset</Typography>
+                    <List>
+                    {analyses.map((analysis, index) =>
+                    <Paper key={`analysis-${index}`} className={classes.listPaper} elevation={1}>
+                        <ListItem  button onClick={() => clickAnalysis(index)}>
+                            <ListItemIcon>
+                                <ShowChart/>
+                            </ListItemIcon>
+                            <ListItemText
+                            primary={`Analysis ID ${analysis.analysis_id}`}
+                            secondary={`Current State: ${analysis.state} - Click for more details`}
+                            />
+                            {showAnalysis[index] ? <ExpandLess /> : <ExpandMore />}
+                        </ListItem>
+                        <Collapse in={showAnalysis[index]}>
+                            <Box className={classes.box}>
+                            <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
+                                <Grid item xs={6}>
+                                    {getInfo('Analysis ID', analysis.analysis_id)}
+                                    {getInfo('State', analysis.analysisState)}
+                                    {getInfo('Pipeline ID', analysis.pipeline_id)}
+                                    {getInfo('Assigned to', analysis.assignee)}
+                                    {getInfo('HPF Path', analysis.result_hpf_path)}
+                                    {getInfo('qSub ID', analysis.qsubID)}
+                                </Grid>
+                                <Grid item xs={6}>
+                                    {getInfo('Notes', analysis.notes)}
+                                    {getInfo('Requested', analysis.requested)}
+                                    {getInfo('Requested By', analysis.requester)}
+                                    {getInfo('Started', analysis.started)}
+                                    {getInfo('Last Updated', analysis.updated)}
+                                </Grid>
+                            </Grid>
+                            </Box>
+                        </Collapse>
+                    </Paper>
+                    )}
+                    </List>
                 </Paper>
                 }
             </DialogContent>
