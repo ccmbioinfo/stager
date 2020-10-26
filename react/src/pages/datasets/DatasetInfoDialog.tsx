@@ -143,7 +143,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                     </Grid>
                     </Collapse>
                     <Button onClick={() => {setMoreDetails(!moreDetails)}}>
-                        Show {moreDetails ? 'fewer' : 'more'} details
+                        {moreDetails ? "Hide" : "Show"} more details
                     </Button>
                     </>
                     }
@@ -151,7 +151,21 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
 
                 {sample &&
                 <Paper className={classes.paper} elevation={2}>
-                    Associated Sample goes here
+                   <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
+                        <Grid item xs={6}>
+                            {getInfo('Sample ID', sample.sampleID)}
+                            {getInfo('Sample Type', sample.sampleType)}
+                            {getInfo('Extraction Date', sample.extractionDate)}
+                            {getInfo('Tissue Processing Protocol', sample.tissueProcessing)}
+                        </Grid>
+                        <Grid item xs={6}>
+                            {getInfo('Notes', sample.notes)}
+                            {getInfo('Created', sample.created)}
+                            {getInfo('Created By', sample.createBy)}
+                            {getInfo('Updated', sample.updated)}
+                            {getInfo('Updated By', sample.updatedBy)}
+                        </Grid>
+                    </Grid>
                 </Paper>
                 }
 
