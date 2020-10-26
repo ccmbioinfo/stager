@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton, Collapse, Button, List, ListItem, ListItemAvatar, ListItemText, ListItemIcon, Box } from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent, Paper, Typography,Grid, IconButton, Collapse, Button, List, ListItem, ListItemText, ListItemIcon, Box } from '@material-ui/core';
 import { Close, ShowChart, ExpandLess, ExpandMore } from '@material-ui/icons';
 import { Dataset, Analysis, Sample } from '../utils';
 
@@ -69,10 +69,6 @@ const getInfo = (subtitle: string, value: string | number | null) => {
     return (
         <Typography variant="body1" gutterBottom><b>{subtitle}:</b> {val}</Typography>
     );
-}
-
-const stringifyBool = (value: boolean) => {
-    return value ? 'Yes' : 'No';
 }
 
 interface DialogProp {
