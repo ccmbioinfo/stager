@@ -52,7 +52,7 @@ function createNotification(
 
 function getNotificationInfo(analysis: Analysis) {
     const msg = `The status of ${analysis.analysis_id} has changed to `;
-    switch (analysis.state) {
+    switch (analysis.analysis_state) {
         case PipelineStatus.PENDING:
             return createNotification(analysis.analysis_id, `${msg}PENDING`, Severity.PENDING);
         case PipelineStatus.RUNNING:

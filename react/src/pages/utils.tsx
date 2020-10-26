@@ -22,9 +22,9 @@ export type KeyValue = { [key: string]: string };
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {
-    PENDING = "Pending",
+    PENDING = "Requested",
     RUNNING = "Running",
-    COMPLETED = "Completed",
+    COMPLETED = "Done",
     ERROR = "Error",
     CANCELLED = "Cancelled"
 }
@@ -90,12 +90,11 @@ export interface Analysis {
     result_hpf_path: string,
     assignee: string,
     requester: string,
-    state: PipelineStatus,
+    analysis_state: PipelineStatus,
     updated: string,
     notes: string,
     selected: boolean,
     datasetID: string,
-    analysisState: string,
     qsubID: string,
     requested: string,
     started: string,
