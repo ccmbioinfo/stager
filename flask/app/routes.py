@@ -339,6 +339,32 @@ def analyses_list():
     return jsonify(analyses)
 
 
+@app.route('/api/analyses/<int:id>', methods=['GET'])
+@login_required
+def get_analysis(id: int):
+    analysis = models.Analysis.query.filter(
+        models.Analysis.analysis_id == id
+    ).outerjoin(models.Analysis.datasets).join(models.Pipeline).one_or_none()
+    if not analysis:
+        return 'Not Found', 404
+    else:
+        return jsonify({
+            **asdict(analysis),
+            'requester': analysis.requester_user.username,
+            'updated_by': analysis.updated_by_user.username,
+            'assignee': analysis.assignee_user and analysis.assignee_user.username,
+            'pipeline': analysis.pipeline,
+            'datasets': [{
+                **asdict(dataset),
+                'tissue_sample_type': dataset.tissue_sample.tissue_sample_type,
+                'participant_codename': dataset.tissue_sample.participant.participant_codename,
+                'participant_type': dataset.tissue_sample.participant.participant_type,
+                'sex': dataset.tissue_sample.participant.sex,
+                'family_codename': dataset.tissue_sample.participant.family.family_codename
+            } for dataset in analysis.datasets]
+        })
+
+
 @app.route('/api/pipelines', methods=['GET'], endpoint='pipelines_list')
 @login_required
 def pipelines_list():
@@ -592,11 +618,11 @@ def post_analyses():
         return 'No Pipeline field provided', 400
 
     if not dts_pks:
-        return 'No Dataset IDs provided', 400  
+        return 'No Dataset IDs provided', 400
 
     if not pipeline_pk:
         return 'No Pipeline ID provided', 400
-        
+
     if len(pipeline_pk) > 1:
         return 'Only 1 Pipeline ID accepted', 400
 
@@ -612,10 +638,10 @@ def post_analyses():
     except: # LOGIN DISABLED
         requester = updated_by = 1
 
-  
-    obj = models.Analysis(**{'requested' : requested, 
-                            'analysis_state' : analysis_state, 
-                            'requester' : requester, 
+
+    obj = models.Analysis(**{'requested' : requested,
+                            'analysis_state' : analysis_state,
+                            'requester' : requester,
                             'updated_by': updated_by,
                             'updated': updated,
                             'requested': requested,
@@ -623,10 +649,10 @@ def post_analyses():
 
     db.session.add(obj)
     transaction_or_abort(db.session.flush)
-    
+
     # update the dataset_analyses table
-    dataset_analyses_obj  = [{'dataset_id': x, 
-                              'analysis_id': obj.analysis_id} 
+    dataset_analyses_obj  = [{'dataset_id': x,
+                              'analysis_id': obj.analysis_id}
                               for x in dts_pks]
 
     inst = models.datasets_analyses_table.insert().values(dataset_analyses_obj)

@@ -250,6 +250,7 @@ class Analysis(db.Model):
     analysis_id: int = db.Column(db.Integer, primary_key=True)
     # AnalysisStatus.AnalysisStep
     analysis_state: AnalysisState = db.Column(db.Enum(AnalysisState), nullable=False)
+    pipeline = db.relationship("Pipeline")
     pipeline_id: int = db.Column(db.Integer,
                                  db.ForeignKey('pipeline.pipeline_id', onupdate='cascade', ondelete='restrict'),
                                  nullable=False)
