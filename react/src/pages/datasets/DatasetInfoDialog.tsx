@@ -203,7 +203,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             </ListItemIcon>
                             <ListItemText
                             primary={`Analysis ID ${analysis.analysis_id}`}
-                            secondary={`Current State: ${analysis.state} - Click for more details`}
+                            secondary={`Current State: ${analysis.analysis_state} - Click for more details`}
                             />
                             {showAnalysis[index] ? <ExpandLess /> : <ExpandMore />}
                         </ListItem>
@@ -212,7 +212,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
                                 <Grid item xs={6}>
                                     {getInfo('Analysis ID', analysis.analysis_id)}
-                                    {getInfo('State', analysis.analysisState)}
+                                    {getInfo('State', analysis.analysis_state)}
                                     {getInfo('Pipeline ID', analysis.pipeline_id)}
                                     {getInfo('Assigned to', analysis.assignee)}
                                     {getInfo('HPF Path', analysis.result_hpf_path)}

@@ -94,12 +94,12 @@ export interface Analysis {
     updated: string,
     notes: string,
     selected: boolean,
-    datasetID: string,
+    dataset_id: string,
     qsubID: string,
     requested: string,
     started: string,
     finished: string,
-    updatedBy: number,
+    updated_by: number,
 }
 export interface Pipeline {
     pipeline_id: number;
