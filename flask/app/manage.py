@@ -7,7 +7,9 @@ def add_default_admin():
         default_admin = models.User(
             username=app.config.get('DEFAULT_ADMIN'),
             email=app.config.get('DEFAULT_ADMIN_EMAIL'),
-            last_login=datetime.now()
+            last_login=datetime.now(),
+            is_admin=True,
+            deactivated=False
         )
         default_admin.set_password(app.config.get('DEFAULT_PASSWORD'))
         db.session.add(default_admin)
