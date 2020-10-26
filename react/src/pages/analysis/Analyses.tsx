@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router';
 import { makeStyles } from '@material-ui/core/styles';
 import { Chip, IconButton, TextField, Container } from '@material-ui/core';
-import { Cancel, Add, Visibility, PlayArrow, PersonPin } from '@material-ui/icons';
+import { Cancel, Add, Visibility, PlayArrow, PersonPin, AssignmentTurnedIn, Error } from '@material-ui/icons';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import { useSnackbar } from 'notistack';
 import Title from '../Title';
@@ -74,7 +74,7 @@ export function createAnalysis(
     result_hpf_path: string,
     assignee: string,
     requester: string,
-    state: PipelineStatus,
+    analysis_state: PipelineStatus,
     updated: string,
     notes: string): Analysis {
 
@@ -84,12 +84,11 @@ export function createAnalysis(
         result_hpf_path,
         assignee,
         requester,
-        state,
+        analysis_state,
         updated,
         notes,
         selected: false,
         datasetID: "ID",
-        analysisState: "state",
         qsubID: "qsubID",
         requested: "requested",
         started: "started",
@@ -139,17 +138,79 @@ function rowsToString(rows: Analysis[], delim?: string) {
 }
 
 /**
+ * Returns whether this row can be completed.
+ */
+function completeFilter(row: Analysis) {
+    return row.analysis_state === PipelineStatus.RUNNING;
+}
+
+/**
+ * Returns whether it's possible for this row to error.
+ */
+function errorFilter(row: Analysis) {
+    return row.analysis_state === PipelineStatus.RUNNING || row.analysis_state === PipelineStatus.PENDING;
+}
+
+/**
  * Returns whether this analysis is allowed to be cancelled.
  */
 function cancelFilter(row: Analysis) {
-    return row.state === PipelineStatus.RUNNING || row.state === PipelineStatus.PENDING;
+    return row.analysis_state === PipelineStatus.RUNNING || row.analysis_state === PipelineStatus.PENDING;
 }
 
 /**
  * Returns whether this analysis is allowed to be run.
  */
 function runFilter(row: Analysis) {
-    return row.state === PipelineStatus.ERROR || row.state === PipelineStatus.CANCELLED;
+    return row.analysis_state === PipelineStatus.PENDING;
+}
+
+
+interface ChangeStateReturnType {
+    newRows: Analysis[],
+    changed: number,
+    skipped: number,
+    failed: number
+}
+
+/**
+ * Sends a PATCH request to /api/analyses/:id to update the state of all selected rows.
+ * Returns a new list of Analyses, as well as the number of rows that changed, were skipped, or failed to change.
+ *
+ * @param oldRows
+ * @param filter A function which returns true for a row that is allowed to be changed to newState, false otherwise.
+ * @param newState The new state to apply to rows which pass the filter.
+ */
+async function changeStateForSelectedRows(oldRows: Analysis[], filter: (row: Analysis) => boolean, newState: PipelineStatus) {
+    const newRows = [...oldRows];
+    let changed = 0;
+    let skipped = 0;
+    let failed = 0;
+    for (let i = 0; i < newRows.length; i++) {
+        let row = newRows[i];
+        if (row.selected && filter(row)) {
+            const newRow: Analysis = { ...newRows[i] };
+            newRow.analysis_state = newState;
+
+            const response = await fetch('/api/analyses/'+row.analysis_id, {
+                method: "PATCH",
+                body: JSON.stringify({ analysis_state: newRow.analysis_state }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.ok) {
+                newRows[i] = newRow;
+                changed++;
+            } else {
+                failed++;
+                console.error(response);
+            }
+        } else if (row.selected) {  // skipped
+            skipped++;
+        }
+    }
+    return { newRows, changed, skipped, failed };
 }
 
 export default function Analyses() {
@@ -196,23 +257,17 @@ export default function Analyses() {
                     }
                     onClose={() => { setCancel(false) }}
                     onAccept={() => {
-                        // TODO: PATCH goes here for cancelling analyses
-
-                        // If successful...
-                        const newRows = [...rows];
-                        let count = 0;
-                        newRows.forEach((row, index, arr) => {
-                            if (row.selected && cancelFilter(row)) {
-                                const newRow: Analysis = { ...newRows[index] };
-                                newRow.state = PipelineStatus.CANCELLED;
-                                newRows[index] = newRow;
-                                count++;
-                            }
+                        changeStateForSelectedRows(rows, cancelFilter, PipelineStatus.CANCELLED)
+                        .then(({ newRows, changed, skipped, failed }) => {
+                            setRows(newRows);
+                            setCancel(false);
+                            if (changed > 0)
+                                enqueueSnackbar(`${changed} ${changed !== 1 ? 'analyses' : 'analysis'} cancelled successfully`, { variant: "success" });
+                            if (skipped > 0)
+                                enqueueSnackbar(`${skipped} ${skipped !== 1 ? 'analyses were' : 'analysis was'} not running, and ${skipped !== 1 ? 'were' : 'was'} skipped`);
+                            if (failed > 0)
+                                enqueueSnackbar(`Failed to cancel ${failed} ${failed !== 1 ? 'analyses' : 'analysis'}`, { variant: "error" });
                         });
-
-                        setRows(newRows);
-                        setCancel(false);
-                        enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} cancelled successfully`);
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -239,6 +294,7 @@ export default function Analyses() {
                     onClose={() => { setAssignment(false); }}
                     onSubmit={async (username) => {
                         let count = 0;
+                        let failed = 0;
                         for (const row of activeRows) {
                             const response = await fetch('/api/analyses/'+row.analysis_id, {
                                 method: "PATCH",
@@ -256,11 +312,17 @@ export default function Analyses() {
                                 ));
                                 count++;
                             } else {
+                                failed++;
                                 console.error(response);
                             }
                         }
                         setAssignment(false);
-                        enqueueSnackbar(`${count} analyses assigned to user '${username}'`)
+                        if (count > 0) {
+                            enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`, { variant: "success" });
+                        }
+                        if (failed > 0) {
+                            enqueueSnackbar(`${failed} analyses could not be assigned to '${username}'`, { variant: "error" });
+                        }
                     }}
                 />}
 
@@ -273,7 +335,7 @@ export default function Analyses() {
                         { title: 'Requester', field: 'requester', type: 'string', editable: 'never', width: '8%' },
                         { title: 'Updated', field: 'updated', type: 'string', editable: 'never', render: rowData => formatDateString(rowData.updated) },
                         { title: 'Result HPF Path', field: 'result_hpf_path', type: 'string', emptyValue: emptyCellValue },
-                        { title: 'Status', field: 'state', type: 'string', editable: 'never', defaultFilter: chipFilter },
+                        { title: 'Status', field: 'analysis_state', type: 'string', editable: 'never', defaultFilter: chipFilter },
                         { title: 'Notes', field: 'notes', type: 'string', width: '30%', emptyValue: emptyCellValue,
                         editComponent: props => (
                             <TextField
@@ -349,23 +411,53 @@ export default function Analyses() {
                             position: 'toolbarOnSelect',
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                // TODO: PATCH here to start pending analyses
-
-                                // If successful...
-                                const newRows = [...rows];
-                                let count = 0;
-                                newRows.forEach((row, index, arr) => {
-                                    if (row.selected && runFilter(row)) {
-                                        const newRow: Analysis = { ...newRows[index] };
-                                        newRow.state = PipelineStatus.RUNNING;
-                                        newRows[index] = newRow;
-                                        count++;
-                                    }
+                                changeStateForSelectedRows(rows, runFilter, PipelineStatus.RUNNING)
+                                .then(({ newRows, changed, skipped, failed }) => {
+                                    setRows(newRows);
+                                    if (changed > 0)
+                                        enqueueSnackbar(`${changed} ${changed !== 1 ? 'analyses' : 'analysis'} started successfully`, { variant: "success" });
+                                    if (skipped > 0)
+                                        enqueueSnackbar(`${skipped} ${skipped !== 1 ? 'analyses were' : 'analysis was'} already queued or cancelled, and ${skipped !== 1 ? 'were' : 'was'} skipped`);
+                                    if (failed > 0)
+                                        enqueueSnackbar(`Failed to start ${failed} ${failed !== 1 ? 'analyses' : 'analysis'}`, { variant: "error" });
                                 });
-
-                                setRows(newRows);
-                                enqueueSnackbar(`${count} ${count !== 1 ? 'analyses' : 'analysis'} started successfully`);
                             },
+                        },
+                        {
+                            icon: AssignmentTurnedIn,
+                            tooltip: 'Complete analysis',
+                            position: 'toolbarOnSelect',
+                            onClick: (event, rowData) => {
+                                setActiveRows(rowData as Analysis[]);
+                                changeStateForSelectedRows(rows, completeFilter, PipelineStatus.COMPLETED)
+                                .then(({ newRows, changed, skipped, failed }) => {
+                                    setRows(newRows);
+                                    if (changed > 0)
+                                        enqueueSnackbar(`${changed} ${changed !== 1 ? 'analyses' : 'analysis'} completed successfully`, { variant: "success" });
+                                    if (skipped > 0)
+                                        enqueueSnackbar(`${skipped} ${skipped !== 1 ? 'analyses' : 'analysis'} ${skipped !== 1 ? 'were' : 'was'} not running, and ${skipped !== 1 ? 'were' : 'was'} skipped`);
+                                    if (failed > 0)
+                                        enqueueSnackbar(`Failed to complete ${failed} ${failed !== 1 ? 'analyses' : 'analysis'}`, { variant: "error" });
+                                });
+                            }
+                        },
+                        {
+                            icon: Error,
+                            tooltip: 'Error analysis',
+                            position: 'toolbarOnSelect',
+                            onClick: (event, rowData) => {
+                                setActiveRows(rowData as Analysis[]);
+                                changeStateForSelectedRows(rows, errorFilter, PipelineStatus.ERROR)
+                                .then(({ newRows, changed, skipped, failed }) => {
+                                    setRows(newRows);
+                                    if (changed > 0)
+                                        enqueueSnackbar(`${changed} ${changed !== 1 ? 'analyses' : 'analysis'} errored successfully`, { variant: "success" });
+                                    if (skipped > 0)
+                                        enqueueSnackbar(`${skipped} ${skipped !== 1 ? 'analyses' : 'analysis'} ${skipped !== 1 ? 'were' : 'was'} not running or queued, and ${skipped !== 1 ? 'were' : 'was'} skipped`);
+                                    if (failed > 0)
+                                        enqueueSnackbar(`Failed to error ${failed} ${failed !== 1 ? 'analyses' : 'analysis'}`, { variant: "error" });
+                                });
+                            }
                         },
                         {
                             icon: PersonPin,
@@ -395,6 +487,7 @@ export default function Analyses() {
                                     ));
                                     enqueueSnackbar(`Analysis ID ${oldData?.analysis_id} edited successfully`);
                                 } else {
+                                    enqueueSnackbar(`Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`, { variant: "error" });
                                     console.error(response);
                                 }
                             }
