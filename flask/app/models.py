@@ -54,8 +54,7 @@ class Sex(str, Enum):
 
 class ParticipantType(str, Enum):
     Proband = 'Proband'
-    Mother = 'Mother'
-    Father = 'Father'
+    Parent = 'Parent'
     Sibling = 'Sibling'
 
 
@@ -66,9 +65,9 @@ class Participant(db.Model):
     # Sample.SampleName
     participant_codename: str = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender
-    sex: Sex = db.Column(db.Enum(Sex), nullable=False)
+    sex: Sex = db.Column(db.Enum(Sex))
     # Sample.SampleType
-    participant_type: ParticipantType = db.Column(db.Enum(ParticipantType), nullable=False)
+    participant_type: ParticipantType = db.Column(db.Enum(ParticipantType))
     month_of_birth: date = db.Column(db.Date, CheckConstraint('DAY(month_of_birth) = 1'))
     # Sample.AffectedStatus
     affected: bool = db.Column(db.Boolean)
