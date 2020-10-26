@@ -112,7 +112,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             {getInfo('Participant Codename', dataset.participant_codename)}
                             {getInfo('Family Codename', dataset.family_codename)}
                             {getInfo('Tissue ID', dataset.tissue_sample_id)}
-                            {getInfo('Tissue Type', dataset.tissue_sample_type)}
+                            {getInfo('Sequencing Centre', dataset.sequencing_centre)}
                         </Grid>
                         <Grid item xs={6}>
                             {getInfo('Notes', dataset.notes)}
@@ -138,7 +138,6 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             {getInfo('Read Length', dataset.read_length)}
                             {getInfo('Read Type', dataset.read_type)}
                             {getInfo('Sequencing ID', dataset.sequencing_id)}
-                            {getInfo('Sequencing Centre', dataset.sequencing_centre)}
                         </Grid>
                     </Grid>
                     </Collapse>
@@ -153,17 +152,17 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 <Paper className={classes.paper} elevation={2}>
                    <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
                         <Grid item xs={6}>
-                            {getInfo('Sample ID', sample.sampleID)}
-                            {getInfo('Sample Type', sample.sampleType)}
-                            {getInfo('Extraction Date', sample.extractionDate)}
-                            {getInfo('Tissue Processing Protocol', sample.tissueProcessing)}
+                            {getInfo('Sample ID', sample.tissue_sample_id)}
+                            {getInfo('Sample Type', sample.tissue_sample_type)}
+                            {getInfo('Extraction Date', sample.extraction_date)}
+                            {getInfo('Tissue Processing Protocol', sample.tissue_processing)}
                         </Grid>
                         <Grid item xs={6}>
                             {getInfo('Notes', sample.notes)}
                             {getInfo('Created', sample.created)}
-                            {getInfo('Created By', sample.createBy)}
+                            {getInfo('Created By', sample.created_by)}
                             {getInfo('Updated', sample.updated)}
-                            {getInfo('Updated By', sample.updatedBy)}
+                            {getInfo('Updated By', sample.updated_by)}
                         </Grid>
                     </Grid>
                 </Paper>

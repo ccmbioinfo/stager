@@ -48,16 +48,16 @@ export interface Participant {
     tissue_samples: Sample[]
 }
 export interface Sample {
-    sampleID: string,
-    extractionDate: string,
-    sampleType: string,
-    tissueProcessing: string,
+    tissue_sample_id: string,
+    extraction_date: string,
+    tissue_sample_type: string,
+    tissue_processing: string,
     datasets: Dataset[],
     notes: string,
     created: string,
-    createBy: number,
+    created_by: number,
     updated: string,
-    updatedBy: number,
+    updated_by: number,
 }
 export interface Dataset {
     dataset_id: string,
