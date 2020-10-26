@@ -78,7 +78,7 @@ If the change is to an enum or something else that the isn't automatically picke
 1. When the application is running, enter into the `ccmbio/st2020` container as described above and run:
 ```
 flask db revision -m "message about change"
-``` 
+```
 2. Navigate to the `migrations/versions` folder and open the file that was just created.
 3. Edit the `updgrade/downgrade` functions by writing MySQL code directly in `op.execute("MYSQL CODE HERE)` calls
 4. Shut down everything, update the `models.py` and restart
@@ -93,3 +93,13 @@ docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up
 This runs Gunicorn in the application container instead of Flask and does not bind mount the code.
 This additionally starts Nginx with the static bundles, certifications, and main config bind mounted.
 Nginx is solely responsible for HTTPS.
+
+## Editor integrations
+
+Make sure to get the EditorConfig extension for your editor.
+PyCharm has this out of the box but VSCode requires an extension in the marketplace.
+
+You can also get a Prettier integration for your editor to automatically format JavaScript code on save.
+
+The [VSCode Python extension](https://code.visualstudio.com/docs/python/editing#_formatting)
+can be configured fo Black as a code formatter and Pylint. PyCharm can also integrate Pylint with a plugin.

@@ -1,2 +1,5 @@
 -r requirements.in
+
+black
+pylint
 pytest
