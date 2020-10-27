@@ -57,18 +57,16 @@ const DialogHeader = ((props: DialogTitleProps) => {
     );
 });
 
-const getInfo = (subtitle: string, value: string | number | null) => {
+function FieldDisplay(props: { title: string, value: string | number | null }) {
     let val: string;
-    if (typeof value === 'number')
-        val = value.toString();
-    else if (typeof value === 'string')
-        val = value;
+    if (typeof props.value === 'number')
+        val = props.value.toString();
+    else if (typeof props.value === 'string')
+        val = props.value;
     else
         val = "";
 
-    return (
-        <Typography variant="body1" gutterBottom><b>{subtitle}:</b> {val}</Typography>
-    );
+    return <Typography variant="body1" gutterBottom><b>{props.title}:</b> {val}</Typography>;
 }
 
 interface DialogProp {
@@ -88,21 +86,17 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
     const [showAnalysis, setShowAnalysis] = useState<boolean[]>([]);
 
     function clickAnalysis(index: number) {
-        try {
-            // toggle
-            setShowAnalysis(
-                showAnalysis.map((val, i) => index === i ? !val : val)
-            );
-        } catch (error) {
-            console.error(error);
-        }
+        // toggle
+        setShowAnalysis(
+            showAnalysis.map((val, i) => index === i ? !val : val)
+        );
     }
 
     useEffect(() => {
         fetch('/api/datasets/'+dataset_id)
         .then(response => response.json())
         .then(data => {
-            let temp = Object.assign({}, { ...data, analyses: undefined, tissue_sample: undefined });
+            let temp = { ...data, analyses: undefined, tissue_sample: undefined };
             setDataset(temp as Dataset);
             setAnalyses(data.analyses as Analysis[]);
             setShowAnalysis((data.analyses as Analysis[]).map(val => false));
@@ -123,37 +117,37 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                     <>
                     <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
                         <Grid item xs={6}>
-                            {getInfo('Dataset ID', dataset.dataset_id)}
-                            {getInfo('Dataset Type', dataset.dataset_type)}
-                            {getInfo('Participant Codename', dataset.participant_codename)}
-                            {getInfo('Family Codename', dataset.family_codename)}
-                            {getInfo('Tissue ID', dataset.tissue_sample_id)}
-                            {getInfo('Sequencing Centre', dataset.sequencing_centre)}
+                            <FieldDisplay title='Dataset ID' value={dataset.dataset_id} />
+                            <FieldDisplay title='Dataset Type' value={dataset.dataset_type} />
+                            <FieldDisplay title='Participant Codename' value={dataset.participant_codename} />
+                            <FieldDisplay title='Family Codename' value={dataset.family_codename} />
+                            <FieldDisplay title='Tissue ID' value={dataset.tissue_sample_id} />
+                            <FieldDisplay title='Sequencing Centre' value={dataset.sequencing_centre} />
                         </Grid>
                         <Grid item xs={6}>
-                            {getInfo('Notes', dataset.notes)}
-                            {getInfo('Created', dataset.created)}
-                            {getInfo('Created By', dataset.created_by)}
-                            {getInfo('Updated', dataset.updated)}
-                            {getInfo('Updated By', dataset.updated_by)}
+                            <FieldDisplay title='Notes' value={dataset.notes} />
+                            <FieldDisplay title='Created' value={dataset.created} />
+                            <FieldDisplay title='Created By' value={dataset.created_by} />
+                            <FieldDisplay title='Updated' value={dataset.updated} />
+                            <FieldDisplay title='Updated By' value={dataset.updated_by} />
                         </Grid>
                     </Grid>
                     <Collapse in={moreDetails}>
                     <Grid container spacing={2} justify="space-evenly">
                         <Grid item xs={6}>
-                            {getInfo('Batch ID', dataset.batch_id)}
-                            {getInfo('HPF Path', dataset.input_hpf_path)}
-                            {getInfo('Condition', dataset.condition)}
-                            {getInfo('Extraction Protocol', dataset.extraction_protocol)}
-                            {getInfo('Capture Kit', dataset.capture_kit)}
-                            {getInfo('Discriminator', dataset.discriminator)}
+                            <FieldDisplay title='Batch ID' value={dataset.batch_id} />
+                            <FieldDisplay title='HPF Path' value={dataset.input_hpf_path} />
+                            <FieldDisplay title='Condition' value={dataset.condition} />
+                            <FieldDisplay title='Extraction Protocol' value={dataset.extraction_protocol} />
+                            <FieldDisplay title='Capture Kit' value={dataset.capture_kit} />
+                            <FieldDisplay title='Discriminator' value={dataset.discriminator} />
                         </Grid>
                         <Grid item xs={6}>
-                            {getInfo('Library Prep Method', dataset.library_prep_method)}
-                            {getInfo('Library Prep Date', dataset.library_prep_date)}
-                            {getInfo('Read Length', dataset.read_length)}
-                            {getInfo('Read Type', dataset.read_type)}
-                            {getInfo('Sequencing ID', dataset.sequencing_id)}
+                            <FieldDisplay title='Library Prep Method' value={dataset.library_prep_method} />
+                            <FieldDisplay title='Library Prep Date' value={dataset.library_prep_date} />
+                            <FieldDisplay title='Read Length' value={dataset.read_length} />
+                            <FieldDisplay title='Read Type' value={dataset.read_type} />
+                            <FieldDisplay title='Sequencing ID' value={dataset.sequencing_id} />
                         </Grid>
                     </Grid>
                     </Collapse>
@@ -171,17 +165,17 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             <Typography variant="h6">Associated Tissue Sample</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            {getInfo('Sample ID', sample.tissue_sample_id)}
-                            {getInfo('Sample Type', sample.tissue_sample_type)}
-                            {getInfo('Extraction Date', sample.extraction_date)}
-                            {getInfo('Tissue Processing Protocol', sample.tissue_processing)}
+                            <FieldDisplay title='Sample ID' value={sample.tissue_sample_id} />
+                            <FieldDisplay title='Sample Type' value={sample.tissue_sample_type} />
+                            <FieldDisplay title='Extraction Date' value={sample.extraction_date} />
+                            <FieldDisplay title='Tissue Processing Protocol' value={sample.tissue_processing} />
                         </Grid>
                         <Grid item xs={6}>
-                            {getInfo('Notes', sample.notes)}
-                            {getInfo('Created', sample.created)}
-                            {getInfo('Created By', sample.created_by)}
-                            {getInfo('Updated', sample.updated)}
-                            {getInfo('Updated By', sample.updated_by)}
+                            <FieldDisplay title='Notes' value={sample.notes} />
+                            <FieldDisplay title='Created' value={sample.created} />
+                            <FieldDisplay title='Created By' value={sample.created_by} />
+                            <FieldDisplay title='Updated' value={sample.updated} />
+                            <FieldDisplay title='Updated By' value={sample.updated_by} />
                         </Grid>
                     </Grid>
                 </Paper>
@@ -207,19 +201,19 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             <Box className={classes.box}>
                             <Grid container spacing={2} justify="space-evenly" className={classes.grid}>
                                 <Grid item xs={6}>
-                                    {getInfo('Analysis ID', analysis.analysis_id)}
-                                    {getInfo('State', analysis.analysis_state)}
-                                    {getInfo('Pipeline ID', analysis.pipeline_id)}
-                                    {getInfo('Assigned to', analysis.assignee)}
-                                    {getInfo('HPF Path', analysis.result_hpf_path)}
-                                    {getInfo('qSub ID', analysis.qsubID)}
+                                    <FieldDisplay title='Analysis ID' value={analysis.analysis_id} />
+                                    <FieldDisplay title='State' value={analysis.analysis_state} />
+                                    <FieldDisplay title='Pipeline ID' value={analysis.pipeline_id} />
+                                    <FieldDisplay title='Assigned to' value={analysis.assignee} />
+                                    <FieldDisplay title='HPF Path' value={analysis.result_hpf_path} />
+                                    <FieldDisplay title='qSub ID' value={analysis.qsubID} />
                                 </Grid>
                                 <Grid item xs={6}>
-                                    {getInfo('Notes', analysis.notes)}
-                                    {getInfo('Requested', analysis.requested)}
-                                    {getInfo('Requested By', analysis.requester)}
-                                    {getInfo('Started', analysis.started)}
-                                    {getInfo('Last Updated', analysis.updated)}
+                                    <FieldDisplay title='Notes' value={analysis.notes} />
+                                    <FieldDisplay title='Requested' value={analysis.requested} />
+                                    <FieldDisplay title='Requested By' value={analysis.requester} />
+                                    <FieldDisplay title='Started' value={analysis.started} />
+                                    <FieldDisplay title='Last Updated' value={analysis.updated} />
                                 </Grid>
                             </Grid>
                             </Box>
