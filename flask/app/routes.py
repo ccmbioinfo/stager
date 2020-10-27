@@ -623,9 +623,6 @@ def post_analyses():
     if not pipeline_pk:
         return 'No Pipeline ID provided', 400
 
-    if len(pipeline_pk) > 1:
-        return 'Only 1 Pipeline ID accepted', 400
-
     pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
 
 
