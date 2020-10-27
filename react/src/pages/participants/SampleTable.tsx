@@ -27,7 +27,7 @@ export default function SamplesTable({ samples }: SamplesTableProp) {
                     { title: 'Tissue Processing', field: 'tissue_processing' },
                     { title: 'Notes', field: 'notes' },
                     { title: 'Creation Time', field: 'created', render: rowData => formatDateString(rowData.created) },
-                    { title: 'Create By', field: 'create_by' },
+                    { title: 'Create By', field: 'created_by' },
                     { title: 'Update Time', field: 'updated', render: rowData => formatDateString(rowData.updated) },
                     { title: 'Updated By', field: 'updated_by' },
                 ]}

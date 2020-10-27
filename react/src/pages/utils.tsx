@@ -1,3 +1,6 @@
+import React from "react";
+import { Typography } from "@material-ui/core";
+
 /*****   CONSTANTS   *****/
 export const emptyCellValue = "<empty>";
 
@@ -48,16 +51,16 @@ export interface Participant {
     tissue_samples: Sample[]
 }
 export interface Sample {
-    sampleID: string,
-    extractionDate: string,
-    sampleType: string,
-    tissueProcessing: string,
+    tissue_sample_id: string,
+    extraction_date: string,
+    tissue_sample_type: string,
+    tissue_processing: string,
     datasets: Dataset[],
     notes: string,
     created: string,
-    createBy: number,
+    created_by: number,
     updated: string,
-    updatedBy: number,
+    updated_by: number,
 }
 export interface Dataset {
     dataset_id: string,
@@ -94,12 +97,12 @@ export interface Analysis {
     updated: string,
     notes: string,
     selected: boolean,
-    datasetID: string,
+    dataset_id: string,
     qsubID: string,
     requested: string,
     started: string,
     finished: string,
-    updatedBy: number,
+    updated_by: number,
 }
 export interface Pipeline {
     pipeline_id: number;
@@ -173,4 +176,21 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
         return { ...row, selected: false } as Analysis;
     });
     return rows;
+}
+
+/*****   COMPONENTS   *****/
+
+/**
+ * Returns a simple Typography JSX element for displaying "title: value".
+ */
+export function FieldDisplay(props: { title: string, value: string | number | null }) {
+    let val: string;
+    if (typeof props.value === 'number')
+        val = props.value.toString();
+    else if (typeof props.value === 'string')
+        val = props.value;
+    else
+        val = "";
+
+    return <Typography variant="body1" gutterBottom><b>{props.title}:</b> {val}</Typography>;
 }

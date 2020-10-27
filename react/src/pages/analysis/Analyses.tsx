@@ -324,7 +324,7 @@ export default function Analyses() {
                     actions={[
                         {
                             icon: Visibility,
-                            tooltip: 'Analysis details',
+                            tooltip: 'View analysis details',
                             position: 'row',
                             onClick: (event, rowData) => {
                                 // We can only view details of one row at a time

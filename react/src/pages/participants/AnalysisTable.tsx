@@ -14,12 +14,12 @@ export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
     return (
         <MaterialTable
             columns={[
-                { title: 'Analysis ID', field: 'analysisID' },
-                { title: 'Dataset ID', field: 'datasetID' },
-                { title: 'Analysis State', field: 'analysisState' },
-                { title: 'Pipeline ID', field: 'pipelineID' },
+                { title: 'Analysis ID', field: 'analysis_id' },
+                { title: 'Dataset ID', field: 'dataset_id' },
+                { title: 'Analysis State', field: 'analysis_state' },
+                { title: 'Pipeline ID', field: 'pipeline_id' },
                 { title: 'Qsub ID', field: 'qsubID' },
-                { title: 'Result HPF Path', field: 'resultHpfPath' },
+                { title: 'Result HPF Path', field: 'result_hpf_path' },
                 { title: 'Assignee', field: 'assignee' },
                 { title: 'Requester', field: 'requester' },
                 { title: 'Requested', field: 'requested', render: rowData => formatDateString(rowData.requested) },
@@ -27,7 +27,7 @@ export default function AnalysisTable({ participantID }: ParticipantInfoProp) {
                 { title: 'Finished', field: 'finished', render: rowData => formatDateString(rowData.finished) },
                 { title: 'Notes', field: 'notes' },
                 { title: 'Updated', field: 'updated', render: rowData => formatDateString(rowData.updated) },
-                { title: 'Updated By', field: 'updatedBy' },
+                { title: 'Updated By', field: 'updated_by' },
             ]}
             data={analyses}
             title="Analyses"
