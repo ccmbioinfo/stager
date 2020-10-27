@@ -1,3 +1,6 @@
+import React from "react";
+import { Typography } from "@material-ui/core";
+
 /*****   CONSTANTS   *****/
 export const emptyCellValue = "<empty>";
 
@@ -173,4 +176,21 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
         return { ...row, selected: false } as Analysis;
     });
     return rows;
+}
+
+/*****   COMPONENTS   *****/
+
+/**
+ * Returns a simple Typography JSX element for displaying "title: value".
+ */
+export function FieldDisplay(props: { title: string, value: string | number | null }) {
+    let val: string;
+    if (typeof props.value === 'number')
+        val = props.value.toString();
+    else if (typeof props.value === 'string')
+        val = props.value;
+    else
+        val = "";
+
+    return <Typography variant="body1" gutterBottom><b>{props.title}:</b> {val}</Typography>;
 }
