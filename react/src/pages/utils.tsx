@@ -213,12 +213,14 @@ export function getIsRowSelected(row: any): boolean | null {
 /**
  * Returns a simple Typography JSX element for displaying "title: value".
  */
-export function FieldDisplay(props: { title: string, value: string | number | null, variant?: Variant }) {
+export function FieldDisplay(props: { title: string, value?: string[] | string | number | null, variant?: Variant }) {
     let val: string;
     if (typeof props.value === 'number')
         val = props.value.toString();
     else if (typeof props.value === 'string')
         val = props.value;
+    else if (typeof props.value === 'object' && props.value?.length !== undefined)
+        val = props.value.join(', ');
     else
         val = "";
 
