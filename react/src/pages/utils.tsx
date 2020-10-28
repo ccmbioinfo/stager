@@ -22,6 +22,7 @@ const months = [
 /*****   TYPINGS   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
+export type Variant = "button" | "caption" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "inherit" | "subtitle1" | "subtitle2" | "body1" | "body2" | "overline" | "srOnly";
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {
@@ -183,7 +184,7 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
 /**
  * Returns a simple Typography JSX element for displaying "title: value".
  */
-export function FieldDisplay(props: { title: string, value: string | number | null }) {
+export function FieldDisplay(props: { title: string, value: string | number | null, variant?: Variant }) {
     let val: string;
     if (typeof props.value === 'number')
         val = props.value.toString();
@@ -192,5 +193,5 @@ export function FieldDisplay(props: { title: string, value: string | number | nu
     else
         val = "";
 
-    return <Typography variant="body1" gutterBottom><b>{props.title}:</b> {val}</Typography>;
+    return <Typography variant={props.variant ? props.variant : "body1"} gutterBottom><b>{props.title}:</b> {val}</Typography>;
 }

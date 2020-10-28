@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
@@ -7,7 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import DatasetTable from './analysis/DatasetTable';
-import { Analysis } from './utils';
+import { Analysis, Dataset, FieldDisplay } from './utils';
 import ChipStrip from './analysis/ChipStrip';
 
 interface AlertInfoDialogProp {
@@ -62,40 +62,42 @@ export const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snp
 
 export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
 
+    const [datasets, setDatasets] = useState<Dataset[]>([]);
+    const [pipeline, setPipeline] = useState();
     const labeledBy = "analysis-info-dialog-slide-title"
+
+    useEffect(() => {
+        fetch('/api/analyses/'+analysis.analysis_id)
+        .then(response => response.json())
+        .then(data => {
+            setDatasets(data.datasets);
+            setPipeline(data.pipeline);
+        })
+        .catch(error => {
+
+        });
+    }, [analysis]);
 
     return (
         <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth='md' fullWidth={true}>
             <DialogTitle id={labeledBy} onClose={onClose}>
-                Analysis: {analysis.analysis_id}
-                <Typography variant="body1" gutterBottom>
-                    Assigned to: {analysis.assignee}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                    Requested by: {analysis.requester}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                    Status: {analysis.analysis_state}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                    Last Updated: {analysis.updated}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                    Notes: {analysis.notes}
-                </Typography>
+                <FieldDisplay title="Analysis" value={analysis.analysis_id} variant="h6" />
+                <FieldDisplay title="Assigned to" value={analysis.assignee} />
+                <FieldDisplay title="Requested by" value={analysis.requester} />
+                <FieldDisplay title="Status" value={analysis.analysis_state} />
+                <FieldDisplay title="Last Updated" value={analysis.updated} />
+                <FieldDisplay title="Notes" value={analysis.notes} />
             </DialogTitle>
             <DialogContent dividers>
-                <Typography variant="h6" gutterBottom>
-                    Pipeline ID: {analysis.pipeline_id}
-                </Typography>
+                <FieldDisplay title="Pipeline ID" value={analysis.pipeline_id} variant="h6" />
                 <ChipStrip labels={analyses} color="primary" />
                 <ChipStrip labels={pipelineParams} color="secondary" />
                 <ChipStrip labels={annotations} color="default" />
                 <Typography variant="h6" gutterBottom>
                     Samples
-          </Typography>
-          <DatasetTable/>
-        </DialogContent>
-      </Dialog>
+                </Typography>
+                <DatasetTable/>
+            </DialogContent>
+        </Dialog>
   );
 }
