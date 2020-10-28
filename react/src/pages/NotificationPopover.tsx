@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from '@material-ui/core';
+import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover, Badge } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
 import { Analysis, jsonToAnalyses } from './utils';
@@ -37,6 +37,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [analyses, setAnalyses] = useState<Analysis[]>([] as Analysis[]);
+    const [numNotification, setNumNotification] = useState<number>(0);
     const popoverOpen = Boolean(anchorEl);
     const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -56,6 +57,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
             if (response.ok) {
                 const result = jsonToAnalyses(await response.json());
                 setAnalyses(result);
+                setNumNotification(result.length);
             } else {
                 console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);
             }
@@ -66,7 +68,9 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         <div>
             <IconButton onClick={handlePopoverOpen}>
                 <Tooltip title="See notifications" arrow>
-                    <NotificationsActive fontSize='large' style={{fill: "white"}} />
+                    <Badge badgeContent={numNotification} color="secondary" showZero>
+                        <NotificationsActive fontSize='large' style={{fill: "white"}} />
+                    </Badge>
                 </Tooltip>
             </IconButton>
             <Popover
