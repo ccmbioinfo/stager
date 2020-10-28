@@ -97,7 +97,6 @@ export interface Analysis {
     analysis_state: PipelineStatus,
     updated: string,
     notes: string,
-    selected: boolean,
     dataset_id: string,
     qsubID: string,
     requested: string,
@@ -174,9 +173,39 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
                 row.state = null;
                 break;
         }
-        return { ...row, selected: false } as Analysis;
+        return { ...row } as Analysis;
     });
     return rows;
+}
+
+/**
+ * Get the index of a material-table row.
+ * If a material-table row is not provided, return null.
+ */
+export function getRowIndex(row: any): number | null {
+    try {
+        let index: number = row.tableData.id;
+        return index;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+/**
+ * Return whether this material-table row is checked / selected.
+ * If it is not a material-table row, return null.
+ */
+export function getIsRowSelected(row: any): boolean | null {
+    try {
+        let isChecked: boolean = row.tableData.checked;
+        if (isChecked === undefined)
+            isChecked = false;
+        return isChecked;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
 }
 
 /*****   COMPONENTS   *****/
