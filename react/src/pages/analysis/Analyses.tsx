@@ -237,6 +237,7 @@ export default function Analyses() {
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
                     onSubmit={async (username) => {
+                        let editedRows = new Map<number, Analysis>();
                         let count = 0;
                         let failed = 0;
                         for (const row of activeRows) {
@@ -249,17 +250,22 @@ export default function Analyses() {
                             });
                             if (response.ok) {
                                 const newRow = await response.json();
-                                setRows(rows.map((oldRow) =>
-                                    oldRow.analysis_id === newRow.analysis_id
-                                    ? { ...oldRow, ...newRow }
-                                    : oldRow
-                                ));
+                                const index = rows.findIndex((row) => row.analysis_id === newRow.analysis_id);
+                                editedRows.set(index, newRow);
                                 count++;
                             } else {
                                 failed++;
                                 console.error(response);
                             }
                         }
+                        setRows(rows.map((row, index) => {
+                            let newRow = editedRows.get(index);
+                            if (newRow !== undefined) {
+                                return { ...row, ...newRow };
+                            } else {
+                                return row;
+                            }
+                        }));
                         setAssignment(false);
                         if (count > 0) {
                             enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`, { variant: "success" });
