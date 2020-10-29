@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography } from "@material-ui/core";
+import { Typography, TypographyProps } from "@material-ui/core";
 
 /*****   CONSTANTS   *****/
 export const emptyCellValue = "<empty>";
@@ -22,7 +22,6 @@ const months = [
 /*****   TYPINGS   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
-export type Variant = "button" | "caption" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "inherit" | "subtitle1" | "subtitle2" | "body1" | "body2" | "overline" | "srOnly";
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {
@@ -183,29 +182,15 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
  * If a material-table row is not provided, return null.
  */
 export function getRowIndex(row: any): number | null {
-    try {
-        let index: number = row.tableData.id;
-        return index;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+    return row.tableData?.id;
 }
 
 /**
  * Return whether this material-table row is checked / selected.
  * If it is not a material-table row, return null.
  */
-export function getIsRowSelected(row: any): boolean | null {
-    try {
-        let isChecked: boolean = row.tableData.checked;
-        if (isChecked === undefined)
-            isChecked = false;
-        return isChecked;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+export function isRowSelected(row: any): boolean {
+    return !!row?.tableData?.checked;
 }
 
 /*****   COMPONENTS   *****/
@@ -213,15 +198,11 @@ export function getIsRowSelected(row: any): boolean | null {
 /**
  * Returns a simple Typography JSX element for displaying "title: value".
  */
-export function FieldDisplay(props: { title: string, value?: string[] | string | number | null, variant?: Variant }) {
-    let val: string;
-    if (typeof props.value === 'number')
-        val = props.value.toString();
-    else if (typeof props.value === 'string')
-        val = props.value;
-    else if (typeof props.value === 'object' && props.value?.length !== undefined)
+export function FieldDisplay(props: TypographyProps & { title: string, value?: string[] | string | number | null }) {
+    let val = props.value;
+    if (Array.isArray(props.value))
         val = props.value.join(', ');
-    else
+    else if (props.value === null || props.value === undefined)
         val = "";
 
     return <Typography variant={props.variant ? props.variant : "body1"} gutterBottom><b>{props.title}:</b> {val}</Typography>;

@@ -10,7 +10,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from '../AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses, getIsRowSelected } from '../utils';
+import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses, isRowSelected } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -134,7 +134,7 @@ async function changeStateForSelectedRows(oldRows: Analysis[], filter: (row: Ana
     let failed = 0;
     for (let i = 0; i < newRows.length; i++) {
         let row = newRows[i];
-        if (getIsRowSelected(row) && filter(row)) {
+        if (isRowSelected(row) && filter(row)) {
             const newRow: Analysis = { ...newRows[i] };
             newRow.analysis_state = newState;
 
@@ -152,7 +152,7 @@ async function changeStateForSelectedRows(oldRows: Analysis[], filter: (row: Ana
                 failed++;
                 console.error(response);
             }
-        } else if (getIsRowSelected(row)) {  // skipped
+        } else if (isRowSelected(row)) {  // skipped
             skipped++;
         }
     }
@@ -327,7 +327,7 @@ export default function Analyses() {
                             tooltip: 'Add New Analysis',
                             position: 'toolbar',
                             isFreeAction: true,
-                            onClick: (event, rowData) => setDirect(true)
+                            onClick: () => setDirect(true)
                         },
                         {
                             icon: PlayArrow,

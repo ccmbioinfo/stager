@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { createStyles, makeStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
-import Dialog from '@material-ui/core/Dialog';
+import {
+    List,
+    ListItemIcon,
+    ListItem,
+    Paper,
+    ListItemText,
+    Collapse,
+    Dialog,
+    IconButton,
+    Typography
+} from '@material-ui/core';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
-import Typography from '@material-ui/core/Typography';
+import { createStyles, makeStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
+import { Dns, ExpandLess, ExpandMore, Close } from '@material-ui/icons';
 import { Analysis, Dataset, FieldDisplay, Pipeline } from './utils';
-import { List, ListItemIcon, ListItem, Paper, ListItemText, Collapse } from '@material-ui/core';
-import { Dns, ExpandLess, ExpandMore } from '@material-ui/icons';
 import { DatasetDetailSection } from './datasets/DialogSections';
 
 interface AlertInfoDialogProp {
@@ -44,7 +50,7 @@ const DialogTitle = withStyles(styles)((props: DialogTitleProps) => {
             <Typography variant="h6">{children}</Typography>
             {onClose ? (
                 <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-                    <CloseIcon />
+                    <Close />
                 </IconButton>
             ) : null}
         </MuiDialogTitle>
@@ -70,10 +76,6 @@ const useStyles = makeStyles(theme => ({
         margin: theme.spacing(1)
     }
 }));
-
-const pipelineParams: string[] = ["gnomAD_AF <= 0.01", "trio", "joint_genotyping", "denovo", "IMPACT_SEVERITY=HIGH",]
-const analyses: string[] = ["SNP", "INDELs",]
-export const annotations: string[] = ["OMIM 2020-07-01", "HGMD 2019-02-03", "snpEff 4.3T", "gnomAD v2.1.1"]
 
 export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
 
