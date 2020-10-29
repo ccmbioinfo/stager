@@ -1,5 +1,6 @@
 import pytest
 from app import *
+import os
 
 class TestConfig(config.Config):
     """
@@ -8,7 +9,7 @@ class TestConfig(config.Config):
     """
     FLASK_ENV = 'development'
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://admin:admin@localhost/st2020testing'
+    SQLALCHEMY_DATABASE_URI = os.getenv('ST_DATABASE_URI_TESTING', 'mysql+pymysql://admin:admin@localhost/st2020testing')
     TESTING = True
 
 

@@ -23,8 +23,6 @@ def create_app(config):
     app = Flask(__name__)
 
     app.config.from_object(config)
-    if app.config['TESTING']:
-        app.testing = True
 
     flask_logging.create_logger(app)
     login.session_protection = 'strong'
@@ -39,7 +37,7 @@ def create_app(config):
         from . import routes
         from . import buckets
 
-        if not app.testing:
+        if not app.config['TESTING']:
             db.create_all()
 
         return app
