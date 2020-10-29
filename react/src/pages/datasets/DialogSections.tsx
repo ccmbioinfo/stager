@@ -5,8 +5,7 @@ import { Analysis, Dataset, FieldDisplay, Sample } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     paper: {
-        padding: theme.spacing(2),
-        marginBottom: theme.spacing(3),
+        padding: theme.spacing(2)
     },
     listPaper: {
         padding: theme.spacing(1),

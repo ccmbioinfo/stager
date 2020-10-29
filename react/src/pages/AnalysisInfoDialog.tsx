@@ -59,15 +59,11 @@ const DialogContent = withStyles((theme: Theme) => ({
 
 const useStyles = makeStyles(theme => ({
     paper: {
-        padding: theme.spacing(2),
-        marginBottom: theme.spacing(3),
+        padding: theme.spacing(2)
     },
     listPaper: {
         padding: theme.spacing(1),
         margin: theme.spacing(1)
-    },
-    grid: {
-        paddingBottom: theme.spacing(2)
     },
     box: {
         padding: theme.spacing(2),
