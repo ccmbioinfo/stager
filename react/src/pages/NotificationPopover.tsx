@@ -68,7 +68,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         <div>
             <IconButton onClick={handlePopoverOpen}>
                 <Tooltip title="See notifications" arrow>
-                    <Badge badgeContent={numNotification} color="secondary" showZero>
+                    <Badge badgeContent={numNotification} color="secondary">
                         <NotificationsActive fontSize='large' style={{fill: "white"}} />
                     </Badge>
                 </Tooltip>
