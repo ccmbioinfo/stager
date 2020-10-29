@@ -16,6 +16,7 @@ class Config(object):
     MINIO_ENDPOINT = os.getenv('MINIO_ENDPOINT', 'localhost:9000')
     MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' )
     MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY', 'AKIAIOSFODNN7EXAMPLE')
+    TESTING = False
 
 class DevConfig(Config):
     """
@@ -24,9 +25,3 @@ class DevConfig(Config):
     FLASK_ENV = 'development'
     DEBUG = True
 
-class TestConfig(DevConfig):
-    """
-    Pytest config settings.
-    Uses MySQL database called "st2020testing" for adding/removing test data.
-    """
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://admin:admin@localhost/st2020testing'

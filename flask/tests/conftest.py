@@ -1,13 +1,24 @@
 import pytest
 from app import *
 
+class TestConfig(config.Config):
+    """
+    Pytest config settings.
+    Uses MySQL database called "st2020testing" for adding/removing test data.
+    """
+    FLASK_ENV = 'development'
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://admin:admin@localhost/st2020testing'
+    TESTING = True
+
+
 @pytest.fixture(scope="session")
 def application():
     """
     A test instance of the app.
     Will be reused for all tests.
     """
-    test_app = create_app(testing=True)
+    test_app = create_app(TestConfig)
     yield test_app
 
 

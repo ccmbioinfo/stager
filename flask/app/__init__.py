@@ -14,7 +14,7 @@ login = LoginManager()
 migrate = Migrate()
 
 
-def create_app(testing=False):
+def create_app(config):
     """
     The application factory. Returns an instance of the app.
     """
@@ -22,14 +22,9 @@ def create_app(testing=False):
     # Create the application object
     app = Flask(__name__)
 
-    if testing:
-        # Set testing parameters
-        # Make sure that a separate DB is used for testing. All tables are dropped after each test.
+    app.config.from_object(config)
+    if app.config['TESTING']:
         app.testing = True
-        app.config.from_object(config.TestConfig)
-    else:
-        # Setup configs
-        app.config.from_object(config.DevConfig)
 
     flask_logging.create_logger(app)
     login.session_protection = 'strong'
@@ -44,7 +39,7 @@ def create_app(testing=False):
         from . import routes
         from . import buckets
 
-        if not testing:
+        if not app.testing:
             db.create_all()
 
         return app
