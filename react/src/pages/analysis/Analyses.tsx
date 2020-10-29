@@ -259,7 +259,7 @@ export default function Analyses() {
                             }
                         }
                         setRows(rows.map((row, index) => {
-                            let newRow = editedRows.get(index);
+                            const newRow = editedRows.get(index);
                             if (newRow !== undefined) {
                                 return { ...row, ...newRow };
                             } else {
