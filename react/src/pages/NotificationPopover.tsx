@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover } from '@material-ui/core';
+import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover, Badge } from '@material-ui/core';
 import { NotificationsActive } from '@material-ui/icons';
 import Notification from './Notification';
 import { Analysis, jsonToAnalyses } from './utils';
@@ -66,7 +66,9 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         <div>
             <IconButton onClick={handlePopoverOpen}>
                 <Tooltip title="See notifications" arrow>
-                    <NotificationsActive fontSize='large' style={{fill: "white"}} />
+                    <Badge badgeContent={analyses.length} color="secondary">
+                        <NotificationsActive fontSize='large' style={{fill: "white"}} />
+                    </Badge>
                 </Tooltip>
             </IconButton>
             <Popover
