@@ -37,7 +37,6 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [analyses, setAnalyses] = useState<Analysis[]>([] as Analysis[]);
-    const [numNotification, setNumNotification] = useState<number>(0);
     const popoverOpen = Boolean(anchorEl);
     const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -57,7 +56,6 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
             if (response.ok) {
                 const result = jsonToAnalyses(await response.json());
                 setAnalyses(result);
-                setNumNotification(result.length);
             } else {
                 console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);
             }
@@ -68,7 +66,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         <div>
             <IconButton onClick={handlePopoverOpen}>
                 <Tooltip title="See notifications" arrow>
-                    <Badge badgeContent={numNotification} color="secondary">
+                    <Badge badgeContent={analyses.length} color="secondary">
                         <NotificationsActive fontSize='large' style={{fill: "white"}} />
                     </Badge>
                 </Tooltip>
