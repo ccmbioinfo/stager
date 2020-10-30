@@ -5,8 +5,7 @@ import { Analysis, Dataset, FieldDisplay, Sample } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     paper: {
-        padding: theme.spacing(2),
-        marginBottom: theme.spacing(3),
+        padding: theme.spacing(2)
     },
     listPaper: {
         padding: theme.spacing(1),
@@ -25,13 +24,13 @@ const gridSpacing = 2;
 const titleWidth = 12;
 const infoWidth = 6;
 
-export function DatasetDetailSection(props: { dataset?: Dataset }) {
+export function DatasetDetailSection(props: { dataset?: Dataset, elevation?: number }) {
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
     const dataset = props.dataset;
 
     return (
-        <Paper className={classes.paper} elevation={2}>
+        <Paper className={classes.paper} elevation={props.elevation !== undefined ? props.elevation : 2}>
             {dataset &&
             <>
             <Grid container spacing={gridSpacing} justify="space-evenly" className={classes.grid}>
