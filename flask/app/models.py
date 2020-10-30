@@ -119,19 +119,21 @@ class TissueSample(db.Model):
 
 @dataclass
 class DatasetType(db.Model):
+    __tablename__ = 'dataset_type'
     dataset_type: str = db.Column(db.String(50), primary_key=True)
 
 
 @dataclass
 class MetaDatasetType(db.Model):
+    __tablename__ = 'metadataset_type'
     metadataset_type: str = db.Column(db.String(50), primary_key=True)
 
 
 @dataclass
 class MetaDatasetType_DatasetType(db.Model):
     __tablename__ = 'metadataset_type_dataset_type'
-    dataset_type = db.Column('dataset_type', db.ForeignKey('dataset_type.dataset_type'), nullable=False, unique=True, primary_key=True)
-    metadataset_type = db.Column('metadataset_type', db.ForeignKey('metadataset_type.metadataset_type'), nullable=False, primary_key=True)
+    dataset_type: str = db.Column(db.String(50), db.ForeignKey('dataset_type.dataset_type'), nullable=False, unique=True, primary_key=True)
+    metadataset_type: str = db.Column(db.String(50), db.ForeignKey('metadataset_type.metadataset_type'), nullable=False, primary_key=True)
 
 
 # Name TBD
@@ -178,7 +180,7 @@ class Dataset(db.Model):
     # Dataset.DatasetID
     dataset_id: int = db.Column(db.Integer, primary_key=True)
     # Dataset.DatasetType
-    dataset_type: str = db.Column(db.ForeignKey('dataset_type.dataset_type'), nullable=False)
+    dataset_type: str = db.Column(db.String(50), db.ForeignKey('dataset_type.dataset_type'), nullable=False)
     # Dataset.HPFPath
     input_hpf_path: str = db.Column(db.String(500))
     # Dataset.Notes
