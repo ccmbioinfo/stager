@@ -101,6 +101,42 @@ def add_dummy_data():
         db.session.commit()
         print("Created default tissue samples: {}".format(", ".join([t['tissue_sample_type']+" for Participant "+str(t['participant_id']) for t in default_tissues])))
 
+    # add dataset types
+    if len(db.session.query(models.DatasetType).all()) == 0:
+        dataset_types = [
+            'RES', # Research Exome Sequencing
+            'CES', # Clinical Exome Sequencing
+            'WES', # Whole Exome Sequencing
+            'CPS', # Clinical Panel Sequencing
+            'RCS', # Research Clinome Sequencing
+            'RDC', # Research Deep Clinome Sequencing
+            'RDE', # Research Deep Exome Sequencing
+            'RGS', # Research Genome Sequencing
+            'CGS', # Clinical Genome Sequencing
+            'WGS', # Whole Genome Sequencing
+            'RRS', # Research RNA Sequencing
+            'RLM', # Research Lipidomics Mass Spectrometry
+            'RMM', # Research Metabolomics Mass Spectrometry
+            'RTA', # Research DNA Methylation array
+        ]
+        for d in dataset_types:
+            db.session.add(models.DatasetType(dataset_type=d))
+
+        db.session.commit()
+
+    # add metadataset type
+    if len(db.session.query(models.MetaDatasetType).all()) == 0:
+        metadataset_types = [
+            "Genome",
+            "Exome",
+            "RNA",
+            "Other"
+        ]
+        for m in metadataset_types:
+            db.session.add(models.MetaDatasetType(metadataset_type=m))
+
+        db.session.commit()
+
     # add dataset
     if len(db.session.query(models.Dataset).all()) == 0:
         default_datasets = [
@@ -143,9 +179,9 @@ def add_dummy_data():
     # add the supported datasets for the pipelines
     if len(db.session.query(models.PipelineDatasets).all()) == 0:
         # genomic datasets map to pipeline_id 1 (CRG)
-        db.session.add(models.PipelineDatasets(pipeline_id=1,supported_dataset="Genome"))
+        db.session.add(models.PipelineDatasets(pipeline_id=1,supported_metadataset_type="Genome"))
         # exomic datasets map to pipeline_id 2 (CRE) 
-        db.session.add(models.PipelineDatasets(pipeline_id=2,supported_dataset="Exome"))
+        db.session.add(models.PipelineDatasets(pipeline_id=2,supported_metadataset_type="Exome"))
         db.session.commit()
         print("Added dataset support info for pipelines")
 
