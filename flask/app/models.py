@@ -118,35 +118,21 @@ class TissueSample(db.Model):
 
 
 class DatasetType(str, Enum):
-    RES = 'RES' # Research Exome Sequencing
-    CES = 'CES' # Clinical Exome Sequencing
-    WES = 'WES' # Whole Exome Sequencing
-    CPS = 'CPS' # Clinical Panel Sequencing
-    RCS = 'RCS' # Research Clinome Sequencing
-    RDC = 'RDC' # Research Deep Clinome Sequencing
-    RDE = 'RDE' # Research Deep Exome Sequencing
-    RGS = 'RGS' # Research Genome Sequencing
-    CGS = 'CGS' # Clinical Genome Sequencing
-    WGS = 'WGS' # Whole Genome Sequencing
-    RRS = 'RRS' # Research RNA Sequencing
-    RLM = 'RLM' # Research Lipidomics Mass Spectrometry
-    RMM = 'RMM' # Research Metabolomics Mass Spectrometry
-    RTA = 'RTA' # Research DNA Methylation array
-
-
-class MetaDatasetType(str, Enum):
-    Exome = 'Exome'
-    Genome = 'Genome'
-    RNA = 'RNA'
-    Other = 'Other' # for tbd pipelines
-
-
-@dataclass
-class MetaDatasetType_DatasetType(db.Model):
-    __tablename__ = 'metadataset_type_dataset_type'
-    metadataset_type_dataset_type_id: int = db.Column(db.Integer, nullable=False, primary_key=True)
-    meta_dataset_type: MetaDatasetType = db.Column(db.Enum(MetaDatasetType), nullable=False)
-    dataset_type: DatasetType = db.Column(db.Enum(DatasetType), nullable=False)
+    CES = 'CES'
+    CGS = 'CGS'
+    CPS = 'CPS'
+    RES = 'RES'
+    RGS = 'RGS'
+    RLM = 'RLM'
+    RMM = 'RMM'
+    RRS = 'RRS'
+    RTA = 'RTA'
+    WES = 'WES'
+    WGS = 'WGS'
+    RNASeq = 'RNASeq'  # RNA-Seq
+    RCS = 'RCS'
+    RDC = 'RDC'
+    RDE = 'RDE'
 
 
 # Name TBD
