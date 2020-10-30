@@ -6,7 +6,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint
 
-from app import db
+from . import db
 
 
 class User(UserMixin, db.Model):
