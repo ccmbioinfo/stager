@@ -117,21 +117,36 @@ class TissueSample(db.Model):
     datasets = db.relationship('Dataset', backref='tissue_sample')
 
 
-@dataclass
-class DatasetType(db.Model):
-    dataset_type: str = db.Column(db.String(50), primary_key=True)
+class DatasetType(str, Enum):
+    RES = 'RES' # Research Exome Sequencing
+    CES = 'CES' # Clinical Exome Sequencing
+    WES = 'WES' # Whole Exome Sequencing
+    CPS = 'CPS' # Clinical Panel Sequencing
+    RCS = 'RCS' # Research Clinome Sequencing
+    RDC = 'RDC' # Research Deep Clinome Sequencing
+    RDE = 'RDE' # Research Deep Exome Sequencing
+    RGS = 'RGS' # Research Genome Sequencing
+    CGS = 'CGS' # Clinical Genome Sequencing
+    WGS = 'WGS' # Whole Genome Sequencing
+    RRS = 'RRS' # Research RNA Sequencing
+    RLM = 'RLM' # Research Lipidomics Mass Spectrometry
+    RMM = 'RMM' # Research Metabolomics Mass Spectrometry
+    RTA = 'RTA' # Research DNA Methylation array
 
 
-@dataclass
-class MetaDatasetType(db.Model):
-    metadataset_type: str = db.Column(db.String(50), primary_key=True)
+class MetaDatasetType(str, Enum):
+    Exome = 'Exome'
+    Genome = 'Genome'
+    RNA = 'RNA'
+    Other = 'Other' # for tbd pipelines
 
 
 @dataclass
 class MetaDatasetType_DatasetType(db.Model):
     __tablename__ = 'metadataset_type_dataset_type'
-    dataset_type = db.Column('dataset_type', db.ForeignKey('dataset_type.dataset_type'), nullable=False, unique=True, primary_key=True)
-    metadataset_type = db.Column('metadataset_type', db.ForeignKey('metadataset_type.metadataset_type'), nullable=False, primary_key=True)
+    metadataset_type_dataset_type_id: int = db.Column(db.Integer, nullable=False, primary_key=True)
+    meta_dataset_type: MetaDatasetType = db.Column(db.Enum(MetaDatasetType), nullable=False)
+    dataset_type: DatasetType = db.Column(db.Enum(DatasetType), nullable=False)
 
 
 # Name TBD
@@ -178,7 +193,7 @@ class Dataset(db.Model):
     # Dataset.DatasetID
     dataset_id: int = db.Column(db.Integer, primary_key=True)
     # Dataset.DatasetType
-    dataset_type: str = db.Column(db.ForeignKey('dataset_type.dataset_type'), nullable=False)
+    dataset_type: DatasetType = db.Column(db.Enum(DatasetType), nullable=False)
     # Dataset.HPFPath
     input_hpf_path: str = db.Column(db.String(500))
     # Dataset.Notes
@@ -294,4 +309,4 @@ class PipelineDatasets(db.Model):
     pipeline_id: int = db.Column(db.Integer,
                                  db.ForeignKey('pipeline.pipeline_id', onupdate='cascade', ondelete='restrict'),
                                  primary_key=True)
-    supported_metadataset_type: str = db.Column(db.ForeignKey('metadataset_type.metadataset_type'), primary_key=True, nullable=False)
+    supported_dataset: MetaDatasetType = db.Column(db.Enum(MetaDatasetType), primary_key=True)
