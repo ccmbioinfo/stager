@@ -143,24 +143,14 @@ def add_dummy_data():
     # add the supported datasets for the pipelines
     if len(db.session.query(models.PipelineDatasets).all()) == 0:
         # genomic datasets map to pipeline_id 1 (CRG)
-        db.session.add(models.PipelineDatasets(pipeline_id=1,supported_dataset="Genome"))
+        for g in ["CGS","RGS","WGS"]:
+            db.session.add(models.PipelineDatasets(pipeline_id=1,supported_dataset=g))
         # exomic datasets map to pipeline_id 2 (CRE) 
-        db.session.add(models.PipelineDatasets(pipeline_id=2,supported_dataset="Exome"))
+        for e in ["CES","CPS","RES","WES"]:
+            db.session.add(models.PipelineDatasets(pipeline_id=2,supported_dataset=e))
+        
         db.session.commit()
         print("Added dataset support info for pipelines")
-
-    # add the metadataset type to dataset type mapping
-    if len(db.session.query(models.MetaDatasetType_DatasetType).all()) == 0:
-        for e in ['RES', 'CES', 'WES', 'CPS', 'RCS', 'RDC', 'RDE']:
-            db.session.add(models.MetaDatasetType_DatasetType(meta_dataset_type='Exome', dataset_type=e))
-        for g in ['RGS', 'CGS', 'WGS']:
-            db.session.add(models.MetaDatasetType_DatasetType(meta_dataset_type='Genome', dataset_type=g))
-        for o in ['RLM', 'RMM', 'RTA']:
-            db.session.add(models.MetaDatasetType_DatasetType(meta_dataset_type='Other', dataset_type=o))
-        
-        db.session.add(models.MetaDatasetType_DatasetType(meta_dataset_type='RNA', dataset_type='RRS'))
-        db.session.commit()
-        print("Added metadataset_dataset information")
 
     # add analyses
     if len(db.session.query(models.Analysis).all()) == 0:

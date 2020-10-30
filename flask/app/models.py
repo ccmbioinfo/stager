@@ -297,7 +297,7 @@ class Pipeline(db.Model):
 
     supported_types: List[DatasetType]
     @property
-    def supported_types(self) -> List[MetaDatasetType]:
+    def supported_types(self) -> List[DatasetType]:
         return [x.supported_dataset for x in self.supported]
 
     __table_args__ = (
@@ -309,4 +309,4 @@ class PipelineDatasets(db.Model):
     pipeline_id: int = db.Column(db.Integer,
                                  db.ForeignKey('pipeline.pipeline_id', onupdate='cascade', ondelete='restrict'),
                                  primary_key=True)
-    supported_dataset: MetaDatasetType = db.Column(db.Enum(MetaDatasetType), primary_key=True)
+    supported_dataset: DatasetType = db.Column(db.Enum(DatasetType), primary_key=True)
