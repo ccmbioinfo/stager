@@ -47,7 +47,7 @@ export default function Datasets() {
                                 value="2731"
                                 textSecondary="12 since last week"
                                 linkText="Participant View"
-                            ></Card>
+                            />
                         </Paper>
                     </Grid>
                     <Grid item xs={4}>
@@ -57,7 +57,6 @@ export default function Datasets() {
                                 value="3012"
                                 textSecondary="3 CES, 5 RES since last week"
                                 linkText="Dataset View"
-                                children=""
                             />
                         </Paper>
                     </Grid>
@@ -68,7 +67,6 @@ export default function Datasets() {
                                 value="728"
                                 textSecondary="2 since last week"
                                 linkText="Family View"
-                                children=""
                             />
                         </Paper>
                     </Grid>

@@ -61,7 +61,6 @@ export default function ManagedUploaders() {
                         value="5"
                         textSecondary="Avg 12 files per week"
                         linkText=""
-                        children=""
                     />
                 </Paper>
             </Grid>

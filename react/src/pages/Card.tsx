@@ -10,7 +10,7 @@ export interface CardProps {
     value: string;
     textSecondary: string;
     linkText: string;
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 function preventDefault(event: any) {

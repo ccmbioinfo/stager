@@ -61,7 +61,6 @@ export default function Uploads() {
                                 value="17"
                                 textSecondary="2 since last week"
                                 linkText=""
-                                children=""
                             />
                         </Paper>
                     </Grid>
