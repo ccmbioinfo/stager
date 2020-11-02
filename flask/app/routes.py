@@ -431,6 +431,12 @@ def get_enums():
     for name, obj in inspect.getmembers(models, inspect.isclass):
         if issubclass(obj, Enum) and name != 'Enum':
             enums[name] = [e.value for e in getattr(models, name)]
+        # cheat to also return the DatasetType and MetaDatasetType
+        if name == 'DatasetType':
+            enums[name] = [e.dataset_type for e in db.session.query(getattr(models, name)).all()]
+        elif name == 'MetaDatasetType':
+            enums[name] = [e.metadataset_type for e in db.session.query(getattr(models, name)).all()]
+
     return jsonify(enums)
 
 
