@@ -10,7 +10,7 @@ import CancelAnalysisDialog from './CancelAnalysisDialog';
 import AnalysisInfoDialog from '../AnalysisInfoDialog';
 import AddAnalysisAlert from './AddAnalysisAlert';
 import SetAssigneeDialog from './SetAssigneeDialog';
-import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses } from '../utils';
+import { emptyCellValue, formatDateString, Analysis, PipelineStatus, jsonToAnalyses, isRowSelected } from '../utils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -134,7 +134,7 @@ async function changeStateForSelectedRows(oldRows: Analysis[], filter: (row: Ana
     let failed = 0;
     for (let i = 0; i < newRows.length; i++) {
         let row = newRows[i];
-        if (row.selected && filter(row)) {
+        if (isRowSelected(row) && filter(row)) {
             const newRow: Analysis = { ...newRows[i] };
             newRow.analysis_state = newState;
 
@@ -152,7 +152,7 @@ async function changeStateForSelectedRows(oldRows: Analysis[], filter: (row: Ana
                 failed++;
                 console.error(response);
             }
-        } else if (row.selected) {  // skipped
+        } else if (isRowSelected(row)) {  // skipped
             skipped++;
         }
     }
@@ -237,6 +237,7 @@ export default function Analyses() {
                     open={assignment}
                     onClose={() => { setAssignment(false); }}
                     onSubmit={async (username) => {
+                        let editedRows = new Map<number, Analysis>();
                         let count = 0;
                         let failed = 0;
                         for (const row of activeRows) {
@@ -249,17 +250,22 @@ export default function Analyses() {
                             });
                             if (response.ok) {
                                 const newRow = await response.json();
-                                setRows(rows.map((oldRow) =>
-                                    oldRow.analysis_id === newRow.analysis_id
-                                    ? { ...oldRow, ...newRow }
-                                    : oldRow
-                                ));
+                                const index = rows.findIndex((row) => row.analysis_id === newRow.analysis_id);
+                                editedRows.set(index, newRow);
                                 count++;
                             } else {
                                 failed++;
                                 console.error(response);
                             }
                         }
+                        setRows(rows.map((row, index) => {
+                            const newRow = editedRows.get(index);
+                            if (newRow !== undefined) {
+                                return { ...row, ...newRow };
+                            } else {
+                                return row;
+                            }
+                        }));
                         setAssignment(false);
                         if (count > 0) {
                             enqueueSnackbar(`${count} analyses successfully assigned to user '${username}'`, { variant: "success" });
@@ -291,25 +297,6 @@ export default function Analyses() {
                             />
                         )}
                     ]}
-                    onSelectionChange={(selectedRows, row) => {
-                        setActiveRows(selectedRows);
-                        // Use hidden 'selected' field to optimize mass cancellation, reassignment, etc.
-                        const newRows = [...rows];
-
-                        if (row) {  // one row changed
-                            const index = rows.indexOf(row);
-                            const newRow: Analysis = { ...newRows[index] };
-                            newRow.selected = !row.selected;
-                            newRows[index] = newRow;
-                        }
-                        else {  // all rows changed
-                            if (selectedRows.length === rows.length)
-                                newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: true });
-                            else
-                                newRows.forEach((val, i, arr) => arr[i] = { ...arr[i], selected: false });
-                        }
-                        setRows(newRows);
-                    }}
                     data={rows}
                     title={
                         <Title>Active Analyses</Title>
@@ -346,7 +333,7 @@ export default function Analyses() {
                             tooltip: 'Add New Analysis',
                             position: 'toolbar',
                             isFreeAction: true,
-                            onClick: (event) => setDirect(true)
+                            onClick: () => setDirect(true)
                         },
                         {
                             icon: PlayArrow,

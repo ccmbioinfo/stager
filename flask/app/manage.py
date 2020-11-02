@@ -1,4 +1,5 @@
-from app import app, db, models
+from flask import current_app as app
+from . import db, models
 from datetime import datetime
 
 @app.cli.command('add-default-admin')
@@ -175,12 +176,12 @@ def add_dummy_data():
 
         db.session.commit()
         print("Created default pipelines: {}".format(", ".join([p['pipeline_version'] for p in default_pipelines])))
-    
+
     # add the supported datasets for the pipelines
     if len(db.session.query(models.PipelineDatasets).all()) == 0:
         # genomic datasets map to pipeline_id 1 (CRG)
         db.session.add(models.PipelineDatasets(pipeline_id=1,supported_metadataset_type="Genome"))
-        # exomic datasets map to pipeline_id 2 (CRE) 
+        # exomic datasets map to pipeline_id 2 (CRE)
         db.session.add(models.PipelineDatasets(pipeline_id=2,supported_metadataset_type="Exome"))
         db.session.commit()
         print("Added dataset support info for pipelines")
@@ -193,7 +194,7 @@ def add_dummy_data():
             db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='Genome', dataset_type=g))
         for o in ['RLM', 'RMM', 'RTA']:
             db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='Other', dataset_type=o))
-        
+
         db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='RNA', dataset_type='RRS'))
         db.session.commit()
         print("Added metadataset_dataset information")
@@ -219,7 +220,7 @@ def add_dummy_data():
 
         db.session.commit()
         print("Created default analysis with states: {}".format(", ".join([a['analysis_state'] for a in default_analyses])))
-    
+
     # add dataset/analysis linking table
     if len(db.session.query(models.datasets_analyses_table).all()) == 0:
         default_dataset_analyses = [

@@ -7,14 +7,16 @@ from dataclasses import asdict
 import inspect
 from io import StringIO
 
-from flask import abort, jsonify, request, Response
+from . import db, login, models
+
+from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
 import pandas as pd
 
-from app import app, db, login, models
+
 
 
 @login.user_loader
@@ -628,9 +630,6 @@ def post_analyses():
 
     if not pipeline_pk:
         return 'No Pipeline ID provided', 400
-
-    if len(pipeline_pk) > 1:
-        return 'Only 1 Pipeline ID accepted', 400
 
     pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
 

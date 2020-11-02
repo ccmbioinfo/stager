@@ -6,7 +6,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint
 
-from app import db
+from . import db
 
 
 class User(UserMixin, db.Model):
@@ -282,10 +282,10 @@ class Pipeline(db.Model):
     pipeline_version: str = db.Column(db.String(50), nullable=False)
     supported = db.relationship('PipelineDatasets', backref='pipeline')
 
-    supported_types: List[DatasetType]
+    supported_types: List[MetaDatasetType]
     @property
     def supported_types(self) -> List[MetaDatasetType]:
-        return [x.supported_dataset for x in self.supported]
+        return [x.supported_metadataset_type for x in self.supported]
 
     __table_args__ = (
         db.UniqueConstraint('pipeline_name', 'pipeline_version'),

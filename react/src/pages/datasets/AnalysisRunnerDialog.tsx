@@ -6,7 +6,7 @@ import {
     Typography, makeStyles
 } from '@material-ui/core';
 import { useSnackbar } from 'notistack';
-import { Dataset, Pipeline } from "../utils";
+import { Analysis, Dataset, Pipeline } from "../utils";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[],
@@ -97,13 +97,26 @@ export default function AnalysisRunnerDialog({ open, onClose, datasets, pipeline
                 </Button>
                 <Button
                     variant="contained"
-                    onClick={() => {
+                    onClick={async () => {
                         onClose();
-                        let p = pipelines.find((p) => p.pipeline_id === pipeline);
-                        if (p)
-                            enqueueSnackbar(`Analysis queued of ${datasets.length} datasets using pipeline ${p?.pipeline_name} ${p?.pipeline_version}`);
-                        else
-                            enqueueSnackbar(`Analysis cancelled, no pipeline selected!`, { variant: 'error' });
+                        const response = await fetch('/api/analyses', {
+                            method: "POST",
+                            body: JSON.stringify({
+                                datasets: datasets.map(d => d.dataset_id),
+                                pipeline_id: pipeline }),
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        if (response.ok) {
+                            const analysis = await response.json() as Analysis;
+
+                            let p = pipelines.find((p) => p.pipeline_id === parseInt(analysis.pipeline_id));
+                            enqueueSnackbar(`Analysis ID ${analysis.analysis_id} created of ${datasets.length} datasets with pipeline ${p?.pipeline_name} ${p?.pipeline_version}`, { variant: 'success' });
+                        } else {
+                            const errorText = await response.text();
+                            enqueueSnackbar(`Analysis could not be requested. Error: ${response.status} - ${errorText}`, { variant: 'error' });
+                        }
                     }}
                     color="primary"
                 >

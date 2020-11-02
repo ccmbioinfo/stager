@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography } from "@material-ui/core";
+import { Typography, TypographyProps } from "@material-ui/core";
 
 /*****   CONSTANTS   *****/
 export const emptyCellValue = "<empty>";
@@ -96,7 +96,6 @@ export interface Analysis {
     analysis_state: PipelineStatus,
     updated: string,
     notes: string,
-    selected: boolean,
     dataset_id: string,
     qsubID: string,
     requested: string,
@@ -173,9 +172,25 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
                 row.state = null;
                 break;
         }
-        return { ...row, selected: false } as Analysis;
+        return { ...row } as Analysis;
     });
     return rows;
+}
+
+/**
+ * Get the index of a material-table row.
+ * If a material-table row is not provided, return null.
+ */
+export function getRowIndex(row: any): number | null {
+    return row.tableData?.id;
+}
+
+/**
+ * Return whether this material-table row is checked / selected.
+ * If it is not a material-table row, return null.
+ */
+export function isRowSelected(row: any): boolean {
+    return !!row?.tableData?.checked;
 }
 
 /*****   COMPONENTS   *****/
@@ -183,14 +198,12 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
 /**
  * Returns a simple Typography JSX element for displaying "title: value".
  */
-export function FieldDisplay(props: { title: string, value: string | number | null }) {
-    let val: string;
-    if (typeof props.value === 'number')
-        val = props.value.toString();
-    else if (typeof props.value === 'string')
-        val = props.value;
-    else
+export function FieldDisplay(props: TypographyProps & { title: string, value?: string[] | string | number | null }) {
+    let val = props.value;
+    if (Array.isArray(props.value))
+        val = props.value.join(', ');
+    else if (props.value === null || props.value === undefined)
         val = "";
 
-    return <Typography variant="body1" gutterBottom><b>{props.title}:</b> {val}</Typography>;
+    return <Typography variant={props.variant ? props.variant : "body1"} gutterBottom><b>{props.title}:</b> {val}</Typography>;
 }
