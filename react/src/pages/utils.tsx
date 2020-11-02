@@ -97,6 +97,47 @@ export interface Pipeline {
     supported_types: string[];
 }
 
+interface DataEntryRowBase {
+    family_codename: string,
+    participant_codename: string,
+    sex?: string,
+    participant_type: string,
+    affected?: boolean,
+    solved?: boolean,
+    notes?: string,
+    tissue_sample_type: string,
+    dataset_type: string,
+    condition?: string,
+    extraction_protocol?: string,
+    capture_kit?: string,
+    library_prep_method?: string,
+    read_length?: number,
+    read_type?: string,
+    sequencing_id?: string,
+    sequencing_date?: string,
+    sequencing_centre?: string,
+    batch_id?: string,
+}
+
+interface DataEntryRowRNASeq extends DataEntryRowBase {
+    dataset_type: "RNASeq",
+    RIN: string,
+    DV200: string,
+    concentration: string,
+    sequencer: string,
+    spike_in: string
+}
+
+interface DataEntryRowNoRNASeq extends DataEntryRowBase {
+    RIN: never,
+    DV200: never,
+    concentration: never,
+    sequencer: never,
+    spike_in: never
+}
+
+export type DataEntryRow = DataEntryRowNoRNASeq | DataEntryRowRNASeq;
+
 /*****   FUNCTIONS   *****/
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
