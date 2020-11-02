@@ -97,16 +97,19 @@ export interface Pipeline {
     supported_types: string[];
 }
 
-interface DataEntryRowBase {
+export interface DataEntryRowBase {
     family_codename: string,
     participant_codename: string,
-    sex?: string,
     participant_type: string,
+    tissue_sample_type: string,
+    dataset_type: string,
+}
+
+interface DataEntryRowOptional extends DataEntryRowBase {
+    sex?: string,
     affected?: boolean,
     solved?: boolean,
     notes?: string,
-    tissue_sample_type: string,
-    dataset_type: string,
     condition?: string,
     extraction_protocol?: string,
     capture_kit?: string,
@@ -119,24 +122,21 @@ interface DataEntryRowBase {
     batch_id?: string,
 }
 
-interface DataEntryRowRNASeq extends DataEntryRowBase {
-    dataset_type: "RNASeq",
-    RIN: string,
-    DV200: string,
-    concentration: string,
-    sequencer: string,
-    spike_in: string
+// Cannot enforce "RNASeq => these values are set" with types
+interface DataEntryRowRNASeq extends DataEntryRowOptional {
+    RIN?: string,
+    DV200?: string,
+    concentration?: string,
+    sequencer?: string,
+    spike_in?: string
 }
 
-interface DataEntryRowNoRNASeq extends DataEntryRowBase {
-    RIN: never,
-    DV200: never,
-    concentration: never,
-    sequencer: never,
-    spike_in: never
-}
+export type DataEntryRow = DataEntryRowRNASeq;
 
-export type DataEntryRow = DataEntryRowNoRNASeq | DataEntryRowRNASeq;
+export interface DataEntryHeader {
+    title: string,
+    field: keyof DataEntryRow
+};
 
 /*****   FUNCTIONS   *****/
 export function countArray(items: string[]) {
@@ -155,6 +155,18 @@ export function toKeyValue(items: string[]) {
         map[item] = item;
         return map;
     }, Object.create(null));
+}
+
+/**
+ * Get property of object by key.
+ *
+ * @example
+ * let obj = { a: 1, b: 2 };
+ * let id = "a";
+ * getProp(row, id) // returns 1
+ */
+export function getProp<T, K extends keyof T>(obj: T, key: K) {
+    return obj[key];
 }
 
 /**

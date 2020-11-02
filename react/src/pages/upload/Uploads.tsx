@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { Box, Container, Grid, Paper, Typography } from "@material-ui/core";
-import Card from "../Card";
-import FilesTable from "./FilesTable";
-import UploadDialog from "./UploadDialog";
+import React, { useEffect, useState } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import { Box, Container, Grid, Paper, Typography } from '@material-ui/core';
+import Card from '../Card';
+import FilesTable from './FilesTable';
+import UploadDialog from './UploadDialog';
+import DataEntryTable from './DataEntryTable';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -92,7 +93,7 @@ export default function Uploads() {
                     </Grid>
                     <Grid item xs={12}>
                         <Box alignItems="stretch">
-                            <FilesTable />
+                            <DataEntryTable />
                         </Box>
                     </Grid>
                 </Grid>
