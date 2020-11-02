@@ -17,7 +17,7 @@ export default function DatasetTypes({ datasetTypes }: DatasetTypesProps) {
     return (
         <div>
             {Object.keys(datasetTypes).map(type => {
-                return <Chip className={classes.chip} label={type} avatar={<Avatar>{datasetTypes[type]}</Avatar>} />
+                return <Chip className={classes.chip} label={type} size="small" avatar={<Avatar>{datasetTypes[type]}</Avatar>} />
             })}
         </div>
     );
