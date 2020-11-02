@@ -1,30 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { makeStyles, Paper, Box, Typography, Tooltip, IconButton, Popover, Badge } from '@material-ui/core';
-import { NotificationsActive } from '@material-ui/icons';
-import Notification from './Notification';
-import { Analysis, jsonToAnalyses } from './utils';
-import AnalysisInfoDialog from './AnalysisInfoDialog';
+import React, { useEffect, useState } from "react";
+import {
+    makeStyles,
+    Paper,
+    Box,
+    Typography,
+    Tooltip,
+    IconButton,
+    Popover,
+    Badge,
+} from "@material-ui/core";
+import { NotificationsActive } from "@material-ui/icons";
+import Notification from "./Notification";
+import { Analysis, jsonToAnalyses } from "./utils";
+import AnalysisInfoDialog from "./AnalysisInfoDialog";
 
 const useStyles = makeStyles(theme => ({
     popover: {
-        minWidth: '450px',
+        minWidth: "450px",
     },
     paper: {
         padding: theme.spacing(2),
     },
     notifications: {
-        '& > * + *': {
-          marginTop: theme.spacing(2),
+        "& > * + *": {
+            marginTop: theme.spacing(2),
         },
-        maxHeight: '500px',
+        maxHeight: "500px",
     },
     title: {
         flexGrow: 1,
         paddingLeft: theme.spacing(1),
     },
     titleBox: {
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         paddingBottom: theme.spacing(1),
     },
 }));
@@ -57,7 +66,9 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                 const result = jsonToAnalyses(await response.json());
                 setAnalyses(result);
             } else {
-                console.error(`GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`);
+                console.error(
+                    `GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`
+                );
             }
         });
     }, [lastLoginTime]);
@@ -67,7 +78,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
             <IconButton onClick={handlePopoverOpen}>
                 <Tooltip title="See notifications" arrow>
                     <Badge badgeContent={analyses.length} color="secondary">
-                        <NotificationsActive fontSize='large' style={{fill: "white"}} />
+                        <NotificationsActive fontSize="large" style={{ fill: "white" }} />
                     </Badge>
                 </Tooltip>
             </IconButton>
@@ -76,39 +87,53 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                 anchorEl={anchorEl}
                 onClose={handlePopoverClose}
                 anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
+                    vertical: "bottom",
+                    horizontal: "left",
                 }}
                 transformOrigin={{
-                vertical: 'top',
-                horizontal: 'center',
+                    vertical: "top",
+                    horizontal: "center",
                 }}
             >
                 <div className={classes.popover}>
                     <Paper className={classes.paper}>
                         <Box className={classes.titleBox}>
-                            <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} display="inline">
-                                {
-                                    analyses.length === 0
-                                    ? "No Notifications"
-                                    : "Notifications"
-                                }
+                            <Typography
+                                component="h1"
+                                variant="h6"
+                                color="inherit"
+                                noWrap
+                                className={classes.title}
+                                display="inline"
+                            >
+                                {analyses.length === 0 ? "No Notifications" : "Notifications"}
                             </Typography>
                         </Box>
                         <Box>
                             <div className={classes.notifications}>
-                                {analyses.map(analysis => <Notification analysis={analysis} onClick={() => { setClickedAnalysis(analysis); setOpenDialog(true); }}/>)}
+                                {analyses.map(analysis => (
+                                    <Notification
+                                        analysis={analysis}
+                                        onClick={() => {
+                                            setClickedAnalysis(analysis);
+                                            setOpenDialog(true);
+                                        }}
+                                    />
+                                ))}
                             </div>
                         </Box>
                     </Paper>
                 </div>
             </Popover>
-            {clickedAnalysis !== null &&
-            <AnalysisInfoDialog
-            open={openDialog}
-            onClose={() => { setOpenDialog(false); }}
-            analysis={clickedAnalysis}
-            />}
+            {clickedAnalysis !== null && (
+                <AnalysisInfoDialog
+                    open={openDialog}
+                    onClose={() => {
+                        setOpenDialog(false);
+                    }}
+                    analysis={clickedAnalysis}
+                />
+            )}
         </div>
     );
 }

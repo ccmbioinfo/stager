@@ -2,14 +2,18 @@ import pytest
 from app import *
 import os
 
+
 class TestConfig(config.Config):
     """
     Pytest config settings.
     Uses MySQL database called "st2020testing" for adding/removing test data.
     """
-    FLASK_ENV = 'development'
+
+    FLASK_ENV = "development"
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('ST_DATABASE_URI_TESTING', 'mysql+pymysql://admin:admin@localhost/st2020testing')
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "ST_DATABASE_URI_TESTING", "mysql+pymysql://admin:admin@localhost/st2020testing"
+    )
     TESTING = True
 
 

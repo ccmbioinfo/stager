@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { makeStyles, Chip, IconButton } from '@material-ui/core';
-import { Cancel, FileCopy } from '@material-ui/icons';
-import MaterialTable, { MTableToolbar } from 'material-table';
-import { useSnackbar } from 'notistack';
-import { countArray, toKeyValue, KeyValue, Participant, Sample, Dataset } from '../utils';
-import DatasetTypes from './DatasetTypes';
-import ParticipantDetailDialog from './ParticipantDetailDialog';
+import React, { useState, useEffect } from "react";
+import { makeStyles, Chip, IconButton } from "@material-ui/core";
+import { Cancel, FileCopy } from "@material-ui/icons";
+import MaterialTable, { MTableToolbar } from "material-table";
+import { useSnackbar } from "notistack";
+import { countArray, toKeyValue, KeyValue, Participant, Sample, Dataset } from "../utils";
+import DatasetTypes from "./DatasetTypes";
+import ParticipantDetailDialog from "./ParticipantDetailDialog";
 
 const useStyles = makeStyles(theme => ({
     chip: {
         color: "primary",
-        marginRight: '10px',
+        marginRight: "10px",
         colorPrimary: theme.palette.primary,
     },
     copyIcon: {
@@ -30,7 +30,7 @@ export default function ParticipantTable() {
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
-        if(!Array.isArray(rowData)){
+        if (!Array.isArray(rowData)) {
             const toCopy = rowData.participant_codename + "_" + rowData.family_codename;
             await navigator.clipboard.writeText(toCopy);
         }
@@ -44,7 +44,9 @@ export default function ParticipantTable() {
                 setDatasetTypes(toKeyValue(enums.DatasetType));
                 setParticipantTypes(toKeyValue(enums.ParticipantType));
             } else {
-                console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
+                console.error(
+                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
+                );
             }
         });
 
@@ -56,83 +58,143 @@ export default function ParticipantTable() {
                     samples.forEach((sample: Sample) => {
                         const datasets = sample.datasets;
                         datasets.forEach((dataset: Dataset) => {
-                            participant['dataset_types'] ?
-                            participant['dataset_types'].push(dataset.dataset_type) :
-                            participant['dataset_types'] = [dataset.dataset_type];
-                        })
-                    })
-                })
+                            participant["dataset_types"]
+                                ? participant["dataset_types"].push(dataset.dataset_type)
+                                : (participant["dataset_types"] = [dataset.dataset_type]);
+                        });
+                    });
+                });
                 setParticipants(participants as Participant[]);
             } else {
-                console.error(`GET /api/participants failed with ${response.status}: ${response.statusText}`);
+                console.error(
+                    `GET /api/participants failed with ${response.status}: ${response.statusText}`
+                );
             }
         });
-      }, [])
+    }, []);
 
     return (
         <div>
-            {activeRow &&
+            {activeRow && (
                 <ParticipantDetailDialog
                     open={detail}
                     participant={activeRow}
                     onClose={() => setDetail(false)}
-                />}
-           <MaterialTable
+                />
+            )}
+            <MaterialTable
                 columns={[
-                    { title: 'Participant Codename', field: 'participant_codename', align: 'center' },
-                    { title: 'Family Codename', field: 'family_codename', align: 'center', editable:'never' },
-                    { title: 'Participant Type', field: 'participant_type' , align: 'center', lookup: participantTypes, defaultFilter: filter },
-                    { title: 'Affected', field: 'affected', type: 'boolean', align: 'center' },
-                    { title: 'Solved', field: 'solved', type: 'boolean', align: 'center' },
-                    { title: 'Sex', field: 'sex', type: 'string', align: 'center', lookup: sexTypes },
-                    { title: 'Notes', field: 'notes', width: "50%" },
-                    { title: 'Dataset Types', field: 'dataset_types', align: 'center', editable:'never', lookup: datasetTypes, render: (rowData) => <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} /> }
+                    {
+                        title: "Participant Codename",
+                        field: "participant_codename",
+                        align: "center",
+                    },
+                    {
+                        title: "Family Codename",
+                        field: "family_codename",
+                        align: "center",
+                        editable: "never",
+                    },
+                    {
+                        title: "Participant Type",
+                        field: "participant_type",
+                        align: "center",
+                        lookup: participantTypes,
+                        defaultFilter: filter,
+                    },
+                    { title: "Affected", field: "affected", type: "boolean", align: "center" },
+                    { title: "Solved", field: "solved", type: "boolean", align: "center" },
+                    {
+                        title: "Sex",
+                        field: "sex",
+                        type: "string",
+                        align: "center",
+                        lookup: sexTypes,
+                    },
+                    { title: "Notes", field: "notes", width: "50%" },
+                    {
+                        title: "Dataset Types",
+                        field: "dataset_types",
+                        align: "center",
+                        editable: "never",
+                        lookup: datasetTypes,
+                        render: rowData => (
+                            <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
+                        ),
+                    },
                 ]}
                 data={participants}
-                title='Participants'
+                title="Participants"
                 options={{
                     pageSize: 10,
                     selection: false,
                     filtering: true,
                     search: false,
-                    padding: 'dense',
+                    padding: "dense",
                 }}
                 components={{
                     Toolbar: props => (
                         <div>
                             <MTableToolbar {...props} />
-                            <div style={{ marginLeft: '24px' }}>
-                                <Chip label="Proband" clickable className={classes.chip} onClick={() => setFilter(["Proband"])} />
-                                <Chip label="Parent" clickable className={classes.chip} onClick={() => setFilter(["Parent"])} />
-                                <Chip label="Sibling" clickable className={classes.chip} onClick={() => setFilter(["Sibling"])} />
-                                <IconButton className={classes.chip} onClick={() => setFilter([])}> <Cancel /> </IconButton>
+                            <div style={{ marginLeft: "24px" }}>
+                                <Chip
+                                    label="Proband"
+                                    clickable
+                                    className={classes.chip}
+                                    onClick={() => setFilter(["Proband"])}
+                                />
+                                <Chip
+                                    label="Parent"
+                                    clickable
+                                    className={classes.chip}
+                                    onClick={() => setFilter(["Parent"])}
+                                />
+                                <Chip
+                                    label="Sibling"
+                                    clickable
+                                    className={classes.chip}
+                                    onClick={() => setFilter(["Sibling"])}
+                                />
+                                <IconButton className={classes.chip} onClick={() => setFilter([])}>
+                                    {" "}
+                                    <Cancel />{" "}
+                                </IconButton>
                             </div>
                         </div>
                     ),
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {
-                        const response = await fetch(`/api/participants/${newParticipant.participant_id}`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(newParticipant)
-                        });
+                        const response = await fetch(
+                            `/api/participants/${newParticipant.participant_id}`,
+                            {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(newParticipant),
+                            }
+                        );
                         if (response.ok) {
                             const updatedParticipant = await response.json();
-                            setParticipants(participants.map(participant =>
-                                participant.participant_id === newParticipant.participant_id
-                                ? { ...participant, ...updatedParticipant }
-                                : participant
-                            ));
-                            enqueueSnackbar(`Participant ${newParticipant.participant_codename} updated successfully`);
+                            setParticipants(
+                                participants.map(participant =>
+                                    participant.participant_id === newParticipant.participant_id
+                                        ? { ...participant, ...updatedParticipant }
+                                        : participant
+                                )
+                            );
+                            enqueueSnackbar(
+                                `Participant ${newParticipant.participant_codename} updated successfully`
+                            );
                         } else {
-                            console.error(`PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`);
+                            console.error(
+                                `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
+                            );
                         }
-                    }
+                    },
                 }}
                 actions={[
                     {
-                        icon: () => <FileCopy className={classes.copyIcon}/>,
+                        icon: () => <FileCopy className={classes.copyIcon} />,
                         tooltip: "Copy combined codename",
                         onClick: CopyToClipboard,
                     },
@@ -143,8 +205,11 @@ export default function ParticipantTable() {
                         actions: "",
                     },
                 }}
-                onRowClick={(event, rowData) => {setActiveRow((rowData as Participant)); setDetail(true)}}
+                onRowClick={(event, rowData) => {
+                    setActiveRow(rowData as Participant);
+                    setDetail(true);
+                }}
             />
         </div>
-    )
+    );
 }

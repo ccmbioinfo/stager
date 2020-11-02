@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import React, { useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Container from "@material-ui/core/Container";
+import Divider from "@material-ui/core/Divider";
+import Grid from "@material-ui/core/Grid";
+import Paper from "@material-ui/core/Paper";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles(theme => ({
     root: {
-        display: 'fill',
+        display: "fill",
     },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
-        height: '100vh',
-        overflow: 'auto',
+        height: "100vh",
+        overflow: "auto",
     },
     container: {
         paddingTop: theme.spacing(3),
@@ -24,9 +24,9 @@ const useStyles = makeStyles(theme => ({
     },
     paper: {
         padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
+        display: "flex",
+        overflow: "auto",
+        flexDirection: "column",
     },
     dividingSpacer: {
         marginTop: theme.spacing(1),
@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
     },
     submitButton: {
         marginTop: theme.spacing(3),
-    }
+    },
 }));
 
 export default function Settings({ username }: { username: string }) {
@@ -51,8 +51,8 @@ export default function Settings({ username }: { username: string }) {
             body: JSON.stringify({
                 current: currentPassword,
                 password: newPassword,
-                confirm: confirmPassword
-            })
+                confirm: confirmPassword,
+            }),
         });
         if (response.ok) {
             setCurrentPassword("");
@@ -82,35 +82,49 @@ export default function Settings({ username }: { username: string }) {
                     <Typography variant="h5" component="h3">
                         Change password
                     </Typography>
-                    <TextField required variant="filled" margin="dense"
-                        type="password" autoComplete="current-password"
+                    <TextField
+                        required
+                        variant="filled"
+                        margin="dense"
+                        type="password"
+                        autoComplete="current-password"
                         label="Current password"
                         value={currentPassword}
                         onChange={e => setCurrentPassword(e.target.value)}
                     />
-                    <TextField required variant="filled" margin="dense"
-                        type="password" autoComplete="new-password"
+                    <TextField
+                        required
+                        variant="filled"
+                        margin="dense"
+                        type="password"
+                        autoComplete="new-password"
                         label="New password"
                         value={newPassword}
                         onChange={e => setNewPassword(e.target.value)}
                     />
-                    <TextField required variant="filled" margin="dense"
-                        type="password" autoComplete="new-password"
+                    <TextField
+                        required
+                        variant="filled"
+                        margin="dense"
+                        type="password"
+                        autoComplete="new-password"
                         label="Confirm password"
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}
                     />
                     <Grid container spacing={2} className={classes.submitButton}>
                         <Grid item xs={4}>
-                            <Button variant="contained" color="secondary"
-                                type="submit" onClick={changePassword}>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                type="submit"
+                                onClick={changePassword}
+                            >
                                 Update password
                             </Button>
                         </Grid>
                         <Grid item xs={8}>
-                            <Typography variant="subtitle1">
-                                {result}
-                            </Typography>
+                            <Typography variant="subtitle1">{result}</Typography>
                         </Grid>
                     </Grid>
                 </Paper>

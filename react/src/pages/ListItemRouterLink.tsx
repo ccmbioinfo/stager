@@ -1,8 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
+import React from "react";
+import { Link } from "react-router-dom";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
 
 export interface ListItemRouterLinkProps {
     primary: React.ReactNode;
@@ -17,7 +17,7 @@ export default function ListItemRouterLink({ primary, to, children }: ListItemRo
             React.forwardRef<HTMLAnchorElement>((linkProps, ref) => (
                 <Link ref={ref} to={to} {...linkProps} />
             )),
-        [to],
+        [to]
     );
 
     return (

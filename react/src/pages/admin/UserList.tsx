@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import Snackbar, { SnackbarProps } from '@material-ui/core/Snackbar';
-import AddIcon from '@material-ui/icons/Add';
+import React, { useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Grid from "@material-ui/core/Grid";
+import Snackbar, { SnackbarProps } from "@material-ui/core/Snackbar";
+import AddIcon from "@material-ui/icons/Add";
 
 import UserRow, { UserRowState } from "./UserRow";
-import ConfirmModal from './ConfirmModal';
-import CreateUserModal, { CreateUser } from './CreateUserModal';
+import ConfirmModal from "./ConfirmModal";
+import CreateUserModal, { CreateUser } from "./CreateUserModal";
 
 const useStyles = makeStyles(theme => ({
     root: {
         flexGrow: 1,
         padding: theme.spacing(2),
-        overflow: 'auto',
+        overflow: "auto",
     },
     addButton: {
-        marginBottom: theme.spacing(1)
-    }
+        marginBottom: theme.spacing(1),
+    },
 }));
 
 export default function UserList() {
@@ -38,7 +38,7 @@ export default function UserList() {
             method: "PUT",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatingUser)
+            body: JSON.stringify(updatingUser),
         });
         if (response.ok) {
             setMessage(`Updated ${updatingUser!.username}.`);
@@ -55,7 +55,7 @@ export default function UserList() {
             method: "DELETE",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(deletingUser)
+            body: JSON.stringify(deletingUser),
         });
         if (response.ok) {
             // Precondition: deletingUser is in userList
@@ -80,46 +80,59 @@ export default function UserList() {
 
     return (
         <main className={classes.root}>
-            <CreateUserModal id="create-modal"
+            <CreateUserModal
+                id="create-modal"
                 open={addingUser}
                 onClose={() => setAddingUser(false)}
-                onSuccess={addUserSuccess} />
-            <ConfirmModal id="confirm-modal-update" color="primary"
+                onSuccess={addUserSuccess}
+            />
+            <ConfirmModal
+                id="confirm-modal-update"
+                color="primary"
                 open={!!updatingUser}
                 onClose={() => setUpdatingUser(null)}
                 onConfirm={updateUser}
-                title="Confirm updating user">
+                title="Confirm updating user"
+            >
                 Update {updatingUser && updatingUser.username} and maybe overwrite password?
             </ConfirmModal>
-            <ConfirmModal id="confirm-modal-delete" color="secondary"
+            <ConfirmModal
+                id="confirm-modal-delete"
+                color="secondary"
                 open={!!deletingUser}
                 onClose={() => setDeletingUser(null)}
                 onConfirm={deleteUser}
-                title="Delete user">
+                title="Delete user"
+            >
                 Really delete {deletingUser && deletingUser.username}?
             </ConfirmModal>
             <Snackbar
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
                 open={!!message}
                 onClose={() => setMessage("")}
                 message={message}
                 color={messageColor}
             />
-            <Button variant="contained" color="primary"
+            <Button
+                variant="contained"
+                color="primary"
                 className={classes.addButton}
-                onClick={() => setAddingUser(true)}>
+                onClick={() => setAddingUser(true)}
+            >
                 <AddIcon />
                 Add new
             </Button>
             <Grid container spacing={2}>
-                {userList.map(user =>
+                {userList.map(user => (
                     <Grid item xs={12} md={6}>
                         <UserRow
-                            key={user.username} {...user}
+                            key={user.username}
+                            {...user}
                             onUpdate={setUpdatingUser}
-                            onDelete={setDeletingUser} />
+                            onDelete={setDeletingUser}
+                        />
                     </Grid>
-                )}
+                ))}
             </Grid>
         </main>
     );

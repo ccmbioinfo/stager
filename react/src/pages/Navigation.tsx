@@ -1,43 +1,60 @@
-import React from 'react';
-import clsx from 'clsx';
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import React from "react";
+import clsx from "clsx";
+import { BrowserRouter, Switch, Route } from "react-router-dom";
 import {
-    makeStyles, CssBaseline, Drawer, AppBar, Toolbar, List, ListItem, ListItemIcon, ListItemText,
-    Typography, Divider, IconButton, Tooltip
-} from '@material-ui/core';
+    makeStyles,
+    CssBaseline,
+    Drawer,
+    AppBar,
+    Toolbar,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Typography,
+    Divider,
+    IconButton,
+    Tooltip,
+} from "@material-ui/core";
 import {
-    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dns as DnsIcon,
-    People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon,
-    ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon,
-    AccountCircle as AccountCircleIcon
-} from '@material-ui/icons';
+    Menu as MenuIcon,
+    ChevronLeft as ChevronLeftIcon,
+    Dns as DnsIcon,
+    People as PeopleIcon,
+    Publish as UploadIcon,
+    Settings as SettingsIcon,
+    ShowChart as ShowChartIcon,
+    MeetingRoom as MeetingRoomIcon,
+    VerifiedUser as VerifiedUserIcon,
+    AccountCircle as AccountCircleIcon,
+} from "@material-ui/icons";
 
-import Participants from './participants/Participants';
-import Analyses from './analysis/Analyses';
-import Datasets from './datasets/Datasets';
-import Uploads from './upload/Uploads';
-import Settings from './settings/Settings';
-import Admin from './admin/Admin';
-import ListItemRouterLink from './ListItemRouterLink';
-import NotificationPopover from './NotificationPopover';
+import Participants from "./participants/Participants";
+import Analyses from "./analysis/Analyses";
+import Datasets from "./datasets/Datasets";
+import Uploads from "./upload/Uploads";
+import Settings from "./settings/Settings";
+import Admin from "./admin/Admin";
+import ListItemRouterLink from "./ListItemRouterLink";
+import NotificationPopover from "./NotificationPopover";
 
 const drawerWidth = 180;
 
 const useStyles = makeStyles(theme => ({
     root: {
-        display: 'flex',
-        height: '100%',
+        display: "flex",
+        height: "100%",
     },
     toolbarIcon: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        padding: '0 8px',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        padding: "0 8px",
         ...theme.mixins.toolbar,
     },
     appBar: {
         zIndex: theme.zIndex.drawer + 1,
-        transition: theme.transitions.create(['width', 'margin'], {
+        transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
@@ -45,48 +62,48 @@ const useStyles = makeStyles(theme => ({
     appBarShift: {
         marginLeft: drawerWidth,
         width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
+        transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
     },
     toolbar: {
         paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3)
+        paddingRight: theme.spacing(3),
     },
     toolbarShift: {
         paddingLeft: theme.spacing(2),
-        paddingRight: theme.spacing(3)
+        paddingRight: theme.spacing(3),
     },
     menuButton: {
         marginRight: theme.spacing(4),
     },
     menuButtonHidden: {
         marginRight: theme.spacing(3),
-        display: 'none',
+        display: "none",
     },
     title: {
         flexGrow: 1,
     },
     drawerPaper: {
-        position: 'relative',
-        whiteSpace: 'nowrap',
+        position: "relative",
+        whiteSpace: "nowrap",
         width: drawerWidth,
-        transition: theme.transitions.create('width', {
+        transition: theme.transitions.create("width", {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
     },
     drawerPaperClose: {
-        overflowX: 'hidden',
-        transition: theme.transitions.create('width', {
+        overflowX: "hidden",
+        transition: theme.transitions.create("width", {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
         width: theme.spacing(7),
     },
     bottomItems: {
-        marginTop: 'auto',
+        marginTop: "auto",
     },
 }));
 
@@ -112,8 +129,14 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
         <div className={classes.root}>
             <BrowserRouter>
                 <CssBaseline />
-                <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
-                    <Toolbar disableGutters className={open ? classes.toolbar : classes.toolbarShift}>
+                <AppBar
+                    position="absolute"
+                    className={clsx(classes.appBar, open && classes.appBarShift)}
+                >
+                    <Toolbar
+                        disableGutters
+                        className={open ? classes.toolbar : classes.toolbarShift}
+                    >
                         <IconButton
                             edge="start"
                             color="inherit"
@@ -123,12 +146,18 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
+                        <Typography
+                            component="h1"
+                            variant="h6"
+                            color="inherit"
+                            noWrap
+                            className={classes.title}
+                        >
                             {pageName}
                         </Typography>
                         <NotificationPopover lastLoginTime={lastLoginTime} />
                         <Tooltip title={"Logged in as " + username} arrow>
-                            <AccountCircleIcon fontSize='large' />
+                            <AccountCircleIcon fontSize="large" />
                         </Tooltip>
                     </Toolbar>
                 </AppBar>
@@ -169,19 +198,57 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     <div className={classes.bottomItems}>
                         <List>
                             <ListItem button onClick={signout}>
-                                <ListItemIcon><MeetingRoomIcon /></ListItemIcon>
+                                <ListItemIcon>
+                                    <MeetingRoomIcon />
+                                </ListItemIcon>
                                 <ListItemText primary="Sign out" />
                             </ListItem>
                         </List>
                     </div>
                 </Drawer>
                 <Switch>
-                    <Route path="/admin" render={() => {setPageName("Admin"); return <Admin />}} />
-                    <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analyses />}} />
-                    <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
-                    <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
-                    <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
-                    <Route path={["/", "/participants"]} render={() => {setPageName("Participants"); return <Participants />}}  />
+                    <Route
+                        path="/admin"
+                        render={() => {
+                            setPageName("Admin");
+                            return <Admin />;
+                        }}
+                    />
+                    <Route
+                        path="/analysis"
+                        render={() => {
+                            setPageName("Analyses");
+                            return <Analyses />;
+                        }}
+                    />
+                    <Route
+                        path="/datasets"
+                        render={() => {
+                            setPageName("Datasets");
+                            return <Datasets />;
+                        }}
+                    />
+                    <Route
+                        path="/uploads"
+                        render={() => {
+                            setPageName("Upload");
+                            return <Uploads />;
+                        }}
+                    />
+                    <Route
+                        path="/settings"
+                        render={() => {
+                            setPageName("Settings");
+                            return <Settings username={username} />;
+                        }}
+                    />
+                    <Route
+                        path={["/", "/participants"]}
+                        render={() => {
+                            setPageName("Participants");
+                            return <Participants />;
+                        }}
+                    />
                 </Switch>
             </BrowserRouter>
         </div>

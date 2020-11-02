@@ -6,8 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from . import config
 
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-logging.getLogger('sqlalchemy.pool').setLevel(logging.INFO)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
 
 db = SQLAlchemy()
 login = LoginManager()
@@ -25,7 +25,7 @@ def create_app(config):
     app.config.from_object(config)
 
     flask_logging.create_logger(app)
-    login.session_protection = 'strong'
+    login.session_protection = "strong"
 
     db.init_app(app)
     login.init_app(app)

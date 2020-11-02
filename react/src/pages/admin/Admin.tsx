@@ -1,12 +1,12 @@
-import React from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
-import UserList from './UserList';
-import ManagedUploaders from './ManagedUploaders';
+import React from "react";
+import { makeStyles, Theme } from "@material-ui/core/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Typography from "@material-ui/core/Typography";
+import Box from "@material-ui/core/Box";
+import UserList from "./UserList";
+import ManagedUploaders from "./ManagedUploaders";
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -37,7 +37,7 @@ function TabPanel(props: TabPanelProps) {
 function a11yProps(index: any) {
     return {
         id: `simple-tab-${index}`,
-        'aria-controls': `simple-tabpanel-${index}`,
+        "aria-controls": `simple-tabpanel-${index}`,
     };
 }
 
@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     root: {
         flexGrow: 1,
         backgroundColor: theme.palette.background.paper,
-        overflow: 'auto',
+        overflow: "auto",
     },
     appBarSpacer: theme.mixins.toolbar,
 }));

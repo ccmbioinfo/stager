@@ -1,22 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { makeStyles, Chip, IconButton, TextField } from '@material-ui/core';
-import { PlayArrow, Delete, Cancel, Visibility } from '@material-ui/icons';
-import MaterialTable, { MTableToolbar } from 'material-table';
-import { useSnackbar } from 'notistack';
-import { toKeyValue, KeyValue, Dataset, formatDateString, emptyCellValue, Pipeline } from "../utils";
-import AnalysisRunnerDialog from './AnalysisRunnerDialog';
-import DatasetInfoDialog from './DatasetInfoDialog';
+import React, { useEffect, useState } from "react";
+import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
+import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
+import MaterialTable, { MTableToolbar } from "material-table";
+import { useSnackbar } from "notistack";
+import {
+    toKeyValue,
+    KeyValue,
+    Dataset,
+    formatDateString,
+    emptyCellValue,
+    Pipeline,
+} from "../utils";
+import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
+import DatasetInfoDialog from "./DatasetInfoDialog";
 
 const useStyles = makeStyles(theme => ({
     chip: {
         color: "primary",
-        marginRight: '10px',
+        marginRight: "10px",
         colorPrimary: theme.palette.primary,
     },
     chipBar: {
-        marginLeft: '24px',
-        marginTop: '6px'
-    }
+        marginLeft: "24px",
+        marginTop: "6px",
+    },
 }));
 
 export default function DatasetTable() {
@@ -34,7 +41,6 @@ export default function DatasetTable() {
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
 
-
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     useEffect(() => {
@@ -45,24 +51,30 @@ export default function DatasetTable() {
                 setDatasetTypes(toKeyValue(enums.DatasetType));
                 setConditions(toKeyValue(enums.DatasetCondition));
             } else {
-                console.error(`GET /api/enums failed with ${response.status}: ${response.statusText}`);
+                console.error(
+                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
+                );
             }
         });
         fetch("/api/datasets").then(async response => {
             if (response.ok) {
-                const data = await response.json() as any[];
+                const data = (await response.json()) as any[];
                 setDatasets(data);
             } else {
-                console.error(`GET /api/datasets failed with ${response.status}: ${response.statusText}`);
+                console.error(
+                    `GET /api/datasets failed with ${response.status}: ${response.statusText}`
+                );
             }
         });
         fetch("/api/pipelines").then(async response => {
             if (response.ok) {
                 setPipelines(await response.json());
             } else {
-                console.error(`GET /api/pipelines failed with ${response.status}: ${response.statusText}`);
+                console.error(
+                    `GET /api/pipelines failed with ${response.status}: ${response.statusText}`
+                );
             }
-        })
+        });
     }, []);
 
     return (
@@ -73,31 +85,60 @@ export default function DatasetTable() {
                 open={showRunner}
                 onClose={() => setRunner(false)}
             />
-            {infoDataset && <DatasetInfoDialog
-                dataset_id={infoDataset.dataset_id}
-                open={showInfo}
-                onClose={() => setShowInfo(false)}
-            />}
+            {infoDataset && (
+                <DatasetInfoDialog
+                    dataset_id={infoDataset.dataset_id}
+                    open={showInfo}
+                    onClose={() => setShowInfo(false)}
+                />
+            )}
             <MaterialTable
                 columns={[
-                    { title: 'Participant', field: 'participant_codename', editable: 'never' },
-                    { title: 'Family', field: 'family_codename', editable: 'never' },
-                    { title: 'Tissue Sample', field: 'tissue_sample_type', editable: 'never', lookup: tissueSampleTypes },
-                    { title: 'Dataset Type', field: 'dataset_type', defaultFilter: datasetTypeFilter, lookup: datasetTypes, emptyValue: emptyCellValue },
-                    { title: 'Condition', field: 'condition', lookup: conditions, emptyValue: emptyCellValue },
-                    { title: 'Notes', field: 'notes', emptyValue: emptyCellValue, editComponent: props => (
-                        <TextField
-                            multiline
-                            value={props.value}
-                            onChange={event => props.onChange(event.target.value)}
-                            rows={4}
-                            fullWidth
-                        />
-                    )},
+                    { title: "Participant", field: "participant_codename", editable: "never" },
+                    { title: "Family", field: "family_codename", editable: "never" },
+                    {
+                        title: "Tissue Sample",
+                        field: "tissue_sample_type",
+                        editable: "never",
+                        lookup: tissueSampleTypes,
+                    },
+                    {
+                        title: "Dataset Type",
+                        field: "dataset_type",
+                        defaultFilter: datasetTypeFilter,
+                        lookup: datasetTypes,
+                        emptyValue: emptyCellValue,
+                    },
+                    {
+                        title: "Condition",
+                        field: "condition",
+                        lookup: conditions,
+                        emptyValue: emptyCellValue,
+                    },
+                    {
+                        title: "Notes",
+                        field: "notes",
+                        emptyValue: emptyCellValue,
+                        editComponent: props => (
+                            <TextField
+                                multiline
+                                value={props.value}
+                                onChange={event => props.onChange(event.target.value)}
+                                rows={4}
+                                fullWidth
+                            />
+                        ),
+                    },
                     // { title: 'Created', field: 'created', type: 'datetime' },
                     // { title: 'Created by', field: 'created_by' },
-                    { title: 'Updated', field: 'updated', type: 'string', editable: 'never', render: rowData => formatDateString(rowData.updated) },
-                    { title: 'Updated By', field: 'updated_by', editable: 'never' },
+                    {
+                        title: "Updated",
+                        field: "updated",
+                        type: "string",
+                        editable: "never",
+                        render: rowData => formatDateString(rowData.updated),
+                    },
+                    { title: "Updated By", field: "updated_by", editable: "never" },
                 ]}
                 data={datasets}
                 title="Datasets"
@@ -106,14 +147,14 @@ export default function DatasetTable() {
                     selection: true,
                     filtering: true,
                     search: false,
-                    padding: "dense"
+                    padding: "dense",
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
                         const response = await fetch(`/api/datasets/${newDataset.dataset_id}`, {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(newDataset)
+                            body: JSON.stringify(newDataset),
                         });
                         if (response.ok) {
                             const updatedDataset = await response.json();
@@ -121,46 +162,49 @@ export default function DatasetTable() {
                             // the element that changed with the server's response. Mix in with
                             // the old because the PATCH endpoint does not respond with the
                             // participant codename, family codename, or tissue sample type.
-                            setDatasets(datasets.map(dataset =>
-                                dataset.dataset_id === newDataset.dataset_id
-                                ? { ...dataset, ...updatedDataset }
-                                : dataset
-                            ));
+                            setDatasets(
+                                datasets.map(dataset =>
+                                    dataset.dataset_id === newDataset.dataset_id
+                                        ? { ...dataset, ...updatedDataset }
+                                        : dataset
+                                )
+                            );
                             enqueueSnackbar(`Row ID ${newDataset.dataset_id} updated successfully`);
                         } else {
-                            console.error(`PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`);
+                            console.error(
+                                `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
+                            );
                         }
-                    }
+                    },
                 }}
                 cellEditable={{
                     onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
-                            new Promise((resolve, reject) => {
-                                const dataUpdate = [...datasets];
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.dataset_id === editedRow.dataset_id;
-                                });
-                                const newRow: Dataset = { ...dataUpdate[index] };
+                        new Promise((resolve, reject) => {
+                            const dataUpdate = [...datasets];
+                            const index = dataUpdate.findIndex((row, index, obj) => {
+                                return row.dataset_id === editedRow.dataset_id;
+                            });
+                            const newRow: Dataset = { ...dataUpdate[index] };
 
-                                if (newValue === '')
-                                    newValue = null;
+                            if (newValue === "") newValue = null;
 
-                                switch (columnDef.field) {
-                                    case 'dataset_type':
-                                        newRow.dataset_type = newValue;
-                                        break;
-                                    case 'condition':
-                                        newRow.condition = newValue;
-                                        break;
-                                    case 'notes':
-                                        newRow.notes = newValue;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                dataUpdate[index] = newRow;
-                                setDatasets(dataUpdate);
-                                resolve();
-                            }),
+                            switch (columnDef.field) {
+                                case "dataset_type":
+                                    newRow.dataset_type = newValue;
+                                    break;
+                                case "condition":
+                                    newRow.condition = newValue;
+                                    break;
+                                case "notes":
+                                    newRow.notes = newValue;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            dataUpdate[index] = newRow;
+                            setDatasets(dataUpdate);
+                            resolve();
+                        }),
                 }}
                 components={{
                     Toolbar: props => (
@@ -168,9 +212,17 @@ export default function DatasetTable() {
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
                                 {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
-                                    <Chip label={type} onClick={() => setDatasetTypeFilter([type])} clickable className={classes.chip} />
+                                    <Chip
+                                        label={type}
+                                        onClick={() => setDatasetTypeFilter([type])}
+                                        clickable
+                                        className={classes.chip}
+                                    />
                                 ))}
-                                <IconButton onClick={() => setDatasetTypeFilter([])} className={classes.chip}>
+                                <IconButton
+                                    onClick={() => setDatasetTypeFilter([])}
+                                    className={classes.chip}
+                                >
                                     <Cancel />
                                 </IconButton>
                             </div>
@@ -179,36 +231,41 @@ export default function DatasetTable() {
                 }}
                 actions={[
                     {
-                        tooltip: 'Delete selected datasets',
+                        tooltip: "Delete selected datasets",
                         icon: Delete,
-                        position: 'toolbarOnSelect',
+                        position: "toolbarOnSelect",
                         onClick: (evt, data) => {
                             const sampleString = (data as Dataset[])
-                                .map(dataset => `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`)
-                                .join(', ');
-                            alert(`Withdraw all datasets and records associated with: ${sampleString}`)
-                        }
+                                .map(
+                                    dataset =>
+                                        `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`
+                                )
+                                .join(", ");
+                            alert(
+                                `Withdraw all datasets and records associated with: ${sampleString}`
+                            );
+                        },
                     },
                     {
-                        tooltip: 'Analyze selected datasets',
+                        tooltip: "Analyze selected datasets",
                         icon: PlayArrow,
-                        position: 'toolbarOnSelect',
+                        position: "toolbarOnSelect",
                         onClick: (evt, data) => {
-                            setSelectedDatasets(data as Dataset[])
-                            setRunner(true)
-                        }
+                            setSelectedDatasets(data as Dataset[]);
+                            setRunner(true);
+                        },
                     },
                     {
-                        tooltip: 'View dataset details',
+                        tooltip: "View dataset details",
                         icon: Visibility,
-                        position: 'row',
+                        position: "row",
                         onClick: (event, data) => {
                             setInfoDataset(data as Dataset);
                             setShowInfo(true);
-                        }
-                    }
+                        },
+                    },
                 ]}
             />
         </div>
-    )
+    );
 }
