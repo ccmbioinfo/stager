@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), nullable=False, unique=True)
     is_admin = db.Column(db.Boolean, unique=False, default=False)
     last_login = db.Column(db.DateTime)
+    deactivated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256:50000')
@@ -54,8 +55,7 @@ class Sex(str, Enum):
 
 class ParticipantType(str, Enum):
     Proband = 'Proband'
-    Mother = 'Mother'
-    Father = 'Father'
+    Parent = 'Parent'
     Sibling = 'Sibling'
 
 
@@ -66,9 +66,9 @@ class Participant(db.Model):
     # Sample.SampleName
     participant_codename: str = db.Column(db.String(50), nullable=False, unique=True)
     # Sample.Gender
-    sex: Sex = db.Column(db.Enum(Sex), nullable=False)
+    sex: Sex = db.Column(db.Enum(Sex))
     # Sample.SampleType
-    participant_type: ParticipantType = db.Column(db.Enum(ParticipantType), nullable=False)
+    participant_type: ParticipantType = db.Column(db.Enum(ParticipantType))
     month_of_birth: date = db.Column(db.Date, CheckConstraint('DAY(month_of_birth) = 1'))
     # Sample.AffectedStatus
     affected: bool = db.Column(db.Boolean)
@@ -117,22 +117,23 @@ class TissueSample(db.Model):
     datasets = db.relationship('Dataset', backref='tissue_sample')
 
 
-class DatasetType(str, Enum):
-    CES = 'CES'
-    CGS = 'CGS'
-    CPS = 'CPS'
-    RES = 'RES'
-    RGS = 'RGS'
-    RLM = 'RLM'
-    RMM = 'RMM'
-    RRS = 'RRS'
-    RTA = 'RTA'
-    WES = 'WES'
-    WGS = 'WGS'
-    RNASeq = 'RNASeq'  # RNA-Seq
-    RCS = 'RCS'
-    RDC = 'RDC'
-    RDE = 'RDE'
+@dataclass
+class DatasetType(db.Model):
+    __tablename__ = 'dataset_type'
+    dataset_type: str = db.Column(db.String(50), primary_key=True)
+
+
+@dataclass
+class MetaDatasetType(db.Model):
+    __tablename__ = 'metadataset_type'
+    metadataset_type: str = db.Column(db.String(50), primary_key=True)
+
+
+@dataclass
+class MetaDatasetType_DatasetType(db.Model):
+    __tablename__ = 'metadataset_type_dataset_type'
+    dataset_type: str = db.Column(db.String(50), db.ForeignKey('dataset_type.dataset_type'), nullable=False, unique=True, primary_key=True)
+    metadataset_type: str = db.Column(db.String(50), db.ForeignKey('metadataset_type.metadataset_type'), nullable=False, primary_key=True)
 
 
 # Name TBD
@@ -179,7 +180,7 @@ class Dataset(db.Model):
     # Dataset.DatasetID
     dataset_id: int = db.Column(db.Integer, primary_key=True)
     # Dataset.DatasetType
-    dataset_type: DatasetType = db.Column(db.Enum(DatasetType), nullable=False)
+    dataset_type: str = db.Column(db.String(50), db.ForeignKey('dataset_type.dataset_type'), nullable=False)
     # Dataset.HPFPath
     input_hpf_path: str = db.Column(db.String(500))
     # Dataset.Notes
@@ -281,10 +282,10 @@ class Pipeline(db.Model):
     pipeline_version: str = db.Column(db.String(50), nullable=False)
     supported = db.relationship('PipelineDatasets', backref='pipeline')
 
-    supported_types: List[DatasetType]
+    supported_types: List[MetaDatasetType]
     @property
-    def supported_types(self) -> List[DatasetType]:
-        return [x.supported_dataset for x in self.supported]
+    def supported_types(self) -> List[MetaDatasetType]:
+        return [x.supported_metadataset_type for x in self.supported]
 
     __table_args__ = (
         db.UniqueConstraint('pipeline_name', 'pipeline_version'),
@@ -295,4 +296,4 @@ class PipelineDatasets(db.Model):
     pipeline_id: int = db.Column(db.Integer,
                                  db.ForeignKey('pipeline.pipeline_id', onupdate='cascade', ondelete='restrict'),
                                  primary_key=True)
-    supported_dataset: DatasetType = db.Column(db.Enum(DatasetType), primary_key=True)
+    supported_metadataset_type: str = db.Column(db.ForeignKey('metadataset_type.metadataset_type'), primary_key=True, nullable=False)

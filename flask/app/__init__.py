@@ -37,7 +37,4 @@ def create_app(config):
         from . import routes
         from . import buckets
 
-        if not app.config['TESTING']:
-            db.create_all()
-
         return app

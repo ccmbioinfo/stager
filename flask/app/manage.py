@@ -8,7 +8,9 @@ def add_default_admin():
         default_admin = models.User(
             username=app.config.get('DEFAULT_ADMIN'),
             email=app.config.get('DEFAULT_ADMIN_EMAIL'),
-            last_login=datetime.now()
+            last_login=datetime.now(),
+            is_admin=True,
+            deactivated=False
         )
         default_admin.set_password(app.config.get('DEFAULT_PASSWORD'))
         db.session.add(default_admin)
@@ -60,8 +62,8 @@ def add_dummy_data():
         # codename is key, sex, type
         default_participants = [
             {'family_id': 1, 'codename': 'AA001', 'sex': 'Female', 'type': 'Proband', 'affected': True, 'month_of_birth': "2000-01-01", 'notes': 'Extra info about sample here', 'created_by': 1, 'updated_by': 1},
-            {'family_id': 1, 'codename': 'AA002', 'sex': 'Male', 'type': 'Father', 'affected': False, 'month_of_birth': "1970-01-01", 'notes': '', 'created_by': 1, 'updated_by': 1},
-            {'family_id': 1, 'codename': 'AA003', 'sex': 'Female', 'type': 'Mother', 'affected': False, 'month_of_birth': "1970-02-01", 'notes': '', 'created_by': 1, 'updated_by': 1}
+            {'family_id': 1, 'codename': 'AA002', 'sex': 'Male', 'type': 'Parent', 'affected': False, 'month_of_birth': "1970-01-01", 'notes': '', 'created_by': 1, 'updated_by': 1},
+            {'family_id': 1, 'codename': 'AA003', 'sex': 'Female', 'type': 'Parent', 'affected': False, 'month_of_birth': "1970-02-01", 'notes': '', 'created_by': 1, 'updated_by': 1}
         ]
         for p in default_participants:
             participant = models.Participant(
@@ -99,6 +101,42 @@ def add_dummy_data():
 
         db.session.commit()
         print("Created default tissue samples: {}".format(", ".join([t['tissue_sample_type']+" for Participant "+str(t['participant_id']) for t in default_tissues])))
+
+    # add dataset types
+    if len(db.session.query(models.DatasetType).all()) == 0:
+        dataset_types = [
+            'RES', # Research Exome Sequencing
+            'CES', # Clinical Exome Sequencing
+            'WES', # Whole Exome Sequencing
+            'CPS', # Clinical Panel Sequencing
+            'RCS', # Research Clinome Sequencing
+            'RDC', # Research Deep Clinome Sequencing
+            'RDE', # Research Deep Exome Sequencing
+            'RGS', # Research Genome Sequencing
+            'CGS', # Clinical Genome Sequencing
+            'WGS', # Whole Genome Sequencing
+            'RRS', # Research RNA Sequencing
+            'RLM', # Research Lipidomics Mass Spectrometry
+            'RMM', # Research Metabolomics Mass Spectrometry
+            'RTA', # Research DNA Methylation array
+        ]
+        for d in dataset_types:
+            db.session.add(models.DatasetType(dataset_type=d))
+
+        db.session.commit()
+
+    # add metadataset type
+    if len(db.session.query(models.MetaDatasetType).all()) == 0:
+        metadataset_types = [
+            "Genome",
+            "Exome",
+            "RNA",
+            "Other"
+        ]
+        for m in metadataset_types:
+            db.session.add(models.MetaDatasetType(metadataset_type=m))
+
+        db.session.commit()
 
     # add dataset
     if len(db.session.query(models.Dataset).all()) == 0:
@@ -142,14 +180,24 @@ def add_dummy_data():
     # add the supported datasets for the pipelines
     if len(db.session.query(models.PipelineDatasets).all()) == 0:
         # genomic datasets map to pipeline_id 1 (CRG)
-        for g in ["CGS","RGS","WGS"]:
-            db.session.add(models.PipelineDatasets(pipeline_id=1,supported_dataset=g))
+        db.session.add(models.PipelineDatasets(pipeline_id=1,supported_metadataset_type="Genome"))
         # exomic datasets map to pipeline_id 2 (CRE)
-        for e in ["CES","CPS","RES","WES"]:
-            db.session.add(models.PipelineDatasets(pipeline_id=2,supported_dataset=e))
-
+        db.session.add(models.PipelineDatasets(pipeline_id=2,supported_metadataset_type="Exome"))
         db.session.commit()
         print("Added dataset support info for pipelines")
+
+    # add the metadataset type to dataset type mapping
+    if len(db.session.query(models.MetaDatasetType_DatasetType).all()) == 0:
+        for e in ['RES', 'CES', 'WES', 'CPS', 'RCS', 'RDC', 'RDE']:
+            db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='Exome', dataset_type=e))
+        for g in ['RGS', 'CGS', 'WGS']:
+            db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='Genome', dataset_type=g))
+        for o in ['RLM', 'RMM', 'RTA']:
+            db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='Other', dataset_type=o))
+
+        db.session.add(models.MetaDatasetType_DatasetType(metadataset_type='RNA', dataset_type='RRS'))
+        db.session.commit()
+        print("Added metadataset_dataset information")
 
     # add analyses
     if len(db.session.query(models.Analysis).all()) == 0:
