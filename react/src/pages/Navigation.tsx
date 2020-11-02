@@ -9,13 +9,14 @@ import {
     Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dns as DnsIcon,
     People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon,
     ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon,
-    AccountCircle as AccountCircleIcon
+    AccountCircle as AccountCircleIcon, AddBox
 } from '@material-ui/icons';
 
 import Participants from './participants/Participants';
 import Analyses from './analysis/Analyses';
 import Datasets from './datasets/Datasets';
 import Uploads from './upload/Uploads';
+import AddParticipants from './addParticipants/AddParticipants';
 import Settings from './settings/Settings';
 import Admin from './admin/Admin';
 import ListItemRouterLink from './ListItemRouterLink';
@@ -152,6 +153,9 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         <ListItemRouterLink to="/uploads" primary="Upload">
                             <UploadIcon />
                         </ListItemRouterLink>
+                        <ListItemRouterLink to="/addParticipant" primary="Add Participants">
+                            <AddBox />
+                        </ListItemRouterLink>
                         <ListItemRouterLink to="/datasets" primary="Datasets">
                             <DnsIcon />
                         </ListItemRouterLink>
@@ -180,6 +184,7 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analyses />}} />
                     <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
+                    <Route path="/addData" render={() => {setPageName("Add Data"); return <AddParticipants />}}  />
                     <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
                     <Route path={["/", "/participants"]} render={() => {setPageName("Participants"); return <Participants />}}  />
                 </Switch>
