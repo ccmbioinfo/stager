@@ -103,8 +103,7 @@ export default function ParticipantTable() {
                             <MTableToolbar {...props} />
                             <div style={{ marginLeft: '24px' }}>
                                 <Chip label="Proband" clickable className={classes.chip} onClick={() => setFilter(["Proband"])} />
-                                <Chip label="Mother" clickable className={classes.chip} onClick={() => setFilter(["Mother"])} />
-                                <Chip label="Father" clickable className={classes.chip} onClick={() => setFilter(["Father"])} />
+                                <Chip label="Parent" clickable className={classes.chip} onClick={() => setFilter(["Parent"])} />
                                 <Chip label="Sibling" clickable className={classes.chip} onClick={() => setFilter(["Sibling"])} />
                                 <IconButton className={classes.chip} onClick={() => setFilter([])}> <Cancel /> </IconButton>
                             </div>
