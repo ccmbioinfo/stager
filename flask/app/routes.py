@@ -779,9 +779,7 @@ def post_analyses():
 def get_tissue_sample(id: int):
     tissue_sample = (
         models.TissueSample.query.filter_by(tissue_sample_id=id)
-        .options(
-            joinedload(models.TissueSample.datasets)
-        )
+        .options(joinedload(models.TissueSample.datasets))
         .one_or_none()
     )
     if not tissue_sample:
@@ -790,11 +788,6 @@ def get_tissue_sample(id: int):
         return jsonify(
             {
                 **asdict(tissue_sample),
-                "datasets": [
-                    {
-                        **asdict(dataset)
-                    }
-                    for dataset in tissue_sample.datasets
-                ]
+                "datasets": tissue_sample.datasets,
             }
         )
