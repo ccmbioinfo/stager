@@ -6,7 +6,7 @@ from app import db, login, models
 from sqlalchemy.orm import joinedload
 
 
-@app.route("/api/families", methods = ["GET"])
+@app.route("/api/families", methods=["GET"])
 @login_required
 def families_list():
 
@@ -15,15 +15,10 @@ def families_list():
     ).all()
 
     families = [
-        { 
+        {
             **asdict(family),
-            "participants": [
-                        {
-                            **asdict(participants)
-                        }
-                    for participants in family.participants
-                ]
-            }
+            "participants": family.participants,
+        }
         for family in db_families
     ]
 
