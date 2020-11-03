@@ -78,12 +78,13 @@ export default function DataEntryTable() {
                     
                 ]}
                 data={[]}
-                title='Add Metadata'
+                title='Add Participants'
                 options={{
                     paging: false,
                     selection: false,
                     search: false,
                     padding: 'dense',
+                    sorting: false
                 }}
                 
                 actions={[

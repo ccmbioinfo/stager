@@ -71,7 +71,6 @@ const useStyles = makeStyles(theme => ({
     },
     drawerPaper: {
         position: 'relative',
-        whiteSpace: 'nowrap',
         width: drawerWidth,
         transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
@@ -153,7 +152,7 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         <ListItemRouterLink to="/uploads" primary="Upload">
                             <UploadIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/addParticipant" primary="Add Participants">
+                        <ListItemRouterLink to="/addParticipants" primary="Add Participants">
                             <AddBox />
                         </ListItemRouterLink>
                         <ListItemRouterLink to="/datasets" primary="Datasets">
@@ -184,7 +183,7 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     <Route path="/analysis" render={() => {setPageName("Analyses"); return <Analyses />}} />
                     <Route path="/datasets" render={() => {setPageName("Datasets"); return <Datasets />}}  />
                     <Route path="/uploads" render={() => {setPageName("Upload"); return <Uploads />}}  />
-                    <Route path="/addData" render={() => {setPageName("Add Data"); return <AddParticipants />}}  />
+                    <Route path="/addParticipants" render={() => {setPageName("Add Participants"); return <AddParticipants />}}  />
                     <Route path="/settings" render={() => {setPageName("Settings"); return <Settings username={username} />}} />
                     <Route path={["/", "/participants"]} render={() => {setPageName("Participants"); return <Participants />}}  />
                 </Switch>
