@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@material-ui/core';
+import { CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@material-ui/core';
+import { Autocomplete, createFilterOptions } from '@material-ui/lab';
 import { DataEntryHeader, DataEntryRow, getProp } from '../utils';
 
 const defaultColumns: DataEntryHeader[] = [
@@ -34,6 +35,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [columns, setColumns] = useState<DataEntryHeader[]>(defaultColumns);
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
 
+
     return (
         <Paper>
         <TableContainer>
@@ -51,9 +53,10 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     {rows.map((row, y) => (
                     <TableRow>
                         {columns.map((col, x) => (
-                            <TableCell>
-                                {getProp(row, col.field)}
-                            </TableCell>
+                            <DataEntryCell
+                            row={row}
+                            column={col}
+                            />
                         ))}
                     </TableRow>
                     ))}
@@ -61,5 +64,54 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             </Table>
         </TableContainer>
         </Paper>
+    );
+}
+
+const filter = createFilterOptions<string>({
+    limit: 50
+});
+
+const exampleOptions = ["A001", "A002", "A003", "A004", "B001", "B002", "C001", "C002", "C003"];
+
+interface DataEntryCellProps {
+    row: DataEntryRow,
+    column: DataEntryHeader,
+    freeSolo?: boolean
+}
+
+function DataEntryCell(props: DataEntryCellProps) {
+    const [row, column] = [props.row, props.column];
+    const [value, setValue] = useState(getProp(row, column.field)?.toString());
+
+    return (
+        <TableCell>
+            <Autocomplete<string, undefined, undefined, boolean | undefined>
+            freeSolo={props.freeSolo}
+            selectOnFocus
+            clearOnBlur
+            handleHomeEndKeys
+            onChange={(event, newValue, reason) => {
+                if (newValue) setValue(newValue);
+                else setValue("");
+            }}
+            value={value}
+            options={exampleOptions}
+            renderInput={(params) =>
+                <TextField
+                {...params}
+                variant="standard"
+                InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                        <>
+                            {/* {loading ? <CircularProgress color="inherit" size={20} /> : null} */}
+                            {params.InputProps.endAdornment}
+                        </>
+                    )
+                }}
+                />
+            }
+            />
+        </TableCell>
     );
 }
