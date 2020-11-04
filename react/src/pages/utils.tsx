@@ -158,15 +158,28 @@ export function toKeyValue(items: string[]) {
 }
 
 /**
- * Get property of object by key.
+ * Return property of object at key.
  *
  * @example
  * let obj = { a: 1, b: 2 };
  * let id = "a";
- * getProp(row, id) // returns 1
+ * getProp(obj, id)          // returns 1
  */
 export function getProp<T, K extends keyof T>(obj: T, key: K) {
     return obj[key];
+}
+
+/**
+ * Set property of object at key to newValue. Return obj.
+ *
+ * @example
+ * let obj = { a: 1, b: 2 };
+ * setProp(obj, "a", 3);     // returns { a: 3, b: 2 }
+ * obj.a === 3               // returns true
+ */
+export function setProp<T, K extends keyof T>(obj: T, key: K, newValue: any) {
+    obj[key] = newValue;
+    return obj;
 }
 
 /**
