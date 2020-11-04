@@ -50,8 +50,7 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
 }
 
 function toOption(str: string | Option) {
-    if (typeof str === 'string')
-        return { title: str, inputValue: str } as Option;
+    if (typeof str === "string") return { title: str, inputValue: str } as Option;
     return str;
 }
 
@@ -96,6 +95,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     onClick={(e) => {
                                         setRows(rows.filter((value, index) => index !== rowIndex));
                                     }}
+                                    disabled={rows.length === 1}
                                 />
                                 <DataEntryActionCell
                                     tooltipTitle="Duplicate row"
@@ -136,6 +136,8 @@ interface DataEntryCellProps {
     options?: Option[];
     freeSolo?: boolean;
     onEdit: (newValue: string) => void;
+    row?: DataEntryRow;
+    col?: DataEntryHeader;
 }
 
 function DataEntryCell(props: DataEntryCellProps) {
@@ -152,6 +154,7 @@ function DataEntryCell(props: DataEntryCellProps) {
                 selectOnFocus
                 clearOnBlur
                 handleHomeEndKeys
+                autoHighlight
                 onChange={(event, newValue, reason) => {
                     // 'value' refers to what the user selects
                     // 'inputValue' refers to what the user types
@@ -179,7 +182,7 @@ function DataEntryCell(props: DataEntryCellProps) {
                     if (params.inputValue !== "") {
                         filtered.push({
                             title: `Add "${params.inputValue}"`,
-                            inputValue: params.inputValue
+                            inputValue: params.inputValue,
                         });
                     }
 
@@ -195,12 +198,15 @@ function DataEntryCell(props: DataEntryCellProps) {
 function DataEntryActionCell(props: {
     onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     icon: ReactNode;
-    tooltipTitle: string
+    tooltipTitle: string;
+    disabled?: boolean;
 }) {
     return (
         <TableCell padding="none">
             <Tooltip title={props.tooltipTitle}>
-                <IconButton onClick={props.onClick}>{props.icon}</IconButton>
+                <IconButton onClick={props.onClick} disabled={props.disabled}>
+                    {props.icon}
+                </IconButton>
             </Tooltip>
         </TableCell>
     );
