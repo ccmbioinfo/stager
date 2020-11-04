@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import {
     CircularProgress,
+    Icon,
     IconButton,
     OutlinedInput,
     Paper,
@@ -11,11 +12,13 @@ import {
     TableHead,
     TableRow,
     TextField,
+    Toolbar,
     Tooltip,
+    Typography,
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
-import { AddBox, Delete } from "@material-ui/icons";
+import { AddBox, AddBoxOutlined, Delete } from "@material-ui/icons";
 
 const defaultColumns: DataEntryHeader[] = [
     { title: "Family", field: "family_codename" },
@@ -39,7 +42,7 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
     var arr = [];
     for (let i = 0; i < amount; i++) {
         arr.push({
-            family_codename: "000"+(i + 1),
+            family_codename: "",
             participant_codename: "",
             participant_type: "",
             tissue_sample_type: "",
@@ -56,9 +59,7 @@ function toOption(str: string | Option) {
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const [columns, setColumns] = useState<DataEntryHeader[]>(defaultColumns);
-    const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(4));
-
-    const actions = [];
+    const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
 
     const onEdit = (newValue: string, rowIndex: number, colIndex: number) => {
         setRows(
@@ -74,6 +75,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     return (
         <Paper>
+            <DataEntryToolbar
+                onClick={(event) => {
+                    setRows(rows.concat(createEmptyRows(1)));
+                }}
+            />
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -110,11 +116,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                 {columns.map((col, colIndex) => (
                                     <DataEntryCell
                                         value={toOption("" + getProp(row, col.field))}
-                                        options={
-                                            rows
+                                        options={rows
                                             .filter((val, index) => index !== rowIndex) // not this row
-                                            .map((val) => toOption(""+getProp(val, col.field)))
-                                        }
+                                            .map((val) => toOption("" + getProp(val, col.field)))}
                                         onEdit={(newValue) => onEdit(newValue, rowIndex, colIndex)}
                                     />
                                 ))}
@@ -149,8 +153,10 @@ function DataEntryCell(props: DataEntryCellProps) {
         props.onEdit(newValue.inputValue);
     };
 
-    const options = props.options.filter((val, index, arr) =>
-        arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index && val.inputValue !== props.value.inputValue
+    const options = props.options.filter(
+        (val, index, arr) =>
+            arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
+            val.inputValue !== props.value.inputValue
     );
 
     return (
@@ -194,9 +200,9 @@ function DataEntryCell(props: DataEntryCellProps) {
 
                     return filtered;
                 }}
-
-                onFocus={(e) => {console.log(options)}}
-
+                onFocus={(e) => {
+                    console.log(options);
+                }}
                 getOptionLabel={(option) => option.inputValue}
                 renderOption={(option) => option.title}
             />
@@ -218,5 +224,18 @@ function DataEntryActionCell(props: {
                 </IconButton>
             </Tooltip>
         </TableCell>
+    );
+}
+
+function DataEntryToolbar(props: { onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void }) {
+    return (
+        <Toolbar>
+            <Typography variant="h6" style={{ flexGrow: 1 }}>Enter Metadata</Typography>
+            <Tooltip title="Add empty row">
+                <IconButton onClick={props.onClick} edge="end">
+                    <AddBoxOutlined />
+                </IconButton>
+            </Tooltip>
+        </Toolbar>
     );
 }
