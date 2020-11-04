@@ -11,6 +11,7 @@ import {
     TableHead,
     TableRow,
     TextField,
+    Tooltip,
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
@@ -24,9 +25,9 @@ const defaultColumns: DataEntryHeader[] = [
     { title: "Dataset Type", field: "dataset_type" },
 ];
 
-interface CellData {
-    label: string,
-    value: string
+interface Option {
+    title: string;
+    inputValue: string;
 }
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -38,7 +39,7 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
     var arr = [];
     for (let i = 0; i < amount; i++) {
         arr.push({
-            family_codename: (i+1).toString(),
+            family_codename: (i + 1).toString(),
             participant_codename: "",
             participant_type: "",
             tissue_sample_type: "",
@@ -46,6 +47,12 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
         });
     }
     return arr;
+}
+
+function toOption(str: string | Option) {
+    if (typeof str === 'string')
+        return { title: str, inputValue: str } as Option;
+    return str;
 }
 
 export default function DataEntryTable(props: DataEntryTableProps) {
@@ -64,7 +71,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 }
             })
         );
-    }
+    };
 
     return (
         <Paper>
@@ -80,27 +87,30 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
+                        {console.log(rows)}
                         {rows.map((row, rowIndex) => (
                             <TableRow>
                                 <DataEntryActionCell
+                                    tooltipTitle="Delete row"
                                     icon={<Delete />}
                                     onClick={(e) => {
                                         setRows(rows.filter((value, index) => index !== rowIndex));
                                     }}
                                 />
                                 <DataEntryActionCell
+                                    tooltipTitle="Duplicate row"
                                     icon={<AddBox />}
                                     onClick={(e) => {
                                         setRows(
                                             rows.flatMap((value, index) =>
-                                                index === rowIndex ? [value, ({...value} as DataEntryRow)] : value
+                                                index === rowIndex ? [value, { ...value } as DataEntryRow] : value
                                             )
                                         );
                                     }}
                                 />
                                 {columns.map((col, colIndex) => (
                                     <DataEntryCell
-                                        value={"" + getProp(row, col.field)}
+                                        value={toOption("" + getProp(row, col.field))}
                                         onEdit={(newValue) => onEdit(newValue, rowIndex, colIndex)}
                                     />
                                 ))}
@@ -113,29 +123,31 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     );
 }
 
-const filter = createFilterOptions<string>({
+const filter = createFilterOptions<Option>({
     limit: 50,
 });
 
-const exampleOptions = ["A001", "A002", "A003", "A004", "B001", "B002", "C001", "C002", "C003"];
+const exampleOptions: Option[] = ["A001", "A002", "A003", "A004", "B001", "B002", "C001", "C002", "C003"].map((value) =>
+    toOption(value)
+);
 
 interface DataEntryCellProps {
-    value: string;
-    options?: string[];
+    value: Option;
+    options?: Option[];
     freeSolo?: boolean;
     onEdit: (newValue: string) => void;
 }
 
 function DataEntryCell(props: DataEntryCellProps) {
-    const [options, setOptions] = useState<string[]>(props.options || []);
+    const [options, setOptions] = useState<Option[]>(props.options || []);
 
-    const onEdit = (newValue: string) => {
-        props.onEdit(newValue);
-    }
+    const onEdit = (newValue: Option) => {
+        props.onEdit(newValue.inputValue);
+    };
 
     return (
         <TableCell>
-            <Autocomplete<string, undefined, undefined, boolean | undefined>
+            <Autocomplete<Option, undefined, undefined, boolean | undefined>
                 freeSolo={props.freeSolo}
                 selectOnFocus
                 clearOnBlur
@@ -144,9 +156,9 @@ function DataEntryCell(props: DataEntryCellProps) {
                     // 'value' refers to what the user selects
                     // 'inputValue' refers to what the user types
                     if (newValue) {
-                        onEdit(newValue);
+                        onEdit(toOption(newValue));
                     } else {
-                        onEdit("");
+                        onEdit(toOption(""));
                     }
                 }}
                 options={options}
@@ -165,11 +177,16 @@ function DataEntryCell(props: DataEntryCellProps) {
                     const filtered = filter(options, params);
 
                     if (params.inputValue !== "") {
-                        filtered.push(`Add "${params.inputValue}"`);
+                        filtered.push({
+                            title: `Add "${params.inputValue}"`,
+                            inputValue: params.inputValue
+                        });
                     }
 
                     return filtered;
                 }}
+                getOptionLabel={(option) => option.inputValue}
+                renderOption={(option) => option.title}
             />
         </TableCell>
     );
@@ -178,10 +195,13 @@ function DataEntryCell(props: DataEntryCellProps) {
 function DataEntryActionCell(props: {
     onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     icon: ReactNode;
+    tooltipTitle: string
 }) {
     return (
         <TableCell padding="none">
-            <IconButton onClick={props.onClick}>{props.icon}</IconButton>
+            <Tooltip title={props.tooltipTitle}>
+                <IconButton onClick={props.onClick}>{props.icon}</IconButton>
+            </Tooltip>
         </TableCell>
     );
 }
