@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 from .routes import check_admin
 
 
+
 @app.route("/api/families", methods=["GET"])
 @login_required
 def families_list():
@@ -82,3 +83,4 @@ def delete_families(id: int):
             return 'Deletion of entity failed!', 422
     else:
         return 'Family has participants, cannot delete!', 422
+

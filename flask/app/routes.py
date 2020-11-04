@@ -772,3 +772,22 @@ def post_analyses():
     transaction_or_abort(db.session.commit)
 
     return jsonify(obj)
+
+
+@app.route("/api/tissue_samples/<int:id>", methods=["GET"])
+@login_required
+def get_tissue_sample(id: int):
+    tissue_sample = (
+        models.TissueSample.query.filter_by(tissue_sample_id=id)
+        .options(joinedload(models.TissueSample.datasets))
+        .one_or_none()
+    )
+    if not tissue_sample:
+        return "Not Found", 404
+    else:
+        return jsonify(
+            {
+                **asdict(tissue_sample),
+                "datasets": tissue_sample.datasets,
+            }
+        )
