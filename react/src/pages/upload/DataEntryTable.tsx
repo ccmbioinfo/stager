@@ -39,7 +39,7 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
     var arr = [];
     for (let i = 0; i < amount; i++) {
         arr.push({
-            family_codename: (i + 1).toString(),
+            family_codename: "000"+(i + 1),
             participant_codename: "",
             participant_type: "",
             tissue_sample_type: "",
@@ -86,7 +86,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {console.log(rows)}
                         {rows.map((row, rowIndex) => (
                             <TableRow>
                                 <DataEntryActionCell
@@ -111,6 +110,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                 {columns.map((col, colIndex) => (
                                     <DataEntryCell
                                         value={toOption("" + getProp(row, col.field))}
+                                        options={
+                                            rows
+                                            .filter((val, index) => index !== rowIndex) // not this row
+                                            .map((val) => toOption(""+getProp(val, col.field)))
+                                        }
                                         onEdit={(newValue) => onEdit(newValue, rowIndex, colIndex)}
                                     />
                                 ))}
@@ -133,7 +137,7 @@ const exampleOptions: Option[] = ["A001", "A002", "A003", "A004", "B001", "B002"
 
 interface DataEntryCellProps {
     value: Option;
-    options?: Option[];
+    options: Option[];
     freeSolo?: boolean;
     onEdit: (newValue: string) => void;
     row?: DataEntryRow;
@@ -141,11 +145,13 @@ interface DataEntryCellProps {
 }
 
 function DataEntryCell(props: DataEntryCellProps) {
-    const [options, setOptions] = useState<Option[]>(props.options || []);
-
     const onEdit = (newValue: Option) => {
         props.onEdit(newValue.inputValue);
     };
+
+    const options = props.options.filter((val, index, arr) =>
+        arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index && val.inputValue !== props.value.inputValue
+    );
 
     return (
         <TableCell>
@@ -188,6 +194,9 @@ function DataEntryCell(props: DataEntryCellProps) {
 
                     return filtered;
                 }}
+
+                onFocus={(e) => {console.log(options)}}
+
                 getOptionLabel={(option) => option.inputValue}
                 renderOption={(option) => option.title}
             />
