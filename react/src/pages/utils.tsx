@@ -135,7 +135,8 @@ export type DataEntryRow = DataEntryRowRNASeq;
 
 export interface DataEntryHeader {
     title: string,
-    field: keyof DataEntryRow
+    field: keyof DataEntryRow,
+    options?: string[]
 };
 
 /*****   FUNCTIONS   *****/
@@ -165,7 +166,7 @@ export function toKeyValue(items: string[]) {
  * let id = "a";
  * getProp(obj, id)          // returns 1
  */
-export function getProp<T, K extends keyof T>(obj: T, key: K) {
+export function getProp<T, K extends keyof T>(obj: T, key: K): T[K] {
     return obj[key];
 }
 
