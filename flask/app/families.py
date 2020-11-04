@@ -75,7 +75,7 @@ def delete_families(id: int):
     if len(fam_entity.participants) == 0:
         try:
             family.delete()
-            db.session.flush()
+            db.session.commit()
             return 'Deletion successful', 200
         except:
             db.session.rollback()
