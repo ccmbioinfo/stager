@@ -14,7 +14,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { AddBox, AddBoxOutlined, Delete } from "@material-ui/icons";
+import { AddBoxOutlined, Delete, LibraryAdd } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
 
 const defaultColumns: DataEntryHeader[] = [
@@ -29,6 +29,7 @@ interface Option {
     title: string;
     inputValue: string;
     origin?: string;
+    disabled?: boolean;
 }
 
 export interface DataEntryTableProps {
@@ -51,9 +52,10 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
     return arr;
 }
 
-function toOption(str: string | Option, origin?: string) {
-    if (typeof str === "string") return { title: str, inputValue: str, origin: origin } as Option;
-    return { ...str, origin: origin };
+function toOption(str: string | Option, origin?: string, disabled?: boolean): Option {
+    if (typeof str === "string")
+        return { title: str, inputValue: str, origin: origin, disabled: disabled };
+    return { ...str, origin: origin, disabled: disabled };
 }
 
 export default function DataEntryTable(props: DataEntryTableProps) {
@@ -102,7 +104,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 return familyOptions.concat(rowOptions);
 
             case "participant_codename":
-                const thisFamily = rows[rowIndex].family_codename;
+                const thisFamily = row.family_codename;
                 if (familyCodenames.findIndex(family => family === thisFamily) !== -1) {
                     const existingParts = families
                         .filter(family => family.family_codename === thisFamily)
@@ -159,7 +161,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                 />
                                 <DataEntryActionCell
                                     tooltipTitle="Duplicate row"
-                                    icon={<AddBox />}
+                                    icon={<LibraryAdd />}
                                     onClick={e => {
                                         setRows(
                                             rows.flatMap((value, index) =>
@@ -219,9 +221,7 @@ function DataEntryCell(props: DataEntryCellProps) {
                 clearOnBlur
                 handleHomeEndKeys
                 autoHighlight
-                onChange={(event, newValue, reason) => {
-                    // 'value' refers to what the user selects
-                    // 'inputValue' refers to what the user types
+                onChange={(event, newValue) => {
                     if (newValue) {
                         onEdit(toOption(newValue));
                     } else {
@@ -244,7 +244,11 @@ function DataEntryCell(props: DataEntryCellProps) {
                 filterOptions={(options, params) => {
                     const filtered = filter(options, params);
 
-                    if (params.inputValue !== "") {
+                    // Prefer to choose a pre-existing option than make a new one
+                    if (
+                        params.inputValue !== "" &&
+                        !filtered.find(option => option.inputValue === params.inputValue)
+                    ) {
                         filtered.push({
                             title: `Add "${params.inputValue}"`,
                             inputValue: params.inputValue,
@@ -254,6 +258,7 @@ function DataEntryCell(props: DataEntryCellProps) {
 
                     return filtered;
                 }}
+                getOptionDisabled={option => !!option.disabled}
                 getOptionLabel={option => option.inputValue}
                 renderOption={option => option.title}
             />
