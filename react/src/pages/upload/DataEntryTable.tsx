@@ -92,12 +92,37 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .filter((val, index) => index !== rowIndex) // not this row
             .map(val => toOption("" + getProp(val, col.field), "Previous rows"));
 
+        const familyCodenames: string[] = families.map(value => value.family_codename);
+
         switch (col.field) {
             case "family_codename":
                 const familyOptions = families.map(value =>
                     toOption(value.family_codename, "Existing families")
                 );
                 return familyOptions.concat(rowOptions);
+
+            case "participant_codename":
+                const thisFamily = rows[rowIndex].family_codename;
+                if (familyCodenames.findIndex(family => family === thisFamily) !== -1) {
+                    const existingParts = families
+                        .filter(family => family.family_codename === thisFamily)
+                        .flatMap(family => family.participants)
+                        .map(value =>
+                            toOption(value.participant_codename, "Participants in family")
+                        );
+                    const otherParts = families
+                        .filter(family => family.family_codename !== thisFamily)
+                        .flatMap(family => family.participants)
+                        .map(value => toOption(value.participant_codename, "Other participants"));
+                    return existingParts.concat(otherParts).concat(rowOptions);
+                } else {
+                    const participants = families.flatMap(family => family.participants);
+                    const participantOptions = participants.map(value =>
+                        toOption(value.participant_codename, "Existing participants")
+                    );
+                    return participantOptions.concat(rowOptions);
+                }
+
             default:
                 return rowOptions;
         }
@@ -223,14 +248,11 @@ function DataEntryCell(props: DataEntryCellProps) {
                         filtered.push({
                             title: `Add "${params.inputValue}"`,
                             inputValue: params.inputValue,
-                            origin: "Add new family...",
+                            origin: "Add new...",
                         });
                     }
 
                     return filtered;
-                }}
-                onFocus={e => {
-                    console.log(options);
                 }}
                 getOptionLabel={option => option.inputValue}
                 renderOption={option => option.title}
