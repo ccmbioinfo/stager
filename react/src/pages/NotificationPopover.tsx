@@ -11,7 +11,8 @@ import {
 } from "@material-ui/core";
 import { NotificationsActive } from "@material-ui/icons";
 import Notification from "./Notification";
-import { Analysis, jsonToAnalyses } from "./utils";
+import { Analysis } from "./utils/typings";
+import { jsonToAnalyses } from "./utils/functions";
 import AnalysisInfoDialog from "./AnalysisInfoDialog";
 
 const useStyles = makeStyles(theme => ({
