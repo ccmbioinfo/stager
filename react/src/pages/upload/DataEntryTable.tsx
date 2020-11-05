@@ -16,6 +16,7 @@ import {
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, Delete, LibraryAdd } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
+import { Option, toOption, getOptions as _getOptions } from "./UploadUtils";
 
 const defaultColumns: DataEntryHeader[] = [
     { title: "Family", field: "family_codename" },
@@ -24,13 +25,6 @@ const defaultColumns: DataEntryHeader[] = [
     { title: "Tissue Type", field: "tissue_sample_type" },
     { title: "Dataset Type", field: "dataset_type" },
 ];
-
-interface Option {
-    title: string;
-    inputValue: string;
-    origin?: string;
-    disabled?: boolean;
-}
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -52,16 +46,11 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
     return arr;
 }
 
-function toOption(str: string | Option, origin?: string, disabled?: boolean): Option {
-    if (typeof str === "string")
-        return { title: str, inputValue: str, origin: origin, disabled: disabled };
-    return { ...str, origin: origin, disabled: disabled };
-}
-
 export default function DataEntryTable(props: DataEntryTableProps) {
     const [columns, setColumns] = useState<DataEntryHeader[]>(defaultColumns);
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
+    const [enums, setEnums] = useState<any>();
 
     useEffect(() => {
         fetch("/api/families")
@@ -72,6 +61,16 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .catch(error => {
                 console.error(error);
             });
+
+        fetch("/api/enums")
+            .then(response => response.json())
+            .then(data => {
+                setEnums(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
     }, [columns]);
 
     function onEdit(newValue: string, rowIndex: number, colIndex: number) {
@@ -88,46 +87,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, colIndex: number): Option[] {
-        const row = rows[rowIndex];
-        const col = columns[colIndex];
-        const rowOptions = rows
-            .filter((val, index) => index !== rowIndex) // not this row
-            .map(val => toOption("" + getProp(val, col.field), "Previous rows"));
-
-        const familyCodenames: string[] = families.map(value => value.family_codename);
-
-        switch (col.field) {
-            case "family_codename":
-                const familyOptions = families.map(value =>
-                    toOption(value.family_codename, "Existing families")
-                );
-                return familyOptions.concat(rowOptions);
-
-            case "participant_codename":
-                const thisFamily = row.family_codename;
-                if (familyCodenames.findIndex(family => family === thisFamily) !== -1) {
-                    const existingParts = families
-                        .filter(family => family.family_codename === thisFamily)
-                        .flatMap(family => family.participants)
-                        .map(value =>
-                            toOption(value.participant_codename, "Participants in family")
-                        );
-                    const otherParts = families
-                        .filter(family => family.family_codename !== thisFamily)
-                        .flatMap(family => family.participants)
-                        .map(value => toOption(value.participant_codename, "Other participants"));
-                    return existingParts.concat(otherParts).concat(rowOptions);
-                } else {
-                    const participants = families.flatMap(family => family.participants);
-                    const participantOptions = participants.map(value =>
-                        toOption(value.participant_codename, "Existing participants")
-                    );
-                    return participantOptions.concat(rowOptions);
-                }
-
-            default:
-                return rowOptions;
-        }
+        return _getOptions(rows, columns, rowIndex, colIndex, families, enums);
     }
 
     return (

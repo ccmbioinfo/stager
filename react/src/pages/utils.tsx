@@ -97,41 +97,42 @@ export interface Pipeline {
     supported_types: string[];
 }
 
-export interface DataEntryRowBase {
-    family_codename: string,
-    participant_codename: string,
-    participant_type: string,
-    tissue_sample_type: string,
-    dataset_type: string,
+// Define these as classes so that we can create an array of keys later
+class DataEntryRowBase {
+    family_codename!: string;
+    participant_codename!: string;
+    participant_type!: string;
+    tissue_sample_type!: string;
+    dataset_type!: string;
 }
 
-interface DataEntryRowOptional extends DataEntryRowBase {
-    sex?: string,
-    affected?: boolean,
-    solved?: boolean,
-    notes?: string,
-    condition?: string,
-    extraction_protocol?: string,
-    capture_kit?: string,
-    library_prep_method?: string,
-    read_length?: number,
-    read_type?: string,
-    sequencing_id?: string,
-    sequencing_date?: string,
-    sequencing_centre?: string,
-    batch_id?: string,
+class DataEntryRowOptional {
+    sex?: string;
+    affected?: boolean;
+    solved?: boolean;
+    notes?: string;
+    condition?: string;
+    extraction_protocol?: string;
+    capture_kit?: string;
+    library_prep_method?: string;
+    read_length?: number;
+    read_type?: string;
+    sequencing_id?: string;
+    sequencing_date?: string;
+    sequencing_centre?: string;
+    batch_id?: string;
 }
 
 // Cannot enforce "RNASeq => these values are set" with types
-interface DataEntryRowRNASeq extends DataEntryRowOptional {
-    RIN?: string,
-    DV200?: string,
-    concentration?: string,
-    sequencer?: string,
-    spike_in?: string
+class DataEntryRowRNASeq {
+    RIN?: string;
+    DV200?: string;
+    concentration?: string;
+    sequencer?: string;
+    spike_in?: string;
 }
 
-export type DataEntryRow = DataEntryRowRNASeq;
+export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {};
 
 export interface DataEntryHeader {
     title: string,
@@ -244,6 +245,21 @@ export function getRowIndex(row: any): number | null {
  */
 export function isRowSelected(row: any): boolean {
     return !!row?.tableData?.checked;
+}
+
+/**
+ * Return an object containing all headers for DataEntryTable.
+ */
+export function getDataEntryHeaders(): {
+    required: Array<keyof DataEntryRowBase>,
+    optional: Array<keyof DataEntryRowOptional>,
+    RNASeq: Array<keyof DataEntryRowRNASeq>
+} {
+    return {
+        required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
+        optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,
+        RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>
+    };
 }
 
 /*****   COMPONENTS   *****/
