@@ -84,3 +84,37 @@ def delete_families(id: int):
     else:
         return 'Family has participants, cannot delete!', 422
 
+
+@app.route("/api/families/<int:id>", methods = ["PATCH"])
+@login_required
+def edit_families(id: int):
+
+    if not request.json:
+        return "Request body must be JSON", 415
+    
+    try:
+        fam_codename = request.json['family_codename']
+    except KeyError:
+        return "No family codename provided", 400
+
+    family = models.Family.query.get_or_404(id)
+
+    if family.family_codename == fam_codename:
+        return 'Family codename is identical', 403
+
+
+    family.family_codename = fam_codename
+
+    try:
+        family.updated_by = current_user.user_id
+    except:
+        pass  # LOGIN_DISABLED
+
+    try:
+        db.session.flush()
+        return jsonify(family)
+    except:
+        db.session.rollback()
+        return "Server error", 500
+            
+
