@@ -160,11 +160,14 @@ export default function DatasetTable() {
                                         : dataset
                                 )
                             );
-                            enqueueSnackbar(`Row ID ${newDataset.dataset_id} updated successfully`);
+                            enqueueSnackbar(`Dataset ID ${newDataset.dataset_id} updated successfully`,
+                            { variant: "success" });
                         } else {
                             console.error(
                                 `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
                             );
+                            enqueueSnackbar(`Failed to edit Dataset ID ${oldDataset?.dataset_id} - ${response.status} ${response.statusText}`,
+                            { variant: "error" });
                         }
                     },
                 }}

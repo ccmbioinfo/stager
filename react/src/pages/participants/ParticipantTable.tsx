@@ -191,11 +191,16 @@ export default function ParticipantTable() {
                                 )
                             );
                             enqueueSnackbar(
-                                `Participant ${newParticipant.participant_codename} updated successfully`
+                                `Participant ${newParticipant.participant_codename} updated successfully`,
+                                {variant: "success"}                                
                             );
                         } else {
                             console.error(
                                 `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
+                            );
+                            enqueueSnackbar(
+                                `Failed to edit Participant ${oldParticipant?.participant_codename} - ${response.status} ${response.statusText}`,
+                                {variant: "error"}                                
                             );
                         }
                     },

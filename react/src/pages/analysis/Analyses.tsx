@@ -541,7 +541,8 @@ export default function Analyses() {
                                     )
                                 );
                                 enqueueSnackbar(
-                                    `Analysis ID ${oldData?.analysis_id} edited successfully`
+                                    `Analysis ID ${oldData?.analysis_id} edited successfully`,
+                                    {variant: "success"}
                                 );
                             } else {
                                 enqueueSnackbar(
