@@ -77,7 +77,7 @@ def delete_families(id: int):
         try:
             family.delete()
             db.session.commit()
-            return 'Deletion successful', 200
+            return 'Deletion successful', 204
         except:
             db.session.rollback()
             return 'Deletion of entity failed!', 422
