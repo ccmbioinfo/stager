@@ -3,14 +3,8 @@ import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import {
-    toKeyValue,
-    KeyValue,
-    Dataset,
-    formatDateString,
-    emptyCellValue,
-    Pipeline,
-} from "../utils";
+import { toKeyValue, formatDateString } from "../utils/functions";
+import { KeyValue, Dataset, Pipeline } from "../utils/typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 
@@ -107,18 +101,16 @@ export default function DatasetTable() {
                         field: "dataset_type",
                         defaultFilter: datasetTypeFilter,
                         lookup: datasetTypes,
-                        emptyValue: emptyCellValue,
                     },
                     {
                         title: "Condition",
                         field: "condition",
                         lookup: conditions,
-                        emptyValue: emptyCellValue,
                     },
                     {
                         title: "Notes",
                         field: "notes",
-                        emptyValue: emptyCellValue,
+                        grouping: false,
                         editComponent: props => (
                             <TextField
                                 multiline
@@ -129,8 +121,6 @@ export default function DatasetTable() {
                             />
                         ),
                     },
-                    // { title: 'Created', field: 'created', type: 'datetime' },
-                    // { title: 'Created by', field: 'created_by' },
                     {
                         title: "Updated",
                         field: "updated",
@@ -148,6 +138,7 @@ export default function DatasetTable() {
                     filtering: true,
                     search: false,
                     padding: "dense",
+                    grouping: true,
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
@@ -176,35 +167,6 @@ export default function DatasetTable() {
                             );
                         }
                     },
-                }}
-                cellEditable={{
-                    onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
-                        new Promise((resolve, reject) => {
-                            const dataUpdate = [...datasets];
-                            const index = dataUpdate.findIndex((row, index, obj) => {
-                                return row.dataset_id === editedRow.dataset_id;
-                            });
-                            const newRow: Dataset = { ...dataUpdate[index] };
-
-                            if (newValue === "") newValue = null;
-
-                            switch (columnDef.field) {
-                                case "dataset_type":
-                                    newRow.dataset_type = newValue;
-                                    break;
-                                case "condition":
-                                    newRow.condition = newValue;
-                                    break;
-                                case "notes":
-                                    newRow.notes = newValue;
-                                    break;
-                                default:
-                                    break;
-                            }
-                            dataUpdate[index] = newRow;
-                            setDatasets(dataUpdate);
-                            resolve();
-                        }),
                 }}
                 components={{
                     Toolbar: props => (
@@ -265,6 +227,11 @@ export default function DatasetTable() {
                         },
                     },
                 ]}
+                localization={{
+                    header: {
+                        actions: "", //remove action buttons' header
+                    },
+                }}
             />
         </div>
     );

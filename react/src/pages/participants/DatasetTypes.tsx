@@ -21,6 +21,7 @@ export default function DatasetTypes({ datasetTypes }: DatasetTypesProps) {
                     <Chip
                         className={classes.chip}
                         label={type}
+                        size="small"
                         avatar={<Avatar>{datasetTypes[type]}</Avatar>}
                     />
                 );

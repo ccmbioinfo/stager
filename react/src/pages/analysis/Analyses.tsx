@@ -13,19 +13,12 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import Title from "../Title";
 import CancelAnalysisDialog from "./CancelAnalysisDialog";
 import AnalysisInfoDialog from "../AnalysisInfoDialog";
 import AddAnalysisAlert from "./AddAnalysisAlert";
 import SetAssigneeDialog from "./SetAssigneeDialog";
-import {
-    emptyCellValue,
-    formatDateString,
-    Analysis,
-    PipelineStatus,
-    jsonToAnalyses,
-    isRowSelected,
-} from "../utils";
+import { formatDateString, jsonToAnalyses, isRowSelected } from "../utils/functions";
+import { Analysis, PipelineStatus } from "../utils/typings";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -380,7 +373,6 @@ export default function Analyses() {
                             title: "Result HPF Path",
                             field: "result_hpf_path",
                             type: "string",
-                            emptyValue: emptyCellValue,
                         },
                         {
                             title: "Status",
@@ -394,7 +386,6 @@ export default function Analyses() {
                             field: "notes",
                             type: "string",
                             width: "30%",
-                            emptyValue: emptyCellValue,
                             editComponent: props => (
                                 <TextField
                                     multiline
@@ -407,7 +398,7 @@ export default function Analyses() {
                         },
                     ]}
                     data={rows}
-                    title={<Title>Active Analyses</Title>}
+                    title="Active Analyses"
                     options={{
                         pageSize: 10,
                         filtering: true,
@@ -598,32 +589,6 @@ export default function Analyses() {
                             }
                         },
                     }}
-                    cellEditable={{
-                        onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
-                            new Promise((resolve, reject) => {
-                                const dataUpdate = [...rows];
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === editedRow.analysis_id;
-                                });
-                                const newRow: Analysis = { ...dataUpdate[index] };
-
-                                if (newValue === "") newValue = null;
-
-                                switch (columnDef.field) {
-                                    case "result_hpf_path":
-                                        newRow.result_hpf_path = newValue;
-                                        break;
-                                    case "notes":
-                                        newRow.notes = newValue;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                dataUpdate[index] = newRow;
-                                setRows(dataUpdate);
-                                resolve();
-                            }),
-                    }}
                     components={{
                         Toolbar: props => (
                             <div>
@@ -665,6 +630,11 @@ export default function Analyses() {
                                 </div>
                             </div>
                         ),
+                    }}
+                    localization={{
+                        header: {
+                            actions: "", //remove action buttons' header
+                        },
                     }}
                 />
             </Container>
