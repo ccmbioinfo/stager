@@ -13,8 +13,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, ShowChart } from "@material-ui/icons";
-import { Analysis, Dataset, FieldDisplay, Sample } from "../utils";
-
+import { formatDateString } from "../utils/functions";
+import { FieldDisplay } from "../utils/components";
+import { Analysis, Dataset, Sample } from "../utils/typings";
 const useStyles = makeStyles(theme => ({
     paper: {
         padding: theme.spacing(2),
@@ -42,18 +43,10 @@ export function DatasetDetailSection(props: { dataset?: Dataset; elevation?: num
     const dataset = props.dataset;
 
     return (
-        <Paper
-            className={classes.paper}
-            elevation={props.elevation !== undefined ? props.elevation : 2}
-        >
+        <>
             {dataset && (
                 <>
-                    <Grid
-                        container
-                        spacing={gridSpacing}
-                        justify="space-evenly"
-                        className={classes.grid}
-                    >
+                    <Grid container spacing={gridSpacing} justify="space-evenly">
                         <Grid item xs={infoWidth}>
                             <FieldDisplay title="Dataset ID" value={dataset.dataset_id} />
                             <FieldDisplay title="Dataset Type" value={dataset.dataset_type} />
@@ -70,9 +63,15 @@ export function DatasetDetailSection(props: { dataset?: Dataset; elevation?: num
                         </Grid>
                         <Grid item xs={infoWidth}>
                             <FieldDisplay title="Notes" value={dataset.notes} />
-                            <FieldDisplay title="Created" value={dataset.created} />
+                            <FieldDisplay
+                                title="Created"
+                                value={formatDateString(dataset.created)}
+                            />
                             <FieldDisplay title="Created By" value={dataset.created_by} />
-                            <FieldDisplay title="Updated" value={dataset.updated} />
+                            <FieldDisplay
+                                title="Updated"
+                                value={formatDateString(dataset.updated)}
+                            />
                             <FieldDisplay title="Updated By" value={dataset.updated_by} />
                         </Grid>
                     </Grid>
@@ -105,6 +104,8 @@ export function DatasetDetailSection(props: { dataset?: Dataset; elevation?: num
                         </Grid>
                     </Collapse>
                     <Button
+                        variant="contained"
+                        size="small"
                         onClick={() => {
                             setMoreDetails(!moreDetails);
                         }}
@@ -113,7 +114,7 @@ export function DatasetDetailSection(props: { dataset?: Dataset; elevation?: num
                     </Button>
                 </>
             )}
-        </Paper>
+        </>
     );
 }
 
@@ -124,34 +125,30 @@ export function SampleDetailSection(props: { sample?: Sample }) {
     return (
         <>
             {sample && (
-                <Paper className={classes.paper} elevation={2}>
-                    <Grid
-                        container
-                        spacing={gridSpacing}
-                        justify="space-evenly"
-                        className={classes.grid}
-                    >
-                        <Grid item xs={titleWidth}>
-                            <Typography variant="h6">Associated Tissue Sample</Typography>
-                        </Grid>
-                        <Grid item xs={infoWidth}>
-                            <FieldDisplay title="Sample ID" value={sample.tissue_sample_id} />
-                            <FieldDisplay title="Sample Type" value={sample.tissue_sample_type} />
-                            <FieldDisplay title="Extraction Date" value={sample.extraction_date} />
-                            <FieldDisplay
-                                title="Tissue Processing Protocol"
-                                value={sample.tissue_processing}
-                            />
-                        </Grid>
-                        <Grid item xs={infoWidth}>
-                            <FieldDisplay title="Notes" value={sample.notes} />
-                            <FieldDisplay title="Created" value={sample.created} />
-                            <FieldDisplay title="Created By" value={sample.created_by} />
-                            <FieldDisplay title="Updated" value={sample.updated} />
-                            <FieldDisplay title="Updated By" value={sample.updated_by} />
-                        </Grid>
+                <Grid container spacing={gridSpacing} justify="space-evenly">
+                    <Grid item xs={titleWidth}>
+                        <Typography variant="h6">Associated Tissue Sample</Typography>
                     </Grid>
-                </Paper>
+                    <Grid item xs={infoWidth}>
+                        <FieldDisplay title="Sample ID" value={sample.tissue_sample_id} />
+                        <FieldDisplay title="Sample Type" value={sample.tissue_sample_type} />
+                        <FieldDisplay
+                            title="Extraction Date"
+                            value={formatDateString(sample.extraction_date)}
+                        />
+                        <FieldDisplay
+                            title="Tissue Processing Protocol"
+                            value={sample.tissue_processing}
+                        />
+                    </Grid>
+                    <Grid item xs={infoWidth}>
+                        <FieldDisplay title="Notes" value={sample.notes} />
+                        <FieldDisplay title="Created" value={formatDateString(sample.created)} />
+                        <FieldDisplay title="Created By" value={sample.created_by} />
+                        <FieldDisplay title="Updated" value={formatDateString(sample.updated)} />
+                        <FieldDisplay title="Updated By" value={sample.updated_by} />
+                    </Grid>
+                </Grid>
             )}
         </>
     );
@@ -164,7 +161,12 @@ export function AnalysisListSection(props: { analyses: Analysis[] }) {
 
     function clickAnalysis(index: number) {
         // toggle
-        setShowAnalysis(showAnalysis.map((val, i) => (index === i ? !val : val)));
+        setShowAnalysis(
+            showAnalysis.map((val, i) => {
+                return index === i ? !val : val;
+            })
+        );
+        console.log(showAnalysis);
     }
 
     useEffect(() => {
@@ -174,7 +176,7 @@ export function AnalysisListSection(props: { analyses: Analysis[] }) {
     return (
         <>
             {analyses.length > 0 && showAnalysis.length === analyses.length && (
-                <Paper className={classes.paper} elevation={2}>
+                <>
                     <Typography variant="h6">Analyses which use this dataset</Typography>
                     <List>
                         {analyses.map((analysis, index) => (
@@ -199,7 +201,6 @@ export function AnalysisListSection(props: { analyses: Analysis[] }) {
                                             container
                                             spacing={gridSpacing}
                                             justify="space-evenly"
-                                            className={classes.grid}
                                         >
                                             <Grid item xs={infoWidth}>
                                                 <FieldDisplay
@@ -234,7 +235,7 @@ export function AnalysisListSection(props: { analyses: Analysis[] }) {
                                                 />
                                                 <FieldDisplay
                                                     title="Requested"
-                                                    value={analysis.requested}
+                                                    value={formatDateString(analysis.requested)}
                                                 />
                                                 <FieldDisplay
                                                     title="Requested By"
@@ -242,11 +243,11 @@ export function AnalysisListSection(props: { analyses: Analysis[] }) {
                                                 />
                                                 <FieldDisplay
                                                     title="Started"
-                                                    value={analysis.started}
+                                                    value={formatDateString(analysis.started)}
                                                 />
                                                 <FieldDisplay
                                                     title="Last Updated"
-                                                    value={analysis.updated}
+                                                    value={formatDateString(analysis.updated)}
                                                 />
                                             </Grid>
                                         </Grid>
@@ -255,7 +256,7 @@ export function AnalysisListSection(props: { analyses: Analysis[] }) {
                             </Paper>
                         ))}
                     </List>
-                </Paper>
+                </>
             )}
         </>
     );

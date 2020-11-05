@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@material-ui/core";
-import { Close } from "@material-ui/icons";
-import { Dataset, Analysis, Sample } from "../utils";
+import { Dialog, DialogContent, Divider } from "@material-ui/core";
+import { DialogHeader } from "../utils/components";
+import { Dataset, Analysis, Sample } from "../utils/typings";
 import { AnalysisListSection, DatasetDetailSection, SampleDetailSection } from "./DialogSections";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
-        paddingLeft: theme.spacing(2),
-        paddingRight: theme.spacing(2),
+        padding: theme.spacing(0),
+        margin: theme.spacing(0),
     },
     paper: {
         padding: theme.spacing(2),
@@ -18,16 +18,6 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(1),
         margin: theme.spacing(1),
     },
-    root: {
-        margin: 0,
-        padding: theme.spacing(2),
-    },
-    closeButton: {
-        position: "absolute",
-        right: theme.spacing(1),
-        top: theme.spacing(1),
-        color: theme.palette.grey[500],
-    },
     grid: {
         paddingBottom: theme.spacing(2),
     },
@@ -35,28 +25,10 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(2),
         margin: theme.spacing(1),
     },
+    infoSection: {
+        margin: theme.spacing(3),
+    },
 }));
-
-interface DialogTitleProps {
-    id: string;
-    children: React.ReactNode;
-    onClose: () => void;
-}
-
-const DialogHeader = (props: DialogTitleProps) => {
-    const { children, onClose, ...other } = props;
-    const classes = useStyles();
-    return (
-        <DialogTitle disableTypography className={classes.root} {...other}>
-            <Typography variant="h6">{children}</Typography>
-            {onClose ? (
-                <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-                    <Close />
-                </IconButton>
-            ) : null}
-        </DialogTitle>
-    );
-};
 
 interface DialogProp {
     open: boolean;
@@ -97,9 +69,17 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 Details of Dataset ID {dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
-                <DatasetDetailSection dataset={dataset} />
-                <SampleDetailSection sample={sample} />
-                <AnalysisListSection analyses={analyses} />
+                <div className={classes.infoSection}>
+                    <DatasetDetailSection dataset={dataset} />
+                </div>
+                <Divider />
+                <div className={classes.infoSection}>
+                    <SampleDetailSection sample={sample} />
+                </div>
+                <Divider />
+                <div className={classes.infoSection}>
+                    <AnalysisListSection analyses={analyses} />
+                </div>
             </DialogContent>
         </Dialog>
     );
