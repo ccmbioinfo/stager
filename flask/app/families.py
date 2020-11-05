@@ -111,7 +111,7 @@ def edit_families(id: int):
         pass  # LOGIN_DISABLED
 
     try:
-        db.session.flush()
+        db.session.commit()
         return jsonify(family)
     except:
         db.session.rollback()
