@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { formatDateString } from "../utils/functions";
-import { Dataset } from "../utils/typings";
-import { FieldDisplay } from "../utils/components";
 import {
     Box,
-    Button,
     Collapse,
     Grid,
     List,
@@ -13,27 +9,22 @@ import {
     ListItemText,
     makeStyles,
     Paper,
-    Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, Dns } from "@material-ui/icons";
+import { formatDateString } from "../utils/functions";
+import { Dataset } from "../utils/typings";
+import { FieldDisplay } from "../utils/components";
 
 const useStyles = makeStyles(theme => ({
-    paper: {
-        padding: theme.spacing(2),
-    },
     listPaper: {
         padding: theme.spacing(1),
         margin: theme.spacing(1),
-    },
-    grid: {
-        // paddingBottom: theme.spacing(2),
     },
     box: {
         padding: theme.spacing(2),
         margin: theme.spacing(1),
     },
     list: {
-        // border: "solid red 1px",
         margin: "0",
         padding: "0",
     },
@@ -72,7 +63,6 @@ export default function DatasetList(props: { datasets: Dataset[] }) {
                                 container
                                 spacing={2}
                                 justify="space-evenly"
-                                className={classes.grid}
                             >
                                 <Grid item xs={6}>
                                     <FieldDisplay

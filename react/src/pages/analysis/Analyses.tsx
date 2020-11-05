@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useHistory } from "react-router";
+import { useHistory } from "react-router";
 import { makeStyles } from "@material-ui/core/styles";
 import { Chip, IconButton, TextField, Container } from "@material-ui/core";
 import {
@@ -21,9 +21,6 @@ import { formatDateString, jsonToAnalyses, isRowSelected } from "../utils/functi
 import { Analysis, PipelineStatus } from "../utils/typings";
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: "fill",
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
@@ -33,40 +30,6 @@ const useStyles = makeStyles(theme => ({
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: "flex",
-        overflow: "auto",
-        flexDirection: "column",
-    },
-    seeMore: {
-        marginTop: theme.spacing(3),
-    },
-    dialogHeader: {
-        paddingBottom: "0",
-    },
-    hoverIcon: {
-        "&:hover": {
-            background: "#f1f1f1",
-        },
-    },
-    statusTitle: {
-        color: "#3f51b5",
-    },
-    centreItem: {
-        textAlign: "center",
-    },
-    downloadButton: {
-        marginTop: theme.spacing(3),
-        float: "right",
-    },
-    viewIcon: {
-        textAlign: "center",
-        "&:hover": {
-            //color: '#3f51b5',
-            background: "#f1f1f1",
-        },
     },
     chip: {
         color: "primary",

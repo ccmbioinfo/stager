@@ -16,16 +16,11 @@ import { ExpandLess, ExpandMore, ShowChart } from "@material-ui/icons";
 import { formatDateString } from "../utils/functions";
 import { FieldDisplay } from "../utils/components";
 import { Analysis, Dataset, Sample } from "../utils/typings";
+
 const useStyles = makeStyles(theme => ({
-    paper: {
-        padding: theme.spacing(2),
-    },
     listPaper: {
         padding: theme.spacing(1),
         margin: theme.spacing(1),
-    },
-    grid: {
-        paddingBottom: theme.spacing(2),
     },
     box: {
         padding: theme.spacing(2),

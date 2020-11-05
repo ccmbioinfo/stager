@@ -12,20 +12,6 @@ const useStyles = makeStyles(theme => ({
         margin: theme.spacing(0),
         padding: theme.spacing(0),
     },
-    paper: {
-        padding: theme.spacing(2),
-        marginBottom: theme.spacing(3),
-    },
-    root: {
-        margin: 0,
-        padding: theme.spacing(2),
-    },
-    closeButton: {
-        position: "absolute",
-        right: theme.spacing(1),
-        top: theme.spacing(1),
-        color: theme.palette.grey[500],
-    },
     infoSection: {
         margin: theme.spacing(3),
     },

@@ -14,9 +14,6 @@ const useStyles = makeStyles(theme => ({
         marginRight: "10px",
         colorPrimary: theme.palette.primary,
     },
-    copyIcon: {
-        marginLeft: theme.spacing(1),
-    },
 }));
 
 export default function ParticipantTable() {

@@ -17,12 +17,7 @@ import {
 import { ExpandLess, ExpandMore, ShowChart } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
-    paper: {
-        padding: theme.spacing(2),
-        marginBottom: theme.spacing(1),
-    },
     listPaper: {
-        // padding: theme.spacing(1),
         margin: theme.spacing(1),
     },
     grid: {
@@ -31,10 +26,6 @@ const useStyles = makeStyles(theme => ({
     box: {
         padding: theme.spacing(2),
         margin: theme.spacing(1),
-    },
-    list: {
-        // padding: theme.spacing(0),
-        // margin: theme.spacing(0),
     },
 }));
 
@@ -63,7 +54,7 @@ export default function AnalysisList(props: { analyses: Analysis[] }) {
     return (
         <div>
             <Typography variant="h6">Analyses</Typography>
-            <List className={classes.list}>
+            <List>
                 {analyses.map((analysis, index) => (
                     <Paper key={`analysis-${index}`} className={classes.listPaper} elevation={1}>
                         <ListItem button onClick={() => clickAnalysis(index)}>

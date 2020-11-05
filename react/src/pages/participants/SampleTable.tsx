@@ -1,24 +1,15 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core";
 import MaterialTable from "material-table";
 import { formatDateString } from "../utils/functions";
 import { Sample } from "../utils/typings";
 import DatasetList from "./DatasetList";
-const useStyles = makeStyles(theme => ({
-    paper: {
-        // border: "solid red 1px"
-    },
-}));
 
-interface SamplesTableProp {
-    samples: Sample[];
-}
-
-export default function SamplesTable({ samples }: SamplesTableProp) {
-    const classes = useStyles();
+export default function SamplesTable({ samples }: {samples: Sample[]}) {
+    
     const cellStyle = {
         padding: 0,
     };
+
     return (
         <MaterialTable
             columns={[
@@ -51,7 +42,7 @@ export default function SamplesTable({ samples }: SamplesTableProp) {
             title="Samples"
             detailPanel={rowData => <DatasetList datasets={rowData.datasets} />}
             components={{
-                Container: props => <div className={classes.paper}>{props.children}</div>,
+                Container: props => <div>{props.children}</div>,
             }}
             options={{
                 paging: false,

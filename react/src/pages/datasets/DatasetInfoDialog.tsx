@@ -10,21 +10,6 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(0),
         margin: theme.spacing(0),
     },
-    paper: {
-        padding: theme.spacing(2),
-        marginBottom: theme.spacing(3),
-    },
-    listPaper: {
-        padding: theme.spacing(1),
-        margin: theme.spacing(1),
-    },
-    grid: {
-        paddingBottom: theme.spacing(2),
-    },
-    box: {
-        padding: theme.spacing(2),
-        margin: theme.spacing(1),
-    },
     infoSection: {
         margin: theme.spacing(3),
     },

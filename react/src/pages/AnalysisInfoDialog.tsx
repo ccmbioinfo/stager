@@ -7,70 +7,19 @@ import {
     ListItemText,
     Collapse,
     Dialog,
-    IconButton,
     Typography,
     Grid,
     Divider,
+    DialogContent,
 } from "@material-ui/core";
-import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import MuiDialogContent from "@material-ui/core/DialogContent";
-import { createStyles, makeStyles, Theme, withStyles, WithStyles } from "@material-ui/core/styles";
-import { Dns, ExpandLess, ExpandMore, Close } from "@material-ui/icons";
+import { makeStyles } from "@material-ui/core/styles";
+import { Dns, ExpandLess, ExpandMore } from "@material-ui/icons";
 import { formatDateString } from "./utils/functions";
 import { Analysis, Dataset, Pipeline } from "./utils/typings";
 import { DialogHeader, FieldDisplay } from "./utils/components";
 import { DatasetDetailSection } from "./datasets/DialogSections";
 
-interface AlertInfoDialogProp {
-    open: boolean;
-    analysis: Analysis;
-    onClose: () => void;
-}
-
-const styles = (theme: Theme) =>
-    createStyles({
-        root: {
-            margin: 0,
-            padding: theme.spacing(2),
-        },
-        closeButton: {
-            position: "absolute",
-            right: theme.spacing(1),
-            top: theme.spacing(1),
-            color: theme.palette.grey[500],
-        },
-    });
-
-export interface DialogTitleProps extends WithStyles<typeof styles> {
-    id: string;
-    children: React.ReactNode;
-    onClose: () => void;
-}
-
-const DialogTitle = withStyles(styles)((props: DialogTitleProps) => {
-    const { children, classes, onClose, ...other } = props;
-    return (
-        <MuiDialogTitle disableTypography className={classes.root} {...other}>
-            <Typography variant="h6">{children}</Typography>
-            {onClose ? (
-                <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-                    <Close />
-                </IconButton>
-            ) : null}
-        </MuiDialogTitle>
-    );
-});
-
-const DialogContent = withStyles((theme: Theme) => ({
-    root: {
-        padding: theme.spacing(2),
-    },
-}))(MuiDialogContent);
-
 const useStyles = makeStyles(theme => ({
-    paper: {
-        padding: theme.spacing(2),
-    },
     listPaper: {
         padding: theme.spacing(1),
         margin: theme.spacing(1),
@@ -90,6 +39,12 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(2),
     },
 }));
+
+interface AlertInfoDialogProp {
+    open: boolean;
+    analysis: Analysis;
+    onClose: () => void;
+}
 
 export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
     const classes = useStyles();
@@ -173,7 +128,6 @@ function DatasetList({ datasets, showTitle }: DatasetListProp) {
     return (
         <>
             {showTitle && <Typography variant="h6">Associated Datasets</Typography>}
-
             <List>
                 {datasets.map((dataset, index) => (
                     <Paper key={`analysis-${index}`} className={classes.listPaper} elevation={1}>
