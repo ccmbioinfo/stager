@@ -49,6 +49,16 @@ const getParticipantValues = (participant: Participant) => {
         participant.updated_by,
     ];
 };
+function getAnalysisInfoList(analyses: Analysis[]) {
+        return analyses.map(analysis => {
+            return {
+                primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
+                secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
+                titles: getAnalysisTitles(),
+                values: getAnalysisValues(analysis),
+            } as Info;
+        });
+    }
 
 interface DialogProp {
     open: boolean;
@@ -60,17 +70,6 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
-
-    function getAnlysisInfoList(analyses: Analysis[]) {
-        return analyses.map(analysis => {
-            return {
-                primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
-                secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
-                titles: getAnalysisTitles(),
-                values: getAnalysisValues(analysis),
-            } as Info;
-        });
-    }
 
     //get mock data
     useEffect(() => {
@@ -109,7 +108,7 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                 <Divider />
                 <div className={classes.infoSection}>
                     <InfoList
-                        infoList={getAnlysisInfoList(analyses)}
+                        infoList={getAnalysisInfoList(analyses)}
                         title="Analyses"
                         icon={<ShowChart />}
                     />
