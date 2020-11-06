@@ -7,7 +7,6 @@ from sqlalchemy.orm import joinedload
 from .routes import check_admin
 
 
-
 @app.route("/api/families", methods=["GET"])
 @login_required
 def families_list():
@@ -26,48 +25,46 @@ def families_list():
 
     return jsonify(families)
 
+
 @app.route("/api/families/<int:id>", methods=["GET"])
 @login_required
 def families_by_id(id: int):
-    family = models.Family.query.filter_by(family_id = id).options(
-        joinedload(models.Family.participants)\
-            .joinedload(models.Participant.tissue_samples)\
-                .joinedload(models.TissueSample.datasets)
-    ).first_or_404()
-
+    family = (
+        models.Family.query.filter_by(family_id=id)
+        .options(
+            joinedload(models.Family.participants)
+            .joinedload(models.Participant.tissue_samples)
+            .joinedload(models.TissueSample.datasets)
+        )
+        .first_or_404()
+    )
 
     families = [
-        { 
+        {
             **asdict(family),
             "participants": [
-            {
-                **asdict(participants),
-                "tissue_samples": [
+                {
+                    **asdict(participants),
+                    "tissue_samples": [
                         {
                             **asdict(tissue_samples),
-                            "datasets": [
-                                {
-                                    **asdict(dataset)
-                                }
-                            
-                                for dataset in tissue_samples.datasets
-                            ]
+                            "datasets": tissue_samples.datasets,
                         }
                         for tissue_samples in participants.tissue_samples
-                    ]
+                    ],
                 }
-            for participants in family.participants
-            ]
+                for participants in family.participants
+            ],
         }
     ]
     return jsonify(families)
 
 
-@app.route("/api/families/<int:id>", methods = ["DELETE"])
+@app.route("/api/families/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
 def delete_families(id: int):
-    family = models.Family.query.filter_by(family_id = id).options(
+    family = models.Family.query.filter_by(family_id=id).options(
         joinedload(models.Family.participants)
     )
 
@@ -77,23 +74,23 @@ def delete_families(id: int):
         try:
             family.delete()
             db.session.commit()
-            return 'Deletion successful', 204
+            return "Deletion successful", 204
         except:
             db.session.rollback()
-            return 'Deletion of entity failed!', 422
+            return "Deletion of entity failed!", 422
     else:
-        return 'Family has participants, cannot delete!', 422
+        return "Family has participants, cannot delete!", 422
 
 
-@app.route("/api/families/<int:id>", methods = ["PATCH"])
+@app.route("/api/families/<int:id>", methods=["PATCH"])
 @login_required
 def edit_families(id: int):
 
     if not request.json:
         return "Request body must be JSON", 415
-    
+
     try:
-        fam_codename = request.json['family_codename']
+        fam_codename = request.json["family_codename"]
     except KeyError:
         return "No family codename provided", 400
 
@@ -112,5 +109,3 @@ def edit_families(id: int):
     except:
         db.session.rollback()
         return "Server error", 500
-            
-
