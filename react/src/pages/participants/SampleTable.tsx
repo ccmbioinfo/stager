@@ -1,7 +1,7 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
-import MaterialTable, {MTableCell} from "material-table";
+import MaterialTable, { MTableCell } from "material-table";
 import { formatDateString } from "../utils/functions";
 import { Dataset, Sample, Info } from "../utils/typings";
 import InfoList from "../utils/components/InfoList";
@@ -101,7 +101,7 @@ export default function SamplesTable({ samples }: { samples: Sample[] }) {
             }}
             components={{
                 Container: props => <div>{props.children}</div>,
-                Cell: props => <MTableCell {...props} style={cellStyle} />
+                Cell: props => <MTableCell {...props} style={cellStyle} />,
             }}
             options={{
                 paging: false,

@@ -50,15 +50,15 @@ const getParticipantValues = (participant: Participant) => {
     ];
 };
 function getAnalysisInfoList(analyses: Analysis[]) {
-        return analyses.map(analysis => {
-            return {
-                primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
-                secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
-                titles: getAnalysisTitles(),
-                values: getAnalysisValues(analysis),
-            } as Info;
-        });
-    }
+    return analyses.map(analysis => {
+        return {
+            primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
+            secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
+            titles: getAnalysisTitles(),
+            values: getAnalysisValues(analysis),
+        } as Info;
+    });
+}
 
 interface DialogProp {
     open: boolean;

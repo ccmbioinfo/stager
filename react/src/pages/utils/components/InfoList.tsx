@@ -27,11 +27,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function InfoList(props: {
-    infoList: Info[];
-    title?: string;
-    icon: JSX.Element;
-}) {
+export default function InfoList(props: { infoList: Info[]; title?: string; icon: JSX.Element }) {
     const classes = useStyles();
     const [showInfo, setShowInfo] = useState<boolean[]>([]);
     const infoList = props.infoList;
