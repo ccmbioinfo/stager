@@ -192,7 +192,7 @@ export default function ParticipantTable() {
                             );
                             enqueueSnackbar(
                                 `Participant ${newParticipant.participant_codename} updated successfully`,
-                                {variant: "success"}                                
+                                { variant: "success" }
                             );
                         } else {
                             console.error(
@@ -200,7 +200,7 @@ export default function ParticipantTable() {
                             );
                             enqueueSnackbar(
                                 `Failed to edit Participant ${oldParticipant?.participant_codename} - ${response.status} ${response.statusText}`,
-                                {variant: "error"}                                
+                                { variant: "error" }
                             );
                         }
                     },
