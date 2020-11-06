@@ -1,11 +1,59 @@
 import React from "react";
+import { makeStyles } from "@material-ui/core";
+import { Dns } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { formatDateString } from "../utils/functions";
-import { Sample } from "../utils/typings";
-import DatasetList from "./DatasetList";
+import { Dataset, Sample, Info } from "../utils/typings";
+import InfoList from "../utils/components/InfoList";
 
-export default function SamplesTable({ samples }: {samples: Sample[]}) {
-    
+const useStyles = makeStyles(theme => ({
+    datasetList: {
+        marginLeft: theme.spacing(3),
+        marginRight: theme.spacing(3),
+    },
+}));
+
+function getTitles() {
+    return [
+        "Input HPF Path",
+        "Condition",
+        "Extraction Protocol",
+        "Capture Kit",
+        "Library Prep Method",
+        "Library Prep Date",
+        "Read Length",
+        "Read Type",
+        "Sequencing ID",
+        "Sequencing Centre",
+        "Creation Time",
+        "Created By",
+        "Last Updated",
+        "Updated By",
+        "Discriminator",
+    ];
+}
+function getValues(dataset: Dataset) {
+    return [
+        dataset.input_hpf_path,
+        dataset.condition,
+        dataset.extraction_protocol,
+        dataset.capture_kit,
+        dataset.library_prep_method,
+        formatDateString(dataset.library_prep_date),
+        dataset.read_length,
+        dataset.read_type,
+        dataset.sequencing_id,
+        dataset.sequencing_centre,
+        formatDateString(dataset.created),
+        dataset.created_by,
+        formatDateString(dataset.updated),
+        dataset.updated_by,
+        dataset.discriminator,
+    ];
+}
+
+export default function SamplesTable({ samples }: { samples: Sample[] }) {
+    const classes = useStyles();
     const cellStyle = {
         padding: 0,
     };
@@ -40,7 +88,20 @@ export default function SamplesTable({ samples }: {samples: Sample[]}) {
             ]}
             data={samples}
             title="Samples"
-            detailPanel={rowData => <DatasetList datasets={rowData.datasets} />}
+            detailPanel={rowData => {
+                const infoList: Info[] = rowData.datasets.map(dataset => {
+                    return {
+                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
+                        titles: getTitles(),
+                        values: getValues(dataset),
+                    } as Info;
+                });
+                return (
+                    <div className={classes.datasetList}>
+                        <InfoList infoList={infoList} icon={<Dns />} />
+                    </div>
+                );
+            }}
             components={{
                 Container: props => <div>{props.children}</div>,
             }}

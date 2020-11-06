@@ -13,12 +13,12 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import CancelAnalysisDialog from "./CancelAnalysisDialog";
-import AnalysisInfoDialog from "../AnalysisInfoDialog";
-import AddAnalysisAlert from "./AddAnalysisAlert";
-import SetAssigneeDialog from "./SetAssigneeDialog";
 import { formatDateString, jsonToAnalyses, isRowSelected } from "../utils/functions";
 import { Analysis, PipelineStatus } from "../utils/typings";
+import AnalysisInfoDialog from "../utils/components/AnalysisInfoDialog";
+import CancelAnalysisDialog from "./CancelAnalysisDialog";
+import AddAnalysisAlert from "./AddAnalysisAlert";
+import SetAssigneeDialog from "./SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

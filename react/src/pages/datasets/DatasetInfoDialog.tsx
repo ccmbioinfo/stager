@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
-import { DialogHeader } from "../utils/components";
+import { ShowChart } from "@material-ui/icons";
+import { DialogHeader } from "../utils/components/components";
 import { Dataset, Analysis, Sample } from "../utils/typings";
-import { AnalysisListSection, DatasetDetailSection, SampleDetailSection } from "./DialogSections";
+import {
+    formatDateString,
+    getAnlysisInfoList,
+    getDatasetTitles,
+    getDatasetValues,
+    getSecDatasetTitles,
+    getSecDatasetValues,
+} from "../utils/functions";
+import DetailSection from "../utils/components/DetailSection";
+import InfoList from "../utils/components/InfoList";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -14,6 +24,34 @@ const useStyles = makeStyles(theme => ({
         margin: theme.spacing(3),
     },
 }));
+
+function getSamplesTitles() {
+    return [
+        "Sample ID",
+        "Sample Type",
+        "Extraction Date",
+        "Tissue Processing Protocol",
+        "Notes",
+        "Created",
+        "Created By",
+        "Updated",
+        "Updated By",
+    ];
+}
+
+function getSampleValues(sample: Sample) {
+    return [
+        sample.tissue_sample_id,
+        sample.tissue_sample_type,
+        formatDateString(sample.extraction_date),
+        sample.tissue_processing,
+        sample.notes,
+        formatDateString(sample.created),
+        sample.created_by,
+        formatDateString(sample.updated),
+        sample.updated_by,
+    ];
+}
 
 interface DialogProp {
     open: boolean;
@@ -55,15 +93,34 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
-                    <DatasetDetailSection dataset={dataset} />
+                    {dataset && (
+                        <DetailSection
+                            titles={getDatasetTitles()}
+                            values={getDatasetValues(dataset)}
+                            collapsibleTitles={getSecDatasetTitles()}
+                            collapsibleValues={getSecDatasetValues(dataset)}
+                        />
+                    )}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
-                    <SampleDetailSection sample={sample} />
+                    {sample && (
+                        <DetailSection
+                            titles={getSamplesTitles()}
+                            values={getSampleValues(sample)}
+                            title="Associated Tissue Sample"
+                        />
+                    )}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
-                    <AnalysisListSection analyses={analyses} />
+                    {analyses.length > 0 && (
+                        <InfoList
+                            infoList={getAnlysisInfoList(analyses)}
+                            title="Analyses which use this dataset"
+                            icon={<ShowChart />}
+                        />
+                    )}
                 </div>
             </DialogContent>
         </Dialog>

@@ -1,4 +1,5 @@
-import { Counts, KeyValue, Analysis, PipelineStatus } from "./typings";
+import { Counts, KeyValue, Analysis, PipelineStatus, Dataset, Info } from "./typings";
+
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
         if (counts[item]) {
@@ -92,4 +93,147 @@ export function getRowIndex(row: any): number | null {
  */
 export function isRowSelected(row: any): boolean {
     return !!row?.tableData?.checked;
+}
+
+/**
+ * Return the titles of analysis detail in dialogs
+ */
+export function getAnalysisTitles() {
+    return [
+        "Analysis ID",
+        "State",
+        "Pipeline ID",
+        "Assigned to",
+        "HPF Path",
+        "qSub ID",
+        "Notes",
+        "Requested",
+        "Requested By",
+        "Started",
+        "Last Updated",
+    ];
+}
+
+/**
+ * Return the values of analysis detail in dialogs
+ */
+export function getAnalysisValues(analysis: Analysis) {
+    return [
+        analysis.analysis_id,
+        analysis.analysis_state,
+        analysis.pipeline_id,
+        analysis.assignee,
+        analysis.result_hpf_path,
+        analysis.qsubID,
+        analysis.notes,
+        formatDateString(analysis.requested),
+        analysis.requester,
+        formatDateString(analysis.started),
+        formatDateString(analysis.updated),
+    ];
+}
+
+/**
+ * Return an Info object for anlysis detail list in dialogs
+ */
+export function getAnlysisInfoList(analyses: Analysis[]) {
+    return analyses.map(analysis => {
+        return {
+            primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
+            secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
+            titles: getAnalysisTitles(),
+            values: getAnalysisValues(analysis),
+        } as Info;
+    });
+}
+
+/**
+ * Return the titles of dataset detail in dialogs
+ */
+export function getDatasetTitles() {
+    return [
+        "Dataset ID",
+        "Dataset Type",
+        "Participant Codename",
+        "Family Codename",
+        "Tissue ID",
+        "Sequencing Centre",
+        "Notes",
+        "Created",
+        "Created By",
+        "Updated",
+        "Updated By",
+    ];
+}
+
+/**
+ * Return the values of dataset detail in dialogs
+ */
+export function getDatasetValues(dataset: Dataset) {
+    return [
+        dataset.dataset_id,
+        dataset.dataset_type,
+        dataset.participant_codename,
+        dataset.family_codename,
+        dataset.tissue_sample_id,
+        dataset.sequencing_centre,
+        dataset.notes,
+        formatDateString(dataset.created),
+        dataset.created_by,
+        formatDateString(dataset.updated),
+    ];
+}
+
+/**
+ * Return the secondary titles (hidden in show more detail) of dataset detail in dialogs
+ */
+export function getSecDatasetTitles() {
+    return [
+        "Batch ID",
+        "HPF Path",
+        "Condition",
+        "Extraction Protocol",
+        "Capture Kit",
+        "Discriminator",
+        "Library Prep Method",
+        "Library Prep Date",
+        "Read Length",
+        "Read Type",
+        "Sequencing ID",
+    ];
+}
+
+/**
+ * Return the secondary values (hidden in show more detail) of dataset detail in dialogs
+ */
+export function getSecDatasetValues(dataset: Dataset) {
+    return [
+        dataset.batch_id,
+        dataset.input_hpf_path,
+        dataset.condition,
+        dataset.extraction_protocol,
+        dataset.capture_kit,
+        dataset.discriminator,
+        dataset.library_prep_method,
+        formatDateString(dataset.library_prep_date),
+        dataset.read_length,
+        dataset.read_type,
+        dataset.sequencing_id,
+    ];
+}
+
+/**
+ * Return an Info object for dataset detail list in dialogs
+ */
+export function getDatasetInfoList(datasets: Dataset[]) {
+    return datasets.map(dataset => {
+        return {
+            primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
+            secondaryListTitle: `Participant: ${dataset.participant_codename} - Click for more details`,
+            titles: getDatasetTitles(),
+            values: getDatasetValues(dataset),
+            collapsibleTitles: getSecDatasetTitles(),
+            collapsibleValues: getSecDatasetValues(dataset),
+        } as Info;
+    });
 }

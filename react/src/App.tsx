@@ -62,7 +62,7 @@ function BaseApp() {
                 )}
                 autoHideDuration={6000}
                 anchorOrigin={{
-                    horizontal: 'center',
+                    horizontal: "center",
                     vertical: "bottom",
                 }}
             >

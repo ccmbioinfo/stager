@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Dialog, DialogContent, Grid, Divider } from "@material-ui/core";
-import { formatDateString } from "../utils/functions";
-import { Participant, Analysis } from "../utils/typings";
-import { FieldDisplay, DialogHeader } from "../utils/components";
+import { Dialog, DialogContent, Divider } from "@material-ui/core";
+import { ShowChart } from "@material-ui/icons";
+import { formatDateString, getAnalysisTitles, getAnalysisValues } from "../utils/functions";
+import { Participant, Analysis, Info } from "../utils/typings";
+import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
-import AnalysisList from "./AnalysisList";
+import DetailSection from "../utils/components/DetailSection";
+import InfoList from "../utils/components/InfoList";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -17,6 +19,37 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+const getParticipantTitles = () => {
+    return [
+        "Participant ID",
+        "Family ID",
+        "Family Codename",
+        "Sex",
+        "Affected",
+        "Solved",
+        "Notes",
+        "Time of Creation",
+        "Created By",
+        "Time of Update",
+        "Updated By",
+    ];
+};
+const getParticipantValues = (participant: Participant) => {
+    return [
+        participant.participant_id,
+        participant.family_id,
+        participant.family_codename,
+        participant.sex,
+        participant.affected,
+        participant.solved,
+        participant.notes,
+        formatDateString(participant.created),
+        participant.created_by,
+        formatDateString(participant.updated),
+        participant.updated_by,
+    ];
+};
+
 interface DialogProp {
     open: boolean;
     participant: Participant;
@@ -27,6 +60,17 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
+
+    function getAnlysisInfoList(analyses: Analysis[]) {
+        return analyses.map(analysis => {
+            return {
+                primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
+                secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
+                titles: getAnalysisTitles(),
+                values: getAnalysisValues(analysis),
+            } as Info;
+        });
+    }
 
     //get mock data
     useEffect(() => {
@@ -53,35 +97,10 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <Grid container spacing={2} justify="space-evenly">
-                        <Grid item xs={6}>
-                            <FieldDisplay
-                                title="Participant ID"
-                                value={participant.participant_id}
-                            />
-                            <FieldDisplay title="Family ID" value={participant.family_id} />
-                            <FieldDisplay
-                                title="Family Codename"
-                                value={participant.family_codename}
-                            />
-                            <FieldDisplay title="Sex" value={participant.sex} />
-                            <FieldDisplay title="Affected" value={participant.affected} />
-                            <FieldDisplay title="Solved" value={participant.solved} />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FieldDisplay title="Notes" value={participant.notes} />
-                            <FieldDisplay
-                                title="Time of Creation"
-                                value={formatDateString(participant.created)}
-                            />
-                            <FieldDisplay title="Created By" value={participant.created_by} />
-                            <FieldDisplay
-                                title="Time of Update"
-                                value={formatDateString(participant.updated)}
-                            />
-                            <FieldDisplay title="Updated By" value={participant.updated_by} />
-                        </Grid>
-                    </Grid>
+                    <DetailSection
+                        titles={getParticipantTitles()}
+                        values={getParticipantValues(participant)}
+                    />
                 </div>
                 <Divider />
                 <div>
@@ -89,7 +108,11 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
-                    <AnalysisList analyses={analyses} />
+                    <InfoList
+                        infoList={getAnlysisInfoList(analyses)}
+                        title="Analyses"
+                        icon={<ShowChart />}
+                    />
                 </div>
             </DialogContent>
         </Dialog>

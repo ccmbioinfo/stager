@@ -7,12 +7,13 @@ import {
     TypographyProps,
 } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
+import { FieldDisplayValueType } from "../typings";
 
 /**
  * Returns a simple Typography JSX element for displaying "title: value".
  */
 export function FieldDisplay(
-    props: TypographyProps & { title: string; value?: string[] | string | number | boolean | null }
+    props: TypographyProps & { title: string; value?: FieldDisplayValueType }
 ) {
     let val = props.value;
     if (Array.isArray(props.value)) val = props.value.join(", ");
@@ -43,6 +44,9 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.grey[500],
     },
 }));
+/**
+ * Returns a JSX element for displaying dialog header.
+ */
 export function DialogHeader(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
     const classes = useStyles();

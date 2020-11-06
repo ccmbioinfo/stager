@@ -1,6 +1,7 @@
 /*****   TYPES   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
+export type FieldDisplayValueType = string[] | string | number | boolean | null | undefined;
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {
@@ -87,4 +88,12 @@ export interface Pipeline {
     pipeline_name: string;
     pipeline_version: string;
     supported_types: string[];
+}
+export interface Info {
+    primaryListTitle: string;
+    secondaryListTitle?: string;
+    titles: string[];
+    values: string[];
+    collapsibleTitles?: string[];
+    collapsibleValues?: string[];
 }
