@@ -104,6 +104,7 @@ export default function SamplesTable({ samples }: { samples: Sample[] }) {
             }}
             components={{
                 Container: props => <div>{props.children}</div>,
+                Cell: props => <MTableCell {...props} style={cellStyle} />
             }}
             options={{
                 paging: false,
