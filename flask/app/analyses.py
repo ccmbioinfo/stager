@@ -148,10 +148,9 @@ def post_analyses():
 @login_required
 @routes.check_admin
 def delete_analysis(id: int):
-    analysis = (
-        models.Analysis.query.filter(models.Analysis.analysis_id == id)
-        .one_or_none()
-    )
+    analysis = models.Analysis.query.filter(
+        models.Analysis.analysis_id == id
+    ).one_or_none()
     if analysis:
         try:
             db.session.delete(analysis)
