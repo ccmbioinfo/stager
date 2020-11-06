@@ -137,7 +137,7 @@ export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, Da
 export interface DataEntryHeader {
     title: string,
     field: keyof DataEntryRow,
-    options?: string[]
+    hidden?: boolean
 };
 
 /*****   FUNCTIONS   *****/
@@ -260,6 +260,16 @@ export function getDataEntryHeaders(): {
         optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,
         RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>
     };
+}
+
+/**
+ * Given a string in snake-case (eg. thing_name), returns the string
+ * in spaced Title case (eg. Thing Name).
+ *
+ * Assume that input string is alphanumeric with underscores.
+ */
+export function snakeCaseToTitle(str: string): string {
+    return str.split('_').join(' ').replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1));
 }
 
 /*****   COMPONENTS   *****/

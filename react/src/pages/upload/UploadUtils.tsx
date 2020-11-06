@@ -1,5 +1,30 @@
 import React from "react";
-import { DataEntryHeader, DataEntryRow, getProp } from "../utils";
+import {
+    DataEntryHeader,
+    DataEntryRow,
+    getDataEntryHeaders,
+    getProp,
+    snakeCaseToTitle,
+} from "../utils";
+
+export function toColumn(
+    field: keyof DataEntryRow,
+    hidden?: boolean,
+    title?: string
+): DataEntryHeader {
+    return {
+        field: field,
+        title: title
+        ? title
+        : snakeCaseToTitle(field).replace(/([iI][dD])/g, txt => txt.toUpperCase()),
+        hidden: hidden };
+}
+
+export function getColumns(category: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
+    return (getProp(getDataEntryHeaders(), category) as Array<keyof DataEntryRow>).map(field =>
+        toColumn(field, category !== "required")
+    );
+}
 
 export interface Option {
     title: string;
@@ -18,21 +43,19 @@ export function toOption(str: string | Option, origin?: string, disabled?: boole
  * Returns the allowed options for the provided
  *
  * @param rows The data currently stored in the table.
- * @param columns The columns or headers of this table.
+ * @param col The column for this cell
  * @param rowIndex The row index of this cell.
- * @param colIndex The column index of this cell.
  * @param families The result from /api/families
+ * @param enums The result from /api/enums
  */
 export function getOptions(
     rows: DataEntryRow[],
-    columns: DataEntryHeader[],
+    col: DataEntryHeader,
     rowIndex: number,
-    colIndex: number,
     families: Array<any>,
     enums: any
 ): Option[] {
     const row = rows[rowIndex];
-    const col = columns[colIndex];
     const rowOptions = rows
         .filter((val, index) => index !== rowIndex) // not this row
         .map(val => toOption("" + getProp(val, col.field), "Previous rows"));

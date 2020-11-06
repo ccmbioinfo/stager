@@ -1,7 +1,11 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
+    Box,
     IconButton,
+    Menu,
+    MenuItem,
     Paper,
+    Switch,
     Table,
     TableBody,
     TableCell,
@@ -14,17 +18,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { AddBoxOutlined, Delete, LibraryAdd } from "@material-ui/icons";
+import { AddBoxOutlined, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
-import { Option, toOption, getOptions as _getOptions } from "./UploadUtils";
-
-const defaultColumns: DataEntryHeader[] = [
-    { title: "Family", field: "family_codename" },
-    { title: "Participant", field: "participant_codename" },
-    { title: "Participant Type", field: "participant_type" },
-    { title: "Tissue Type", field: "tissue_sample_type" },
-    { title: "Dataset Type", field: "dataset_type" },
-];
+import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -47,7 +43,10 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
 }
 
 export default function DataEntryTable(props: DataEntryTableProps) {
-    const [columns, setColumns] = useState<DataEntryHeader[]>(defaultColumns);
+    const [columns, setColumns] = useState<DataEntryHeader[]>(getColumns("required"));
+    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getColumns("optional"));
+    const [RNASeqCols, setRNASeqCols] = useState<DataEntryHeader[]>(getColumns("RNASeq"));
+
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
     const [enums, setEnums] = useState<any>();
@@ -70,14 +69,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .catch(error => {
                 console.error(error);
             });
+    }, []);
 
-    }, [columns]);
-
-    function onEdit(newValue: string, rowIndex: number, colIndex: number) {
+    function onEdit(newValue: string, rowIndex: number, col: DataEntryHeader) {
         setRows(
             rows.map((value, index) => {
                 if (index === rowIndex) {
-                    return { ...setProp(value, columns[colIndex].field, newValue) };
+                    return { ...setProp(value, col.field, newValue) };
                 } else {
                     return value;
                 }
@@ -86,8 +84,17 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     // Return the options for a given cell based on row, column
-    function getOptions(rowIndex: number, colIndex: number): Option[] {
-        return _getOptions(rows, columns, rowIndex, colIndex, families, enums);
+    function getOptions(rowIndex: number, col: DataEntryHeader): Option[] {
+        return _getOptions(rows, col, rowIndex, families, enums);
+    }
+
+    function toggleHideColumn(colField: keyof DataEntryRow) {
+        setOptionals(
+            optionals.map(value => {
+                if (value.field === colField) return { ...value, hidden: !value.hidden };
+                return value;
+            })
+        );
     }
 
     return (
@@ -101,11 +108,20 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell padding="none" />
-                            <TableCell padding="none" />
+                            <TableCell padding="checkbox" />
+                            <TableCell padding="checkbox" />
                             {columns.map((cell, index) => (
-                                <TableCell>{cell.title}</TableCell>
+                                <TableCell>{cell.title + "*"}</TableCell>
                             ))}
+
+                            {optionals.map((cell, index) => (
+                                <>{!cell.hidden && <TableCell>{cell.title}</TableCell>}</>
+                            ))}
+
+                            <DataEntryColumnMenuAction
+                                columns={optionals}
+                                onClick={toggleHideColumn}
+                            />
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -132,13 +148,28 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         );
                                     }}
                                 />
-                                {columns.map((col, colIndex) => (
+
+                                {columns.map(col => (
                                     <DataEntryCell
                                         value={toOption("" + getProp(row, col.field))}
-                                        options={getOptions(rowIndex, colIndex)}
-                                        onEdit={newValue => onEdit(newValue, rowIndex, colIndex)}
+                                        options={getOptions(rowIndex, col)}
+                                        onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                     />
                                 ))}
+
+                                {optionals.map(col => (
+                                    <>
+                                        {!col.hidden && (
+                                            <DataEntryCell
+                                                value={toOption("" + getProp(row, col.field))}
+                                                options={getOptions(rowIndex, col)}
+                                                onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                            />
+                                        )}
+                                    </>
+                                ))}
+
+                                <TableCell padding="checkbox" />
                             </TableRow>
                         ))}
                     </TableBody>
@@ -152,17 +183,16 @@ const filter = createFilterOptions<Option>({
     limit: 10,
 });
 
-interface DataEntryCellProps {
+/**
+ * A cell in the DataEntryTable that the user can type into.
+ */
+function DataEntryCell(props: {
     value: Option;
     options: Option[];
     freeSolo?: boolean;
     onEdit: (newValue: string) => void;
-    row?: DataEntryRow;
-    col?: DataEntryHeader;
     disabled?: boolean;
-}
-
-function DataEntryCell(props: DataEntryCellProps) {
+}) {
     const onEdit = (newValue: Option) => {
         props.onEdit(newValue.inputValue);
     };
@@ -226,6 +256,10 @@ function DataEntryCell(props: DataEntryCellProps) {
     );
 }
 
+/**
+ * A cell in the DataEntryTable positioned before all the entry rows, which
+ * provides an action button that the user can click.
+ */
 function DataEntryActionCell(props: {
     onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     icon: ReactNode;
@@ -233,7 +267,7 @@ function DataEntryActionCell(props: {
     disabled?: boolean;
 }) {
     return (
-        <TableCell padding="none">
+        <TableCell padding="checkbox">
             <Tooltip title={props.tooltipTitle}>
                 <IconButton onClick={props.onClick} disabled={props.disabled}>
                     {props.icon}
@@ -243,6 +277,10 @@ function DataEntryActionCell(props: {
     );
 }
 
+/**
+ * The toolbar for the DataEntryTable, which displays the title and other action
+ * buttons that do not depend on specific rows.
+ */
 function DataEntryToolbar(props: {
     onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }) {
@@ -257,5 +295,45 @@ function DataEntryToolbar(props: {
                 </IconButton>
             </Tooltip>
         </Toolbar>
+    );
+}
+
+/**
+ * A special action button which opens a menu for showing / hiding
+ * optional columns.
+ */
+function DataEntryColumnMenuAction(props: {
+    columns: DataEntryHeader[];
+    onClick: (field: keyof DataEntryRow) => void;
+}) {
+    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+
+    return (
+        <TableCell padding="checkbox">
+            <Tooltip title="Show/Hide columns">
+                <IconButton
+                    onClick={event => {
+                        setAnchor(event.currentTarget);
+                    }}
+                >
+                    <ViewColumn />
+                </IconButton>
+            </Tooltip>
+            <Menu
+                anchorEl={anchor}
+                open={Boolean(anchor)}
+                keepMounted
+                onClose={() => setAnchor(null)}
+            >
+                {props.columns.map(column => (
+                    <MenuItem onClick={() => props.onClick(column.field)}>
+                        <Box display="flex" flexGrow={1}>
+                            {column.title}
+                        </Box>
+                        <Switch edge="end" checked={!column.hidden} />
+                    </MenuItem>
+                ))}
+            </Menu>
+        </TableCell>
     );
 }
