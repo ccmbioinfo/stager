@@ -7,6 +7,42 @@ const gridSpacing = 2;
 const titleWidth = 12;
 const infoWidth = 6;
 
+interface GridFieldDisplayProps{
+    titles: string[],
+     values: FieldDisplayValueType[]
+}
+
+function LeftGridFieldsDisplay({titles, values}: GridFieldDisplayProps) {
+        return(
+            <>
+            {
+                titles.map((title, index) => {
+            if (index >= Math.ceil(titles.length / 2)) {
+                return (<></>);
+            } else {
+                return (<FieldDisplay title={title} value={values[index]} />);
+            }
+        })
+            }
+            </>
+        )
+    };
+
+function RightGridFieldsDisplay({ titles, values}: GridFieldDisplayProps) {
+    return (
+        <>
+        {
+            titles.map((title, index) => {
+            if (index < Math.ceil(titles.length / 2)){
+                return (<></>)
+            }else{ 
+                return (<FieldDisplay title={title} value={values[index]} />)
+            }})
+        }
+        </>
+    )
+};
+
 interface DetailSectionProps {
     titles: string[];
     values: FieldDisplayValueType[];
@@ -14,6 +50,7 @@ interface DetailSectionProps {
     collapsibleValues?: FieldDisplayValueType[];
     title?: string;
 }
+
 export default function DetailSection({
     titles,
     values,
@@ -23,24 +60,6 @@ export default function DetailSection({
 }: DetailSectionProps) {
     const [moreDetails, setMoreDetails] = useState(false);
 
-    const getLeftFieldDisplay = (titles: string[], values: FieldDisplayValueType[]) => {
-        return titles.map((title, index) => {
-            if (index >= Math.ceil(titles.length / 2)) {
-                return (<></>);
-            } else {
-                return <FieldDisplay title={title} value={values[index]} />;
-            }
-        });
-    };
-    const getRightFieldDisplay = (titles: string[], values: FieldDisplayValueType[]) => {
-        return titles.map((title, index) => {
-            if (index < Math.ceil(titles.length / 2)) {
-                return (<></>);
-            }
-            return <FieldDisplay title={title} value={values[index]} />;
-        });
-    };
-
     return (
         <>
             <Grid container spacing={gridSpacing} justify="space-evenly">
@@ -49,12 +68,11 @@ export default function DetailSection({
                         <Typography variant="h6">{title}</Typography>
                     </Grid>
                 )}
-
                 <Grid item xs={infoWidth}>
-                    {getLeftFieldDisplay(titles, values)}
+                    <LeftGridFieldsDisplay titles={titles} values={values}/>
                 </Grid>
                 <Grid item xs={infoWidth}>
-                    {getRightFieldDisplay(titles, values)}
+                    <RightGridFieldsDisplay titles={titles} values={values} />
                 </Grid>
             </Grid>
             {collapsibleTitles && collapsibleValues && (
@@ -62,10 +80,10 @@ export default function DetailSection({
                     <Collapse in={moreDetails}>
                         <Grid container spacing={gridSpacing} justify="space-evenly">
                             <Grid item xs={infoWidth}>
-                                {getLeftFieldDisplay(collapsibleTitles, collapsibleValues)}
+                                <LeftGridFieldsDisplay titles={collapsibleTitles} values={collapsibleValues}/>
                             </Grid>
                             <Grid item xs={infoWidth}>
-                                {getRightFieldDisplay(collapsibleTitles, collapsibleValues)}
+                                <RightGridFieldsDisplay titles={collapsibleTitles} values={collapsibleValues}/>
                             </Grid>
                         </Grid>
                     </Collapse>
