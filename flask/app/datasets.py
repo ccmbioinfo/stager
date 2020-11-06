@@ -82,9 +82,7 @@ def get_dataset(id: int):
 def delete_dataset(id: int):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
-        .options(
-            joinedload(models.Dataset.analyses)
-        )
+        .options(joinedload(models.Dataset.analyses))
         .one_or_none()
     )
     if dataset and not dataset.analyses:
