@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function InfoList(props: {
     infoList: Info[];
-    title?: string | undefined;
+    title?: string;
     icon: JSX.Element;
 }) {
     const classes = useStyles();
