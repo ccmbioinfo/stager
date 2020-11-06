@@ -26,7 +26,7 @@ export default function DetailSection({
     const getLeftFieldDisplay = (titles: string[], values: FieldDisplayValueType[]) => {
         return titles.map((title, index) => {
             if (index >= Math.ceil(titles.length / 2)) {
-                return;
+                return (<></>);
             } else {
                 return <FieldDisplay title={title} value={values[index]} />;
             }
