@@ -53,17 +53,14 @@ export default function ParticipantTable() {
         fetch("/api/participants").then(async response => {
             if (response.ok) {
                 const participants = await response.json();
-                participants.forEach((participant: Participant) => {
-                    const samples = participant.tissue_samples;
-                    samples.forEach((sample: Sample) => {
-                        const datasets = sample.datasets;
-                        datasets.forEach((dataset: Dataset) => {
-                            participant["dataset_types"]
-                                ? participant["dataset_types"].push(dataset.dataset_type)
-                                : (participant["dataset_types"] = [dataset.dataset_type]);
-                        });
-                    });
-                });
+                // Collect all dataset type labels from all tissue samples
+                // for each participant in the dataset_types array
+                participants.forEach(
+                    (participant: Participant) =>
+                        (participant.dataset_types = participant.tissue_samples
+                            .map(({ datasets }) => datasets.map(dataset => dataset.dataset_type))
+                            .flat())
+                );
                 setParticipants(participants as Participant[]);
             } else {
                 console.error(
