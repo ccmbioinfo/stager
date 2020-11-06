@@ -38,5 +38,6 @@ def create_app(config):
         from . import buckets
         from . import analyses
         from . import families
+        from . import datasets
 
         return app
