@@ -33,10 +33,26 @@ export interface Option {
     disabled?: boolean;
 }
 
-export function toOption(str: string | Option, origin?: string, disabled?: boolean): Option {
-    if (typeof str === "string")
-        return { title: str, inputValue: str, origin: origin, disabled: disabled };
-    return { ...str, origin: origin, disabled: disabled };
+export function toOption(str: string | boolean | number | undefined | Option, origin?: string, disabled?: boolean): Option {
+    let inputValue = str;
+    switch (typeof str) {
+        case "string":
+            inputValue = str;
+            break;
+        case "number":
+            inputValue = str.toString();
+            break;
+        case "boolean":
+            inputValue = str ? "true" : "false";
+            break;
+        case "undefined":
+            inputValue = "";
+            break;
+        default:
+            return { ...str, origin: origin, disabled: disabled };
+    }
+    return { title: inputValue, inputValue: inputValue, origin: origin, disabled: disabled };
+
 }
 
 /**
@@ -58,7 +74,7 @@ export function getOptions(
     const row = rows[rowIndex];
     const rowOptions = rows
         .filter((val, index) => index !== rowIndex) // not this row
-        .map(val => toOption("" + getProp(val, col.field), "Previous rows"));
+        .map(val => toOption(getProp(val, col.field), "Previous rows"));
 
     const familyCodenames: string[] = families.map(value => value.family_codename);
 

@@ -151,7 +151,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
                                 {columns.map(col => (
                                     <DataEntryCell
-                                        value={toOption("" + getProp(row, col.field))}
+                                        value={toOption(getProp(row, col.field))}
                                         options={getOptions(rowIndex, col)}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                     />
@@ -161,7 +161,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     <>
                                         {!col.hidden && (
                                             <DataEntryCell
-                                                value={toOption("" + getProp(row, col.field))}
+                                                value={toOption(getProp(row, col.field))}
                                                 options={getOptions(rowIndex, col)}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                             />
@@ -189,7 +189,6 @@ const filter = createFilterOptions<Option>({
 function DataEntryCell(props: {
     value: Option;
     options: Option[];
-    freeSolo?: boolean;
     onEdit: (newValue: string) => void;
     disabled?: boolean;
 }) {
@@ -206,7 +205,6 @@ function DataEntryCell(props: {
     return (
         <TableCell>
             <Autocomplete<Option, undefined, undefined, boolean | undefined>
-                freeSolo={props.freeSolo}
                 selectOnFocus
                 clearOnBlur
                 handleHomeEndKeys
