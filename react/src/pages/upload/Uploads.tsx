@@ -53,50 +53,10 @@ export default function Uploads() {
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <UploadDialog open={uploaderOpen} onClose={() => setUploaderOpen(false)} />
-            <Container maxWidth="lg" className={classes.container}>
-                <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                        <Paper className={classes.paper}>
-                            <Card
-                                title="Unlinked files"
-                                value="17"
-                                textSecondary="2 since last week"
-                                linkText=""
-                            />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Paper
-                            className={classes.addnew}
-                            elevation={elevation}
-                            onMouseOver={() => setElevation(10)}
-                            onMouseOut={() => setElevation(1)}
-                            onClick={() => {
-                                setElevation(10);
-                                setUploaderOpen(true);
-                            }}
-                        >
-                            <React.Fragment>
-                                <Typography
-                                    variant="h5"
-                                    color="primary"
-                                    align="center"
-                                    gutterBottom
-                                >
-                                    Add New Participants
-                                </Typography>
-                                <Typography align="center" component="p" variant="h2">
-                                    +
-                                </Typography>
-                            </React.Fragment>
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Box alignItems="stretch">
-                            <DataEntryTable />
-                        </Box>
-                    </Grid>
-                </Grid>
+            <Container maxWidth="xl" className={classes.container}>
+                <Box alignItems="stretch">
+                    <DataEntryTable />
+                </Box>
             </Container>
         </main>
     );

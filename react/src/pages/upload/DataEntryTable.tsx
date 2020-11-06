@@ -19,10 +19,7 @@ import {
     Tooltip,
     Typography,
 } from "@material-ui/core";
-import {
-    Autocomplete,
-    createFilterOptions,
-} from "@material-ui/lab";
+import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
 import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
@@ -58,9 +55,18 @@ const useTableStyles = makeStyles(theme => ({
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
+    const defaultOptionals = ["notes", "sex"];
 
     const [columns, setColumns] = useState<DataEntryHeader[]>(getColumns("required"));
-    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getColumns("optional"));
+
+    const [optionals, setOptionals] = useState<DataEntryHeader[]>(
+        getColumns("optional").map(header =>
+            !!defaultOptionals.find(val => val === header.field)
+                ? { ...header, hidden: false }
+                : header
+        )
+    );
+
     const [RNASeqCols, setRNASeqCols] = useState<DataEntryHeader[]>(getColumns("RNASeq"));
 
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
@@ -242,12 +248,7 @@ function DataEntryCell(
                 }}
                 options={options}
                 value={props.value}
-                renderInput={params => (
-                    <TextField
-                        {...params}
-                        variant="standard"
-                    />
-                )}
+                renderInput={params => <TextField {...params} variant="standard" />}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
                 filterOptions={(options, params) => {
                     const filtered = filter(options, params);
