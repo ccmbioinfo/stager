@@ -1,7 +1,7 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
-import MaterialTable from "material-table";
+import MaterialTable, {MTableCell} from "material-table";
 import { formatDateString } from "../utils/functions";
 import { Dataset, Sample, Info } from "../utils/typings";
 import InfoList from "../utils/components/InfoList";
@@ -61,30 +61,27 @@ export default function SamplesTable({ samples }: { samples: Sample[] }) {
     return (
         <MaterialTable
             columns={[
-                { title: "Sample ID", field: "tissue_sample_id", cellStyle: cellStyle },
+                { title: "Sample ID", field: "tissue_sample_id" },
                 {
                     title: "Extraction Date",
                     field: "extraction_date",
-                    cellStyle: cellStyle,
-                    render: rowData => formatDateString(rowData.updated),
+                    render: rowData => formatDateString(rowData.extraction_date),
                 },
-                { title: "Sample Type", field: "tissue_sample_type", cellStyle: cellStyle },
-                { title: "Tissue Processing", field: "tissue_processing", cellStyle: cellStyle },
-                { title: "Notes", field: "notes", cellStyle: cellStyle },
+                { title: "Sample Type", field: "tissue_sample_type" },
+                { title: "Tissue Processing", field: "tissue_processing" },
+                { title: "Notes", field: "notes" },
                 {
                     title: "Creation Time",
                     field: "created",
-                    cellStyle: cellStyle,
                     render: rowData => formatDateString(rowData.created),
                 },
-                { title: "Create By", field: "created_by", cellStyle: cellStyle },
+                { title: "Create By", field: "created_by" },
                 {
                     title: "Update Time",
                     field: "updated",
-                    cellStyle: cellStyle,
                     render: rowData => formatDateString(rowData.updated),
                 },
-                { title: "Updated By", field: "updated_by", cellStyle: cellStyle },
+                { title: "Updated By", field: "updated_by" },
             ]}
             data={samples}
             title="Samples"
