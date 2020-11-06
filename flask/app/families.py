@@ -99,10 +99,6 @@ def edit_families(id: int):
 
     family = models.Family.query.get_or_404(id)
 
-    if family.family_codename == fam_codename:
-        return 'Family codename is identical', 403
-
-
     family.family_codename = fam_codename
 
     try:
