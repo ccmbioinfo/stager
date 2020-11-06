@@ -2,6 +2,7 @@ import React, { ReactNode, useEffect, useState } from "react";
 import {
     Box,
     IconButton,
+    makeStyles,
     Menu,
     MenuItem,
     Paper,
@@ -9,6 +10,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableCellProps,
     TableContainer,
     TableHead,
     TableRow,
@@ -17,7 +19,10 @@ import {
     Tooltip,
     Typography,
 } from "@material-ui/core";
-import { Autocomplete, createFilterOptions } from "@material-ui/lab";
+import {
+    Autocomplete,
+    createFilterOptions,
+} from "@material-ui/lab";
 import { AddBoxOutlined, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
 import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
@@ -42,7 +47,18 @@ function createEmptyRows(amount?: number): DataEntryRow[] {
     return arr;
 }
 
+const useTableStyles = makeStyles(theme => ({
+    requiredCell: {
+        minWidth: "16em",
+    },
+    optionalCell: {
+        minWidth: "8em",
+    },
+}));
+
 export default function DataEntryTable(props: DataEntryTableProps) {
+    const classes = useTableStyles();
+
     const [columns, setColumns] = useState<DataEntryHeader[]>(getColumns("required"));
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getColumns("optional"));
     const [RNASeqCols, setRNASeqCols] = useState<DataEntryHeader[]>(getColumns("RNASeq"));
@@ -100,28 +116,33 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     return (
         <Paper>
             <DataEntryToolbar
-                onClick={event => {
+                handleAddRow={event => {
                     setRows(rows.concat(createEmptyRows(1)));
                 }}
+                columns={optionals}
+                handleColumnAction={toggleHideColumn}
             />
             <TableContainer>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell padding="checkbox" />
-                            <TableCell padding="checkbox" />
+                            <TableCell padding="checkbox" aria-hidden={true} />
+                            <TableCell padding="checkbox" aria-hidden={true} />
                             {columns.map((cell, index) => (
-                                <TableCell>{cell.title + "*"}</TableCell>
+                                <TableCell className={classes.requiredCell}>
+                                    {cell.title + "*"}
+                                </TableCell>
                             ))}
 
                             {optionals.map((cell, index) => (
-                                <>{!cell.hidden && <TableCell>{cell.title}</TableCell>}</>
+                                <>
+                                    {!cell.hidden && (
+                                        <TableCell className={classes.optionalCell}>
+                                            {cell.title}
+                                        </TableCell>
+                                    )}
+                                </>
                             ))}
-
-                            <DataEntryColumnMenuAction
-                                columns={optionals}
-                                onClick={toggleHideColumn}
-                            />
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -154,6 +175,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         value={toOption(getProp(row, col.field))}
                                         options={getOptions(rowIndex, col)}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                        aria-label={`enter ${col.title} row ${rowIndex}`}
                                     />
                                 ))}
 
@@ -164,12 +186,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 value={toOption(getProp(row, col.field))}
                                                 options={getOptions(rowIndex, col)}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                                aria-label={`enter ${col.title} row ${rowIndex} optional`}
                                             />
                                         )}
                                     </>
                                 ))}
-
-                                <TableCell padding="checkbox" />
                             </TableRow>
                         ))}
                     </TableBody>
@@ -186,12 +207,14 @@ const filter = createFilterOptions<Option>({
 /**
  * A cell in the DataEntryTable that the user can type into.
  */
-function DataEntryCell(props: {
-    value: Option;
-    options: Option[];
-    onEdit: (newValue: string) => void;
-    disabled?: boolean;
-}) {
+function DataEntryCell(
+    props: {
+        value: Option;
+        options: Option[];
+        onEdit: (newValue: string) => void;
+        disabled?: boolean;
+    } & TableCellProps
+) {
     const onEdit = (newValue: Option) => {
         props.onEdit(newValue.inputValue);
     };
@@ -205,6 +228,7 @@ function DataEntryCell(props: {
     return (
         <TableCell>
             <Autocomplete<Option, undefined, undefined, boolean | undefined>
+                aria-label={getProp(props, "aria-label")}
                 selectOnFocus
                 clearOnBlur
                 handleHomeEndKeys
@@ -222,10 +246,6 @@ function DataEntryCell(props: {
                     <TextField
                         {...params}
                         variant="standard"
-                        InputProps={{
-                            ...params.InputProps,
-                            endAdornment: undefined,
-                        }}
                     />
                 )}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
@@ -267,7 +287,11 @@ function DataEntryActionCell(props: {
     return (
         <TableCell padding="checkbox">
             <Tooltip title={props.tooltipTitle}>
-                <IconButton onClick={props.onClick} disabled={props.disabled}>
+                <IconButton
+                    onClick={props.onClick}
+                    disabled={props.disabled}
+                    aria-label={props.tooltipTitle}
+                >
                     {props.icon}
                 </IconButton>
             </Tooltip>
@@ -275,23 +299,35 @@ function DataEntryActionCell(props: {
     );
 }
 
+const useToolbarStyles = makeStyles(theme => ({
+    toolbar: {
+        paddingRight: theme.spacing(1),
+        paddingLeft: theme.spacing(2),
+    },
+}));
+
 /**
  * The toolbar for the DataEntryTable, which displays the title and other action
  * buttons that do not depend on specific rows.
  */
 function DataEntryToolbar(props: {
-    onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+    handleAddRow: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+    handleColumnAction: (field: keyof DataEntryRow) => void;
+    columns: DataEntryHeader[];
 }) {
+    const classes = useToolbarStyles();
+
     return (
-        <Toolbar>
-            <Typography variant="h6" style={{ flexGrow: 1 }}>
-                Enter Metadata
-            </Typography>
+        <Toolbar className={classes.toolbar}>
+            <Box display="flex" flexGrow={1}>
+                <Typography variant="h6">Enter Metadata</Typography>
+            </Box>
             <Tooltip title="Add empty row">
-                <IconButton onClick={props.onClick} edge="end">
+                <IconButton onClick={props.handleAddRow} edge="end">
                     <AddBoxOutlined />
                 </IconButton>
             </Tooltip>
+            <DataEntryColumnMenuAction columns={props.columns} onClick={props.handleColumnAction} />
         </Toolbar>
     );
 }
@@ -307,7 +343,7 @@ function DataEntryColumnMenuAction(props: {
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
     return (
-        <TableCell padding="checkbox">
+        <>
             <Tooltip title="Show/Hide columns">
                 <IconButton
                     onClick={event => {
@@ -332,6 +368,6 @@ function DataEntryColumnMenuAction(props: {
                     </MenuItem>
                 ))}
             </Menu>
-        </TableCell>
+        </>
     );
 }

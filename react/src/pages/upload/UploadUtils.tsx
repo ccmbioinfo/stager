@@ -15,9 +15,10 @@ export function toColumn(
     return {
         field: field,
         title: title
-        ? title
-        : snakeCaseToTitle(field).replace(/([iI][dD])/g, txt => txt.toUpperCase()),
-        hidden: hidden };
+            ? title
+            : snakeCaseToTitle(field).replace(/([iI][dD])/g, txt => txt.toUpperCase()),
+        hidden: hidden,
+    };
 }
 
 export function getColumns(category: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
@@ -33,7 +34,11 @@ export interface Option {
     disabled?: boolean;
 }
 
-export function toOption(str: string | boolean | number | undefined | Option, origin?: string, disabled?: boolean): Option {
+export function toOption(
+    str: string | boolean | number | undefined | Option,
+    origin?: string,
+    disabled?: boolean
+): Option {
     let inputValue = str;
     switch (typeof str) {
         case "string":
@@ -52,14 +57,13 @@ export function toOption(str: string | boolean | number | undefined | Option, or
             return { ...str, origin: origin, disabled: disabled };
     }
     return { title: inputValue, inputValue: inputValue, origin: origin, disabled: disabled };
-
 }
 
 /**
- * Returns the allowed options for the provided
+ * Returns the allowed options for the selected cell.
  *
  * @param rows The data currently stored in the table.
- * @param col The column for this cell
+ * @param col The column (header) for this cell.
  * @param rowIndex The row index of this cell.
  * @param families The result from /api/families
  * @param enums The result from /api/enums
@@ -77,6 +81,7 @@ export function getOptions(
         .map(val => toOption(getProp(val, col.field), "Previous rows"));
 
     const familyCodenames: string[] = families.map(value => value.family_codename);
+    const booleans = ["true", "false"];
 
     switch (col.field) {
         case "family_codename":
@@ -125,10 +130,30 @@ export function getOptions(
 
         case "dataset_type":
             if (enums) {
-                const datasetTypeOptions = (enums.DatasetType as string[]).map(value =>
+                return (enums.DatasetType as string[]).map(value =>
                     toOption(value, "Dataset Types")
                 );
-                return datasetTypeOptions;
+            }
+            return rowOptions;
+
+        case "sex":
+            if (enums) {
+                const sexOptions = (enums.Sex as string[]).map(value => toOption(value, "Sexes"));
+                return sexOptions;
+            }
+            return rowOptions;
+
+        case "affected":
+            return booleans.map(b => toOption(b, "Is Affected"));
+
+        case "solved":
+            return booleans.map(b => toOption(b, "Is Solved"));
+
+        case "condition":
+            if (enums) {
+                return (enums.DatasetCondition as string[]).map(value =>
+                    toOption(value, "Dataset Conditions")
+                );
             }
             return rowOptions;
 
