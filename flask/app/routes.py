@@ -591,6 +591,6 @@ def delete_tissue(id: int):
             db.session.rollback()
             return "Server error", 500
     elif tissue:
-        return "Participant has tissue samples, cannot delete", 422
+        return "Tissue has dataset(s), cannot delete", 422
     else:
         return "Not Found", 404
