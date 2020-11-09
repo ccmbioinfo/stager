@@ -76,6 +76,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [families, setFamilies] = useState<Array<any>>([]);
     const [enums, setEnums] = useState<any>();
 
+    const [showRNA, setShowRNA] = useState<boolean>(false);
+
     useEffect(() => {
         fetch("/api/families")
             .then(response => response.json())
@@ -97,6 +99,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }, []);
 
     function onEdit(newValue: string, rowIndex: number, col: DataEntryHeader) {
+        if (col.field === "dataset_type" && newValue === "RRS") {
+            setShowRNA(true);
+        }
         setRows(
             rows.map((value, index) => {
                 if (index === rowIndex) {
@@ -133,6 +138,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             />
             <TableContainer>
                 <Table>
+                    <caption>
+                        {"* - Required | ** - Required only if Dataset Type is RRS"}
+                    </caption>
                     <TableHead>
                         <TableRow>
                             <TableCell padding="checkbox" aria-hidden={true} />
@@ -150,6 +158,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                             {cell.title}
                                         </TableCell>
                                     )}
+                                </>
+                            ))}
+
+                            {showRNA && RNASeqCols.map((cell) => (
+                                <>
+                                    <TableCell className={classes.optionalCell}>
+                                        {cell.title + "**"}
+                                    </TableCell>
                                 </>
                             ))}
                         </TableRow>
@@ -200,6 +216,18 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         )}
                                     </>
                                 ))}
+
+                                {showRNA && RNASeqCols.map(col => (
+                                    <>
+                                        {<DataEntryCell
+                                            value={toOption(getProp(row, col.field))}
+                                            options={getOptions(rowIndex, col)}
+                                            onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                            aria-label={`enter ${col.title} row ${rowIndex}`}
+                                            disabled={row.dataset_type !== "RRS"}
+                                        />}
+                                    </>
+                                ))}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -238,6 +266,7 @@ function DataEntryCell(
     return (
         <TableCell>
             <Autocomplete<Option, undefined, undefined, boolean | undefined>
+                disabled={props.disabled}
                 aria-label={getProp(props, "aria-label")}
                 selectOnFocus
                 clearOnBlur
