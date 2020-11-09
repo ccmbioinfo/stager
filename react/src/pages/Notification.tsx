@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { makeStyles, Tooltip, Button } from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import { PipelineStatus, Analysis } from './utils';
+import React, { useState } from "react";
+import { makeStyles, Tooltip, Button } from "@material-ui/core";
+import { Alert } from "@material-ui/lab";
+import { PipelineStatus, Analysis } from "./utils";
 
 const useStyles = makeStyles(theme => ({
     msgBox: {
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         padding: theme.spacing(1),
         paddingRight: theme.spacing(2),
         border: "1px solid white",
     },
     msgBoxOnHover: {
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         padding: theme.spacing(1),
         paddingRight: theme.spacing(2),
     },
@@ -22,12 +22,12 @@ const useStyles = makeStyles(theme => ({
         display: "block",
         width: "100%",
         textTransform: "none",
-    }
+    },
 }));
 
 export interface NotificationProps {
-    analysis: Analysis,
-    onClick: () => void
+    analysis: Analysis;
+    onClick: () => void;
 }
 
 enum Severity {
@@ -40,13 +40,10 @@ enum Severity {
 export interface NotificationObj {
     analysis_id: string;
     msg: string;
-    severity: Severity
+    severity: Severity;
 }
 
-function createNotification(
-    analysis_id: string,
-    msg: string,
-    severity: Severity): NotificationObj {
+function createNotification(analysis_id: string, msg: string, severity: Severity): NotificationObj {
     return { analysis_id, msg, severity };
 }
 
@@ -66,22 +63,29 @@ function getNotificationInfo(analysis: Analysis) {
     }
 }
 
-export default function Notification({ analysis, onClick } : NotificationProps) {
+export default function Notification({ analysis, onClick }: NotificationProps) {
     const classes = useStyles();
     const [hover, setHover] = useState(false);
-    const {analysis_id, msg, severity} = getNotificationInfo(analysis)!;
+    const { analysis_id, msg, severity } = getNotificationInfo(analysis)!;
 
     return (
-        <Button className={classes.button} onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
-
+        <Button
+            className={classes.button}
+            onClick={onClick}
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+        >
             <Tooltip title="Click to see detail">
-                {
-                    hover
-                    ? <Alert variant="filled" className={classes.msgBoxOnHover} severity={severity}>{ msg }</Alert>
-                    : <Alert className={classes.msgBox} severity={severity}>{ msg }</Alert>
-                }
+                {hover ? (
+                    <Alert variant="filled" className={classes.msgBoxOnHover} severity={severity}>
+                        {msg}
+                    </Alert>
+                ) : (
+                    <Alert className={classes.msgBox} severity={severity}>
+                        {msg}
+                    </Alert>
+                )}
             </Tooltip>
         </Button>
-
     );
 }

@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import TextField from '@material-ui/core/TextField';
+import React, { useState } from "react";
+import Button from "@material-ui/core/Button";
+import Checkbox from "@material-ui/core/Checkbox";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import TextField from "@material-ui/core/TextField";
 
 export interface CreateUser {
     username: string;
@@ -41,7 +41,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(state)
+            body: JSON.stringify(state),
         });
         if (response.ok) {
             props.onSuccess(state);
@@ -59,7 +59,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
         }
     }
 
-    let errorFragment = (<></>);
+    let errorFragment = <></>;
     if (errorNoMatch) {
         errorFragment = (
             <DialogContentText id={`${props.id}-description`} color="secondary">
@@ -75,27 +75,40 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     }
 
     return (
-        <Dialog open={props.open} onClose={props.onClose}
+        <Dialog
+            open={props.open}
+            onClose={props.onClose}
             aria-labelledby={`${props.id}-title`}
             aria-describedby={`${props.id}-description`}
-            PaperProps={{ component: 'form' }}>
+            PaperProps={{ component: "form" }}
+        >
             <DialogTitle id={`${props.id}-title`}>New user</DialogTitle>
             <DialogContent>
                 {errorFragment}
-                <TextField required autoFocus autoComplete="off"
-                    fullWidth margin="dense" variant="filled"
+                <TextField
+                    required
+                    autoFocus
+                    autoComplete="off"
+                    fullWidth
+                    margin="dense"
+                    variant="filled"
                     label="Username (minimum 4 characters)"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                 />
-                <TextField required autoComplete="off"
-                    fullWidth margin="dense" variant="filled"
+                <TextField
+                    required
+                    autoComplete="off"
+                    fullWidth
+                    margin="dense"
+                    variant="filled"
                     label="Email"
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                 />
-                <FormControlLabel label="Admin?"
+                <FormControlLabel
+                    label="Admin?"
                     control={
                         <Checkbox
                             checked={isAdmin}
@@ -104,15 +117,23 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                         />
                     }
                 />
-                <TextField required autoComplete="new-password"
-                    fullWidth margin="dense" variant="filled"
+                <TextField
+                    required
+                    autoComplete="new-password"
+                    fullWidth
+                    margin="dense"
+                    variant="filled"
                     label="Password (minimum 4 characters)"
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                 />
-                <TextField required autoComplete="new-password"
-                    fullWidth margin="dense" variant="filled"
+                <TextField
+                    required
+                    autoComplete="new-password"
+                    fullWidth
+                    margin="dense"
+                    variant="filled"
                     label="Confirm password"
                     type="password"
                     value={confirmPassword}

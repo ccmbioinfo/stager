@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
     Dialog,
     DialogTitle,
@@ -8,19 +8,18 @@ import {
     Tabs,
     Tab,
     Grid,
-    makeStyles
-} from '@material-ui/core';
-import UploadForm from './UploadForm';
-import { InputFileUpload } from './UploadCSV';
+    makeStyles,
+} from "@material-ui/core";
+import UploadForm from "./UploadForm";
+import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
-    open: boolean,
-    onClose: (() => void),
+    open: boolean;
+    onClose: () => void;
 }
 
 const useStyles = makeStyles(theme => ({
-    root: {
-    },
+    root: {},
     dialog: {
         paddingBottom: theme.spacing(2),
         paddingTop: theme.spacing(0),
@@ -40,30 +39,30 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(1),
     },
     gridItem: {
-        padding: theme.spacing(1)
+        padding: theme.spacing(1),
     },
     buttonGroup: {
-        paddingRight: theme.spacing(1)
-    }
+        paddingRight: theme.spacing(1),
+    },
 }));
 
 function sendFile(file: File | null) {
     if (file !== null) {
         // Upload
-        fetch('/api/_bulk', {
-            method: 'POST',
+        fetch("/api/_bulk", {
+            method: "POST",
             body: file,
             headers: new Headers({
-                'Content-Type': 'text/csv'
+                "Content-Type": "text/csv",
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-        })
-        .catch(error => {
-            console.error(error);
-        })
+            .catch(error => {
+                console.error(error);
+            });
     }
 }
 
@@ -77,30 +76,21 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
         if (files && files[0]) {
             setFile(files[0]);
             console.log(files[0].name);
-        }
-        else {
+        } else {
             setFile(null);
         }
     }
 
     let tabContent;
     if (tab === 1) {
-        tabContent = (<UploadForm />);
-    }
-    else {
-        tabContent = (<InputFileUpload onUpload={onUpload} />);
+        tabContent = <UploadForm />;
+    } else {
+        tabContent = <InputFileUpload onUpload={onUpload} />;
     }
 
     return (
-        <Dialog
-            open={open}
-            onClose={() => onClose()}
-            fullWidth={true}
-            maxWidth='md'
-        >
-            <DialogTitle>
-                Upload Sample Data
-            </DialogTitle>
+        <Dialog open={open} onClose={() => onClose()} fullWidth={true} maxWidth="md">
+            <DialogTitle>Upload Sample Data</DialogTitle>
             <DialogContent dividers className={classes.dialog}>
                 <Tabs
                     value={tab}
@@ -111,18 +101,26 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                     <Tab label="Manual Form Entry" />
                 </Tabs>
                 <Grid container className={classes.tabPanel}>
-                    <Grid item xs={12} className={classes.gridItem} >
+                    <Grid item xs={12} className={classes.gridItem}>
                         {tabContent}
                     </Grid>
                     <Grid item xs={10}></Grid>
-                    <Grid item xs={2} className={classes.gridItem} >
+                    <Grid item xs={2} className={classes.gridItem}>
                         <ButtonGroup variant="contained">
                             <Button onClick={onClose}>Cancel</Button>
-                            <Button onClick={() => {sendFile(file); onClose()}} color="primary">Add</Button>
+                            <Button
+                                onClick={() => {
+                                    sendFile(file);
+                                    onClose();
+                                }}
+                                color="primary"
+                            >
+                                Add
+                            </Button>
                         </ButtonGroup>
                     </Grid>
                 </Grid>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

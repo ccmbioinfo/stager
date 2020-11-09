@@ -1,26 +1,43 @@
-import React from 'react';
-import { makeStyles, Accordion, AccordionSummary, AccordionDetails, Typography, Grid } from '@material-ui/core';
-import { ExpandMore } from '@material-ui/icons';
-import { Dataset } from '../utils';
+import React from "react";
+import {
+    makeStyles,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Typography,
+    Grid,
+} from "@material-ui/core";
+import { ExpandMore } from "@material-ui/icons";
+import { Dataset } from "../utils";
 
 const useStyles = makeStyles(theme => ({
     root: {
-        marginLeft: '5%',
-        marginRight: '5%',
+        marginLeft: "5%",
+        marginRight: "5%",
         marginTop: theme.spacing(1),
         marginBottom: theme.spacing(1),
     },
 }));
 
-function Entry({ name, value }: { name: string, value: string | number }) {
-    return (<Typography variant="body2">{name}: {value}</Typography>);
+function Entry({ name, value }: { name: string; value: string | number }) {
+    return (
+        <Typography variant="body2">
+            {name}: {value}
+        </Typography>
+    );
 }
 
 function DatasetAccordion({ dataset }: { dataset: Dataset }) {
     return (
-        <Accordion >
-            <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
-                <Typography variant="body2">Dataset {dataset.dataset_id} [{dataset.dataset_type}]</Typography>
+        <Accordion>
+            <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+            >
+                <Typography variant="body2">
+                    Dataset {dataset.dataset_id} [{dataset.dataset_type}]
+                </Typography>
             </AccordionSummary>
             <AccordionDetails>
                 <Grid container spacing={2} justify="space-evenly">
@@ -50,19 +67,21 @@ function DatasetAccordion({ dataset }: { dataset: Dataset }) {
 }
 
 interface DatasetAccordionProp {
-    datasets: Dataset[],
+    datasets: Dataset[];
 }
 
 export default function DatasetAccordions({ datasets }: DatasetAccordionProp) {
     const classes = useStyles();
-    
+
     return (
         <div className={classes.root}>
-            {
-                datasets.length === 0
-                ? (<Typography variant="body2" align="center">No records to display</Typography>)
-                : (datasets.map(dataset => <DatasetAccordion dataset={dataset} />))
-            }
+            {datasets.length === 0 ? (
+                <Typography variant="body2" align="center">
+                    No records to display
+                </Typography>
+            ) : (
+                datasets.map(dataset => <DatasetAccordion dataset={dataset} />)
+            )}
         </div>
     );
 }

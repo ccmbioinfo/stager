@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { makeStyles, Container, Grid } from '@material-ui/core';
-import ParticipantTable from './ParticipantTable';
+import React, { useEffect } from "react";
+import { makeStyles, Container, Grid } from "@material-ui/core";
+import ParticipantTable from "./ParticipantTable";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
-        height: '100vh',
-        overflow: 'auto',
+        height: "100vh",
+        overflow: "auto",
     },
     container: {
         marginTop: theme.spacing(3),

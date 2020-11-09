@@ -1,16 +1,16 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/styles';
-import Link from '@material-ui/core/Link';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import TrendingUp from '@material-ui/icons/TrendingUp';
+import React from "react";
+import { makeStyles } from "@material-ui/styles";
+import Link from "@material-ui/core/Link";
+import Grid from "@material-ui/core/Grid";
+import Typography from "@material-ui/core/Typography";
+import TrendingUp from "@material-ui/icons/TrendingUp";
 
 export interface CardProps {
     title: string;
     value: string;
     textSecondary: string;
     linkText: string;
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 function preventDefault(event: any) {
@@ -24,7 +24,7 @@ const useStyles = makeStyles(theme => ({
     icon: {
         height: 24,
         width: 24,
-        color: 'green',
+        color: "green",
     },
 }));
 
@@ -40,11 +40,15 @@ export default function Card({ title, value, textSecondary, linkText, children }
                 {value}
             </Typography>
             <Grid container>
-                <Grid item xs={1} >
+                <Grid item xs={1}>
                     <TrendingUp className={classes.icon} />
                 </Grid>
                 <Grid item xs={11}>
-                    <Typography color="textSecondary" gutterBottom className={classes.depositContext}>
+                    <Typography
+                        color="textSecondary"
+                        gutterBottom
+                        className={classes.depositContext}
+                    >
                         {textSecondary}
                     </Typography>
                 </Grid>

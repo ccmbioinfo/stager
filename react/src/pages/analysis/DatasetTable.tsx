@@ -1,6 +1,14 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@material-ui/core';
+import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+} from "@material-ui/core";
 
 const useStyles = makeStyles({
     table: {
@@ -8,14 +16,32 @@ const useStyles = makeStyles({
     },
 });
 
-function createData(name: string, dataset: string, inputFiles: string, fileSize: string, dateUploaded: string) {
+function createData(
+    name: string,
+    dataset: string,
+    inputFiles: string,
+    fileSize: string,
+    dateUploaded: string
+) {
     return { name, dataset, inputFiles, fileSize, dateUploaded };
 }
 
 const rows = [
-    createData('3000_AA920', "CES", "AF983D_3000_AA920.bam", "102400", "2020-10-01"),
-    createData('3000_AA921', "RES", "AF983D_3000_AA921_R1.fq.gz, AF983D_3000_AA921_R2.fq.gz,", "102400 + 102400", "2020-10-01"),
-    createData('3000_AA922', "RES", "AF983D_3000_AA922_R1.fq.gz, AF983D_3000_AA922_R2.fq.gz,", "102400 + 102400", "2020-10-01"),
+    createData("3000_AA920", "CES", "AF983D_3000_AA920.bam", "102400", "2020-10-01"),
+    createData(
+        "3000_AA921",
+        "RES",
+        "AF983D_3000_AA921_R1.fq.gz, AF983D_3000_AA921_R2.fq.gz,",
+        "102400 + 102400",
+        "2020-10-01"
+    ),
+    createData(
+        "3000_AA922",
+        "RES",
+        "AF983D_3000_AA922_R1.fq.gz, AF983D_3000_AA922_R2.fq.gz,",
+        "102400 + 102400",
+        "2020-10-01"
+    ),
 ];
 
 export default function DatasetTable() {
@@ -34,7 +60,7 @@ export default function DatasetTable() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map(row =>
+                    {rows.map(row => (
                         <TableRow key={row.name}>
                             <TableCell component="th" scope="row">
                                 {row.name}
@@ -44,7 +70,7 @@ export default function DatasetTable() {
                             <TableCell align="right">{row.fileSize}</TableCell>
                             <TableCell align="right">{row.dateUploaded}</TableCell>
                         </TableRow>
-                    )}
+                    ))}
                 </TableBody>
             </Table>
         </TableContainer>

@@ -1,0 +1,7 @@
+# Usage:
+#   git blame --ignore-revs-file .git-blame-ignore-revs ARGS
+#   OR
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# The big format
+b10832dce683c58399f269447482e09e6e2c2390

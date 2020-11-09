@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Box, Container, Grid, Paper, Typography } from '@material-ui/core';
-import Card from '../Card';
-import FilesTable from './FilesTable';
-import UploadDialog from './UploadDialog';
+import React, { useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import { Box, Container, Grid, Paper, Typography } from "@material-ui/core";
+import Card from "../Card";
+import FilesTable from "./FilesTable";
+import UploadDialog from "./UploadDialog";
 
 const useStyles = makeStyles(theme => ({
     root: {
-        display: 'fill',
+        display: "fill",
     },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
-        height: '100vh',
-        overflow: 'auto',
+        height: "100vh",
+        overflow: "auto",
     },
     container: {
         paddingTop: theme.spacing(3),
@@ -21,18 +21,18 @@ const useStyles = makeStyles(theme => ({
     },
     paper: {
         padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
+        display: "flex",
+        overflow: "auto",
+        flexDirection: "column",
     },
     addnew: {
         padding: theme.spacing(2),
-        display: 'flex',
-        overflow: 'auto',
-        flexDirection: 'column',
-        background: '#e5e5e5',
-        height: '100%',
-        cursor: 'pointer'
+        display: "flex",
+        overflow: "auto",
+        flexDirection: "column",
+        background: "#e5e5e5",
+        height: "100%",
+        cursor: "pointer",
     },
     fixedHeight: {
         height: 240,
@@ -51,24 +51,42 @@ export default function Uploads() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <UploadDialog
-                open={uploaderOpen}
-                onClose={() => setUploaderOpen(false)}
-            />
+            <UploadDialog open={uploaderOpen} onClose={() => setUploaderOpen(false)} />
             <Container maxWidth="lg" className={classes.container}>
                 <Grid container spacing={2}>
                     <Grid item xs={4}>
                         <Paper className={classes.paper}>
-                            <Card title="Unlinked files" value="17" textSecondary="2 since last week" linkText="" children="" />
+                            <Card
+                                title="Unlinked files"
+                                value="17"
+                                textSecondary="2 since last week"
+                                linkText=""
+                            />
                         </Paper>
                     </Grid>
                     <Grid item xs={4}>
-                        <Paper className={classes.addnew} elevation={elevation} onMouseOver={() => setElevation(10)} onMouseOut={() => setElevation(1)} onClick={() => { setElevation(10); setUploaderOpen(true) }}>
+                        <Paper
+                            className={classes.addnew}
+                            elevation={elevation}
+                            onMouseOver={() => setElevation(10)}
+                            onMouseOut={() => setElevation(1)}
+                            onClick={() => {
+                                setElevation(10);
+                                setUploaderOpen(true);
+                            }}
+                        >
                             <React.Fragment>
-                                <Typography variant="h5" color="primary" align='center' gutterBottom>
+                                <Typography
+                                    variant="h5"
+                                    color="primary"
+                                    align="center"
+                                    gutterBottom
+                                >
                                     Add New Participants
-                            </Typography>
-                                <Typography align='center' component="p" variant="h2">+</Typography>
+                                </Typography>
+                                <Typography align="center" component="p" variant="h2">
+                                    +
+                                </Typography>
                             </React.Fragment>
                         </Paper>
                     </Grid>
@@ -80,6 +98,5 @@ export default function Uploads() {
                 </Grid>
             </Container>
         </main>
-
     );
 }

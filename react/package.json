@@ -18,6 +18,7 @@
     "@types/react-table": "^7.0.24",
     "material-table": "^1.69.1",
     "notistack": "^1.0.1",
+    "prettier": "^2.1.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-file-drop": "^3.0.7",
@@ -29,10 +30,17 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "format": "prettier --write src"
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 4,
+    "semi": true,
+    "arrowParens": "avoid"
   },
   "proxy": "http://localhost:5000",
   "browserslist": {

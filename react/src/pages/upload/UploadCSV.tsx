@@ -1,24 +1,23 @@
-import React, { useState } from 'react';
-import { Box, IconButton, makeStyles, Typography } from '@material-ui/core';
-import { FileDrop } from 'react-file-drop';
-import { Add } from '@material-ui/icons';
+import React, { useState } from "react";
+import { Box, IconButton, makeStyles, Typography } from "@material-ui/core";
+import { FileDrop } from "react-file-drop";
+import { Add } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
-    root: {
-    },
+    root: {},
     input: {
-        display: 'none',
+        display: "none",
     },
     dropzone: {
-        cursor: 'pointer',
+        cursor: "pointer",
         p: 2,
-        alignItems: 'center',
-        backgroundColor: theme.palette.grey[300]
-    }
+        alignItems: "center",
+        backgroundColor: theme.palette.grey[300],
+    },
 }));
 
 export interface InputFileUploadProps {
-    onUpload: (files: FileList | null) => void
+    onUpload: (files: FileList | null) => void;
 }
 
 export function InputFileUpload(props: InputFileUploadProps) {
@@ -31,7 +30,7 @@ export function InputFileUpload(props: InputFileUploadProps) {
 
     function getSize(file: File) {
         let size = file.size;
-        const sizes = ['KB', 'MB', 'GB', 'TB'];
+        const sizes = ["KB", "MB", "GB", "TB"];
         let i = -1;
         do {
             size /= 1024;
@@ -46,50 +45,55 @@ export function InputFileUpload(props: InputFileUploadProps) {
         if (files && files[0]) {
             const file = files[0];
             setHelperText(`${file.name} - ${getSize(file)}`);
-        }
-        else {
+        } else {
             setHelperText(helperDefault);
         }
     }
 
     return (
-    <>
-        <input
-        accept=".csv"
-        className={classes.input}
-        id="contained-button-file"
-        type="file"
-        onChange={
-            (e: React.SyntheticEvent<HTMLInputElement>) => {
-                props.onUpload(e.currentTarget.files);
-                onChange(e.currentTarget.files);
-            }
-        }
-        ref={ref}
-        />
-        <label htmlFor="contained-button-file">
-            <FileDrop
-                onDrop={(files: FileList | null, event: React.DragEvent<HTMLDivElement>) => {props.onUpload(files); onChange(files); setIsDragging(false)}}
-                onFrameDragEnter={(event: DragEvent) => {setIsDragging(true)}}
-                onFrameDragLeave={(event: DragEvent) => {setIsDragging(false)}}
-            >
-                <Box
-                    display="flex"
-                    boxShadow={isDragging ? 0 : 1}
-                    className={classes.dropzone}
-                    py={isDragging ? 20 : 0}
+        <>
+            <input
+                accept=".csv"
+                className={classes.input}
+                id="contained-button-file"
+                type="file"
+                onChange={(e: React.SyntheticEvent<HTMLInputElement>) => {
+                    props.onUpload(e.currentTarget.files);
+                    onChange(e.currentTarget.files);
+                }}
+                ref={ref}
+            />
+            <label htmlFor="contained-button-file">
+                <FileDrop
+                    onDrop={(files: FileList | null, event: React.DragEvent<HTMLDivElement>) => {
+                        props.onUpload(files);
+                        onChange(files);
+                        setIsDragging(false);
+                    }}
+                    onFrameDragEnter={(event: DragEvent) => {
+                        setIsDragging(true);
+                    }}
+                    onFrameDragLeave={(event: DragEvent) => {
+                        setIsDragging(false);
+                    }}
                 >
-                    <Box alignItems="center">
-                        <IconButton onClick={(e) => ref.current!.click()}>
-                        <Add/>
-                        </IconButton>
+                    <Box
+                        display="flex"
+                        boxShadow={isDragging ? 0 : 1}
+                        className={classes.dropzone}
+                        py={isDragging ? 20 : 0}
+                    >
+                        <Box alignItems="center">
+                            <IconButton onClick={e => ref.current!.click()}>
+                                <Add />
+                            </IconButton>
+                        </Box>
+                        <Box flexGrow={1} alignItems="center">
+                            <Typography>{helperText}</Typography>
+                        </Box>
                     </Box>
-                    <Box flexGrow={1} alignItems="center">
-                        <Typography >{helperText}</Typography>
-                    </Box>
-                </Box>
-            </FileDrop>
-        </label>
-    </>
+                </FileDrop>
+            </label>
+        </>
     );
 }
