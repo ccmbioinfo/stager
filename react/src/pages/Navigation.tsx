@@ -17,21 +17,26 @@ import {
     Tooltip,
 } from "@material-ui/core";
 import {
-    Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Dns as DnsIcon,
-    People as PeopleIcon, Publish as UploadIcon, Settings as SettingsIcon,
-    ShowChart as ShowChartIcon, MeetingRoom as MeetingRoomIcon, VerifiedUser as VerifiedUserIcon,
-    AccountCircle as AccountCircleIcon, AddBox
-} from '@material-ui/icons';
+    Menu as MenuIcon,
+    ChevronLeft as ChevronLeftIcon,
+    Dns as DnsIcon,
+    People as PeopleIcon,
+    Settings as SettingsIcon,
+    ShowChart as ShowChartIcon,
+    MeetingRoom as MeetingRoomIcon,
+    VerifiedUser as VerifiedUserIcon,
+    AccountCircle as AccountCircleIcon,
+    AddBox,
+} from "@material-ui/icons";
 
-import Participants from './participants/Participants';
-import Analyses from './analysis/Analyses';
-import Datasets from './datasets/Datasets';
-import Uploads from './upload/Uploads';
-import AddParticipants from './addParticipants/AddParticipants';
-import Settings from './settings/Settings';
-import Admin from './admin/Admin';
-import ListItemRouterLink from './ListItemRouterLink';
-import NotificationPopover from './NotificationPopover';
+import Participants from "./participants/Participants";
+import Analyses from "./analysis/Analyses";
+import Datasets from "./datasets/Datasets";
+import AddParticipants from "./addParticipants/AddParticipants";
+import Settings from "./settings/Settings";
+import Admin from "./admin/Admin";
+import ListItemRouterLink from "./ListItemRouterLink";
+import NotificationPopover from "./NotificationPopover";
 
 const drawerWidth = 180;
 
@@ -81,7 +86,7 @@ const useStyles = makeStyles(theme => ({
         flexGrow: 1,
     },
     drawerPaper: {
-        position: 'relative',
+        position: "relative",
         width: drawerWidth,
         transition: theme.transitions.create("width", {
             easing: theme.transitions.easing.sharp,
@@ -172,9 +177,6 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         <ListItemRouterLink to="/participants" primary="Participants">
                             <PeopleIcon />
                         </ListItemRouterLink>
-                        <ListItemRouterLink to="/uploads" primary="Upload">
-                            <UploadIcon />
-                        </ListItemRouterLink>
                         <ListItemRouterLink to="/addParticipants" primary="Add Participants">
                             <AddBox />
                         </ListItemRouterLink>
@@ -225,12 +227,11 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                             return <Datasets />;
                         }}
                     />
-                    <Route path="/addParticipants" render={() => {setPageName("Add Participants"); return <AddParticipants />}}  />
                     <Route
-                        path="/uploads"
+                        path="/addParticipants"
                         render={() => {
-                            setPageName("Upload");
-                            return <Uploads />;
+                            setPageName("Add Participants");
+                            return <AddParticipants />;
                         }}
                     />
                     <Route

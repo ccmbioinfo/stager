@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { makeStyles, Container, Button } from '@material-ui/core';
-import {CloudUpload} from '@material-ui/icons';
+import React, { useEffect } from "react";
+import { makeStyles, Container, Button } from "@material-ui/core";
+import { CloudUpload } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
-        height: '100vh',
-        overflow: 'auto',
+        height: "100vh",
+        overflow: "auto",
     },
     container: {
         marginTop: theme.spacing(3),
@@ -18,8 +18,8 @@ const useStyles = makeStyles(theme => ({
         width: "40%",
         bottom: theme.spacing(3),
         left: "30%",
-        right: "30%"
-    }
+        right: "30%",
+    },
 }));
 
 export default function AddParticipants() {
@@ -34,7 +34,13 @@ export default function AddParticipants() {
             <div className={classes.appBarSpacer} />
             <Container className={classes.container} maxWidth={false}>
                 {/* data entry table here*/}
-                <Button className={classes.submitButton} variant="contained" color="primary" size="large" endIcon={<CloudUpload />} >
+                <Button
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    endIcon={<CloudUpload />}
+                >
                     Submit
                 </Button>
             </Container>
