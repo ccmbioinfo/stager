@@ -38,7 +38,7 @@ import Admin from "./admin/Admin";
 import ListItemRouterLink from "./ListItemRouterLink";
 import NotificationPopover from "./NotificationPopover";
 
-const drawerWidth = 180;
+const drawerWidth = 200;
 
 const useStyles = makeStyles(theme => ({
     root: {
