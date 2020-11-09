@@ -57,3 +57,35 @@ def delete_participant(id: int):
         return "Participant has tissue samples, cannot delete", 422
     else:
         return "Not Found", 404
+
+
+@app.route("/api/participants/<int:id>", methods=["PATCH"])
+@login_required
+def update_participant(id: int):
+
+    if not request.json:
+        return "Request body must be JSON", 415
+
+    table = models.Participant.query.get_or_404(id)
+
+    editable_columns = [
+        "participant_codename",
+        "sex",
+        "participant_type",
+        "affected",
+        "solved",
+        "notes",
+    ]
+    enum_error = routes.mixin(table, request.json, editable_columns)
+
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        table.updated_by = current_user.user_id
+    except:
+        pass  # LOGIN_DISABLED
+
+    routes.transaction_or_abort(db.session.commit)
+
+    return jsonify(table)

@@ -161,3 +161,55 @@ def delete_analysis(id: int):
             return "Server error", 500
     else:
         return "Not Found", 404
+
+
+@app.route("/api/analyses/<int:id>", methods=["PATCH"])
+@login_required
+def update_analysis(id: int):
+    if not request.json:
+        return "Request body must be JSON", 415
+
+    table = models.Analysis.query.get_or_404(id)
+
+    editable_columns = [
+        "analysis_state",
+        "pipeline_id",
+        "qsub_id",
+        "result_hpf_path",
+        "requested",
+        "started",
+        "finished",
+        "notes",
+    ]
+    if "assignee" in request.json:
+        if not request.json["assignee"]:
+            table.assignee = None
+        else:
+            assignee = models.User.query.filter(
+                models.User.username == request.json["assignee"]
+            ).first()
+            if assignee:
+                table.assignee = assignee.user_id
+            else:
+                return "assignee not found", 400
+
+    enum_error = routes.mixin(table, request.json, editable_columns)
+
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        table.updated_by = current_user.user_id
+    except:
+        pass  # LOGIN_DISABLED
+
+    routes.transaction_or_abort(db.session.commit)
+
+    return jsonify(
+        {
+            **asdict(table),
+            "assignee": table.assignee_user and table.assignee_user.username,
+            "requester": table.requester_user and table.requester_user.username,
+            "updated_by": table.updated_by_user and table.updated_by_user.username,
+        }
+    )
