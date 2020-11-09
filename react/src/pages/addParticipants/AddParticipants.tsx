@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { makeStyles, Container, Grid, Paper } from '@material-ui/core';
-import DataEntryTable from './DataEntryTable';
+import { makeStyles, Container, Button } from '@material-ui/core';
+import {CloudUpload} from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -13,6 +13,13 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(3),
         marginBottom: theme.spacing(3),
     },
+    submitButton: {
+        position: "fixed",
+        width: "40%",
+        bottom: theme.spacing(3),
+        left: "30%",
+        right: "30%"
+    }
 }));
 
 export default function AddParticipants() {
@@ -25,10 +32,11 @@ export default function AddParticipants() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container className={classes.container} maxWidth="lg">
-                <Paper>
-                    <DataEntryTable />
-                </Paper>
+            <Container className={classes.container} maxWidth={false}>
+                {/* data entry table here*/}
+                <Button className={classes.submitButton} variant="contained" color="primary" size="large" endIcon={<CloudUpload />} >
+                    Submit
+                </Button>
             </Container>
         </main>
     );
