@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Box, Container, Grid, Paper, Typography } from '@material-ui/core';
-import Card from '../Card';
-import FilesTable from './FilesTable';
+import { Box, Container } from '@material-ui/core';
 import UploadDialog from './UploadDialog';
 import DataEntryTable from './DataEntryTable';
 
@@ -42,7 +40,6 @@ const useStyles = makeStyles(theme => ({
 
 export default function Uploads() {
     const classes = useStyles();
-    const [elevation, setElevation] = useState(1);
     const [uploaderOpen, setUploaderOpen] = useState(false);
 
     useEffect(() => {

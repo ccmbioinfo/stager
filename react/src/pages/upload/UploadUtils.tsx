@@ -1,4 +1,3 @@
-import React from "react";
 import {
     DataEntryHeader,
     DataEntryRow,
@@ -7,6 +6,13 @@ import {
     snakeCaseToTitle,
 } from "../utils";
 
+// Convert a field string (snake_case) into a displayable title (Snake Case)
+export function formatFieldToTitle(field: string): string {
+    return snakeCaseToTitle(field) // convert to title case
+        .replace(/([iI][dD])/g, txt => txt.toUpperCase()); // capitalize any occurrance of "ID"
+}
+
+// Given a DataEntryRow field, return a new DataEntryHeader obj
 export function toColumn(
     field: keyof DataEntryRow,
     hidden?: boolean,
@@ -16,11 +22,12 @@ export function toColumn(
         field: field,
         title: title
             ? title
-            : snakeCaseToTitle(field).replace(/([iI][dD])/g, txt => txt.toUpperCase()),
+            : formatFieldToTitle(field),
         hidden: hidden,
     };
 }
 
+// Return the specified category of DataEntryHeaders for use in the table
 export function getColumns(category: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
     return (getProp(getDataEntryHeaders(), category) as Array<keyof DataEntryRow>).map(field =>
         toColumn(field, category !== "required")
@@ -34,6 +41,7 @@ export interface Option {
     disabled?: boolean;
 }
 
+// Convert the provided value into an Option
 export function toOption(
     str: string | boolean | number | undefined | Option,
     origin?: string,

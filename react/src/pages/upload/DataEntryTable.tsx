@@ -53,14 +53,17 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
+const defaultOptionals = ["notes", "sex"];
+
+
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
-    const defaultOptionals = ["notes", "sex"];
 
     const [columns, setColumns] = useState<DataEntryHeader[]>(getColumns("required"));
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(
         getColumns("optional").map(header =>
+            // Only show default optionals at start, hide the rest
             !!defaultOptionals.find(val => val === header.field)
                 ? { ...header, hidden: false }
                 : header
@@ -207,7 +210,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 }
 
 const filter = createFilterOptions<Option>({
-    limit: 10,
+    limit: 25,
 });
 
 /**
@@ -225,6 +228,7 @@ function DataEntryCell(
         props.onEdit(newValue.inputValue);
     };
 
+    // Remove 'this' input value from the list of options
     const options = props.options.filter(
         (val, index, arr) =>
             arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
@@ -253,7 +257,10 @@ function DataEntryCell(
                 filterOptions={(options, params) => {
                     const filtered = filter(options, params);
 
-                    // Prefer to choose a pre-existing option than make a new one
+                    // Adds user-entered value as option
+                    // We prefer to show pre-existing options than the "create new" option
+                    // TODO: Prevent user from creating new values for columns like dataset_type
+                    //       with pre-defined lists of values
                     if (
                         params.inputValue !== "" &&
                         !filtered.find(option => option.inputValue === params.inputValue)
