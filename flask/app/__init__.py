@@ -39,5 +39,6 @@ def create_app(config):
         from . import analyses
         from . import families
         from . import datasets
+        from . import participants
 
         return app

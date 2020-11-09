@@ -312,30 +312,6 @@ def update_entity(model_name: str, id: int):
     return jsonify(table)
 
 
-@app.route("/api/participants", methods=["GET"], endpoint="participants_list")
-@login_required
-def participants_list():
-    db_participants = models.Participant.query.options(
-        joinedload(models.Participant.family),
-        joinedload(models.Participant.tissue_samples).joinedload(
-            models.TissueSample.datasets
-        ),
-    ).all()
-
-    participants = [
-        {
-            **asdict(participant),
-            "family_codename": participant.family.family_codename,
-            "tissue_samples": [
-                {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
-                for tissue_sample in participant.tissue_samples
-            ],
-        }
-        for participant in db_participants
-    ]
-    return jsonify(participants)
-
-
 @app.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
 @login_required
 def pipelines_list():
