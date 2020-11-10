@@ -1,4 +1,4 @@
-import { Counts, KeyValue, Analysis, PipelineStatus, Dataset, Info } from "./typings";
+import { Counts, KeyValue, Analysis, PipelineStatus, Dataset, Info, DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq } from "./typings";
 
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
@@ -236,4 +236,38 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
             collapsibleValues: getSecDatasetValues(dataset),
         };
     });
+}
+
+/**
+ * Set property of object at key to newValue. Return obj.
+ *
+ * @example
+ * let obj = { a: 1, b: 2 };
+ * setProp(obj, "a", 3);     // returns { a: 3, b: 2 }
+ * obj.a === 3               // returns true
+ */
+export function setProp<T, K extends keyof T>(obj: T, key: K, newValue: any) {
+    obj[key] = newValue;
+    return obj;
+}
+
+/**
+ * Return an object containing all headers for DataEntryTable.
+ */
+export function getDataEntryHeaders() {
+    return {
+        required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
+        optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,
+        RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>
+    };
+}
+
+/**
+ * Given a string in snake-case (eg. thing_name), returns the string
+ * in spaced Title case (eg. Thing Name).
+ *
+ * Assume that input string is alphanumeric with underscores.
+ */
+export function snakeCaseToTitle(str: string): string {
+    return str.split('_').join(' ').replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1));
 }

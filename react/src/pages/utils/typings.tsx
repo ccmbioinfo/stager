@@ -97,3 +97,46 @@ export interface Info {
     collapsibleTitles?: string[];
     collapsibleValues?: FieldDisplayValueType[];
 }
+
+// Define these as classes so that we can create an array of keys later
+export class DataEntryRowBase {
+    family_codename!: string;
+    participant_codename!: string;
+    participant_type!: string;
+    tissue_sample_type!: string;
+    dataset_type!: string;
+}
+
+export class DataEntryRowOptional {
+    sex?: string;
+    affected?: boolean;
+    solved?: boolean;
+    notes?: string;
+    condition?: string;
+    extraction_protocol?: string;
+    capture_kit?: string;
+    library_prep_method?: string;
+    read_length?: number;
+    read_type?: string;
+    sequencing_id?: string;
+    sequencing_date?: string;
+    sequencing_centre?: string;
+    batch_id?: string;
+}
+
+// Cannot enforce "RNASeq => these values are set" with types
+export class DataEntryRowRNASeq {
+    RIN?: string;
+    DV200?: string;
+    concentration?: string;
+    sequencer?: string;
+    spike_in?: string;
+}
+
+export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {};
+
+export interface DataEntryHeader {
+    title: string,
+    field: keyof DataEntryRow,
+    hidden?: boolean
+};
