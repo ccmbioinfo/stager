@@ -93,7 +93,7 @@ export interface Info {
     primaryListTitle: string;
     secondaryListTitle?: string;
     titles: string[];
-    values: string[];
+    values: FieldDisplayValueType[];
     collapsibleTitles?: string[];
-    collapsibleValues?: string[];
+    collapsibleValues?: FieldDisplayValueType[];
 }
