@@ -40,7 +40,7 @@ function RightGridFieldsDisplay({ titles, values }: GridFieldDisplayProps) {
 }
 
 
-/* Returns a simple Typography JSX element for displaying "title: value". */
+/* Simple Typography component to display "title: value" */
 function FieldDisplay(
     props: TypographyProps & { title: string; value?: FieldDisplayValueType }
 ) {
