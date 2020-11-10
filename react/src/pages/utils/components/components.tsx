@@ -4,28 +4,8 @@ import {
     IconButton,
     makeStyles,
     Typography,
-    TypographyProps,
 } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
-import { FieldDisplayValueType } from "../typings";
-
-/**
- * Returns a simple Typography JSX element for displaying "title: value".
- */
-export function FieldDisplay(
-    props: TypographyProps & { title: string; value?: FieldDisplayValueType }
-) {
-    let val = props.value;
-    if (Array.isArray(props.value)) val = props.value.join(", ");
-    else if (props.value === null || props.value === undefined) val = "";
-    else if (typeof props.value === "boolean") val = props.value ? "Yes" : "No";
-
-    return (
-        <Typography variant={props.variant ? props.variant : "body1"} gutterBottom>
-            <b>{props.title}:</b> {val}
-        </Typography>
-    );
-}
 
 interface DialogTitleProps {
     id: string;
@@ -53,11 +33,11 @@ export function DialogHeader(props: DialogTitleProps) {
     return (
         <DialogTitle disableTypography className={classes.root} {...other}>
             <Typography variant="h6">{children}</Typography>
-            {onClose ? (
+            {onClose && (
                 <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
                     <Close />
                 </IconButton>
-            ) : null}
+            ) }
         </DialogTitle>
     );
 }
