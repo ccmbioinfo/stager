@@ -134,7 +134,7 @@ export function getAnalysisValues(analysis: Analysis) {
 }
 
 /**
- * Return an Info object for anlysis detail list in dialogs
+ * Return an Info object for analysis detail list in dialogs
  */
 export function getAnalysisInfoList(analyses: Analysis[]) {
     return analyses.map(analysis => {

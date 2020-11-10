@@ -1,10 +1,30 @@
 import React, { useState } from "react";
-import { Button, Collapse, Grid, Typography, TypographyProps } from "@material-ui/core";
+import { Button, Collapse, Grid, Typography } from "@material-ui/core";
 import { FieldDisplayValueType } from "../typings";
 
 const gridSpacing = 2;
 const titleWidth = 12;
 const infoWidth = 6;
+
+interface FieldDisplayProps {
+    title: string;
+    value?: FieldDisplayValueType;
+}
+
+/* Simple Typography component to display "title: value" */
+function FieldDisplay({ title, value }: FieldDisplayProps
+) {
+    let val = value;
+    if (Array.isArray(value)) val = value.join(", ");
+    else if (value === null || value === undefined) val = "";
+    else if (typeof value === "boolean") val = value ? "Yes" : "No";
+
+    return (
+        <Typography variant="body1" gutterBottom>
+            <b>{title}:</b> {val}
+        </Typography>
+    );
+}
 
 interface GridFieldDisplayProps {
     titles: string[];
@@ -36,23 +56,6 @@ function RightGridFieldsDisplay({ titles, values }: GridFieldDisplayProps) {
                 }
             })}
         </>
-    );
-}
-
-
-/* Simple Typography component to display "title: value" */
-function FieldDisplay(
-    props: TypographyProps & { title: string; value?: FieldDisplayValueType }
-) {
-    let val = props.value;
-    if (Array.isArray(props.value)) val = props.value.join(", ");
-    else if (props.value === null || props.value === undefined) val = "";
-    else if (typeof props.value === "boolean") val = props.value ? "Yes" : "No";
-
-    return (
-        <Typography variant={props.variant ? props.variant : "body1"} gutterBottom>
-            <b>{props.title}:</b> {val}
-        </Typography>
     );
 }
 

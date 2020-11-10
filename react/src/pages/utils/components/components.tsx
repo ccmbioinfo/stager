@@ -24,9 +24,8 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.grey[500],
     },
 }));
-/**
- * DialogTitle component for a standard dialog header.
- */
+
+/* DialogTitle component for a standard dialog header. */
 export function DialogHeader(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
     const classes = useStyles();

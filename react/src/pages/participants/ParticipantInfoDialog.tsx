@@ -49,14 +49,14 @@ const getParticipantValues = (participant: Participant) => {
         participant.updated_by,
     ];
 };
-function getAnalysisInfoList(analyses: Analysis[]) {
+function getAnalysisInfoList(analyses: Analysis[]): Info[] {
     return analyses.map(analysis => {
         return {
             primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
             titles: getAnalysisTitles(),
             values: getAnalysisValues(analysis),
-        } as Info;
+        };
     });
 }
 
@@ -71,8 +71,9 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
-    //get mock data
+    
     useEffect(() => {
+        // TODO: get real data
         fetch("/api/datasets/1")
             .then(response => response.json())
             .then(data => {
