@@ -571,3 +571,26 @@ def get_tissue_sample(id: int):
                 "datasets": tissue_sample.datasets,
             }
         )
+
+
+@app.route("/api/tissue_samples/<int:id>", methods=["DELETE"])
+@login_required
+@check_admin
+def delete_tissue(id: int):
+    tissue = (
+        models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == id)
+        .options(joinedload(models.TissueSample.datasets))
+        .one_or_none()
+    )
+    if tissue and not tissue.datasets:
+        try:
+            db.session.delete(tissue)
+            db.session.commit()
+            return "Updated", 204
+        except:
+            db.session.rollback()
+            return "Server error", 500
+    elif tissue:
+        return "Tissue has dataset(s), cannot delete", 422
+    else:
+        return "Not Found", 404
