@@ -11,6 +11,9 @@ const useStyles = makeStyles(theme => ({
         marginLeft: theme.spacing(3),
         marginRight: theme.spacing(3),
     },
+    cell: {
+        padding: 0,
+    }
 }));
 
 function getTitles() {
@@ -54,9 +57,6 @@ function getValues(dataset: Dataset) {
 
 export default function SampleTable({ samples }: { samples: Sample[] }) {
     const classes = useStyles();
-    const cellStyle = {
-        padding: 0,
-    };
 
     return (
         <MaterialTable
@@ -101,7 +101,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
             }}
             components={{
                 Container: props => <div>{props.children}</div>,
-                Cell: props => <MTableCell {...props} style={cellStyle} />,
+                Cell: props => <MTableCell {...props} className={classes.cell} />,
             }}
             options={{
                 paging: false,
