@@ -91,7 +91,7 @@ export default function SamplesTable({ samples }: { samples: Sample[] }) {
                         primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                         titles: getTitles(),
                         values: getValues(dataset),
-                    } as Info;
+                    };
                 });
                 return (
                     <div className={classes.datasetList}>

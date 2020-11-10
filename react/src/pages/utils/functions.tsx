@@ -136,14 +136,14 @@ export function getAnalysisValues(analysis: Analysis) {
 /**
  * Return an Info object for analysis detail list in dialogs
  */
-export function getAnalysisInfoList(analyses: Analysis[]) {
+export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
     return analyses.map(analysis => {
         return {
             primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
             titles: getAnalysisTitles(),
             values: getAnalysisValues(analysis),
-        } as Info;
+        };
     });
 }
 
