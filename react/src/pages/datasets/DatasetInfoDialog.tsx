@@ -6,7 +6,7 @@ import { DialogHeader } from "../utils/components/components";
 import { Dataset, Analysis, Sample } from "../utils/typings";
 import {
     formatDateString,
-    getAnlysisInfoList,
+    getAnalysisInfoList,
     getDatasetTitles,
     getDatasetValues,
     getSecDatasetTitles,
@@ -116,7 +116,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 <div className={classes.infoSection}>
                     {analyses.length > 0 && (
                         <InfoList
-                            infoList={getAnlysisInfoList(analyses)}
+                            infoList={getAnalysisInfoList(analyses)}
                             title="Analyses which use this dataset"
                             icon={<ShowChart />}
                         />
