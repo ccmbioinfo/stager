@@ -22,7 +22,13 @@ import {
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow } from "../typings";
-import { Option, toOption, getOptions as _getOptions, getColumns, enumerableColumns } from "./UploadUtils";
+import {
+    Option,
+    toOption,
+    getOptions as _getOptions,
+    getColumns,
+    enumerableColumns,
+} from "./UploadUtils";
 import UploadDialog from "./UploadDialog";
 
 export interface DataEntryTableProps {

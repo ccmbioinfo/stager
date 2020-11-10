@@ -2,7 +2,13 @@ import { DataEntryHeader, DataEntryRow } from "../typings";
 import { getDataEntryHeaders, snakeCaseToTitle } from "../functions";
 
 // Columns whose values are predefined
-export const enumerableColumns: Array<keyof DataEntryRow> = ["condition", "dataset_type", "participant_type", "sex", "tissue_sample_type"];
+export const enumerableColumns: Array<keyof DataEntryRow> = [
+    "condition",
+    "dataset_type",
+    "participant_type",
+    "sex",
+    "tissue_sample_type",
+];
 
 // Convert a field string (snake_case) into a displayable title (Snake Case)
 function formatFieldToTitle(field: string): string {
