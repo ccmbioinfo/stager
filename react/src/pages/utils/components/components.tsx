@@ -10,7 +10,7 @@ import { Close } from "@material-ui/icons";
 import { FieldDisplayValueType } from "../typings";
 
 /**
- * Returns a simple Typography JSX element for displaying "title: value".
+ * Simple Typography component to display "title: value".
  */
 export function FieldDisplay(
     props: TypographyProps & { title: string; value?: FieldDisplayValueType }
