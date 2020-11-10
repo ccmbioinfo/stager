@@ -2,18 +2,17 @@ import {
     DataEntryHeader,
     DataEntryRow,
     getDataEntryHeaders,
-    getProp,
     snakeCaseToTitle,
 } from "../utils";
 
 // Convert a field string (snake_case) into a displayable title (Snake Case)
-export function formatFieldToTitle(field: string): string {
+function formatFieldToTitle(field: string): string {
     return snakeCaseToTitle(field) // convert to title case
         .replace(/([iI][dD])/g, txt => txt.toUpperCase()); // capitalize any occurrance of "ID"
 }
 
 // Given a DataEntryRow field, return a new DataEntryHeader obj
-export function toColumn(
+function toColumn(
     field: keyof DataEntryRow,
     hidden?: boolean,
     title?: string
@@ -29,7 +28,7 @@ export function toColumn(
 
 // Return the specified category of DataEntryHeaders for use in the table
 export function getColumns(category: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
-    return (getProp(getDataEntryHeaders(), category) as Array<keyof DataEntryRow>).map(field =>
+    return (getDataEntryHeaders()[category] as Array<keyof DataEntryRow>).map(field =>
         toColumn(field, category !== "required")
     );
 }
@@ -86,7 +85,7 @@ export function getOptions(
     const row = rows[rowIndex];
     const rowOptions = rows
         .filter((val, index) => index !== rowIndex) // not this row
-        .map(val => toOption(getProp(val, col.field), "Previous rows"));
+        .map(val => toOption(val[col.field], "Previous rows"));
 
     const familyCodenames: string[] = families.map(value => value.family_codename);
     const booleans = ["true", "false"];

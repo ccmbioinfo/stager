@@ -160,18 +160,6 @@ export function toKeyValue(items: string[]) {
 }
 
 /**
- * Return property of object at key.
- *
- * @example
- * let obj = { a: 1, b: 2 };
- * let id = "a";
- * getProp(obj, id)          // returns 1
- */
-export function getProp<T, K extends keyof T>(obj: T, key: K): T[K] {
-    return obj[key];
-}
-
-/**
  * Set property of object at key to newValue. Return obj.
  *
  * @example
@@ -250,11 +238,7 @@ export function isRowSelected(row: any): boolean {
 /**
  * Return an object containing all headers for DataEntryTable.
  */
-export function getDataEntryHeaders(): {
-    required: Array<keyof DataEntryRowBase>,
-    optional: Array<keyof DataEntryRowOptional>,
-    RNASeq: Array<keyof DataEntryRowRNASeq>
-} {
+export function getDataEntryHeaders() {
     return {
         required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
         optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,

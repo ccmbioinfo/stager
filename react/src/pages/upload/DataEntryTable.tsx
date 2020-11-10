@@ -21,7 +21,7 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, getProp, setProp } from "../utils";
+import { DataEntryHeader, DataEntryRow } from "../utils";
 import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
 
 export interface DataEntryTableProps {
@@ -55,22 +55,18 @@ const useTableStyles = makeStyles(theme => ({
 
 const defaultOptionals = ["notes", "sex"];
 
-
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
 
-    const [columns, setColumns] = useState<DataEntryHeader[]>(getColumns("required"));
+    const columns = getColumns("required");
+    const RNASeqCols = getColumns("RNASeq");
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(
-        getColumns("optional").map(header =>
-            // Only show default optionals at start, hide the rest
-            !!defaultOptionals.find(val => val === header.field)
-                ? { ...header, hidden: false }
-                : header
-        )
+        getColumns("optional").map(header => {
+            return { ...header, hidden: !defaultOptionals.includes(header.field) };
+        })
     );
 
-    const [RNASeqCols, setRNASeqCols] = useState<DataEntryHeader[]>(getColumns("RNASeq"));
 
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
@@ -105,7 +101,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         setRows(
             rows.map((value, index) => {
                 if (index === rowIndex) {
-                    return { ...setProp(value, col.field, newValue) };
+                    const newRow: DataEntryRow = { ...value };
+                    (newRow[col.field] as string) = newValue;
+                    return newRow;
                 } else {
                     return value;
                 }
@@ -138,9 +136,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             />
             <TableContainer>
                 <Table>
-                    <caption>
-                        {"* - Required | ** - Required only if Dataset Type is RRS"}
-                    </caption>
+                    <caption>{"* - Required | ** - Required only if Dataset Type is RRS"}</caption>
                     <TableHead>
                         <TableRow>
                             <TableCell padding="checkbox" aria-hidden={true} />
@@ -161,13 +157,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                 </>
                             ))}
 
-                            {showRNA && RNASeqCols.map((cell) => (
-                                <>
-                                    <TableCell className={classes.optionalCell}>
-                                        {cell.title + "**"}
-                                    </TableCell>
-                                </>
-                            ))}
+                            {showRNA &&
+                                RNASeqCols.map(cell => (
+                                    <>
+                                        <TableCell className={classes.optionalCell}>
+                                            {cell.title + "**"}
+                                        </TableCell>
+                                    </>
+                                ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -197,7 +194,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
                                 {columns.map(col => (
                                     <DataEntryCell
-                                        value={toOption(getProp(row, col.field))}
+                                        value={toOption(row[col.field])}
                                         options={getOptions(rowIndex, col)}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                         aria-label={`enter ${col.title} row ${rowIndex}`}
@@ -208,7 +205,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     <>
                                         {!col.hidden && (
                                             <DataEntryCell
-                                                value={toOption(getProp(row, col.field))}
+                                                value={toOption(row[col.field])}
                                                 options={getOptions(rowIndex, col)}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 aria-label={`enter ${col.title} row ${rowIndex} optional`}
@@ -217,17 +214,22 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     </>
                                 ))}
 
-                                {showRNA && RNASeqCols.map(col => (
-                                    <>
-                                        {<DataEntryCell
-                                            value={toOption(getProp(row, col.field))}
-                                            options={getOptions(rowIndex, col)}
-                                            onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                            aria-label={`enter ${col.title} row ${rowIndex}`}
-                                            disabled={row.dataset_type !== "RRS"}
-                                        />}
-                                    </>
-                                ))}
+                                {showRNA &&
+                                    RNASeqCols.map(col => (
+                                        <>
+                                            {
+                                                <DataEntryCell
+                                                    value={toOption(row[col.field])}
+                                                    options={getOptions(rowIndex, col)}
+                                                    onEdit={newValue =>
+                                                        onEdit(newValue, rowIndex, col)
+                                                    }
+                                                    aria-label={`enter ${col.title} row ${rowIndex}`}
+                                                    disabled={row.dataset_type !== "RRS"}
+                                                />
+                                            }
+                                        </>
+                                    ))}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -265,9 +267,9 @@ function DataEntryCell(
 
     return (
         <TableCell>
-            <Autocomplete<Option, undefined, undefined, boolean | undefined>
+            <Autocomplete
                 disabled={props.disabled}
-                aria-label={getProp(props, "aria-label")}
+                aria-label={props["aria-label"]}
                 selectOnFocus
                 clearOnBlur
                 handleHomeEndKeys
