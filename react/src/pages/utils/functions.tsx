@@ -136,7 +136,7 @@ export function getAnalysisValues(analysis: Analysis) {
 /**
  * Return an Info object for anlysis detail list in dialogs
  */
-export function getAnlysisInfoList(analyses: Analysis[]) {
+export function getAnalysisInfoList(analyses: Analysis[]) {
     return analyses.map(analysis => {
         return {
             primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
@@ -225,7 +225,7 @@ export function getSecDatasetValues(dataset: Dataset) {
 /**
  * Return an Info object for dataset detail list in dialogs
  */
-export function getDatasetInfoList(datasets: Dataset[]) {
+export function getDatasetInfoList(datasets: Dataset[]): Info[] {
     return datasets.map(dataset => {
         return {
             primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
@@ -234,6 +234,6 @@ export function getDatasetInfoList(datasets: Dataset[]) {
             values: getDatasetValues(dataset),
             collapsibleTitles: getSecDatasetTitles(),
             collapsibleValues: getSecDatasetValues(dataset),
-        } as Info;
+        };
     });
 }
