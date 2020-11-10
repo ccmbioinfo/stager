@@ -5,12 +5,9 @@ import {
     DialogContent,
     Button,
     ButtonGroup,
-    Tabs,
-    Tab,
     Grid,
     makeStyles,
 } from "@material-ui/core";
-import UploadForm from "./UploadForm";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -68,11 +65,10 @@ function sendFile(file: File | null) {
 
 export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const classes = useStyles();
-    const [tab, changeTab] = React.useState(0);
     const [file, setFile] = React.useState<File | null>(null);
 
     // File reference gets set here
-    function onUpload(files: FileList | null) {
+    function onFileAdd(files: FileList | null) {
         if (files && files[0]) {
             setFile(files[0]);
             console.log(files[0].name);
@@ -81,28 +77,13 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
         }
     }
 
-    let tabContent;
-    if (tab === 1) {
-        tabContent = <UploadForm />;
-    } else {
-        tabContent = <InputFileUpload onUpload={onUpload} />;
-    }
-
     return (
         <Dialog open={open} onClose={() => onClose()} fullWidth={true} maxWidth="md">
-            <DialogTitle>Upload Sample Data</DialogTitle>
+            <DialogTitle>Upload Metadata as CSV</DialogTitle>
             <DialogContent dividers className={classes.dialog}>
-                <Tabs
-                    value={tab}
-                    className={classes.tabs}
-                    onChange={(event: React.ChangeEvent<{}>, newTab: number) => changeTab(newTab)}
-                >
-                    <Tab label="CSV Upload" />
-                    <Tab label="Manual Form Entry" />
-                </Tabs>
                 <Grid container className={classes.tabPanel}>
                     <Grid item xs={12} className={classes.gridItem}>
-                        {tabContent}
+                        <InputFileUpload onUpload={onFileAdd} />
                     </Grid>
                     <Grid item xs={10}></Grid>
                     <Grid item xs={2} className={classes.gridItem}>

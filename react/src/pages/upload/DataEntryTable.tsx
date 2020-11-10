@@ -20,9 +20,11 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { AddBoxOutlined, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
+import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow } from "../utils";
 import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
+import { InputFileUpload } from "./UploadCSV";
+import UploadDialog from "./UploadDialog";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -355,12 +357,19 @@ function DataEntryToolbar(props: {
     columns: DataEntryHeader[];
 }) {
     const classes = useToolbarStyles();
+    const [openUpload, setOpenUpload] = useState(false);
 
     return (
+        <>
         <Toolbar className={classes.toolbar}>
             <Box display="flex" flexGrow={1}>
                 <Typography variant="h6">Enter Metadata</Typography>
             </Box>
+            <Tooltip title="Upload CSV">
+                <IconButton onClick={() => setOpenUpload(true)}>
+                    <CloudUpload />
+                </IconButton>
+            </Tooltip>
             <Tooltip title="Add empty row">
                 <IconButton onClick={props.handleAddRow} edge="end">
                     <AddBoxOutlined />
@@ -368,6 +377,11 @@ function DataEntryToolbar(props: {
             </Tooltip>
             <DataEntryColumnMenuAction columns={props.columns} onClick={props.handleColumnAction} />
         </Toolbar>
+        <UploadDialog
+        open={openUpload}
+        onClose={() => setOpenUpload(false)}
+        />
+        </>
     );
 }
 
