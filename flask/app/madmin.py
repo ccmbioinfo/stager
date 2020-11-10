@@ -44,11 +44,14 @@ class MinioAdmin:
     def remove_user(self, access_key: str) -> None:
         self._exec(["user", "remove"], [access_key])
 
-    def list_groups(self) -> List[Dict[str, Any]]:
+    def list_groups(self) -> List[str]:
         raw = self._exec(["group", "list"]).strip()
         if not raw:
             return []
-        return [json.loads(group) for group in raw.split("\n")]
+        result = json.loads(raw)
+        if "groups" not in result:
+            return []
+        return result["groups"]
 
     def get_group(self, group: str) -> Dict[str, Any]:
         raw_group = self._exec(["group", "info"], [group])
