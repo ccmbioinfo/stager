@@ -30,11 +30,10 @@ def mixin(
                     return f'"{field}" must be one of {allowed}'
             setattr(entity, field, value)
 
+
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
-
-
 
 
 @app.route("/api/login", methods=["POST"])
@@ -223,6 +222,7 @@ def change_password():
     except:
         db.session.rollback()
         return "Server error", 500
+
 
 @app.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
 @login_required

@@ -98,6 +98,7 @@ def delete_dataset(id: int):
     else:
         return "Not Found", 404
 
+
 @app.route("/api/datasets/<int:id>", methods=["PATCH"])
 @login_required
 def update_dataset(id: int):
