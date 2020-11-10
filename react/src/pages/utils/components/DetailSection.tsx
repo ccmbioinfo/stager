@@ -12,8 +12,7 @@ interface FieldDisplayProps {
 }
 
 /* Simple Typography component to display "title: value" */
-function FieldDisplay({ title, value }: FieldDisplayProps
-) {
+function FieldDisplay({ title, value }: FieldDisplayProps) {
     let val = value;
     if (Array.isArray(value)) val = value.join(", ");
     else if (value === null || value === undefined) val = "";

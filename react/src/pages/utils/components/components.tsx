@@ -1,10 +1,5 @@
 import React from "react";
-import {
-    DialogTitle,
-    IconButton,
-    makeStyles,
-    Typography,
-} from "@material-ui/core";
+import { DialogTitle, IconButton, makeStyles, Typography } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 
 interface DialogTitleProps {
@@ -36,7 +31,7 @@ export function DialogHeader(props: DialogTitleProps) {
                 <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
                     <Close />
                 </IconButton>
-            ) }
+            )}
         </DialogTitle>
     );
 }

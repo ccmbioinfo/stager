@@ -71,7 +71,6 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
-    
     useEffect(() => {
         // TODO: get real data
         fetch("/api/datasets/1")
