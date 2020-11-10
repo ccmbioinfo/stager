@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { makeStyles, Chip, IconButton } from "@material-ui/core";
-import { Cancel, FileCopy } from "@material-ui/icons";
+import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
+import { Cancel, FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, toKeyValue, KeyValue, Participant, Sample, Dataset } from "../utils";
+import { countArray, toKeyValue } from "../utils/functions";
+import { KeyValue, Participant, Sample, Dataset } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
-import ParticipantDetailDialog from "./ParticipantDetailDialog";
+import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
 const useStyles = makeStyles(theme => ({
     chip: {
         color: "primary",
         marginRight: "10px",
         colorPrimary: theme.palette.primary,
-    },
-    copyIcon: {
-        marginLeft: theme.spacing(1),
     },
 }));
 
@@ -73,7 +71,7 @@ export default function ParticipantTable() {
     return (
         <div>
             {activeRow && (
-                <ParticipantDetailDialog
+                <ParticipantInfoDialog
                     open={detail}
                     participant={activeRow}
                     onClose={() => setDetail(false)}
@@ -84,37 +82,46 @@ export default function ParticipantTable() {
                     {
                         title: "Participant Codename",
                         field: "participant_codename",
-                        align: "center",
                     },
                     {
                         title: "Family Codename",
                         field: "family_codename",
-                        align: "center",
                         editable: "never",
                     },
                     {
                         title: "Participant Type",
                         field: "participant_type",
-                        align: "center",
                         lookup: participantTypes,
                         defaultFilter: filter,
                     },
-                    { title: "Affected", field: "affected", type: "boolean", align: "center" },
-                    { title: "Solved", field: "solved", type: "boolean", align: "center" },
+                    { title: "Affected", field: "affected", type: "boolean" },
+                    { title: "Solved", field: "solved", type: "boolean" },
                     {
                         title: "Sex",
                         field: "sex",
                         type: "string",
-                        align: "center",
                         lookup: sexTypes,
                     },
-                    { title: "Notes", field: "notes", width: "50%" },
+                    {
+                        title: "Notes",
+                        field: "notes",
+                        grouping: false,
+                        editComponent: props => (
+                            <TextField
+                                multiline
+                                value={props.value}
+                                onChange={event => props.onChange(event.target.value)}
+                                rows={4}
+                                fullWidth
+                            />
+                        ),
+                    },
                     {
                         title: "Dataset Types",
                         field: "dataset_types",
-                        align: "center",
                         editable: "never",
                         lookup: datasetTypes,
+                        grouping: false,
                         render: rowData => (
                             <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
                         ),
@@ -128,6 +135,7 @@ export default function ParticipantTable() {
                     filtering: true,
                     search: false,
                     padding: "dense",
+                    grouping: true,
                 }}
                 components={{
                     Toolbar: props => (
@@ -180,31 +188,40 @@ export default function ParticipantTable() {
                                 )
                             );
                             enqueueSnackbar(
-                                `Participant ${newParticipant.participant_codename} updated successfully`
+                                `Participant ${newParticipant.participant_codename} updated successfully`,
+                                { variant: "success" }
                             );
                         } else {
                             console.error(
                                 `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
+                            );
+                            enqueueSnackbar(
+                                `Failed to edit Participant ${oldParticipant?.participant_codename} - ${response.status} ${response.statusText}`,
+                                { variant: "error" }
                             );
                         }
                     },
                 }}
                 actions={[
                     {
-                        icon: () => <FileCopy className={classes.copyIcon} />,
+                        tooltip: "View participant details",
+                        icon: Visibility,
+                        position: "row",
+                        onClick: (event, rowData) => {
+                            setActiveRow(rowData as Participant);
+                            setDetail(true);
+                        },
+                    },
+                    {
                         tooltip: "Copy combined codename",
+                        icon: FileCopy,
                         onClick: CopyToClipboard,
                     },
                 ]}
                 localization={{
                     header: {
-                        //remove action buttons' header
-                        actions: "",
+                        actions: "", //remove action buttons' header
                     },
-                }}
-                onRowClick={(event, rowData) => {
-                    setActiveRow(rowData as Participant);
-                    setDetail(true);
                 }}
             />
         </div>

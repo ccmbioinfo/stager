@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { makeStyles, Tooltip, Button } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
-import { PipelineStatus, Analysis } from "./utils";
+import { PipelineStatus, Analysis } from "./utils/typings";
 
 const useStyles = makeStyles(theme => ({
     msgBox: {

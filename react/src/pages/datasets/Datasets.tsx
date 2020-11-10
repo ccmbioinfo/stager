@@ -4,9 +4,6 @@ import Card from "../Card";
 import DatasetTable from "./DatasetTable";
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: "fill",
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
@@ -22,9 +19,6 @@ const useStyles = makeStyles(theme => ({
         display: "flex",
         overflow: "auto",
         flexDirection: "column",
-    },
-    fixedHeight: {
-        height: 240,
     },
 }));
 

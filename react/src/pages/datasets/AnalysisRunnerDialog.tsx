@@ -21,7 +21,7 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { Analysis, Dataset, Pipeline } from "../utils";
+import { Analysis, Dataset, Pipeline } from "../utils/typings";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[];

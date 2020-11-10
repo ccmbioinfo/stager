@@ -11,8 +11,9 @@ import {
 } from "@material-ui/core";
 import { NotificationsActive } from "@material-ui/icons";
 import Notification from "./Notification";
-import { Analysis, jsonToAnalyses } from "./utils";
-import AnalysisInfoDialog from "./AnalysisInfoDialog";
+import { Analysis } from "./utils/typings";
+import { jsonToAnalyses } from "./utils/functions";
+import AnalysisInfoDialog from "./utils/components/AnalysisInfoDialog";
 
 const useStyles = makeStyles(theme => ({
     popover: {

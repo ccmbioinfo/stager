@@ -8,7 +8,7 @@ import {
     DialogTitle,
     Divider,
 } from "@material-ui/core";
-import { Analysis } from "../utils";
+import { Analysis } from "../utils/typings";
 
 interface CancelAnalysisDialogProp {
     title: string;
