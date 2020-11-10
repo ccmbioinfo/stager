@@ -52,7 +52,7 @@ function getValues(dataset: Dataset) {
     ];
 }
 
-export default function SamplesTable({ samples }: { samples: Sample[] }) {
+export default function SampleTable({ samples }: { samples: Sample[] }) {
     const classes = useStyles();
     const cellStyle = {
         padding: 0,
