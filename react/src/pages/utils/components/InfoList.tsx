@@ -48,7 +48,7 @@ export default function InfoList(props: { infoList: Info[]; title?: string; icon
             {props.title && <Typography variant="h6">{props.title}</Typography>}
             <List className={classes.list}>
                 {infoList.map((info, index) => (
-                    <Paper key={`info-${index}`} className={classes.listPaper} elevation={1}>
+                    <Paper key={index} className={classes.listPaper} elevation={1}>
                         <ListItem button onClick={() => clickAnalysis(index)}>
                             <ListItemIcon>{props.icon}</ListItemIcon>
                             <ListItemText

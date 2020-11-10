@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Button, Collapse, Grid, Typography } from "@material-ui/core";
-import { FieldDisplay } from "./components";
+import { Button, Collapse, Grid, Typography, TypographyProps } from "@material-ui/core";
 import { FieldDisplayValueType } from "../typings";
 
 const gridSpacing = 2;
@@ -37,6 +36,23 @@ function RightGridFieldsDisplay({ titles, values }: GridFieldDisplayProps) {
                 }
             })}
         </>
+    );
+}
+
+
+/* Returns a simple Typography JSX element for displaying "title: value". */
+function FieldDisplay(
+    props: TypographyProps & { title: string; value?: FieldDisplayValueType }
+) {
+    let val = props.value;
+    if (Array.isArray(props.value)) val = props.value.join(", ");
+    else if (props.value === null || props.value === undefined) val = "";
+    else if (typeof props.value === "boolean") val = props.value ? "Yes" : "No";
+
+    return (
+        <Typography variant={props.variant ? props.variant : "body1"} gutterBottom>
+            <b>{props.title}:</b> {val}
+        </Typography>
     );
 }
 
