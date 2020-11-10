@@ -300,8 +300,6 @@ function DataEntryCell(
 
                     // Adds user-entered value as option
                     // We prefer to show pre-existing options than the "create new" option
-                    // TODO: Prevent user from creating new values for columns like dataset_type
-                    //       with pre-defined lists of values
                     if (
                         !enumerableColumns.includes(props.column.field) &&
                         params.inputValue !== "" &&

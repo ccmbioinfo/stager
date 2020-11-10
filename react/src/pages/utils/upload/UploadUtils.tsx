@@ -9,6 +9,7 @@ export const enumerableColumns: Array<keyof DataEntryRow> = [
     "sex",
     "tissue_sample_type",
 ];
+
 // Convert a field string (snake_case) into a displayable title (Snake Case)
 function formatFieldToTitle(field: string): string {
     return snakeCaseToTitle(field) // convert to title case
