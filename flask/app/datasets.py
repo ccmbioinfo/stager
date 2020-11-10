@@ -97,3 +97,44 @@ def delete_dataset(id: int):
         return "Dataset has analyses, cannot delete", 422
     else:
         return "Not Found", 404
+
+
+@app.route("/api/datasets/<int:id>", methods=["PATCH"])
+@login_required
+def update_dataset(id: int):
+    if not request.json:
+        return "Request body must be JSON", 415
+
+    table = models.Dataset.query.get_or_404(id)
+
+    editable_columns = [
+        "dataset_type",
+        "input_hpf_path",
+        "notes",
+        "condition",
+        "extraction_protocol",
+        "capture_kit",
+        "library_prep_method",
+        "library_prep_date",
+        "read_length",
+        "read_type",
+        "sequencing_id",
+        "sequencing_date",
+        "sequencing_centre",
+        "batch_id",
+        "discriminator",
+    ]
+
+    enum_error = routes.mixin(table, request.json, editable_columns)
+
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        table.updated_by = current_user.user_id
+    except:
+        pass  # LOGIN_DISABLED
+
+    routes.transaction_or_abort(db.session.commit)
+
+    return jsonify(table)

@@ -17,6 +17,20 @@ from werkzeug.exceptions import HTTPException
 import pandas as pd
 
 
+def mixin(
+    entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
+) -> Union[None, str]:
+    for field in columns:
+        if field in json_mixin:
+            column = getattr(entity, field)
+            value = json_mixin[field]
+            if isinstance(column, Enum):
+                if not hasattr(type(column), str(value)):
+                    allowed = [e.value for e in type(column)]
+                    return f'"{field}" must be one of {allowed}'
+            setattr(entity, field, value)
+
+
 @login.user_loader
 def load_user(uid: int):
     return models.User.query.get(uid)
@@ -208,108 +222,6 @@ def change_password():
     except:
         db.session.rollback()
         return "Server error", 500
-
-
-def mixin(
-    entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
-) -> Union[None, str]:
-    for field in columns:
-        if field in json_mixin:
-            column = getattr(entity, field)
-            value = json_mixin[field]
-            if isinstance(column, Enum):
-                if not hasattr(type(column), str(value)):
-                    allowed = [e.value for e in type(column)]
-                    return f'"{field}" must be one of {allowed}'
-            setattr(entity, field, value)
-
-
-@app.route("/api/<model_name>/<int:id>", methods=["PATCH"])
-@login_required
-def update_entity(model_name: str, id: int):
-    if not request.json:
-        return "Request body must be JSON", 415
-
-    if model_name == "participants":
-        table = models.Participant.query.get(id)
-        editable_columns = [
-            "participant_codename",
-            "sex",
-            "participant_type",
-            "affected",
-            "solved",
-            "notes",
-        ]
-    elif model_name == "datasets":
-        table = models.Dataset.query.get(id)
-        editable_columns = [
-            "dataset_type",
-            "input_hpf_path",
-            "notes",
-            "condition",
-            "extraction_protocol",
-            "capture_kit",
-            "library_prep_method",
-            "library_prep_date",
-            "read_length",
-            "read_type",
-            "sequencing_id",
-            "sequencing_date",
-            "sequencing_centre",
-            "batch_id",
-            "discriminator",
-        ]
-    elif model_name == "analyses":
-        table = models.Analysis.query.get(id)
-        editable_columns = [
-            "analysis_state",
-            "pipeline_id",
-            "qsub_id",
-            "result_hpf_path",
-            "requested",
-            "started",
-            "finished",
-            "notes",
-        ]
-        if "assignee" in request.json:
-            if not request.json["assignee"]:
-                table.assignee = None
-            else:
-                assignee = models.User.query.filter(
-                    models.User.username == request.json["assignee"]
-                ).first()
-                if assignee:
-                    table.assignee = assignee.user_id
-                else:
-                    return "assignee not found", 400
-    else:
-        return "Not Found", 404
-
-    if not table:
-        return "Not Found", 404
-
-    enum_error = mixin(table, request.json, editable_columns)
-
-    if enum_error:
-        return enum_error, 400
-
-    try:
-        table.updated_by = current_user.user_id
-    except:
-        pass  # LOGIN_DISABLED
-
-    transaction_or_abort(db.session.commit)
-
-    if model_name == "analyses":
-        return jsonify(
-            {
-                **asdict(table),
-                "assignee": table.assignee_user and table.assignee_user.username,
-                "requester": table.requester_user and table.requester_user.username,
-                "updated_by": table.updated_by_user and table.updated_by_user.username,
-            }
-        )
-    return jsonify(table)
 
 
 @app.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
