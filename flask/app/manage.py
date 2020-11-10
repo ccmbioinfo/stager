@@ -101,6 +101,17 @@ def add_dummy_data():
                 "created_by": 1,
                 "updated_by": 1,
             },
+            {
+                "family_id": 1,
+                "codename": "AA004",
+                "sex": "Female",
+                "type": "Parent",
+                "affected": False,
+                "month_of_birth": "1970-03-01",
+                "notes": "",
+                "created_by": 1,
+                "updated_by": 1,
+            },
         ]
         for p in default_participants:
             participant = models.Participant(
@@ -215,7 +226,7 @@ def add_dummy_data():
                 "input_hpf_path": "",
             },
             {
-                "tissue_sample_id": 2,
+                "tissue_sample_id": 3,
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
                 "created_by": 1,

@@ -21,9 +21,8 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow } from "../utils";
+import { DataEntryHeader, DataEntryRow } from "../typings";
 import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
-import { InputFileUpload } from "./UploadCSV";
 import UploadDialog from "./UploadDialog";
 
 export interface DataEntryTableProps {
@@ -68,7 +67,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             return { ...header, hidden: !defaultOptionals.includes(header.field) };
         })
     );
-
 
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
@@ -361,26 +359,26 @@ function DataEntryToolbar(props: {
 
     return (
         <>
-        <Toolbar className={classes.toolbar}>
-            <Box display="flex" flexGrow={1}>
-                <Typography variant="h6">Enter Metadata</Typography>
-            </Box>
-            <Tooltip title="Upload CSV">
-                <IconButton onClick={() => setOpenUpload(true)}>
-                    <CloudUpload />
-                </IconButton>
-            </Tooltip>
-            <Tooltip title="Add empty row">
-                <IconButton onClick={props.handleAddRow} edge="end">
-                    <AddBoxOutlined />
-                </IconButton>
-            </Tooltip>
-            <DataEntryColumnMenuAction columns={props.columns} onClick={props.handleColumnAction} />
-        </Toolbar>
-        <UploadDialog
-        open={openUpload}
-        onClose={() => setOpenUpload(false)}
-        />
+            <Toolbar className={classes.toolbar}>
+                <Box display="flex" flexGrow={1}>
+                    <Typography variant="h6">Enter Metadata</Typography>
+                </Box>
+                <Tooltip title="Upload CSV">
+                    <IconButton onClick={() => setOpenUpload(true)}>
+                        <CloudUpload />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Add empty row">
+                    <IconButton onClick={props.handleAddRow} edge="end">
+                        <AddBoxOutlined />
+                    </IconButton>
+                </Tooltip>
+                <DataEntryColumnMenuAction
+                    columns={props.columns}
+                    onClick={props.handleColumnAction}
+                />
+            </Toolbar>
+            <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
         </>
     );
 }

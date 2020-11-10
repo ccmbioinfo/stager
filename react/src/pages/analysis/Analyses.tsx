@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useHistory } from "react-router";
+import { useHistory } from "react-router";
 import { makeStyles } from "@material-ui/core/styles";
 import { Chip, IconButton, TextField, Container } from "@material-ui/core";
 import {
@@ -13,24 +13,14 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import Title from "../Title";
+import { formatDateString, jsonToAnalyses, isRowSelected } from "../utils/functions";
+import { Analysis, PipelineStatus } from "../utils/typings";
+import AnalysisInfoDialog from "../utils/components/AnalysisInfoDialog";
 import CancelAnalysisDialog from "./CancelAnalysisDialog";
-import AnalysisInfoDialog from "../AnalysisInfoDialog";
 import AddAnalysisAlert from "./AddAnalysisAlert";
 import SetAssigneeDialog from "./SetAssigneeDialog";
-import {
-    emptyCellValue,
-    formatDateString,
-    Analysis,
-    PipelineStatus,
-    jsonToAnalyses,
-    isRowSelected,
-} from "../utils";
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: "fill",
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
@@ -40,40 +30,6 @@ const useStyles = makeStyles(theme => ({
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: "flex",
-        overflow: "auto",
-        flexDirection: "column",
-    },
-    seeMore: {
-        marginTop: theme.spacing(3),
-    },
-    dialogHeader: {
-        paddingBottom: "0",
-    },
-    hoverIcon: {
-        "&:hover": {
-            background: "#f1f1f1",
-        },
-    },
-    statusTitle: {
-        color: "#3f51b5",
-    },
-    centreItem: {
-        textAlign: "center",
-    },
-    downloadButton: {
-        marginTop: theme.spacing(3),
-        float: "right",
-    },
-    viewIcon: {
-        textAlign: "center",
-        "&:hover": {
-            //color: '#3f51b5',
-            background: "#f1f1f1",
-        },
     },
     chip: {
         color: "primary",
@@ -380,7 +336,6 @@ export default function Analyses() {
                             title: "Result HPF Path",
                             field: "result_hpf_path",
                             type: "string",
-                            emptyValue: emptyCellValue,
                         },
                         {
                             title: "Status",
@@ -394,7 +349,6 @@ export default function Analyses() {
                             field: "notes",
                             type: "string",
                             width: "30%",
-                            emptyValue: emptyCellValue,
                             editComponent: props => (
                                 <TextField
                                     multiline
@@ -407,7 +361,7 @@ export default function Analyses() {
                         },
                     ]}
                     data={rows}
-                    title={<Title>Active Analyses</Title>}
+                    title="Active Analyses"
                     options={{
                         pageSize: 10,
                         filtering: true,
@@ -587,7 +541,8 @@ export default function Analyses() {
                                     )
                                 );
                                 enqueueSnackbar(
-                                    `Analysis ID ${oldData?.analysis_id} edited successfully`
+                                    `Analysis ID ${oldData?.analysis_id} edited successfully`,
+                                    { variant: "success" }
                                 );
                             } else {
                                 enqueueSnackbar(
@@ -597,32 +552,6 @@ export default function Analyses() {
                                 console.error(response);
                             }
                         },
-                    }}
-                    cellEditable={{
-                        onCellEditApproved: (newValue, oldValue, editedRow, columnDef) =>
-                            new Promise((resolve, reject) => {
-                                const dataUpdate = [...rows];
-                                const index = dataUpdate.findIndex((row, index, obj) => {
-                                    return row.analysis_id === editedRow.analysis_id;
-                                });
-                                const newRow: Analysis = { ...dataUpdate[index] };
-
-                                if (newValue === "") newValue = null;
-
-                                switch (columnDef.field) {
-                                    case "result_hpf_path":
-                                        newRow.result_hpf_path = newValue;
-                                        break;
-                                    case "notes":
-                                        newRow.notes = newValue;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                dataUpdate[index] = newRow;
-                                setRows(dataUpdate);
-                                resolve();
-                            }),
                     }}
                     components={{
                         Toolbar: props => (
@@ -665,6 +594,11 @@ export default function Analyses() {
                                 </div>
                             </div>
                         ),
+                    }}
+                    localization={{
+                        header: {
+                            actions: "", //remove action buttons' header
+                        },
                     }}
                 />
             </Container>

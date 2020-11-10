@@ -61,6 +61,10 @@ function BaseApp() {
                     </IconButton>
                 )}
                 autoHideDuration={6000}
+                anchorOrigin={{
+                    horizontal: "center",
+                    vertical: "bottom",
+                }}
             >
                 <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />
             </SnackbarProvider>

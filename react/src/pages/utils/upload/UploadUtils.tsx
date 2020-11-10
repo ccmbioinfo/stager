@@ -1,9 +1,5 @@
-import {
-    DataEntryHeader,
-    DataEntryRow,
-    getDataEntryHeaders,
-    snakeCaseToTitle,
-} from "../utils";
+import { DataEntryHeader, DataEntryRow } from "../typings";
+import { getDataEntryHeaders, snakeCaseToTitle } from "../functions";
 
 // Convert a field string (snake_case) into a displayable title (Snake Case)
 function formatFieldToTitle(field: string): string {
@@ -12,16 +8,10 @@ function formatFieldToTitle(field: string): string {
 }
 
 // Given a DataEntryRow field, return a new DataEntryHeader obj
-function toColumn(
-    field: keyof DataEntryRow,
-    hidden?: boolean,
-    title?: string
-): DataEntryHeader {
+function toColumn(field: keyof DataEntryRow, hidden?: boolean, title?: string): DataEntryHeader {
     return {
         field: field,
-        title: title
-            ? title
-            : formatFieldToTitle(field),
+        title: title ? title : formatFieldToTitle(field),
         hidden: hidden,
     };
 }
