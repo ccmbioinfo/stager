@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 /**
- * Returns a JSX element for displaying dialog header.
+ * DialogTitle component for a standard dialog header.
  */
 export function DialogHeader(props: DialogTitleProps) {
     const { children, onClose, ...other } = props;
