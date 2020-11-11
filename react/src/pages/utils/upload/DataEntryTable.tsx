@@ -242,6 +242,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     variant="contained"
                                     color="default"
                                     disableElevation
+                                    disableRipple
                                     startIcon={<Add />}
                                     onClick={() => setRows(rows.concat(createEmptyRows(1)))}
                                 >
