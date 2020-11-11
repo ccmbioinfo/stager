@@ -30,6 +30,7 @@ import {
     getOptions as _getOptions,
     getColumns,
     booleanColumns,
+    enumerableColumns,
 } from "./UploadUtils";
 import UploadDialog from "./UploadDialog";
 import { setProp } from "../functions";
@@ -236,6 +237,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                         onEdit(newValue, rowIndex, col)
                                                     }
                                                     disabled={row.dataset_type !== "RRS"}
+                                                    column={col}
                                                 />
                                             }
                                         </>
@@ -261,8 +263,6 @@ function DataEntryCell(props: {
     onEdit: (newValue: string | boolean) => void;
     disabled?: boolean;
 }) {
-    let cell;
-
     if (booleanColumns.includes(props.col.field)) {
         return (
             <CheckboxCell
@@ -277,8 +277,8 @@ function DataEntryCell(props: {
             value={toOption(props.row[props.col.field])}
             options={props.getOptions(props.rowIndex, props.col)}
             onEdit={props.onEdit}
-            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
             disabled={props.disabled}
+            column={props.col}
         />
     );
 }
@@ -296,6 +296,7 @@ function AutocompleteCell(
         options: Option[];
         onEdit: (newValue: string) => void;
         disabled?: boolean;
+        column: DataEntryHeader;
     } & TableCellProps
 ) {
     const onEdit = (newValue: Option) => {
@@ -334,9 +335,8 @@ function AutocompleteCell(
 
                     // Adds user-entered value as option
                     // We prefer to show pre-existing options than the "create new" option
-                    // TODO: Prevent user from creating new values for columns like dataset_type
-                    //       with pre-defined lists of values
                     if (
+                        !enumerableColumns.includes(props.column.field) &&
                         params.inputValue !== "" &&
                         !filtered.find(option => option.inputValue === params.inputValue)
                     ) {
