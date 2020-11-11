@@ -22,7 +22,13 @@ import {
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow } from "../typings";
-import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
+import {
+    Option,
+    toOption,
+    getOptions as _getOptions,
+    getColumns,
+    enumerableColumns,
+} from "./UploadUtils";
 import UploadDialog from "./UploadDialog";
 
 export interface DataEntryTableProps {
@@ -198,6 +204,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         options={getOptions(rowIndex, col)}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                         aria-label={`enter ${col.title} row ${rowIndex}`}
+                                        column={col}
                                     />
                                 ))}
 
@@ -209,6 +216,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 options={getOptions(rowIndex, col)}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 aria-label={`enter ${col.title} row ${rowIndex} optional`}
+                                                column={col}
                                             />
                                         )}
                                     </>
@@ -226,6 +234,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                     }
                                                     aria-label={`enter ${col.title} row ${rowIndex}`}
                                                     disabled={row.dataset_type !== "RRS"}
+                                                    column={col}
                                                 />
                                             }
                                         </>
@@ -252,6 +261,7 @@ function DataEntryCell(
         options: Option[];
         onEdit: (newValue: string) => void;
         disabled?: boolean;
+        column: DataEntryHeader;
     } & TableCellProps
 ) {
     const onEdit = (newValue: Option) => {
@@ -290,9 +300,8 @@ function DataEntryCell(
 
                     // Adds user-entered value as option
                     // We prefer to show pre-existing options than the "create new" option
-                    // TODO: Prevent user from creating new values for columns like dataset_type
-                    //       with pre-defined lists of values
                     if (
+                        !enumerableColumns.includes(props.column.field) &&
                         params.inputValue !== "" &&
                         !filtered.find(option => option.inputValue === params.inputValue)
                     ) {
