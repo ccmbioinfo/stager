@@ -237,7 +237,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                         onEdit(newValue, rowIndex, col)
                                                     }
                                                     disabled={row.dataset_type !== "RRS"}
-                                                    column={col}
                                                 />
                                             }
                                         </>
@@ -279,6 +278,7 @@ function DataEntryCell(props: {
             onEdit={props.onEdit}
             disabled={props.disabled}
             column={props.col}
+            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
         />
     );
 }
