@@ -264,26 +264,23 @@ function DataEntryCell(props: {
     let cell;
 
     if (booleanColumns.includes(props.col.field)) {
-        cell = (
+        return (
             <CheckboxCell
-                value={props.row[props.col.field] as boolean}
+                value={!!props.row[props.col.field]}
                 onEdit={props.onEdit}
-                disabled={props.disabled}
-            />
-        );
-    } else {
-        cell = (
-            <AutocompleteCell
-                value={toOption(props.row[props.col.field])}
-                options={props.getOptions(props.rowIndex, props.col)}
-                onEdit={props.onEdit}
-                aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
                 disabled={props.disabled}
             />
         );
     }
-
-    return cell;
+    return (
+        <AutocompleteCell
+            value={toOption(props.row[props.col.field])}
+            options={props.getOptions(props.rowIndex, props.col)}
+            onEdit={props.onEdit}
+            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
+            disabled={props.disabled}
+        />
+    );
 }
 
 const filter = createFilterOptions<Option>({
@@ -368,13 +365,13 @@ function CheckboxCell(props: {
     onEdit: (newValue: boolean) => void;
     disabled?: boolean;
 }) {
-    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-        props.onEdit(event.target.checked);
-    }
-
     return (
         <TableCell padding="checkbox">
-            <Checkbox checked={!!props.value} onChange={handleChange} />
+            <Checkbox
+                checked={props.value}
+                onChange={event => props.onEdit(event.target.checked)}
+                disabled={props.disabled}
+            />
         </TableCell>
     );
 }
