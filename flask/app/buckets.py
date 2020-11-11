@@ -67,7 +67,7 @@ def get_unlinked_files():
     for bucket in valid_bucket_names:
         objs = minioClient.list_objects(bucket)
         for obj in objs:
-            all_files.append(obj.__dict__["object_name"])
+            all_files.append(obj.object_name)
 
     # Get all linked files
     linked_files = []
