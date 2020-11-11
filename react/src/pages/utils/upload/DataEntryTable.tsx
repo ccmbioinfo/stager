@@ -245,13 +245,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Button onClick={() => console.log(rows)}>
-                Log data
-            </Button>
         </Paper>
     );
 }
 
+/**
+ * A 'general' data entry cell that returns a table cell with a user control
+ * appropriate for the type of value required.
+ */
 function DataEntryCell(props: {
     row: DataEntryRow;
     rowIndex: number;
@@ -373,10 +374,7 @@ function CheckboxCell(props: {
 
     return (
         <TableCell padding="checkbox">
-            <Checkbox
-                checked={!!props.value}
-                onChange={handleChange}
-            />
+            <Checkbox checked={!!props.value} onChange={handleChange} />
         </TableCell>
     );
 }
