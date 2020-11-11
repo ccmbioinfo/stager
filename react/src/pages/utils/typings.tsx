@@ -133,10 +133,10 @@ export class DataEntryRowRNASeq {
     spike_in?: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {};
+export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {}
 
 export interface DataEntryHeader {
-    title: string,
-    field: keyof DataEntryRow,
-    hidden?: boolean
-};
+    title: string;
+    field: keyof DataEntryRow;
+    hidden?: boolean;
+}

@@ -15,7 +15,7 @@ const useStyles = makeStyles(theme => ({
         marginBottom: theme.spacing(3),
     },
     buttonContainer: {
-        padding: theme.spacing(2)
+        padding: theme.spacing(2),
     },
     submitButton: {
         width: "40%",
@@ -39,7 +39,7 @@ export default function AddParticipants() {
                 <DataEntryTable />
             </Container>
             <Container className={classes.buttonContainer} maxWidth={false}>
-            <Button
+                <Button
                     className={classes.submitButton}
                     variant="contained"
                     color="primary"
@@ -47,7 +47,7 @@ export default function AddParticipants() {
                     endIcon={<CloudUpload />}
                 >
                     Submit
-            </Button>
+                </Button>
             </Container>
         </main>
     );
