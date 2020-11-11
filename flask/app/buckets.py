@@ -78,7 +78,7 @@ def get_unlinked_files():
     # Put all unlinked files in new list
     unlinked_files = []
     for file_name in all_files:
-        if file_name[file_name.index('/')+1:] not in linked_files:
+        if file_name not in linked_files:
             unlinked_files.append(file_name)
 
     return jsonify(unlinked_files)
