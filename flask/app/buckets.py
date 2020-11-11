@@ -70,10 +70,10 @@ def get_unlinked_files():
             all_files.append(obj.object_name)
 
     # Get all linked files
-    linked_files = []
+    linked_files = {}
     for dataset in models.Dataset.query.all():
         if dataset.input_hpf_path is not None:
-            linked_files.append(dataset.input_hpf_path)
+            linked_files[dataset.input_hpf_path] = "yes"
 
     # Put all unlinked files in new list
     unlinked_files = []
