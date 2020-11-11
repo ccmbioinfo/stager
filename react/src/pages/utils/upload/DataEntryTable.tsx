@@ -18,9 +18,10 @@ import {
     Toolbar,
     Tooltip,
     Typography,
+    Button,
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
+import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow } from "../typings";
 import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
 import UploadDialog from "./UploadDialog";
@@ -52,6 +53,12 @@ const useTableStyles = makeStyles(theme => ({
     optionalCell: {
         minWidth: "8em",
     },
+    buttonCell: {
+        padding: 0,
+    },
+    newRowButton: {
+        width: "100%"
+    }
 }));
 
 const defaultOptionals = ["notes", "sex"];
@@ -61,13 +68,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
+    
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(
         getColumns("optional").map(header => {
             return { ...header, hidden: !defaultOptionals.includes(header.field) };
         })
     );
-
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
     const [enums, setEnums] = useState<any>();
@@ -128,9 +135,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     return (
         <Paper>
             <DataEntryToolbar
-                handleAddRow={event => {
-                    setRows(rows.concat(createEmptyRows(1)));
-                }}
                 columns={optionals}
                 handleColumnAction={toggleHideColumn}
             />
@@ -200,7 +204,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         aria-label={`enter ${col.title} row ${rowIndex}`}
                                     />
                                 ))}
-
                                 {optionals.map(col => (
                                     <>
                                         {!col.hidden && (
@@ -232,6 +235,22 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     ))}
                             </TableRow>
                         ))}
+                        <TableRow>
+                            <TableCell className={classes.buttonCell} colSpan={100}>
+                                <Button
+                                    className={classes.newRowButton}
+                                    variant="contained"
+                                    color="default"
+                                    disableElevation
+                                    startIcon={<Add />}
+                                    onClick={event => {
+                                        setRows(rows.concat(createEmptyRows(1)));
+                                    }}
+                                >
+                                    Add new row
+                                </Button>
+                            </TableCell>
+                        </TableRow>
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -350,7 +369,6 @@ const useToolbarStyles = makeStyles(theme => ({
  * buttons that do not depend on specific rows.
  */
 function DataEntryToolbar(props: {
-    handleAddRow: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     handleColumnAction: (field: keyof DataEntryRow) => void;
     columns: DataEntryHeader[];
 }) {
@@ -366,11 +384,6 @@ function DataEntryToolbar(props: {
                 <Tooltip title="Upload CSV">
                     <IconButton onClick={() => setOpenUpload(true)}>
                         <CloudUpload />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Add empty row">
-                    <IconButton onClick={props.handleAddRow} edge="end">
-                        <AddBoxOutlined />
                     </IconButton>
                 </Tooltip>
                 <DataEntryColumnMenuAction
