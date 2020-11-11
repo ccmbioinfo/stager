@@ -67,18 +67,18 @@ def get_unlinked_files():
     for bucket in valid_bucket_names:
         objs = minioClient.list_objects(bucket)
         for obj in objs:
-            all_files.append(obj.object_name)
+            all_files.append(bucket + "/" + obj.object_name)
 
     # Get all linked files
     linked_files = {}
     for dataset in models.Dataset.query.all():
         if dataset.input_hpf_path is not None:
-            linked_files[dataset.input_hpf_path] = "yes"
+            linked_files[dataset.input_hpf_path] = ":)"
 
     # Put all unlinked files in new list
     unlinked_files = []
     for file_name in all_files:
-        if file_name not in linked_files:
+        if file_name[file_name.index('/')+1:] not in linked_files:
             unlinked_files.append(file_name)
 
     return jsonify(unlinked_files)
