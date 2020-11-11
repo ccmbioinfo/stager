@@ -1,6 +1,8 @@
 import { DataEntryHeader, DataEntryRow } from "../typings";
 import { getDataEntryHeaders, snakeCaseToTitle } from "../functions";
 
+export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
+
 // Convert a field string (snake_case) into a displayable title (Snake Case)
 function formatFieldToTitle(field: string): string {
     return snakeCaseToTitle(field) // convert to title case

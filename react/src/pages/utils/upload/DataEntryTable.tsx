@@ -1,6 +1,8 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
     Box,
+    Button,
+    Checkbox,
     IconButton,
     makeStyles,
     Menu,
@@ -22,8 +24,15 @@ import {
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow } from "../typings";
-import { Option, toOption, getOptions as _getOptions, getColumns } from "./UploadUtils";
+import {
+    Option,
+    toOption,
+    getOptions as _getOptions,
+    getColumns,
+    booleanColumns,
+} from "./UploadUtils";
 import UploadDialog from "./UploadDialog";
+import { setProp } from "../functions";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -94,16 +103,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             });
     }, []);
 
-    function onEdit(newValue: string, rowIndex: number, col: DataEntryHeader) {
+    function onEdit(newValue: string | boolean, rowIndex: number, col: DataEntryHeader) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         }
         setRows(
             rows.map((value, index) => {
                 if (index === rowIndex) {
-                    const newRow: DataEntryRow = { ...value };
-                    (newRow[col.field] as string) = newValue;
-                    return newRow;
+                    return setProp({ ...value }, col.field, newValue);
                 } else {
                     return value;
                 }
@@ -194,10 +201,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
                                 {columns.map(col => (
                                     <DataEntryCell
-                                        value={toOption(row[col.field])}
-                                        options={getOptions(rowIndex, col)}
+                                        row={row}
+                                        rowIndex={rowIndex}
+                                        col={col}
+                                        getOptions={getOptions}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                        aria-label={`enter ${col.title} row ${rowIndex}`}
                                     />
                                 ))}
 
@@ -205,10 +213,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     <>
                                         {!col.hidden && (
                                             <DataEntryCell
-                                                value={toOption(row[col.field])}
-                                                options={getOptions(rowIndex, col)}
+                                                row={row}
+                                                rowIndex={rowIndex}
+                                                col={col}
+                                                getOptions={getOptions}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                                aria-label={`enter ${col.title} row ${rowIndex} optional`}
                                             />
                                         )}
                                     </>
@@ -219,12 +228,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         <>
                                             {
                                                 <DataEntryCell
-                                                    value={toOption(row[col.field])}
-                                                    options={getOptions(rowIndex, col)}
+                                                    row={row}
+                                                    rowIndex={rowIndex}
+                                                    col={col}
+                                                    getOptions={getOptions}
                                                     onEdit={newValue =>
                                                         onEdit(newValue, rowIndex, col)
                                                     }
-                                                    aria-label={`enter ${col.title} row ${rowIndex}`}
                                                     disabled={row.dataset_type !== "RRS"}
                                                 />
                                             }
@@ -235,8 +245,44 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Button onClick={() => console.log(rows)}>
+                Log data
+            </Button>
         </Paper>
     );
+}
+
+function DataEntryCell(props: {
+    row: DataEntryRow;
+    rowIndex: number;
+    col: DataEntryHeader;
+    getOptions: (rowIndex: number, col: DataEntryHeader) => Option[];
+    onEdit: (newValue: string | boolean) => void;
+    disabled?: boolean;
+}) {
+    let cell;
+
+    if (booleanColumns.includes(props.col.field)) {
+        cell = (
+            <CheckboxCell
+                value={props.row[props.col.field] as boolean}
+                onEdit={props.onEdit}
+                disabled={props.disabled}
+            />
+        );
+    } else {
+        cell = (
+            <AutocompleteCell
+                value={toOption(props.row[props.col.field])}
+                options={props.getOptions(props.rowIndex, props.col)}
+                onEdit={props.onEdit}
+                aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
+                disabled={props.disabled}
+            />
+        );
+    }
+
+    return cell;
 }
 
 const filter = createFilterOptions<Option>({
@@ -246,7 +292,7 @@ const filter = createFilterOptions<Option>({
 /**
  * A cell in the DataEntryTable that the user can type into.
  */
-function DataEntryCell(
+function AutocompleteCell(
     props: {
         value: Option;
         options: Option[];
@@ -308,6 +354,28 @@ function DataEntryCell(
                 getOptionDisabled={option => !!option.disabled}
                 getOptionLabel={option => option.inputValue}
                 renderOption={option => option.title}
+            />
+        </TableCell>
+    );
+}
+
+/**
+ * A data entry cell for columns which require a boolean value.
+ */
+function CheckboxCell(props: {
+    value: boolean;
+    onEdit: (newValue: boolean) => void;
+    disabled?: boolean;
+}) {
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        props.onEdit(event.target.checked);
+    }
+
+    return (
+        <TableCell padding="checkbox">
+            <Checkbox
+                checked={!!props.value}
+                onChange={handleChange}
             />
         </TableCell>
     );
