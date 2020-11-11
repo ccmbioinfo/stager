@@ -1,0 +1,25 @@
+dependencies:
+- flask/requirements*.txt
+- flask/requirements*.in
+- react/yarn.lock
+database:
+- flask/app/manage.py
+- flask/app/models.py
+- flask/migrations/**/*
+backend:
+- any: ["flask/**/*"]
+  all: ["!flask/app/manage.py", "!flask/app/models.py", "!flask/migrations/**/*"]
+frontend:
+- react/**/*
+tests:
+- flask/tests/**/*
+- react/**/*.test.ts
+- react/**/*.test.tsx
+devops:
+- .github/**/*
+- nginx/**/*
+- docker-compose*.yaml
+- sample.env
+documentation:
+- README.md
+- docs/**/*
