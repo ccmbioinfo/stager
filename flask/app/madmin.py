@@ -70,12 +70,12 @@ class MinioAdmin:
     def enable_group(self, group: str) -> None:
         self._exec(["group", "enable"], [group])
 
-    def group_remove(self, group: str, *args: str) -> None:
+    def group_remove(self, group: str, *users: str) -> None:
         """
         Remove as many listed users as possible from the group, or remove the
         group if no arguments are provided and it is empty.
         """
-        self._exec(["group", "remove"], [group, *args])
+        self._exec(["group", "remove"], [group, *users])
 
     def list_policies(self) -> List[Dict[str, Any]]:
         raw = self._exec(["policy", "list"]).strip()
@@ -108,3 +108,29 @@ class MinioAdmin:
 
     def remove_policy(self, policy: str) -> None:
         self._exec(["policy", "remove"], [policy])
+
+
+def readonly_buckets_policy(*buckets: str) -> Dict[str, Any]:
+    return {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": ["s3:GetBucketLocation", "s3:GetObject"],
+                "Resource": [f"arn:aws:s3:::{bucket}/*" for bucket in buckets],
+            }
+        ],
+    }
+
+
+def readwrite_buckets_policy(*buckets: str) -> Dict[str, Any]:
+    return {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": ["s3:*"],
+                "Resource": [f"arn:aws:s3:::{bucket}/*" for bucket in buckets],
+            }
+        ],
+    }
