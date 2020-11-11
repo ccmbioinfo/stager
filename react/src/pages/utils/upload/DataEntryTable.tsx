@@ -243,9 +243,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     color="default"
                                     disableElevation
                                     startIcon={<Add />}
-                                    onClick={event => {
-                                        setRows(rows.concat(createEmptyRows(1)));
-                                    }}
+                                    onClick={() => setRows(rows.concat(createEmptyRows(1)))}
                                 >
                                     Add new row
                                 </Button>
