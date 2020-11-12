@@ -311,16 +311,23 @@ def bulk_update():
             "notes",
         ],
     }
+    if request.content_type not in ["text/csv", "application/json"]:
+        return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 
-    if request.content_type != "text/csv":
-        return "Only Content Type 'text/csv' Supported", 415
-    else:
-
+    if request.content_type == "text/csv":
         try:
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
             dat = dat.where(pd.notnull(dat), None)
+            dat = dat.to_dict(orient="records")
         except Exception as err:
             return str(err), 400
+
+    elif request.content_type == "application/json":
+        if not request.json:
+            return "Request body must be JSON", 415
+
+        dat = [request.json]  # the dict must be in a list
+
     try:
         updated_by = current_user.user_id
         created_by = current_user.user_id
@@ -328,7 +335,7 @@ def bulk_update():
         updated_by = 1
         created_by = 1
 
-    for i, row in enumerate(dat.to_dict(orient="records")):
+    for i, row in enumerate(dat):
 
         # family logic
 
