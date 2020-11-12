@@ -25,7 +25,7 @@ jobs:
     - name: Black
       run: docker-compose -p st2020test -f docker-compose.test.yaml run --rm app black --check
     - name: Stop services
-      run: docker-compose -p st2020test -f docker-compose.test.services.yaml down
+      run: docker-compose -p st2020test -f docker-compose.test.yaml down
     - name: Build production image
       run: docker-compose -f docker-compose.prod.yaml build
 
