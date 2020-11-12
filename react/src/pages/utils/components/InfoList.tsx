@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
     Box,
+    Button,
     Collapse,
-    IconButton,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
     makeStyles,
     Paper,
-    Tooltip,
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, MenuOpen } from "@material-ui/icons";
@@ -73,11 +72,14 @@ export default function InfoList(props: {
                                     collapsibleValues={info.collapsibleValues}
                                 />
                                 {props.linkPath && info.identifier &&
-                                    <Tooltip title="Open in table">
-                                        <IconButton href={`${props.linkPath}/${info.identifier}`}>
-                                            <MenuOpen />
-                                        </IconButton>
-                                    </Tooltip>
+                                    <Button
+                                    href={`${props.linkPath}/${info.identifier}`}
+                                    variant="contained"
+                                    size="small"
+                                    endIcon={<MenuOpen />}
+                                    >
+                                        Open in table
+                                    </Button>
                                 }
                             </Box>
                         </Collapse>
