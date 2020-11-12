@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
     Box,
+    Checkbox,
     IconButton,
     makeStyles,
     Menu,
@@ -28,9 +29,11 @@ import {
     toOption,
     getOptions as _getOptions,
     getColumns,
+    booleanColumns,
     enumerableColumns,
 } from "./UploadUtils";
 import UploadDialog from "./UploadDialog";
+import { setProp } from "../functions";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -107,16 +110,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             });
     }, []);
 
-    function onEdit(newValue: string, rowIndex: number, col: DataEntryHeader) {
+    function onEdit(newValue: string | boolean, rowIndex: number, col: DataEntryHeader) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         }
         setRows(
             rows.map((value, index) => {
                 if (index === rowIndex) {
-                    const newRow: DataEntryRow = { ...value };
-                    (newRow[col.field] as string) = newValue;
-                    return newRow;
+                    return setProp({ ...value }, col.field, newValue);
                 } else {
                     return value;
                 }
@@ -204,22 +205,22 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
                                 {columns.map(col => (
                                     <DataEntryCell
-                                        value={toOption(row[col.field])}
-                                        options={getOptions(rowIndex, col)}
+                                        row={row}
+                                        rowIndex={rowIndex}
+                                        col={col}
+                                        getOptions={getOptions}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                        aria-label={`enter ${col.title} row ${rowIndex}`}
-                                        column={col}
                                     />
                                 ))}
                                 {optionals.map(col => (
                                     <>
                                         {!col.hidden && (
                                             <DataEntryCell
-                                                value={toOption(row[col.field])}
-                                                options={getOptions(rowIndex, col)}
+                                                row={row}
+                                                rowIndex={rowIndex}
+                                                col={col}
+                                                getOptions={getOptions}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                                aria-label={`enter ${col.title} row ${rowIndex} optional`}
-                                                column={col}
                                             />
                                         )}
                                     </>
@@ -230,14 +231,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         <>
                                             {
                                                 <DataEntryCell
-                                                    value={toOption(row[col.field])}
-                                                    options={getOptions(rowIndex, col)}
+                                                    row={row}
+                                                    rowIndex={rowIndex}
+                                                    col={col}
+                                                    getOptions={getOptions}
                                                     onEdit={newValue =>
                                                         onEdit(newValue, rowIndex, col)
                                                     }
-                                                    aria-label={`enter ${col.title} row ${rowIndex}`}
                                                     disabled={row.dataset_type !== "RRS"}
-                                                    column={col}
                                                 />
                                             }
                                         </>
@@ -266,6 +267,39 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     );
 }
 
+/**
+ * A 'general' data entry cell that returns a table cell with a user control
+ * appropriate for the type of value required.
+ */
+function DataEntryCell(props: {
+    row: DataEntryRow;
+    rowIndex: number;
+    col: DataEntryHeader;
+    getOptions: (rowIndex: number, col: DataEntryHeader) => Option[];
+    onEdit: (newValue: string | boolean) => void;
+    disabled?: boolean;
+}) {
+    if (booleanColumns.includes(props.col.field)) {
+        return (
+            <CheckboxCell
+                value={!!props.row[props.col.field]}
+                onEdit={props.onEdit}
+                disabled={props.disabled}
+            />
+        );
+    }
+    return (
+        <AutocompleteCell
+            value={toOption(props.row[props.col.field])}
+            options={props.getOptions(props.rowIndex, props.col)}
+            onEdit={props.onEdit}
+            disabled={props.disabled}
+            column={props.col}
+            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
+        />
+    );
+}
+
 const filter = createFilterOptions<Option>({
     limit: 25,
 });
@@ -273,7 +307,7 @@ const filter = createFilterOptions<Option>({
 /**
  * A cell in the DataEntryTable that the user can type into.
  */
-function DataEntryCell(
+function AutocompleteCell(
     props: {
         value: Option;
         options: Option[];
@@ -335,6 +369,25 @@ function DataEntryCell(
                 getOptionDisabled={option => !!option.disabled}
                 getOptionLabel={option => option.inputValue}
                 renderOption={option => option.title}
+            />
+        </TableCell>
+    );
+}
+
+/**
+ * A data entry cell for columns which require a boolean value.
+ */
+function CheckboxCell(props: {
+    value: boolean;
+    onEdit: (newValue: boolean) => void;
+    disabled?: boolean;
+}) {
+    return (
+        <TableCell padding="checkbox">
+            <Checkbox
+                checked={props.value}
+                onChange={event => props.onEdit(event.target.checked)}
+                disabled={props.disabled}
             />
         </TableCell>
     );
