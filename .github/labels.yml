@@ -7,8 +7,7 @@ database:
 - flask/app/models.py
 - flask/migrations/**/*
 backend:
-- any: ["flask/**/*"]
-  all: ["!flask/app/manage.py", "!flask/app/models.py", "!flask/migrations/**/*"]
+- any: ["flask/**/*", "!flask/app/manage.py", "!flask/app/models.py", "!flask/migrations/**/*"]
 frontend:
 - react/**/*
 tests:
