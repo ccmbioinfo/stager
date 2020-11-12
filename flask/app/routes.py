@@ -272,7 +272,7 @@ def enum_validate(
 
 
 @app.route("/api/_bulk", methods=["POST"])
-# @login_required
+@login_required
 def bulk_update():
 
     dataset_ids = []
