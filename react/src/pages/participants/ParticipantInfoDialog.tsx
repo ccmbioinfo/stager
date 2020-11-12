@@ -111,6 +111,7 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                         infoList={getAnalysisInfoList(analyses)}
                         title="Analyses"
                         icon={<ShowChart />}
+                        linkPath="/analysis"
                     />
                 </div>
             </DialogContent>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router";
+import { useHistory, useParams } from "react-router";
 import { makeStyles } from "@material-ui/core/styles";
 import { Chip, IconButton, TextField, Container } from "@material-ui/core";
 import {
@@ -156,6 +156,8 @@ export default function Analyses() {
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
+    const { id: paramID } = useParams<{ id: string }>();
+
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
@@ -303,6 +305,7 @@ export default function Analyses() {
                             type: "string",
                             editable: "never",
                             width: "8%",
+                            defaultFilter: paramID,
                         },
                         {
                             title: "Pipeline",

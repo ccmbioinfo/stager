@@ -2,15 +2,17 @@ import React, { useState, useEffect } from "react";
 import {
     Box,
     Collapse,
+    IconButton,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
     makeStyles,
     Paper,
+    Tooltip,
     Typography,
 } from "@material-ui/core";
-import { ExpandLess, ExpandMore } from "@material-ui/icons";
+import { ExpandLess, ExpandMore, MenuOpen } from "@material-ui/icons";
 import DetailSection from "./DetailSection";
 import { Info } from "../typings";
 
@@ -27,12 +29,17 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function InfoList(props: { infoList: Info[]; title?: string; icon: JSX.Element }) {
+export default function InfoList(props: {
+    infoList: Info[];
+    title?: string;
+    icon: JSX.Element;
+    linkPath?: string;
+}) {
     const classes = useStyles();
     const [showInfo, setShowInfo] = useState<boolean[]>([]);
     const infoList = props.infoList;
 
-    function clickAnalysis(index: number) {
+    function clickListItem(index: number) {
         // toggle
         setShowInfo(
             showInfo.map((val, i) => {
@@ -49,7 +56,7 @@ export default function InfoList(props: { infoList: Info[]; title?: string; icon
             <List className={classes.list}>
                 {infoList.map((info, index) => (
                     <Paper key={index} className={classes.listPaper} elevation={1}>
-                        <ListItem button onClick={() => clickAnalysis(index)}>
+                        <ListItem button onClick={() => clickListItem(index)}>
                             <ListItemIcon>{props.icon}</ListItemIcon>
                             <ListItemText
                                 primary={info.primaryListTitle}
@@ -65,6 +72,13 @@ export default function InfoList(props: { infoList: Info[]; title?: string; icon
                                     collapsibleTitles={info.collapsibleTitles}
                                     collapsibleValues={info.collapsibleValues}
                                 />
+                                {props.linkPath &&
+                                    <Tooltip title="Open in table">
+                                        <IconButton href={`${props.linkPath}/${info.values[0]}`}>
+                                            <MenuOpen />
+                                        </IconButton>
+                                    </Tooltip>
+                                }
                             </Box>
                         </Collapse>
                     </Paper>

@@ -64,6 +64,7 @@ interface DetailSectionProps {
     collapsibleTitles?: string[];
     collapsibleValues?: FieldDisplayValueType[];
     title?: string;
+    linkPath?: string;
 }
 
 export default function DetailSection({

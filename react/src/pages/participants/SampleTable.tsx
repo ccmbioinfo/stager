@@ -2,7 +2,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
 import MaterialTable, { MTableCell } from "material-table";
-import { formatDateString } from "../utils/functions";
+import { formatDateString, getDatasetInfoList } from "../utils/functions";
 import { Dataset, Sample, Info } from "../utils/typings";
 import InfoList from "../utils/components/InfoList";
 
@@ -86,16 +86,12 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
             data={samples}
             title="Samples"
             detailPanel={rowData => {
-                const infoList: Info[] = rowData.datasets.map(dataset => {
-                    return {
-                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
-                        titles: getTitles(),
-                        values: getValues(dataset),
-                    };
+                const infoList: Info[] = getDatasetInfoList(rowData.datasets).map(info => {
+                    return { ...info, secondaryListTitle: "" };
                 });
                 return (
                     <div className={classes.datasetList}>
-                        <InfoList infoList={infoList} icon={<Dns />} />
+                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets"/>
                     </div>
                 );
             }}
