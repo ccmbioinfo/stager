@@ -1,4 +1,4 @@
-name: Compile and lint frontend
+name: Build and test backend
 on:
   push:
     branches:
