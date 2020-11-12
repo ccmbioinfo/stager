@@ -72,9 +72,9 @@ export default function InfoList(props: {
                                     collapsibleTitles={info.collapsibleTitles}
                                     collapsibleValues={info.collapsibleValues}
                                 />
-                                {props.linkPath &&
+                                {props.linkPath && info.identifier &&
                                     <Tooltip title="Open in table">
-                                        <IconButton href={`${props.linkPath}/${info.values[0]}`}>
+                                        <IconButton href={`${props.linkPath}/${info.identifier}`}>
                                             <MenuOpen />
                                         </IconButton>
                                     </Tooltip>

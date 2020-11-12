@@ -1,4 +1,14 @@
-import { Counts, KeyValue, Analysis, PipelineStatus, Dataset, Info, DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq } from "./typings";
+import {
+    Counts,
+    KeyValue,
+    Analysis,
+    PipelineStatus,
+    Dataset,
+    Info,
+    DataEntryRowBase,
+    DataEntryRowOptional,
+    DataEntryRowRNASeq,
+} from "./typings";
 
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
@@ -143,6 +153,7 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
             titles: getAnalysisTitles(),
             values: getAnalysisValues(analysis),
+            identifier: analysis.analysis_id,
         };
     });
 }
@@ -234,6 +245,7 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
             values: getDatasetValues(dataset),
             collapsibleTitles: getSecDatasetTitles(),
             collapsibleValues: getSecDatasetValues(dataset),
+            identifier: dataset.dataset_id,
         };
     });
 }
@@ -258,7 +270,7 @@ export function getDataEntryHeaders() {
     return {
         required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
         optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,
-        RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>
+        RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>,
     };
 }
 
@@ -269,5 +281,8 @@ export function getDataEntryHeaders() {
  * Assume that input string is alphanumeric with underscores.
  */
 export function snakeCaseToTitle(str: string): string {
-    return str.split('_').join(' ').replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1));
+    return str
+        .split("_")
+        .join(" ")
+        .replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1));
 }

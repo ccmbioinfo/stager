@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { formatDateString, getAnalysisTitles, getAnalysisValues } from "../utils/functions";
+import { formatDateString, getAnalysisInfoList } from "../utils/functions";
 import { Participant, Analysis, Info } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
@@ -49,21 +49,32 @@ const getParticipantValues = (participant: Participant) => {
         participant.updated_by,
     ];
 };
-function getAnalysisInfoList(analyses: Analysis[]): Info[] {
-    return analyses.map(analysis => {
-        return {
-            primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
-            secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
-            titles: getAnalysisTitles(),
-            values: getAnalysisValues(analysis),
-        };
-    });
-}
 
 interface DialogProp {
     open: boolean;
     participant: Participant;
     onClose: () => void;
+}
+
+/**
+ * Given a participant, return a promise resolving to a list of all analyses
+ * of datasets tied to this participant.
+ */
+async function fetchAnalyses(participant: Participant) {
+    const datasets = participant.tissue_samples.flatMap(sample => sample.datasets);
+    let analysisList: Analysis[] = [];
+    for (const dataset of datasets) {
+        const response = await fetch("/api/datasets/" + dataset.dataset_id);
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+            analysisList = analysisList.concat(data.analyses as Analysis[]);
+        } else {
+            console.error(response);
+            throw new Error(`GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`);
+        }
+    }
+    return analysisList;
 }
 
 export default function ParticipantInfoDialog({ participant, open, onClose }: DialogProp) {
@@ -72,15 +83,10 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
     useEffect(() => {
-        // TODO: get real data
-        fetch("/api/datasets/1")
-            .then(response => response.json())
-            .then(data => {
-                setAnalyses(data.analyses as Analysis[]);
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        fetchAnalyses(participant)
+        .then(analysisList => {
+            setAnalyses(analysisList)
+        });
     }, [participant]);
 
     return (
