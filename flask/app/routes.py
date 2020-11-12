@@ -272,7 +272,7 @@ def enum_validate(
 
 
 @app.route("/api/_bulk", methods=["POST"])
-@login_required
+# @login_required
 def bulk_update():
 
     dataset_ids = []
@@ -326,7 +326,11 @@ def bulk_update():
         if not request.json:
             return "Request body must be JSON", 415
 
-        dat = [request.json]  # the dict must be in a list
+        # the jsons must be in a list, even if it is a single json object
+        if not isinstance(request.json, list):
+            return "JSON must be in an array", 422
+
+        dat = request.json
 
     try:
         updated_by = current_user.user_id
