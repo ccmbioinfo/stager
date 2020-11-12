@@ -506,3 +506,56 @@ def delete_tissue(id: int):
         return "Tissue has dataset(s), cannot delete", 422
     else:
         return "Not Found", 404
+
+@app.route("/api/tissue_samples", methods=["POST"])
+@login_required
+def post_tissue():
+    if not request.json:
+        return "Request body must be JSON", 400
+
+    models.Participant.query.filter_by(participant_id=request.json["participant_id"]).first_or_404()
+
+    enum_error = enum_validate(
+        models.TissueSample,
+        request.json,
+        ["tissue_sample_type","tissue_processing"]
+        )
+
+    if enum_error:
+        return enum_error, 400
+
+    now = datetime.now()
+    created = now
+    updated = now
+
+    try:
+        created_by = updated_by = current_user.user_id
+    except:  # LOGIN DISABLED
+        created_by = updated_by = 1
+
+    tissue_sample = models.TissueSample(
+        **{
+            "participant_id": request.json["participant_id"],
+            "extraction_date": request.json["extraction_date"],
+            "tissue_sample_type": request.json["tissue_sample_type"],
+            "tissue_processing": request.json["tissue_processing"],
+            "notes": request.json["notes"],
+            "created": created,
+            "created_by": created_by,
+            "updated": updated,
+            "updated_by": updated_by
+        }
+    )
+    try:
+        db.session.add(tissue_sample)
+        db.session.flush()
+        ts_id = tissue_sample.tissue_sample_id
+        tissue_sample_new = {
+             **asdict(tissue_sample),
+             "tissue_sample_id": ts_id
+         }
+        location_header = "/api/tissue_samples/{}".format(ts_id)
+        return jsonify(tissue_sample_new), 201, {"location": location_header}
+    except:
+        db.session.rollback()
+        return "Server error", 500
