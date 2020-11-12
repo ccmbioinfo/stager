@@ -311,8 +311,6 @@ def bulk_update():
             "notes",
         ],
     }
-    if request.content_type not in ["text/csv", "application/json"]:
-        return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 
     if request.content_type == "text/csv":
         try:
@@ -331,6 +329,8 @@ def bulk_update():
             return "JSON must be in an array", 422
 
         dat = request.json
+    else:
+        return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 
     try:
         updated_by = current_user.user_id
