@@ -524,10 +524,6 @@ def post_tissue():
     if enum_error:
         return enum_error, 400
 
-    now = datetime.now()
-    created = now
-    updated = now
-
     try:
         created_by = updated_by = current_user.user_id
     except:  # LOGIN DISABLED
@@ -535,27 +531,21 @@ def post_tissue():
 
     tissue_sample = models.TissueSample(
         **{
-            "participant_id": request.json["participant_id"],
-            "extraction_date": request.json["extraction_date"],
+            "participant_id": request.json.get("participant_id"),
+            "extraction_date": request.json.get("extraction_date"),
             "tissue_sample_type": request.json["tissue_sample_type"],
-            "tissue_processing": request.json["tissue_processing"],
-            "notes": request.json["notes"],
-            "created": created,
+            "tissue_processing": request.json.get("tissue_processing"),
+            "notes": request.json.get('notes'),
             "created_by": created_by,
-            "updated": updated,
             "updated_by": updated_by
         }
     )
     try:
         db.session.add(tissue_sample)
-        db.session.flush()
+        db.session.commit()
         ts_id = tissue_sample.tissue_sample_id
-        tissue_sample_new = {
-             **asdict(tissue_sample),
-             "tissue_sample_id": ts_id
-         }
         location_header = "/api/tissue_samples/{}".format(ts_id)
-        return jsonify(tissue_sample_new), 201, {"location": location_header}
+        return jsonify(tissue_sample), 201, {"location": location_header}
     except:
         db.session.rollback()
         return "Server error", 500
