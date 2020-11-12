@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: cp sample.env .env
+    - run: cp sample.env .env
     - name: Build development image
       run: docker-compose -p st2020test -f docker-compose.test.yaml build
     - name: Start services
