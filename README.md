@@ -80,7 +80,7 @@ If the change is to an enum or something else that the isn't automatically picke
 flask db revision -m "message about change"
 ```
 2. Navigate to the `migrations/versions` folder and open the file that was just created.
-3. Edit the `updgrade/downgrade` functions by writing MySQL code directly in `op.execute("MYSQL CODE HERE)` calls
+3. Edit the `upgrade`/`downgrade` functions by writing MySQL code directly in `op.execute("MYSQL CODE HERE)` calls
 4. Shut down everything, update the `models.py` and restart
 
 ### Production
@@ -88,7 +88,7 @@ flask db revision -m "message about change"
 1. In the `react` directory, build the static bundles for nginx with `yarn build`.
 1. In the project root:
 ```bash
-docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up
+docker-compose -f docker-compose.prod.yaml up
 ```
 This runs Gunicorn in the application container instead of Flask and does not bind mount the code.
 This additionally starts Nginx with the static bundles, certifications, and main config bind mounted.
@@ -103,3 +103,39 @@ You can also get a Prettier integration for your editor to automatically format 
 
 The [VSCode Python extension](https://code.visualstudio.com/docs/python/editing#_formatting)
 can be configured fo Black as a code formatter and Pylint. PyCharm can also integrate Pylint with a plugin.
+
+## Running tests
+
+First, make sure all the `TEST_*` environment variables in `.env` are configured. See `sample.env` for examples.
+
+To start the separate test service instances in the background, run:
+```bash
+docker-compose -p st2020test -f docker-compose.test.yaml up -d mysql minio
+```
+
+These containers do not have their ports exposed to the host like in development.
+To expose them to the host (perhaps you want to run Python in a virtualenv), add the
+`ports:` key to each service like in the regular `docker-compose.yaml`.
+
+`-p` is short for `--project-name` and keeps these containers in a separate namespace
+so they don't replace your regular development containers. To run in the foreground,
+remove the `-d` flag.
+
+Now you can run pytest with:
+```bash
+docker-compose -p st2020test -f docker-compose.test.yaml run --rm app
+```
+
+Alternatively, if you are using Python on your host machine, exposed the ports for these
+containers (or other equivalent test servers), and set your environment variables as
+needed by `flask/tests/conftest.py`:
+```bash
+python3 -m pytest
+```
+Note that just running `pytest` fails on module resolution for some reason and should be
+investigated if we have free time.
+
+To clean up these containers:
+```bash
+docker-compose -p st2020test -f docker-compose.test.services.yaml down
+```
