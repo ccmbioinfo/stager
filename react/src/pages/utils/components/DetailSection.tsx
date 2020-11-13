@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Collapse, Grid, Typography } from "@material-ui/core";
+import { Button, Collapse, Grid, makeStyles, Typography } from "@material-ui/core";
 import { FieldDisplayValueType } from "../typings";
 
 const gridSpacing = 2;
@@ -67,6 +67,12 @@ interface DetailSectionProps {
     linkPath?: string;
 }
 
+const useStyles = makeStyles(theme => ({
+    button: {
+        marginRight: theme.spacing(1),
+    },
+}));
+
 export default function DetailSection({
     titles,
     values,
@@ -75,6 +81,7 @@ export default function DetailSection({
     title,
 }: DetailSectionProps) {
     const [moreDetails, setMoreDetails] = useState(false);
+    const classes = useStyles();
 
     return (
         <>
@@ -110,6 +117,7 @@ export default function DetailSection({
                         </Grid>
                     </Collapse>
                     <Button
+                        className={classes.button}
                         variant="contained"
                         size="small"
                         onClick={() => {

@@ -27,6 +27,9 @@ const useStyles = makeStyles(theme => ({
     list: {
         padding: 0,
     },
+    button: {
+        marginRight: theme.spacing(1),
+    },
 }));
 
 export default function InfoList(props: {
@@ -75,6 +78,7 @@ export default function InfoList(props: {
                                 />
                                 {props.linkPath && info.identifier &&
                                     <Button
+                                    className={classes.button}
                                     onClick={() => { history.push(`${props.linkPath}/${info.identifier}`) }}
                                     variant="contained"
                                     size="small"
