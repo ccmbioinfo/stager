@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { makeStyles, Container, Button } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
-import DataEntryTable from "../utils/upload/DataEntryTable";
+import DataEntryTable from "./DataEntryTable";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
