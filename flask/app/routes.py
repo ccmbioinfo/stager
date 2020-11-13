@@ -329,6 +329,7 @@ def bulk_update():
             return "JSON must be in an array", 422
 
         dat = request.json
+
     else:
         return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 
@@ -517,3 +518,39 @@ def delete_tissue(id: int):
         return "Tissue has dataset(s), cannot delete", 422
     else:
         return "Not Found", 404
+
+
+@app.route("/api/families", methods=["POST"])
+@login_required
+def families():
+    if not request.json:
+        return "Request body must be JSON", 400
+
+    try:
+        updated_by = current_user.user_id
+        created_by = current_user.user_id
+    except:  # LOGIN_DISABLED
+        updated_by = 1
+        created_by = 1
+
+    fam_query = models.Family.query.filter(
+        models.Family.family_codename == request.json.get("family_codename")
+    )
+
+    if fam_query.value("family_id"):
+        return "Family Codename already in use", 422
+
+    fam_objs = models.Family(
+        family_codename=request.json.get("family_codename"),
+        created_by=created_by,
+        updated_by=updated_by,
+    )
+
+    db.session.add(fam_objs)
+    transaction_or_abort(db.session.commit)
+
+    fam_id = fam_query.value("family_id")
+
+    location_header = "/api/tissue_samples/{}".format(fam_id)
+
+    return jsonify(fam_objs), 201, {"location": location_header}
