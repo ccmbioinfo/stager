@@ -11,14 +11,46 @@ from .routes import check_admin
 @login_required
 def families_list():
 
-    db_families = models.Family.query.options(
-        joinedload(models.Family.participants)
-    ).all()
+    db_families = (
+        models.Family.query.join(models.Participant)
+        .join(models.TissueSample)
+        .join(models.Dataset)
+        .join(
+            models.groups_datasets_table,
+            models.Dataset.dataset_id
+            == models.groups_datasets_table.columns.dataset_id,
+        )
+        .join(
+            models.users_groups_table,
+            models.groups_datasets_table.columns.group_id
+            == models.users_groups_table.columns.group_id,
+        )
+        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
+        .all()
+    )
 
     families = [
         {
             **asdict(family),
-            "participants": family.participants,
+            "participants": (
+                db.session.query(models.Participant)
+                .filter(models.Participant.family_id == family.family_id)
+                .join(models.TissueSample)
+                .join(models.Dataset)
+                .join(
+                    models.groups_datasets_table,
+                    models.Dataset.dataset_id
+                    == models.groups_datasets_table.columns.dataset_id,
+                )
+                .join(
+                    models.users_groups_table,
+                    models.groups_datasets_table.columns.group_id
+                    == models.users_groups_table.columns.group_id,
+                )
+                .filter(models.users_groups_table.columns.user_id == current_user.user_id)
+                .options(joinedload(models.Participant.family))
+                .all()
+            ),
         }
         for family in db_families
     ]

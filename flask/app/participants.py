@@ -15,19 +15,51 @@ from werkzeug.exceptions import HTTPException
 @app.route("/api/participants", methods=["GET"], endpoint="participants_list")
 @login_required
 def participants_list():
-    db_participants = models.Participant.query.options(
-        joinedload(models.Participant.family),
-        joinedload(models.Participant.tissue_samples).joinedload(
-            models.TissueSample.datasets
-        ),
-    ).all()
+
+    db_participants = (
+        db.session.query(models.Participant)
+        .join(models.TissueSample)
+        .join(models.Dataset)
+        .join(
+            models.groups_datasets_table,
+            models.Dataset.dataset_id
+            == models.groups_datasets_table.columns.dataset_id,
+        )
+        .join(
+            models.users_groups_table,
+            models.groups_datasets_table.columns.group_id
+            == models.users_groups_table.columns.group_id,
+        )
+        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
+        .options(joinedload(models.Participant.family))
+        .all()
+    )
 
     participants = [
         {
             **asdict(participant),
             "family_codename": participant.family.family_codename,
             "tissue_samples": [
-                {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
+                {
+                    **asdict(tissue_sample),
+                    "datasets": (
+                        db.session.query(models.Dataset)
+                        .filter(models.Dataset.tissue_sample_id == tissue_sample.tissue_sample_id)
+                        .join(models.groups_datasets_table)
+                        .join(
+                            models.users_groups_table,
+                            models.groups_datasets_table.columns.group_id
+                            == models.users_groups_table.columns.group_id,
+                        )
+                        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
+                        .options(
+                            joinedload(models.Dataset.tissue_sample)
+                            .joinedload(models.TissueSample.participant)
+                            .joinedload(models.Participant.family)
+                        )
+                        .all()
+                    ),
+                }
                 for tissue_sample in participant.tissue_samples
             ],
         }
