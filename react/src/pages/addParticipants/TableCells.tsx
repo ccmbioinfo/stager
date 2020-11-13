@@ -20,7 +20,7 @@ import {
 } from "./utils";
 
 const useDateCellStyles = makeStyles(theme => ({
-    date: {
+    textfield: {
         width: "125px",
     },
 }));
@@ -167,7 +167,7 @@ export function DateCell(props: {
     return (
         <TableCell>
             <TextField
-                className={classes.date}
+                className={classes.textfield}
                 id="date"
                 size="small"
                 type="date"
