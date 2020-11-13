@@ -17,6 +17,13 @@ from werkzeug.exceptions import HTTPException
 def datasets_list():
     db_datasets = (
         db.session.query(models.Dataset)
+        .join(models.groups_datasets_table)
+        .join(
+            models.users_groups_table,
+            models.groups_datasets_table.columns.group_id
+            == models.users_groups_table.columns.group_id,
+        )
+        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
         .options(
             joinedload(models.Dataset.tissue_sample)
             .joinedload(models.TissueSample.participant)
