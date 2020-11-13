@@ -66,18 +66,17 @@ const useTableStyles = makeStyles(theme => ({
         padding: 0,
     },
     newRowButton: {
-        width: "100%"
-    }
+        width: "100%",
+    },
 }));
 
-const defaultOptionals = ["notes", "sex"];
+const defaultOptionals = ["notes", "sex", "input_hpf_path"];
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
 
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
-    
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(
         getColumns("optional").map(header => {
@@ -141,66 +140,63 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     return (
         <Paper>
-            <DataEntryToolbar
-                columns={optionals}
-                handleColumnAction={toggleHideColumn}
-            />
+            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
             <TableContainer>
                 <Table>
-                    <caption>{"* - Required | ** - Required only if Dataset Type is RRS"}</caption>
+                    <caption>* - Required | ** - Required only if Dataset Type is RRS</caption>
                     <TableHead>
                         <TableRow>
                             <TableCell padding="checkbox" aria-hidden={true} />
                             <TableCell padding="checkbox" aria-hidden={true} />
-                            {columns.map((cell, index) => (
-                                <TableCell className={classes.requiredCell}>
+                            {columns.map(cell => (
+                                <TableCell className={classes.requiredCell} key={cell.field}>
                                     {cell.title + "*"}
                                 </TableCell>
                             ))}
 
-                            {optionals.map((cell, index) => (
-                                <>
-                                    {!cell.hidden && (
-                                        <TableCell className={classes.optionalCell}>
+                            {optionals.map(
+                                cell =>
+                                    !cell.hidden && (
+                                        <TableCell
+                                            className={classes.optionalCell}
+                                            key={cell.field}
+                                        >
                                             {cell.title}
                                         </TableCell>
-                                    )}
-                                </>
-                            ))}
+                                    )
+                            )}
 
                             {showRNA &&
                                 RNASeqCols.map(cell => (
-                                    <>
-                                        <TableCell className={classes.optionalCell}>
-                                            {cell.title + "**"}
-                                        </TableCell>
-                                    </>
+                                    <TableCell className={classes.optionalCell} key={cell.field}>
+                                        {cell.title + "**"}
+                                    </TableCell>
                                 ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {rows.map((row, rowIndex) => (
-                            <TableRow>
+                            <TableRow key={rowIndex}>
                                 <DataEntryActionCell
                                     tooltipTitle="Delete row"
                                     icon={<Delete />}
-                                    onClick={e => {
-                                        setRows(rows.filter((value, index) => index !== rowIndex));
-                                    }}
+                                    onClick={() =>
+                                        setRows(rows.filter((value, index) => index !== rowIndex))
+                                    }
                                     disabled={rows.length === 1}
                                 />
                                 <DataEntryActionCell
                                     tooltipTitle="Duplicate row"
                                     icon={<LibraryAdd />}
-                                    onClick={e => {
+                                    onClick={() =>
                                         setRows(
                                             rows.flatMap((value, index) =>
                                                 index === rowIndex
                                                     ? [value, { ...value } as DataEntryRow]
                                                     : value
                                             )
-                                        );
-                                    }}
+                                        )
+                                    }
                                 />
 
                                 {columns.map(col => (
@@ -210,38 +206,34 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         col={col}
                                         getOptions={getOptions}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                        key={col.field}
                                     />
                                 ))}
-                                {optionals.map(col => (
-                                    <>
-                                        {!col.hidden && (
+                                {optionals.map(
+                                    col =>
+                                        !col.hidden && (
                                             <DataEntryCell
                                                 row={row}
                                                 rowIndex={rowIndex}
                                                 col={col}
                                                 getOptions={getOptions}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                                key={col.field}
                                             />
-                                        )}
-                                    </>
-                                ))}
+                                        )
+                                )}
 
                                 {showRNA &&
                                     RNASeqCols.map(col => (
-                                        <>
-                                            {
-                                                <DataEntryCell
-                                                    row={row}
-                                                    rowIndex={rowIndex}
-                                                    col={col}
-                                                    getOptions={getOptions}
-                                                    onEdit={newValue =>
-                                                        onEdit(newValue, rowIndex, col)
-                                                    }
-                                                    disabled={row.dataset_type !== "RRS"}
-                                                />
-                                            }
-                                        </>
+                                        <DataEntryCell
+                                            row={row}
+                                            rowIndex={rowIndex}
+                                            col={col}
+                                            getOptions={getOptions}
+                                            onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                            disabled={row.dataset_type !== "RRS"}
+                                            key={col.field}
+                                        />
                                     ))}
                             </TableRow>
                         ))}
@@ -485,7 +477,7 @@ function DataEntryColumnMenuAction(props: {
                 onClose={() => setAnchor(null)}
             >
                 {props.columns.map(column => (
-                    <MenuItem onClick={() => props.onClick(column.field)}>
+                    <MenuItem onClick={() => props.onClick(column.field)} key={column.title}>
                         <Box display="flex" flexGrow={1}>
                             {column.title}
                         </Box>
