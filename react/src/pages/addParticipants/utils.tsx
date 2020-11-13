@@ -1,7 +1,8 @@
-import { DataEntryHeader, DataEntryRow } from "../typings";
-import { getDataEntryHeaders, snakeCaseToTitle } from "../functions";
+import { DataEntryHeader, DataEntryRow } from "../utils/typings";
+import { getDataEntryHeaders, snakeCaseToTitle } from "../utils/functions";
 
 export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
+export const dateColumns: Array<keyof DataEntryRow> = ["sequencing_date"];
 
 // Columns whose values are predefined
 export const enumerableColumns: Array<keyof DataEntryRow> = [
