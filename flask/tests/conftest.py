@@ -1,9 +1,9 @@
-import pytest
-from app import *
-import os
+import os, pytest
+from app import create_app, db
+from app.config import Config
 
 
-class TestConfig(config.Config):
+class TestConfig(Config):
     """
     Pytest config settings.
     Uses MySQL database called "st2020testing" for adding/removing test data.
@@ -12,8 +12,13 @@ class TestConfig(config.Config):
     FLASK_ENV = "development"
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        "ST_DATABASE_URI_TESTING", "mysql+pymysql://admin:admin@localhost/st2020testing"
+        "TEST_ST_DATABASE_URI", "mysql+pymysql://admin:admin@localhost/st2020testing"
     )
+    MINIO_ENDPOINT = os.getenv("TEST_MINIO_ENDPOINT", "localhost:9000")
+    MINIO_SECRET_KEY = os.getenv(
+        "TEST_MINIO_SECRET_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    )
+    MINIO_ACCESS_KEY = os.getenv("TEST_MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
     TESTING = True
 
 

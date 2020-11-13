@@ -1,0 +1,31 @@
+version: "2"
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: "${TEST_MYSQL_DATABASE}"
+      MYSQL_USER: "${TEST_MYSQL_USER}"
+      MYSQL_PASSWORD: "${TEST_MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${TEST_MYSQL_ROOT_PASSWORD}"
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: "${TEST_MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
+    command: server /data
+  app:
+    build: flask
+    image: ccmbio/st2020
+    environment:
+      FLASK_ENV: development
+      TEST_ST_DATABASE_URI: "mysql+pymysql://${TEST_MYSQL_USER}:${TEST_MYSQL_PASSWORD}@mysql/${TEST_MYSQL_DATABASE}"
+      TEST_MINIO_ENDPOINT: minio:9000
+      TEST_MINIO_ACCESS_KEY: "${TEST_MINIO_ACCESS_KEY}"
+      TEST_MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
+    depends_on:
+      - mysql
+      - minio
+    volumes:
+      - ./flask:/var/www/sample-tracker/flask
+    command: pytest

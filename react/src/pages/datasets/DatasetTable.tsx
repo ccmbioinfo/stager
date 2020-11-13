@@ -35,7 +35,7 @@ export default function DatasetTable() {
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
 
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
         fetch("/api/enums").then(async response => {

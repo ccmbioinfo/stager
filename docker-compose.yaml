@@ -3,29 +3,31 @@ version: "2"
 services:
   mysql:
     image: mysql:8.0
-    restart: always
+    restart: on-failure
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT}:3306"
     volumes:
       - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
     image: minio/minio
+    restart: on-failure
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
     ports:
-      - "9000:9000"
+      - "${MINIO_HOST_PORT}:9000"
     volumes:
       - ${MINIO_VOLUME}:/data
     command: server /data
   app:
     build: flask
     image: ccmbio/st2020
+    restart: on-failure
     environment:
       FLASK_ENV: development
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
@@ -33,7 +35,7 @@ services:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
     ports:
-      - "5000:5000"
+      - "${FLASK_HOST_PORT}:5000"
     depends_on:
       - mysql
       - minio

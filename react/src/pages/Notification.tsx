@@ -66,7 +66,7 @@ function getNotificationInfo(analysis: Analysis) {
 export default function Notification({ analysis, onClick }: NotificationProps) {
     const classes = useStyles();
     const [hover, setHover] = useState(false);
-    const { analysis_id, msg, severity } = getNotificationInfo(analysis)!;
+    const { msg, severity } = getNotificationInfo(analysis)!;
 
     return (
         <Button
