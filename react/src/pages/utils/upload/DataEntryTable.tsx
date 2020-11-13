@@ -66,8 +66,8 @@ const useTableStyles = makeStyles(theme => ({
         padding: 0,
     },
     newRowButton: {
-        width: "100%"
-    }
+        width: "100%",
+    },
 }));
 
 const defaultOptionals = ["notes", "sex"];
@@ -77,7 +77,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
-    
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(
         getColumns("optional").map(header => {
@@ -141,10 +140,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     return (
         <Paper>
-            <DataEntryToolbar
-                columns={optionals}
-                handleColumnAction={toggleHideColumn}
-            />
+            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
             <TableContainer>
                 <Table>
                     <caption>{"* - Required | ** - Required only if Dataset Type is RRS"}</caption>
