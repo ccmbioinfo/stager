@@ -557,6 +557,6 @@ def families():
 
     fam_id = fam_query.value("family_id")
 
-    location_header = "/api/tissue_samples/{}".format(fam_id)
+    location_header = "/api/families/{}".format(fam_id)
 
     return jsonify(fam_objs), 201, {"location": location_header}
