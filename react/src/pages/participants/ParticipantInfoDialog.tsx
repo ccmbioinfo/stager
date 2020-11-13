@@ -8,6 +8,7 @@ import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
 import InfoList from "../utils/components/InfoList";
+import { useSnackbar } from "notistack";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -56,38 +57,37 @@ interface DialogProp {
     onClose: () => void;
 }
 
-/**
- * Given a participant, return a promise resolving to a list of all analyses
- * of datasets tied to this participant.
- */
-async function fetchAnalyses(participant: Participant) {
-    const datasets = participant.tissue_samples.flatMap(sample => sample.datasets);
-    let analysisList: Analysis[] = [];
-    for (const dataset of datasets) {
-        const response = await fetch("/api/datasets/" + dataset.dataset_id);
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data);
-            analysisList = analysisList.concat(data.analyses as Analysis[]);
-        } else {
-            console.error(response);
-            throw new Error(`GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`);
-        }
-    }
-    return analysisList;
-}
-
 export default function ParticipantInfoDialog({ participant, open, onClose }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
+    const { enqueueSnackbar } = useSnackbar();
+
     useEffect(() => {
-        fetchAnalyses(participant)
+        (async () => {
+            const datasets = participant.tissue_samples.flatMap(sample => sample.datasets);
+            let analysisList: Analysis[] = [];
+            for (const dataset of datasets) {
+                const response = await fetch("/api/datasets/" + dataset.dataset_id);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    analysisList = analysisList.concat(data.analyses as Analysis[]);
+                } else {
+                    throw new Error(`GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`);
+                }
+            }
+            return analysisList;
+        })()
         .then(analysisList => {
             setAnalyses(analysisList)
+        })
+        .catch(error => {
+            console.error(error);
+            enqueueSnackbar(error.message, { variant: "error" });
         });
-    }, [participant]);
+    }, [participant, enqueueSnackbar]);
 
     return (
         <Dialog

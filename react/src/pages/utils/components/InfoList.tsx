@@ -12,6 +12,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, MenuOpen } from "@material-ui/icons";
+import { useHistory } from "react-router-dom";
 import DetailSection from "./DetailSection";
 import { Info } from "../typings";
 
@@ -37,6 +38,7 @@ export default function InfoList(props: {
     const classes = useStyles();
     const [showInfo, setShowInfo] = useState<boolean[]>([]);
     const infoList = props.infoList;
+    const history = useHistory();
 
     function clickListItem(index: number) {
         // toggle
@@ -73,7 +75,7 @@ export default function InfoList(props: {
                                 />
                                 {props.linkPath && info.identifier &&
                                     <Button
-                                    href={`${props.linkPath}/${info.identifier}`}
+                                    onClick={() => { history.push(`${props.linkPath}/${info.identifier}`) }}
                                     variant="contained"
                                     size="small"
                                     endIcon={<MenuOpen />}
