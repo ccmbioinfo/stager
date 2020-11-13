@@ -1,8 +1,19 @@
 version: "2"
 
 services:
+  mysql:
+    image: mysql:8.0
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    volumes:
+      - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
     image: minio/minio
+    restart: on-failure
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
@@ -10,19 +21,19 @@ services:
       - ${MINIO_VOLUME}:/data
     command: server /data
   app:
-    build: flask
-    image: ccmbio/st2020
+    build:
+      context: flask
+      dockerfile: Dockerfile
+    image: ccmbio/st2020:edge
     environment:
       FLASK_ENV: production
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
-    ports:
-      - "5000:5000"
     depends_on:
       - mysql
-    command: prod --bind 0.0.0.0:5000 --preload --workers 1 --threads 2
+      - minio
   nginx:
     image: nginx:alpine
     ports:
