@@ -47,7 +47,7 @@ export default function AnalysisRunnerDialog({
     const descriptionId = "analysis-runner-alert-dialog-slide-description";
     const [pipeline, setPipeline] = useState(NaN);
 
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
 
     return (
         <Dialog
