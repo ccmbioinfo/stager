@@ -533,15 +533,21 @@ def families():
         updated_by = 1
         created_by = 1
 
+    fam_codename = request.json.get("family_codename")
+
+    # not sure if this is needed or if a different check would be better
+    if len(fam_codename) == 0:
+        return "Family codename must be at least 1 character long", 422
+
     fam_query = models.Family.query.filter(
-        models.Family.family_codename == request.json.get("family_codename")
+        models.Family.family_codename == fam_codename
     )
 
     if fam_query.value("family_id"):
         return "Family Codename already in use", 422
 
     fam_objs = models.Family(
-        family_codename=request.json.get("family_codename"),
+        family_codename=fam_codename,
         created_by=created_by,
         updated_by=updated_by,
     )
