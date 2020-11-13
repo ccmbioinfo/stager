@@ -1,6 +1,8 @@
 import { DataEntryHeader, DataEntryRow } from "../typings";
 import { getDataEntryHeaders, snakeCaseToTitle } from "../functions";
 
+export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
+
 // Columns whose values are predefined
 export const enumerableColumns: Array<keyof DataEntryRow> = [
     "condition",

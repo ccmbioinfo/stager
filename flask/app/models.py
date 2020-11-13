@@ -9,6 +9,13 @@ from sqlalchemy import CheckConstraint
 from . import db
 
 
+users_groups_table = db.Table(
+    "users_groups",
+    db.Model.metadata,
+    db.Column("user_id", db.Integer, db.ForeignKey("user.user_id")),
+    db.Column("group_id", db.Integer, db.ForeignKey("group.group_id")),
+)
+
 class User(UserMixin, db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), nullable=False, unique=True)
@@ -17,6 +24,10 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, unique=False, default=False)
     last_login = db.Column(db.DateTime)
     deactivated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
+
+    groups = db.relationship(
+        "Group", secondary=users_groups_table, backref="users"
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(
@@ -191,14 +202,6 @@ class DatasetExtractionProtocol(str, Enum):
 class DatasetReadType(str, Enum):
     PairedEnd = "PairedEnd"
     SingleEnd = "SingleEnd"
-
-
-users_groups_table = db.Table(
-    "users_groups",
-    db.Model.metadata,
-    db.Column("user_id", db.Integer, db.ForeignKey("user.user_id")),
-    db.Column("group_id", db.Integer, db.ForeignKey("group.group_id")),
-)
 
 
 groups_datasets_table = db.Table(
