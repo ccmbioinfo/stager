@@ -20,12 +20,8 @@ import {
 } from "@material-ui/core";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow } from "../utils/typings";
-import {
-    Option,
-    getOptions as _getOptions,
-    getColumns,
-} from "./utils";
-import {DataEntryActionCell, DataEntryCell } from "./TableCells"
+import { Option, getOptions as _getOptions, getColumns } from "./utils";
+import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { setProp } from "../utils/functions";
 
@@ -60,8 +56,8 @@ const useTableStyles = makeStyles(theme => ({
         padding: 0,
     },
     newRowButton: {
-        width: "100%"
-    }
+        width: "100%",
+    },
 }));
 
 const defaultOptionals = ["notes", "sex"];
@@ -71,7 +67,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
-    
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(
         getColumns("optional").map(header => {
@@ -135,10 +130,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     return (
         <Paper>
-            <DataEntryToolbar
-                columns={optionals}
-                handleColumnAction={toggleHideColumn}
-            />
+            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
             <TableContainer>
                 <Table>
                     <caption>{"* - Required | ** - Required only if Dataset Type is RRS"}</caption>

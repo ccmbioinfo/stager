@@ -20,10 +20,10 @@ import {
 } from "./utils";
 
 const useDateCellStyles = makeStyles(theme => ({
-    date:{
-        width: "125px"
-    }
-}))
+    date: {
+        width: "125px",
+    },
+}));
 
 const filter = createFilterOptions<Option>({
     limit: 25,
@@ -49,7 +49,7 @@ export function DataEntryCell(props: {
                 disabled={props.disabled}
             />
         );
-    }else if(dateColumns.includes(props.col.field)) {
+    } else if (dateColumns.includes(props.col.field)) {
         return (
             <DateCell
                 value={props.row[props.col.field]?.toString()}
@@ -163,11 +163,11 @@ export function DateCell(props: {
     onEdit: (newValue: string) => void;
     disabled?: boolean;
 }) {
-    const classes = useDateCellStyles()
+    const classes = useDateCellStyles();
     return (
         <TableCell>
             <TextField
-            className={classes.date}
+                className={classes.date}
                 id="date"
                 size="small"
                 type="date"
