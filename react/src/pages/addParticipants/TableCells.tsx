@@ -10,14 +10,7 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { DataEntryHeader, DataEntryRow } from "../utils/typings";
-import {
-    Option,
-    toOption,
-    getOptions as _getOptions,
-    booleanColumns,
-    dateColumns,
-    enumerableColumns,
-} from "./utils";
+import { Option, toOption, booleanColumns, dateColumns, enumerableColumns } from "./utils";
 
 const useDateCellStyles = makeStyles(theme => ({
     textField: {
