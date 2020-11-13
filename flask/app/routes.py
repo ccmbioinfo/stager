@@ -329,6 +329,7 @@ def bulk_update():
             return "JSON must be in an array", 422
 
         dat = request.json
+
     else:
         return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 

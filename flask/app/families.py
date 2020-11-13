@@ -4,7 +4,7 @@ from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import joinedload
-from .routes import check_admin
+from .routes import check_admin, transaction_or_abort
 
 
 @app.route("/api/families", methods=["GET"])
@@ -109,3 +109,40 @@ def edit_families(id: int):
     except:
         db.session.rollback()
         return "Server error", 500
+
+
+@app.route("/api/families", methods=["POST"])
+@login_required
+def create_family():
+    if not request.json:
+        return "Request body must be JSON", 400
+
+    try:
+        updated_by = current_user.user_id
+        created_by = current_user.user_id
+    except:  # LOGIN_DISABLED
+        updated_by = 1
+        created_by = 1
+
+    fam_codename = request.json.get("family_codename")
+
+    if not fam_codename:
+        return "A family codename must be provided", 400
+
+    if models.Family.query.filter(models.Family.family_codename == fam_codename).value(
+        "family_id"
+    ):
+        return "Family Codename already in use", 422
+
+    fam_objs = models.Family(
+        family_codename=fam_codename,
+        created_by=created_by,
+        updated_by=updated_by,
+    )
+
+    db.session.add(fam_objs)
+    transaction_or_abort(db.session.commit)
+
+    location_header = "/api/families/{}".format(fam_objs.family_id)
+
+    return jsonify(fam_objs), 201, {"location": location_header}
