@@ -86,6 +86,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
     const [enums, setEnums] = useState<any>();
+    const [files, setFiles] = useState<string[]>([]);
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
@@ -107,6 +108,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .catch(error => {
                 console.error(error);
             });
+
+        fetch("/api/unlinked")
+            .then(response => response.json())
+            .then(setFiles)
+            .catch(console.error);
     }, []);
 
     function onEdit(newValue: string | boolean, rowIndex: number, col: DataEntryHeader) {
@@ -126,7 +132,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryHeader): Option[] {
-        return _getOptions(rows, col, rowIndex, families, enums);
+        return _getOptions(rows, col, rowIndex, families, enums, files);
     }
 
     function toggleHideColumn(colField: keyof DataEntryRow) {
