@@ -154,7 +154,7 @@ export default function Analyses() {
 
     const history = useHistory();
 
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
         document.title = "Analyses | ST2020";
