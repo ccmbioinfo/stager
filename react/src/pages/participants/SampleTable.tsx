@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
 import MaterialTable, { MTableCell } from "material-table";
 import { formatDateString, getDatasetInfoList } from "../utils/functions";
-import { Dataset, Sample, Info } from "../utils/typings";
+import { Sample, Info } from "../utils/typings";
 import InfoList from "../utils/components/InfoList";
 
 const useStyles = makeStyles(theme => ({
@@ -15,45 +15,6 @@ const useStyles = makeStyles(theme => ({
         padding: 0,
     },
 }));
-
-function getTitles() {
-    return [
-        "Input HPF Path",
-        "Condition",
-        "Extraction Protocol",
-        "Capture Kit",
-        "Library Prep Method",
-        "Library Prep Date",
-        "Read Length",
-        "Read Type",
-        "Sequencing ID",
-        "Sequencing Centre",
-        "Creation Time",
-        "Created By",
-        "Last Updated",
-        "Updated By",
-        "Discriminator",
-    ];
-}
-function getValues(dataset: Dataset) {
-    return [
-        dataset.input_hpf_path,
-        dataset.condition,
-        dataset.extraction_protocol,
-        dataset.capture_kit,
-        dataset.library_prep_method,
-        formatDateString(dataset.library_prep_date),
-        dataset.read_length,
-        dataset.read_type,
-        dataset.sequencing_id,
-        dataset.sequencing_centre,
-        formatDateString(dataset.created),
-        dataset.created_by,
-        formatDateString(dataset.updated),
-        dataset.updated_by,
-        dataset.discriminator,
-    ];
-}
 
 export default function SampleTable({ samples }: { samples: Sample[] }) {
     const classes = useStyles();

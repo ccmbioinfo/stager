@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { formatDateString, getAnalysisInfoList } from "../utils/functions";
-import { Participant, Analysis, Info } from "../utils/typings";
+import { Participant, Analysis } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
