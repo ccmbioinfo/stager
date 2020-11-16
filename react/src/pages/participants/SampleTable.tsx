@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
     },
     cell: {
         padding: 0,
-    }
+    },
 }));
 
 function getTitles() {

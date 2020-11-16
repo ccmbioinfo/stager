@@ -36,7 +36,7 @@ export default function DatasetTable() {
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
 
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
     const [paramFilter, setParamFilter] = useState(paramID);

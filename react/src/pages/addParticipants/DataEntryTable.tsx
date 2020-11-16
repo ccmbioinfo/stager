@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     IconButton,
@@ -10,26 +10,20 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableCellProps,
     TableContainer,
     TableHead,
     TableRow,
-    TextField,
     Toolbar,
     Tooltip,
     Typography,
+    Button,
 } from "@material-ui/core";
-import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { AddBoxOutlined, CloudUpload, Delete, LibraryAdd, ViewColumn } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow } from "../typings";
-import {
-    Option,
-    toOption,
-    getOptions as _getOptions,
-    getColumns,
-    enumerableColumns,
-} from "./UploadUtils";
+import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
+import { DataEntryHeader, DataEntryRow } from "../utils/typings";
+import { Option, getOptions as _getOptions, getColumns } from "./utils";
+import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
+import { setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -58,6 +52,12 @@ const useTableStyles = makeStyles(theme => ({
     optionalCell: {
         minWidth: "8em",
     },
+    buttonCell: {
+        padding: 0,
+    },
+    newRowButton: {
+        width: "100%",
+    },
 }));
 
 const defaultOptionals = ["notes", "sex"];
@@ -73,7 +73,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             return { ...header, hidden: !defaultOptionals.includes(header.field) };
         })
     );
-
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Array<any>>([]);
     const [enums, setEnums] = useState<any>();
@@ -100,16 +99,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             });
     }, []);
 
-    function onEdit(newValue: string, rowIndex: number, col: DataEntryHeader) {
+    function onEdit(newValue: string | boolean, rowIndex: number, col: DataEntryHeader) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         }
         setRows(
             rows.map((value, index) => {
                 if (index === rowIndex) {
-                    const newRow: DataEntryRow = { ...value };
-                    (newRow[col.field] as string) = newValue;
-                    return newRow;
+                    return setProp({ ...value }, col.field, newValue);
                 } else {
                     return value;
                 }
@@ -133,13 +130,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     return (
         <Paper>
-            <DataEntryToolbar
-                handleAddRow={event => {
-                    setRows(rows.concat(createEmptyRows(1)));
-                }}
-                columns={optionals}
-                handleColumnAction={toggleHideColumn}
-            />
+            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
             <TableContainer>
                 <Table>
                     <caption>{"* - Required | ** - Required only if Dataset Type is RRS"}</caption>
@@ -200,23 +191,22 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
                                 {columns.map(col => (
                                     <DataEntryCell
-                                        value={toOption(row[col.field])}
-                                        options={getOptions(rowIndex, col)}
+                                        row={row}
+                                        rowIndex={rowIndex}
+                                        col={col}
+                                        getOptions={getOptions}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                        aria-label={`enter ${col.title} row ${rowIndex}`}
-                                        column={col}
                                     />
                                 ))}
-
                                 {optionals.map(col => (
                                     <>
                                         {!col.hidden && (
                                             <DataEntryCell
-                                                value={toOption(row[col.field])}
-                                                options={getOptions(rowIndex, col)}
+                                                row={row}
+                                                rowIndex={rowIndex}
+                                                col={col}
+                                                getOptions={getOptions}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                                aria-label={`enter ${col.title} row ${rowIndex} optional`}
-                                                column={col}
                                             />
                                         )}
                                     </>
@@ -227,123 +217,39 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         <>
                                             {
                                                 <DataEntryCell
-                                                    value={toOption(row[col.field])}
-                                                    options={getOptions(rowIndex, col)}
+                                                    row={row}
+                                                    rowIndex={rowIndex}
+                                                    col={col}
+                                                    getOptions={getOptions}
                                                     onEdit={newValue =>
                                                         onEdit(newValue, rowIndex, col)
                                                     }
-                                                    aria-label={`enter ${col.title} row ${rowIndex}`}
                                                     disabled={row.dataset_type !== "RRS"}
-                                                    column={col}
                                                 />
                                             }
                                         </>
                                     ))}
                             </TableRow>
                         ))}
+                        <TableRow>
+                            <TableCell className={classes.buttonCell} colSpan={100}>
+                                <Button
+                                    className={classes.newRowButton}
+                                    variant="contained"
+                                    color="default"
+                                    disableElevation
+                                    disableRipple
+                                    startIcon={<Add />}
+                                    onClick={() => setRows(rows.concat(createEmptyRows(1)))}
+                                >
+                                    Add new row
+                                </Button>
+                            </TableCell>
+                        </TableRow>
                     </TableBody>
                 </Table>
             </TableContainer>
         </Paper>
-    );
-}
-
-const filter = createFilterOptions<Option>({
-    limit: 25,
-});
-
-/**
- * A cell in the DataEntryTable that the user can type into.
- */
-function DataEntryCell(
-    props: {
-        value: Option;
-        options: Option[];
-        onEdit: (newValue: string) => void;
-        disabled?: boolean;
-        column: DataEntryHeader;
-    } & TableCellProps
-) {
-    const onEdit = (newValue: Option) => {
-        props.onEdit(newValue.inputValue);
-    };
-
-    // Remove 'this' input value from the list of options
-    const options = props.options.filter(
-        (val, index, arr) =>
-            arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
-            val.inputValue !== props.value.inputValue
-    );
-
-    return (
-        <TableCell>
-            <Autocomplete
-                disabled={props.disabled}
-                aria-label={props["aria-label"]}
-                selectOnFocus
-                clearOnBlur
-                handleHomeEndKeys
-                autoHighlight
-                onChange={(event, newValue) => {
-                    if (newValue) {
-                        onEdit(toOption(newValue));
-                    } else {
-                        onEdit(toOption(""));
-                    }
-                }}
-                options={options}
-                value={props.value}
-                renderInput={params => <TextField {...params} variant="standard" />}
-                groupBy={option => (option.origin ? option.origin : "Unknown")}
-                filterOptions={(options, params) => {
-                    const filtered = filter(options, params);
-
-                    // Adds user-entered value as option
-                    // We prefer to show pre-existing options than the "create new" option
-                    if (
-                        !enumerableColumns.includes(props.column.field) &&
-                        params.inputValue !== "" &&
-                        !filtered.find(option => option.inputValue === params.inputValue)
-                    ) {
-                        filtered.push({
-                            title: `Add "${params.inputValue}"`,
-                            inputValue: params.inputValue,
-                            origin: "Add new...",
-                        });
-                    }
-
-                    return filtered;
-                }}
-                getOptionDisabled={option => !!option.disabled}
-                getOptionLabel={option => option.inputValue}
-                renderOption={option => option.title}
-            />
-        </TableCell>
-    );
-}
-
-/**
- * A cell in the DataEntryTable positioned before all the entry rows, which
- * provides an action button that the user can click.
- */
-function DataEntryActionCell(props: {
-    onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-    icon: ReactNode;
-    tooltipTitle: string;
-    disabled?: boolean;
-}) {
-    return (
-        <TableCell padding="checkbox">
-            <Tooltip title={props.tooltipTitle}>
-                <IconButton
-                    onClick={props.onClick}
-                    disabled={props.disabled}
-                    aria-label={props.tooltipTitle}
-                >
-                    {props.icon}
-                </IconButton>
-            </Tooltip>
-        </TableCell>
     );
 }
 
@@ -359,7 +265,6 @@ const useToolbarStyles = makeStyles(theme => ({
  * buttons that do not depend on specific rows.
  */
 function DataEntryToolbar(props: {
-    handleAddRow: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     handleColumnAction: (field: keyof DataEntryRow) => void;
     columns: DataEntryHeader[];
 }) {
@@ -375,11 +280,6 @@ function DataEntryToolbar(props: {
                 <Tooltip title="Upload CSV">
                     <IconButton onClick={() => setOpenUpload(true)}>
                         <CloudUpload />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Add empty row">
-                    <IconButton onClick={props.handleAddRow} edge="end">
-                        <AddBoxOutlined />
                     </IconButton>
                 </Tooltip>
                 <DataEntryColumnMenuAction

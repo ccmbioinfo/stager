@@ -5,7 +5,7 @@ import { Cancel, FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { countArray, toKeyValue } from "../utils/functions";
-import { KeyValue, Participant, Sample, Dataset } from "../utils/typings";
+import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
@@ -26,7 +26,7 @@ export default function ParticipantTable() {
     const [sexTypes, setSexTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
 
