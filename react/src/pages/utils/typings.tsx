@@ -96,6 +96,7 @@ export interface Info {
     values: FieldDisplayValueType[];
     collapsibleTitles?: string[];
     collapsibleValues?: FieldDisplayValueType[];
+    identifier?: string;
 }
 
 // Define these as classes so that we can create an array of keys later

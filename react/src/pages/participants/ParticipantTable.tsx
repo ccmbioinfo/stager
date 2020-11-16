@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { Cancel, FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { countArray, toKeyValue } from "../utils/functions";
-import { KeyValue, Participant, Sample, Dataset } from "../utils/typings";
+import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
@@ -25,7 +26,9 @@ export default function ParticipantTable() {
     const [sexTypes, setSexTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar();
+
+    const { id: paramID } = useParams<{ id?: string }>();
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -82,6 +85,7 @@ export default function ParticipantTable() {
                     {
                         title: "Participant Codename",
                         field: "participant_codename",
+                        defaultFilter: paramID,
                     },
                     {
                         title: "Family Codename",

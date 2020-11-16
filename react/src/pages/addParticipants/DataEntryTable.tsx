@@ -1,7 +1,6 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
-    Checkbox,
     IconButton,
     makeStyles,
     Menu,
@@ -11,29 +10,20 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableCellProps,
     TableContainer,
     TableHead,
     TableRow,
-    TextField,
     Toolbar,
     Tooltip,
     Typography,
     Button,
 } from "@material-ui/core";
-import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow } from "../typings";
-import {
-    Option,
-    toOption,
-    getOptions as _getOptions,
-    getColumns,
-    booleanColumns,
-    enumerableColumns,
-} from "./UploadUtils";
+import { DataEntryHeader, DataEntryRow } from "../utils/typings";
+import { Option, getOptions as _getOptions, getColumns } from "./utils";
+import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
-import { setProp } from "../functions";
+import { setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -262,157 +252,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 </Table>
             </TableContainer>
         </Paper>
-    );
-}
-
-/**
- * A 'general' data entry cell that returns a table cell with a user control
- * appropriate for the type of value required.
- */
-function DataEntryCell(props: {
-    row: DataEntryRow;
-    rowIndex: number;
-    col: DataEntryHeader;
-    getOptions: (rowIndex: number, col: DataEntryHeader) => Option[];
-    onEdit: (newValue: string | boolean) => void;
-    disabled?: boolean;
-}) {
-    if (booleanColumns.includes(props.col.field)) {
-        return (
-            <CheckboxCell
-                value={!!props.row[props.col.field]}
-                onEdit={props.onEdit}
-                disabled={props.disabled}
-            />
-        );
-    }
-    return (
-        <AutocompleteCell
-            value={toOption(props.row[props.col.field])}
-            options={props.getOptions(props.rowIndex, props.col)}
-            onEdit={props.onEdit}
-            disabled={props.disabled}
-            column={props.col}
-            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
-        />
-    );
-}
-
-const filter = createFilterOptions<Option>({
-    limit: 25,
-});
-
-/**
- * A cell in the DataEntryTable that the user can type into.
- */
-function AutocompleteCell(
-    props: {
-        value: Option;
-        options: Option[];
-        onEdit: (newValue: string) => void;
-        disabled?: boolean;
-        column: DataEntryHeader;
-    } & TableCellProps
-) {
-    const onEdit = (newValue: Option) => {
-        props.onEdit(newValue.inputValue);
-    };
-
-    // Remove 'this' input value from the list of options
-    const options = props.options.filter(
-        (val, index, arr) =>
-            arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
-            val.inputValue !== props.value.inputValue
-    );
-
-    return (
-        <TableCell>
-            <Autocomplete
-                disabled={props.disabled}
-                aria-label={props["aria-label"]}
-                selectOnFocus
-                clearOnBlur
-                handleHomeEndKeys
-                autoHighlight
-                onChange={(event, newValue) => {
-                    if (newValue) {
-                        onEdit(toOption(newValue));
-                    } else {
-                        onEdit(toOption(""));
-                    }
-                }}
-                options={options}
-                value={props.value}
-                renderInput={params => <TextField {...params} variant="standard" />}
-                groupBy={option => (option.origin ? option.origin : "Unknown")}
-                filterOptions={(options, params) => {
-                    const filtered = filter(options, params);
-
-                    // Adds user-entered value as option
-                    // We prefer to show pre-existing options than the "create new" option
-                    if (
-                        !enumerableColumns.includes(props.column.field) &&
-                        params.inputValue !== "" &&
-                        !filtered.find(option => option.inputValue === params.inputValue)
-                    ) {
-                        filtered.push({
-                            title: `Add "${params.inputValue}"`,
-                            inputValue: params.inputValue,
-                            origin: "Add new...",
-                        });
-                    }
-
-                    return filtered;
-                }}
-                getOptionDisabled={option => !!option.disabled}
-                getOptionLabel={option => option.inputValue}
-                renderOption={option => option.title}
-            />
-        </TableCell>
-    );
-}
-
-/**
- * A data entry cell for columns which require a boolean value.
- */
-function CheckboxCell(props: {
-    value: boolean;
-    onEdit: (newValue: boolean) => void;
-    disabled?: boolean;
-}) {
-    return (
-        <TableCell padding="checkbox">
-            <Checkbox
-                checked={props.value}
-                onChange={event => props.onEdit(event.target.checked)}
-                disabled={props.disabled}
-            />
-        </TableCell>
-    );
-}
-
-/**
- * A cell in the DataEntryTable positioned before all the entry rows, which
- * provides an action button that the user can click.
- */
-function DataEntryActionCell(props: {
-    onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-    icon: ReactNode;
-    tooltipTitle: string;
-    disabled?: boolean;
-}) {
-    return (
-        <TableCell padding="checkbox">
-            <Tooltip title={props.tooltipTitle}>
-                <IconButton
-                    onClick={props.onClick}
-                    disabled={props.disabled}
-                    aria-label={props.tooltipTitle}
-                >
-                    {props.icon}
-                </IconButton>
-            </Tooltip>
-        </TableCell>
     );
 }
 

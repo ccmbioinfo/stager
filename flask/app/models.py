@@ -16,6 +16,7 @@ users_groups_table = db.Table(
     db.Column("group_id", db.Integer, db.ForeignKey("group.group_id")),
 )
 
+
 class User(UserMixin, db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), nullable=False, unique=True)
@@ -25,9 +26,7 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime)
     deactivated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
 
-    groups = db.relationship(
-        "Group", secondary=users_groups_table, backref="users"
-    )
+    groups = db.relationship("Group", secondary=users_groups_table, backref="users")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(

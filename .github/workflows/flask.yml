@@ -1,0 +1,31 @@
+name: Build and test backend
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - react/**/*
+  pull_request:
+    branches:
+      - '*'
+    paths-ignore:
+      - react/**/*
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: cp sample.env .env
+    - name: Build development image
+      run: docker-compose -p st2020test -f docker-compose.test.yaml build
+    - name: Start services
+      run: docker-compose -p st2020test -f docker-compose.test.yaml up -d mysql minio
+    - name: Pytest
+      run: docker-compose -p st2020test -f docker-compose.test.yaml run --rm app
+    - name: Black
+      run: docker-compose -p st2020test -f docker-compose.test.yaml run --rm app black --check
+    - name: Stop services
+      run: docker-compose -p st2020test -f docker-compose.test.yaml down
+    - name: Build production image
+      run: docker-compose -f docker-compose.prod.yaml build
+
