@@ -39,6 +39,7 @@ export default function DatasetTable() {
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
+    const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
         fetch("/api/enums").then(async response => {
@@ -95,7 +96,7 @@ export default function DatasetTable() {
                         title: "Dataset ID",
                         field: "dataset_id",
                         editable: "never",
-                        defaultFilter: paramID,
+                        defaultFilter: paramFilter,
                     },
                     { title: "Participant", field: "participant_codename", editable: "never" },
                     { title: "Family", field: "family_codename", editable: "never" },
@@ -247,6 +248,10 @@ export default function DatasetTable() {
                     header: {
                         actions: "", //remove action buttons' header
                     },
+                }}
+                onFilterChange={(filters) => {
+                    const newValue = filters.find(filter => filter.column.field === "analysis_id")?.value;
+                    setParamFilter(newValue ? newValue : "");
                 }}
             />
         </div>
