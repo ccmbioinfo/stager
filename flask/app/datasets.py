@@ -15,22 +15,30 @@ from werkzeug.exceptions import HTTPException
 @app.route("/api/datasets", methods=["GET"])
 @login_required
 def datasets_list():
-    db_datasets = (
-        db.session.query(models.Dataset)
-        .join(models.groups_datasets_table)
-        .join(
-            models.users_groups_table,
-            models.groups_datasets_table.columns.group_id
-            == models.users_groups_table.columns.group_id,
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        query = (
+            models.Dataset.query.join(models.groups_datasets_table)
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
         )
-        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-        .options(
-            joinedload(models.Dataset.tissue_sample)
-            .joinedload(models.TissueSample.participant)
-            .joinedload(models.Participant.family)
-        )
-        .all()
-    )
+    else:
+        query = models.Dataset.query
+
+    db_datasets = query.options(
+        joinedload(models.Dataset.tissue_sample)
+        .joinedload(models.TissueSample.participant)
+        .joinedload(models.Participant.family)
+    ).all()
+
     datasets = [
         {
             **asdict(dataset),

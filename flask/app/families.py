@@ -3,55 +3,44 @@ from dataclasses import asdict
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin
 
 
 @app.route("/api/families", methods=["GET"])
 @login_required
 def families_list():
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
 
-    db_families = (
-        models.Family.query.join(models.Participant)
-        .join(models.TissueSample)
-        .join(models.Dataset)
-        .join(
-            models.groups_datasets_table,
-            models.Dataset.dataset_id
-            == models.groups_datasets_table.columns.dataset_id,
+    if user_id:
+        db_families = (
+            models.Family.query.options(contains_eager(models.Family.participants))
+            .join(models.Participant)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .all()
         )
-        .join(
-            models.users_groups_table,
-            models.groups_datasets_table.columns.group_id
-            == models.users_groups_table.columns.group_id,
-        )
-        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-        .all()
-    )
+    else:
+        db_families = models.Family.query.options(
+            joinedload(models.Family.participants)
+        ).all()
 
     families = [
-        {
-            **asdict(family),
-            "participants": (
-                db.session.query(models.Participant)
-                .filter(models.Participant.family_id == family.family_id)
-                .join(models.TissueSample)
-                .join(models.Dataset)
-                .join(
-                    models.groups_datasets_table,
-                    models.Dataset.dataset_id
-                    == models.groups_datasets_table.columns.dataset_id,
-                )
-                .join(
-                    models.users_groups_table,
-                    models.groups_datasets_table.columns.group_id
-                    == models.users_groups_table.columns.group_id,
-                )
-                .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-                .options(joinedload(models.Participant.family))
-                .all()
-            ),
-        }
+        {**asdict(family), "participants": family.participants}
         for family in db_families
     ]
 
