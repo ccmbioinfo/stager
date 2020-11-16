@@ -153,6 +153,7 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
             titles: getAnalysisTitles(),
             values: getAnalysisValues(analysis),
+            identifier: analysis.analysis_id,
         };
     });
 }
@@ -244,6 +245,7 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
             values: getDatasetValues(dataset),
             collapsibleTitles: getSecDatasetTitles(),
             collapsibleValues: getSecDatasetValues(dataset),
+            identifier: dataset.dataset_id,
         };
     });
 }
