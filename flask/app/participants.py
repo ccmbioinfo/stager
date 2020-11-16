@@ -52,15 +52,22 @@ def participants_list():
                             == models.users_groups_table.columns.group_id,
                         )
                         .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-                        .options(
-                            joinedload(models.Dataset.tissue_sample)
-                            .joinedload(models.TissueSample.participant)
-                            .joinedload(models.Participant.family)
-                        )
                         .all()
                     ),
                 }
-                for tissue_sample in participant.tissue_samples
+                for tissue_sample in (
+                        db.session.query(models.TissueSample)
+                        .filter(models.TissueSample.participant_id == participant.participant_id)
+                        .join(models.Dataset)
+                        .join(models.groups_datasets_table)
+                        .join(
+                            models.users_groups_table,
+                            models.groups_datasets_table.columns.group_id
+                            == models.users_groups_table.columns.group_id,
+                        )
+                        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
+                        .all()
+                    )
             ],
         }
         for participant in db_participants
