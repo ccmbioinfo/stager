@@ -329,6 +329,7 @@ def bulk_update():
             return "JSON must be in an array", 422
 
         dat = request.json
+
     else:
         return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 
@@ -517,3 +518,53 @@ def delete_tissue(id: int):
         return "Tissue has dataset(s), cannot delete", 422
     else:
         return "Not Found", 404
+
+
+@app.route("/api/tissue_samples", methods=["POST"])
+@login_required
+def post_tissue():
+    if not request.json:
+        return "Request body must be JSON", 400
+
+    tissue_sample_type = request.json.get("tissue_sample_type")
+    if not tissue_sample_type:
+        return "A tissue sample type must be provided", 400
+
+    participant_id = request.json.get("participant_id")
+    if not participant_id:
+        return "A participant id must be provided", 400
+
+    models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
+
+    enum_error = enum_validate(
+        models.TissueSample, request.json, ["tissue_sample_type", "tissue_processing"]
+    )
+
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        created_by = updated_by = current_user.user_id
+    except:  # LOGIN DISABLED
+        created_by = updated_by = 1
+
+    tissue_sample = models.TissueSample(
+        **{
+            "participant_id": participant_id,
+            "extraction_date": request.json.get("extraction_date"),
+            "tissue_sample_type": tissue_sample_type,
+            "tissue_processing": request.json.get("tissue_processing"),
+            "notes": request.json.get("notes"),
+            "created_by": created_by,
+            "updated_by": updated_by,
+        }
+    )
+    try:
+        db.session.add(tissue_sample)
+        db.session.commit()
+        ts_id = tissue_sample.tissue_sample_id
+        location_header = "/api/tissue_samples/{}".format(ts_id)
+        return jsonify(tissue_sample), 201, {"location": location_header}
+    except:
+        db.session.rollback()
+        return "Server error", 500
