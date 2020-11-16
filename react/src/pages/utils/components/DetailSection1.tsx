@@ -6,19 +6,11 @@ import {
     Typography,
     TextField,
     ButtonGroup,
-    ButtonBase,
     Fade,
     Box,
     makeStyles,
-    Tooltip,
-    IconButton
+    MenuItem,
 } from "@material-ui/core";
-import {
-    Add,
-    Edit,
-    Check,
-    Close
-} from "@material-ui/icons";
 import { FieldDisplayValueType, Field } from "../typings";
 
 const gridSpacing = 2;
@@ -38,7 +30,7 @@ function FieldDisplay({ title, value }: FieldDisplayProps) {
     else if (typeof value === "boolean") val = value ? "Yes" : "No";
 
     return (
-        <Typography variant="body1" gutterBottom >
+        <Typography variant="body1" gutterBottom>
             <b>{title}:</b> {val}
         </Typography>
     );
@@ -57,16 +49,6 @@ const useFieldsDisplayStyles = makeStyles(theme => ({
         margin: theme.spacing(0.2),
         // padding: theme.spacing(0),
     },
-    button:{
-        textTransform: "none",
-        padding: theme.spacing(0.5),
-        paddingleft: 0,
-        // minHeight: 0,
-        minWidth: 0,
-    },
-    box: {
-        
-    }
 }));
 const sexes = [
     {
@@ -85,55 +67,60 @@ const sexes = [
   
 function LeftGridFieldsDisplay({ fields, editMode }: { fields: Field[]; editMode: boolean }) {
     const classes = useFieldsDisplayStyles();
-    const [editing, setEditing] = useState<boolean[]>(fields.map(field => false));
+    const [currFields, setCurrFields] = useState(fields);
 
   
     return (
         <>
-            {fields.map((field, index) => {
+            {currFields.map((field, index) => {
                 if (index >= Math.ceil(fields.length / 2)) {
                     return <></>;
                 } else {
                     return (
-                        <Box className={classes.box}>
-                            {
-                                editing[index] ? (
-                                    <>
-                                    <TextField
-                                        className={classes.textField}
-                                        id="standard-basic"
-                                        label={field.title}
-                                        defaultValue={formatValue(field.value)}
-                                        margin="dense"
-                                    />
-                                    <IconButton onClick={() => {
-                                        const newArray = [...editing]
-                                        newArray[index] = false
-                                        setEditing(newArray)
-                                    }}>
-                                        <Check />
-                                    </IconButton>
-                                    <IconButton onClick={() => {
-                                        const newArray = [...editing]
-                                        newArray[index] = false
-                                        setEditing(newArray)
-                                    }}>
-                                        <Close />
-                                    </IconButton>
-                                    </>
-                                ) : (
-                                    <Tooltip title="Click to edit" placement="right">
-                                        <Button onClick={()=> { 
-                                            const newArray:boolean[] = [...editing]
-                                        newArray[index] = true
-                                        setEditing(newArray)}} className={classes.button}>
-                                            <FieldDisplay title={field.title} value={field.value}  />
-                                        </Button>
-                                    </Tooltip>
-                                )
-                            }
-                            
-                        </Box>
+                        <>
+                            {editMode ? (
+                                <Fade in={editMode}>
+                                    {
+                                        field.title === "Sex" ? (
+                                            <TextField
+                                                id="standard-select-currency"
+                                                select
+                                                label={field.title}
+                                                value={field.value}
+                                                onChange={(e)=> {
+                                                    const newFields = [...currFields]
+                                                    newFields[index] = {...newFields[index], value: e.target.value}
+                                                    setCurrFields(newFields)
+                                                }}
+                                                fullWidth
+                                                >
+                                                {sexes.map((option) => (
+                                                    <MenuItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                    </MenuItem>
+                                                ))}
+                                                </TextField>
+                                        ) : (
+                                            <TextField
+                                                className={classes.textField}
+                                                id="standard-basic"
+                                                label={field.title}
+                                                defaultValue={formatValue(field.value)}
+                                                fullWidth
+                                                disabled={field.disableEdit}
+                                            />
+                                        )
+                                    }
+                                    
+                                </Fade>
+                            ) : (
+                                <Fade in={!editMode}>
+                                    <Box>
+                                        <FieldDisplay title={field.title} value={field.value} />
+                                    </Box>
+                                </Fade>
+                            )}
+                        </>
                     );
                 }
             })}
@@ -143,8 +130,6 @@ function LeftGridFieldsDisplay({ fields, editMode }: { fields: Field[]; editMode
 
 function RightGridFieldsDisplay({ fields, editMode }: { fields: Field[]; editMode: boolean }) {
     const classes = useFieldsDisplayStyles();
-    const [editing, setEditing] = useState<boolean[]>(fields.map(field => false));
-    
     return (
         <>
             {fields.map((field, index) => {
@@ -152,45 +137,25 @@ function RightGridFieldsDisplay({ fields, editMode }: { fields: Field[]; editMod
                     return <></>;
                 } else {
                     return (
-                        <Box className={classes.box}>
-                            {
-                                editing[index] ? (
-                                    <>
+                        <>
+                            {editMode ? (
+                                <Fade in={editMode}>
                                     <TextField
                                         className={classes.textField}
                                         id="standard-basic"
                                         label={field.title}
                                         defaultValue={formatValue(field.value)}
-                                        margin="dense"
+                                        fullWidth
                                     />
-                                    <IconButton onClick={() => {
-                                        const newArray = [...editing]
-                                        newArray[index] = false
-                                        setEditing(newArray)
-                                    }}>
-                                        <Check />
-                                    </IconButton>
-                                    <IconButton onClick={() => {
-                                        const newArray = [...editing]
-                                        newArray[index] = false
-                                        setEditing(newArray)
-                                    }}>
-                                        <Close />
-                                    </IconButton>
-                                    </>
-                                ) : (
-                                    <Tooltip title="Click to edit" placement="right">
-                                        <Button onClick={()=> { 
-                                            const newArray:boolean[] = [...editing]
-                                        newArray[index] = true
-                                        setEditing(newArray)}} className={classes.button}>
-                                            <FieldDisplay title={field.title} value={field.value}  />
-                                        </Button>
-                                    </Tooltip>
-                                )
-                            }
-                            
-                        </Box>
+                                </Fade>
+                            ) : (
+                                <Fade in={!editMode}>
+                                    <Box>
+                                        <FieldDisplay title={field.title} value={field.value} />
+                                    </Box>
+                                </Fade>
+                            )}
+                        </>
                     );
                 }
             })}
@@ -198,6 +163,8 @@ function RightGridFieldsDisplay({ fields, editMode }: { fields: Field[]; editMod
     );
 }
 interface DetailSectionProps {
+    // titles: string[];
+    // values: FieldDisplayValueType[];
     fields: Field[];
     collapsibleFields?: Field[];
     title?: string;
@@ -221,6 +188,18 @@ export default function DetailSection({ fields, collapsibleFields, title }: Deta
                 <Grid item xs={infoWidth}>
                     <RightGridFieldsDisplay fields={fields} editMode={editMode} />
                 </Grid>
+                {editMode ? (
+                    <ButtonGroup variant="contained" color="primary">
+                        <Button color="default" onClick={() => setEditMode(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={() => setEditMode(false)}>Submit Changes</Button>
+                    </ButtonGroup>
+                ) : (
+                    <Button variant="contained" color="primary" onClick={() => setEditMode(true)}>
+                        Edit
+                    </Button>
+                )}
             </Grid>
             {collapsibleFields && (
                 <>

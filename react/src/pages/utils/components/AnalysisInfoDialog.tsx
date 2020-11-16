@@ -83,10 +83,10 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection
+                    {/* <DetailSection
                         titles={getAnalysisTitles()}
                         values={getAnalysisValues(analysis, pipeline)}
-                    />
+                    /> */}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>

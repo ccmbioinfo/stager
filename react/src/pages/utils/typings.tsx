@@ -140,3 +140,9 @@ export interface DataEntryHeader {
     field: keyof DataEntryRow;
     hidden?: boolean;
 }
+
+export interface Field {
+    title: string;
+    value: FieldDisplayValueType;
+    disableEdit?: boolean;
+}

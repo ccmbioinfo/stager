@@ -94,22 +94,24 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
                     {dataset && (
-                        <DetailSection
-                            titles={getDatasetTitles()}
-                            values={getDatasetValues(dataset)}
-                            collapsibleTitles={getSecDatasetTitles()}
-                            collapsibleValues={getSecDatasetValues(dataset)}
-                        />
+                        <></>
+                        // <DetailSection
+                        //     titles={getDatasetTitles()}
+                        //     values={getDatasetValues(dataset)}
+                        //     collapsibleTitles={getSecDatasetTitles()}
+                        //     collapsibleValues={getSecDatasetValues(dataset)}
+                        // />
                     )}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
                     {sample && (
-                        <DetailSection
-                            titles={getSamplesTitles()}
-                            values={getSampleValues(sample)}
-                            title="Associated Tissue Sample"
-                        />
+                        // <DetailSection
+                        //     titles={getSamplesTitles()}
+                        //     values={getSampleValues(sample)}
+                        //     title="Associated Tissue Sample"
+                        // />
+                        <></>
                     )}
                 </div>
                 <Divider />

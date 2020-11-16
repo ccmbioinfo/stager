@@ -60,6 +60,7 @@ export default function ParticipantTable() {
                             .flat())
                 );
                 setParticipants(participants as Participant[]);
+                console.log(participants);
             } else {
                 console.error(
                     `GET /api/participants failed with ${response.status}: ${response.statusText}`

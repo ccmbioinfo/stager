@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { formatDateString, getAnalysisTitles, getAnalysisValues } from "../utils/functions";
-import { Participant, Analysis, Info } from "../utils/typings";
+import { Participant, Analysis, Info, FieldDisplayValueType, Field } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
@@ -19,36 +19,32 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const getParticipantTitles = () => {
+function getTitleValuePair(
+    title: string,
+    value: FieldDisplayValueType,
+    disableEdit?: boolean
+): Field {
+    return {
+        title: title,
+        value: value,
+        disableEdit: disableEdit,
+    };
+}
+function getParticipantFields(participant: Participant): Field[] {
     return [
-        "Participant ID",
-        "Family ID",
-        "Family Codename",
-        "Sex",
-        "Affected",
-        "Solved",
-        "Notes",
-        "Time of Creation",
-        "Created By",
-        "Time of Update",
-        "Updated By",
+        getTitleValuePair("Participant ID", participant.participant_id, true),
+        getTitleValuePair("Family ID", participant.family_id, true),
+        getTitleValuePair("Family Codename", participant.family_codename),
+        getTitleValuePair("Sex", participant.sex),
+        getTitleValuePair("Affected", participant.affected),
+        getTitleValuePair("Solved", participant.solved),
+        getTitleValuePair("Notes", participant.notes),
+        getTitleValuePair("Time of Creation", formatDateString(participant.created)),
+        getTitleValuePair("Created By", participant.created_by),
+        getTitleValuePair("Time of Update", formatDateString(participant.updated)),
+        getTitleValuePair("Updated By", participant.updated_by),
     ];
-};
-const getParticipantValues = (participant: Participant) => {
-    return [
-        participant.participant_id,
-        participant.family_id,
-        participant.family_codename,
-        participant.sex,
-        participant.affected,
-        participant.solved,
-        participant.notes,
-        formatDateString(participant.created),
-        participant.created_by,
-        formatDateString(participant.updated),
-        participant.updated_by,
-    ];
-};
+}
 function getAnalysisInfoList(analyses: Analysis[]): Info[] {
     return analyses.map(analysis => {
         return {
@@ -96,10 +92,7 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection
-                        titles={getParticipantTitles()}
-                        values={getParticipantValues(participant)}
-                    />
+                    <DetailSection fields={getParticipantFields(participant)} />
                 </div>
                 <Divider />
                 <div>
