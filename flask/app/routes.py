@@ -507,6 +507,7 @@ def delete_tissue(id: int):
     else:
         return "Not Found", 404
 
+
 @app.route("/api/tissue_samples", methods=["POST"])
 @login_required
 def post_tissue():
@@ -524,10 +525,8 @@ def post_tissue():
     models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
 
     enum_error = enum_validate(
-        models.TissueSample,
-        request.json,
-        ["tissue_sample_type","tissue_processing"]
-        )
+        models.TissueSample, request.json, ["tissue_sample_type", "tissue_processing"]
+    )
 
     if enum_error:
         return enum_error, 400
@@ -543,9 +542,9 @@ def post_tissue():
             "extraction_date": request.json.get("extraction_date"),
             "tissue_sample_type": tissue_sample_type,
             "tissue_processing": request.json.get("tissue_processing"),
-            "notes": request.json.get('notes'),
+            "notes": request.json.get("notes"),
             "created_by": created_by,
-            "updated_by": updated_by
+            "updated_by": updated_by,
         }
     )
     try:
