@@ -513,7 +513,15 @@ def post_tissue():
     if not request.json:
         return "Request body must be JSON", 400
 
-    models.Participant.query.filter_by(participant_id=request.json["participant_id"]).first_or_404()
+    tissue_sample_type = request.json.get("tissue_sample_type")
+    if not tissue_sample_type:
+        return "A tissue sample type must be provided", 400
+
+    participant_id = request.json.get("participant_id")
+    if not participant_id:
+        return "A participant id must be provided", 400
+
+    models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
 
     enum_error = enum_validate(
         models.TissueSample,
@@ -531,9 +539,9 @@ def post_tissue():
 
     tissue_sample = models.TissueSample(
         **{
-            "participant_id": request.json.get("participant_id"),
+            "participant_id": participant_id,
             "extraction_date": request.json.get("extraction_date"),
-            "tissue_sample_type": request.json["tissue_sample_type"],
+            "tissue_sample_type": tissue_sample_type,
             "tissue_processing": request.json.get("tissue_processing"),
             "notes": request.json.get('notes'),
             "created_by": created_by,
