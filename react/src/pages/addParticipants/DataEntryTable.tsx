@@ -101,13 +101,19 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
         fetch("/api/unlinked")
             .then(response => response.json())
-            .then(setFiles)
+            .then(files => setFiles(files.sort()))
             .catch(console.error);
     }, []);
 
     function onEdit(newValue: string | boolean, rowIndex: number, col: DataEntryHeader) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
+        } else if (col.field === "input_hpf_path") {
+            // Remove the new value from the list of unlinked files to prevent reuse
+            // Readd the previous value if there was one since it is available again
+            const oldValue = rows[rowIndex].input_hpf_path;
+            const removeNewValue = files.filter(file => file !== newValue);
+            setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
         }
         setRows(
             rows.map((value, index) => {
