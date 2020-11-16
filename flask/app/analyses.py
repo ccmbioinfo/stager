@@ -8,30 +8,66 @@ from . import db, login, models, routes
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import contains_eager, aliased, joinedload
 from werkzeug.exceptions import HTTPException
 
 
 @app.route("/api/analyses", methods=["GET"], endpoint="analyses_list")
 @login_required
 def analyses_list():
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
     since_date = request.args.get("since", default="0001-01-01T00:00:00-04:00")
     try:
         since_date = datetime.fromisoformat(since_date)
     except:
         return "Malformed query date", 400
 
-    u1 = aliased(models.User)
-    u2 = aliased(models.User)
-    u3 = aliased(models.User)
-    db_analyses = (
-        db.session.query(models.Analysis, u1, u2, u3)
-        .filter(models.Analysis.updated >= since_date)
-        .join(u1, models.Analysis.requester == u1.user_id)
-        .join(u2, models.Analysis.updated_by == u2.user_id)
-        .outerjoin(u3, models.Analysis.assignee == u3.user_id)
-        .all()
-    )
+    if user_id:
+        u1 = aliased(models.User)
+        u2 = aliased(models.User)
+        u3 = aliased(models.User)
+        db_analyses = (
+            db.session.query(models.Analysis, u1, u2, u3)
+            .options(contains_eager(models.Analysis.datasets))
+            .join(
+                models.datasets_analyses_table,
+                models.Analysis.analysis_id
+                == models.datasets_analyses_table.columns.analysis_id,
+            )
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .filter(models.Analysis.updated >= since_date)
+            .join(u1, models.Analysis.requester == u1.user_id)
+            .join(u2, models.Analysis.updated_by == u2.user_id)
+            .outerjoin(u3, models.Analysis.assignee == u3.user_id)
+            .all()
+        )
+    else:
+        u1 = aliased(models.User)
+        u2 = aliased(models.User)
+        u3 = aliased(models.User)
+        db_analyses = (
+            db.session.query(models.Analysis, u1, u2, u3)
+            .filter(models.Analysis.updated >= since_date)
+            .join(u1, models.Analysis.requester == u1.user_id)
+            .join(u2, models.Analysis.updated_by == u2.user_id)
+            .outerjoin(u3, models.Analysis.assignee == u3.user_id)
+            .all()
+        )
 
     analyses = [
         {
