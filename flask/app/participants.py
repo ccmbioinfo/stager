@@ -8,32 +8,48 @@ from . import db, login, models, routes
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
 
-@app.route("/api/participants", methods=["GET"], endpoint="participants_list")
+@app.route("/api/participants", methods=["GET"])
 @login_required
 def participants_list():
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
 
-    db_participants = (
-        db.session.query(models.Participant)
-        .join(models.TissueSample)
-        .join(models.Dataset)
-        .join(
-            models.groups_datasets_table,
-            models.Dataset.dataset_id
-            == models.groups_datasets_table.columns.dataset_id,
+    if user_id:
+        db_participants = (
+            models.Participant.query.options(
+                joinedload(models.Participant.family),
+                contains_eager(models.Participant.tissue_samples).contains_eager(
+                    models.TissueSample.datasets
+                ),
+            )
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .all()
         )
-        .join(
-            models.users_groups_table,
-            models.groups_datasets_table.columns.group_id
-            == models.users_groups_table.columns.group_id,
-        )
-        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-        .options(joinedload(models.Participant.family))
-        .all()
-    )
+    else:
+        db_participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            joinedload(models.Participant.tissue_samples).joinedload(
+                models.TissueSample.datasets
+            ),
+        ).all()
 
     participants = [
         {
@@ -42,32 +58,9 @@ def participants_list():
             "tissue_samples": [
                 {
                     **asdict(tissue_sample),
-                    "datasets": (
-                        db.session.query(models.Dataset)
-                        .filter(models.Dataset.tissue_sample_id == tissue_sample.tissue_sample_id)
-                        .join(models.groups_datasets_table)
-                        .join(
-                            models.users_groups_table,
-                            models.groups_datasets_table.columns.group_id
-                            == models.users_groups_table.columns.group_id,
-                        )
-                        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-                        .all()
-                    ),
+                    "datasets": tissue_sample.datasets,
                 }
-                for tissue_sample in (
-                        db.session.query(models.TissueSample)
-                        .filter(models.TissueSample.participant_id == participant.participant_id)
-                        .join(models.Dataset)
-                        .join(models.groups_datasets_table)
-                        .join(
-                            models.users_groups_table,
-                            models.groups_datasets_table.columns.group_id
-                            == models.users_groups_table.columns.group_id,
-                        )
-                        .filter(models.users_groups_table.columns.user_id == current_user.user_id)
-                        .all()
-                    )
+                for tissue_sample in participant.tissue_samples
             ],
         }
         for participant in db_participants
