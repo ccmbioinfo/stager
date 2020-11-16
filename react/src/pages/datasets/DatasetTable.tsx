@@ -249,8 +249,9 @@ export default function DatasetTable() {
                         actions: "", //remove action buttons' header
                     },
                 }}
-                onFilterChange={(filters) => {
-                    const newValue = filters.find(filter => filter.column.field === "analysis_id")?.value;
+                onFilterChange={filters => {
+                    const newValue = filters.find(filter => filter.column.field === "analysis_id")
+                        ?.value;
                     setParamFilter(newValue ? newValue : "");
                 }}
             />

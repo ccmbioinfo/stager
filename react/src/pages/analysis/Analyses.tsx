@@ -158,7 +158,6 @@ export default function Analyses() {
     const { id: paramID } = useParams<{ id: string }>();
     const [paramFilter, setParamFilter] = useState(paramID);
 
-
     useEffect(() => {
         document.title = "Analyses | ST2020";
 
@@ -169,7 +168,6 @@ export default function Analyses() {
                 const rows = jsonToAnalyses(data);
                 setRows(rows);
             });
-
     }, []);
 
     return (
@@ -605,8 +603,10 @@ export default function Analyses() {
                             actions: "", //remove action buttons' header
                         },
                     }}
-                    onFilterChange={(filters) => {
-                        const newValue = filters.find(filter => filter.column.field === "analysis_id")?.value;
+                    onFilterChange={filters => {
+                        const newValue = filters.find(
+                            filter => filter.column.field === "analysis_id"
+                        )?.value;
                         setParamFilter(newValue ? newValue : "");
                     }}
                 />

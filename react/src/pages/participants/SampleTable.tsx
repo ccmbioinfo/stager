@@ -52,7 +52,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 });
                 return (
                     <div className={classes.datasetList}>
-                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets"/>
+                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets" />
                     </div>
                 );
             }}

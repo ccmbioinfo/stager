@@ -75,18 +75,20 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                     console.log(data);
                     analysisList = analysisList.concat(data.analyses as Analysis[]);
                 } else {
-                    throw new Error(`GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`);
+                    throw new Error(
+                        `GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`
+                    );
                 }
             }
             return analysisList;
         })()
-        .then(analysisList => {
-            setAnalyses(analysisList)
-        })
-        .catch(error => {
-            console.error(error);
-            enqueueSnackbar(error.message, { variant: "error" });
-        });
+            .then(analysisList => {
+                setAnalyses(analysisList);
+            })
+            .catch(error => {
+                console.error(error);
+                enqueueSnackbar(error.message, { variant: "error" });
+            });
     }, [participant, enqueueSnackbar]);
 
     return (

@@ -76,17 +76,19 @@ export default function InfoList(props: {
                                     collapsibleTitles={info.collapsibleTitles}
                                     collapsibleValues={info.collapsibleValues}
                                 />
-                                {props.linkPath && info.identifier &&
+                                {props.linkPath && info.identifier && (
                                     <Button
-                                    className={classes.button}
-                                    onClick={() => { history.push(`${props.linkPath}/${info.identifier}`) }}
-                                    variant="contained"
-                                    size="small"
-                                    endIcon={<MenuOpen />}
+                                        className={classes.button}
+                                        onClick={() => {
+                                            history.push(`${props.linkPath}/${info.identifier}`);
+                                        }}
+                                        variant="contained"
+                                        size="small"
+                                        endIcon={<MenuOpen />}
                                     >
                                         Open in table
                                     </Button>
-                                }
+                                )}
                             </Box>
                         </Collapse>
                     </Paper>
