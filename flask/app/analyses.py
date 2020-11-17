@@ -85,12 +85,41 @@ def analyses_list():
 @app.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
-    analysis = (
-        models.Analysis.query.filter(models.Analysis.analysis_id == id)
-        .outerjoin(models.Analysis.datasets)
-        .join(models.Pipeline)
-        .one_or_none()
-    )
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+    if user_id:
+        analysis = (
+            models.Analysis.query.filter(models.Analysis.analysis_id == id)
+            .options(contains_eager(models.Analysis.datasets))
+            .join(
+                models.datasets_analyses_table,
+                models.Analysis.analysis_id
+                == models.datasets_analyses_table.columns.analysis_id,
+            )
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .join(models.Pipeline)
+            .one_or_none()
+        )
+    else:
+        analysis = (
+            models.Analysis.query.filter(models.Analysis.analysis_id == id)
+            .outerjoin(models.Analysis.datasets)
+            .join(models.Pipeline)
+            .one_or_none()
+        )
     if not analysis:
         return "Not Found", 404
     else:
