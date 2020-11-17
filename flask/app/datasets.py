@@ -154,12 +154,12 @@ def post_dataset():
     if not tissue_sample_id:
         return "A tissue sample id must be provided", 400
 
-    models.TissueSample.query.filter_by(tissue_sample_id=tissue_sample_id).first_or_404()
+    models.TissueSample.query.filter_by(
+        tissue_sample_id=tissue_sample_id
+    ).first_or_404()
 
     col_names = [key for key in request.json]
-    enum_error = routes.enum_validate(
-        models.Dataset, request.json, col_names
-    )
+    enum_error = routes.enum_validate(models.Dataset, request.json, col_names)
 
     if enum_error:
         return enum_error, 400
@@ -188,7 +188,7 @@ def post_dataset():
             "batch_id": request.json.get("batch_id"),
             "created_by": created_by,
             "updated_by": updated_by,
-            "discriminator": request.json.get("discriminator")
+            "discriminator": request.json.get("discriminator"),
         }
     )
     try:
