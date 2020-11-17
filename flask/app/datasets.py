@@ -56,16 +56,41 @@ def datasets_list():
 @app.route("/api/datasets/<int:id>", methods=["GET"])
 @login_required
 def get_dataset(id: int):
-    dataset = (
-        models.Dataset.query.filter_by(dataset_id=id)
-        .options(
-            joinedload(models.Dataset.analyses),
-            joinedload(models.Dataset.tissue_sample)
-            .joinedload(models.TissueSample.participant)
-            .joinedload(models.Participant.family),
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        dataset = (
+            models.Dataset.query
+            .filter_by(dataset_id=id)
+            .options(
+                joinedload(models.Dataset.analyses),
+                joinedload(models.Dataset.tissue_sample)
+                .joinedload(models.TissueSample.participant)
+                .joinedload(models.Participant.family),
+            )
+            .join(models.groups_datasets_table)
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
         )
-        .one_or_none()
-    )
+    else:
+        dataset = (
+            models.Dataset.query.filter_by(dataset_id=id)
+            .options(
+                joinedload(models.Dataset.analyses),
+                joinedload(models.Dataset.tissue_sample)
+                .joinedload(models.TissueSample.participant)
+                .joinedload(models.Participant.family),
+            )
+            .one_or_none()
+        )
     if not dataset:
         return "Not Found", 404
     else:
