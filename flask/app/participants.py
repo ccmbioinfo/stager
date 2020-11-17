@@ -98,7 +98,36 @@ def update_participant(id: int):
     if not request.json:
         return "Request body must be JSON", 415
 
-    table = models.Participant.query.get_or_404(id)
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        table = (
+            models.Participant.query.filter(models.Participant.participant_id == id)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        table = models.Participant.query.filter(
+            models.Participant.participant_id == id
+        ).one_or_none()
+
+    if not table:
+        return "Not Found", 404
 
     editable_columns = [
         "participant_codename",
