@@ -50,15 +50,48 @@ def families_list():
 @app.route("/api/families/<int:id>", methods=["GET"])
 @login_required
 def families_by_id(id: int):
-    family = (
-        models.Family.query.filter_by(family_id=id)
-        .options(
-            joinedload(models.Family.participants)
-            .joinedload(models.Participant.tissue_samples)
-            .joinedload(models.TissueSample.datasets)
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        family = (
+            models.Family.query.filter_by(family_id=id)
+            .options(
+                contains_eager(models.Family.participants)
+                .contains_eager(models.Participant.tissue_samples)
+                .contains_eager(models.TissueSample.datasets)
+            )
+            .join(models.Participant)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
         )
-        .first_or_404()
-    )
+    else:
+        family = (
+            models.Family.query.filter_by(family_id=id)
+            .options(
+                joinedload(models.Family.participants)
+                .joinedload(models.Participant.tissue_samples)
+                .joinedload(models.TissueSample.datasets)
+            )
+            .one_or_none()
+        )
+
+    if not family:
+        return "Not Found", 404
 
     families = [
         {
