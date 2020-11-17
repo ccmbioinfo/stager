@@ -63,8 +63,7 @@ def get_dataset(id: int):
 
     if user_id:
         dataset = (
-            models.Dataset.query
-            .filter_by(dataset_id=id)
+            models.Dataset.query.filter_by(dataset_id=id)
             .options(
                 joinedload(models.Dataset.analyses),
                 joinedload(models.Dataset.tissue_sample)
@@ -145,7 +144,28 @@ def update_dataset(id: int):
     if not request.json:
         return "Request body must be JSON", 415
 
-    table = models.Dataset.query.get_or_404(id)
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        table = (
+            models.Dataset.query.filter_by(dataset_id=id)
+            .join(models.groups_datasets_table)
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        table = models.Dataset.query.filter_by(dataset_id=id).one_or_none()
+
+    if not table:
+        return "Not Found", 404
 
     editable_columns = [
         "dataset_type",
