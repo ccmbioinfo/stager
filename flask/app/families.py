@@ -148,7 +148,35 @@ def edit_families(id: int):
     except KeyError:
         return "No family codename provided", 400
 
-    family = models.Family.query.get_or_404(id)
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        family = (
+            models.Family.query.filter_by(family_id=id)
+            .join(models.Participant)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        family = models.Family.query.filter_by(family_id=id).one_or_none()
+
+    if not family:
+        return "Not Found", 404
 
     family.family_codename = fam_codename
 
