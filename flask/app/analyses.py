@@ -89,6 +89,7 @@ def get_analysis(id: int):
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+
     if user_id:
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
@@ -234,7 +235,40 @@ def update_analysis(id: int):
     if not request.json:
         return "Request body must be JSON", 415
 
-    table = models.Analysis.query.get_or_404(id)
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        table = (
+            models.Analysis.query.filter(models.Analysis.analysis_id == id)
+            .join(
+                models.datasets_analyses_table,
+                models.Analysis.analysis_id
+                == models.datasets_analyses_table.columns.analysis_id,
+            )
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        table = models.Analysis.query.filter(
+            models.Analysis.analysis_id == id
+        ).one_or_none()
+
+    if not table:
+        return "Not Found", 404
 
     editable_columns = [
         "analysis_state",
