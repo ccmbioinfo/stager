@@ -11,6 +11,24 @@ from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
 
+editable_columns = [
+    "dataset_type",
+    "input_hpf_path",
+    "notes",
+    "condition",
+    "extraction_protocol",
+    "capture_kit",
+    "library_prep_method",
+    "library_prep_date",
+    "read_length",
+    "read_type",
+    "sequencing_id",
+    "sequencing_date",
+    "sequencing_centre",
+    "batch_id",
+    "discriminator",
+]
+
 
 @app.route("/api/datasets", methods=["GET"])
 @login_required
@@ -107,24 +125,6 @@ def update_dataset(id: int):
 
     table = models.Dataset.query.get_or_404(id)
 
-    editable_columns = [
-        "dataset_type",
-        "input_hpf_path",
-        "notes",
-        "condition",
-        "extraction_protocol",
-        "capture_kit",
-        "library_prep_method",
-        "library_prep_date",
-        "read_length",
-        "read_type",
-        "sequencing_id",
-        "sequencing_date",
-        "sequencing_centre",
-        "batch_id",
-        "discriminator",
-    ]
-
     enum_error = routes.mixin(table, request.json, editable_columns)
 
     if enum_error:
@@ -158,8 +158,7 @@ def post_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    enum_cols = ["condition", "extraction_protocol", "read_type", "discriminator"]
-    enum_error = routes.enum_validate(models.Dataset, request.json, enum_cols)
+    enum_error = routes.enum_validate(models.Dataset, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
