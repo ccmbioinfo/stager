@@ -141,3 +141,9 @@ export interface DataEntryHeader {
     field: keyof DataEntryRow;
     hidden?: boolean;
 }
+
+export interface User {
+    username: string;
+    email: string;
+    isAdmin: boolean;
+}
