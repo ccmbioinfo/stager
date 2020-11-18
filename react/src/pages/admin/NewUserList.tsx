@@ -9,12 +9,12 @@ import {
     Grid,
     GridProps,
     IconButton,
-    List,
     ListItem,
     ListItemAvatar,
     ListItemText,
     makeStyles,
     Paper,
+    Tooltip,
     Typography,
     TypographyProps,
 } from "@material-ui/core";
@@ -23,6 +23,7 @@ import {
     CalendarToday,
     ExpandLess,
     ExpandMore,
+    FileCopy,
     LockOpen,
     Person,
     PersonOutline,
@@ -32,38 +33,10 @@ import {
 import { Skeleton } from "@material-ui/lab";
 
 import { User } from "../utils/typings";
+import { useSnackbar } from "notistack";
 
 export default function UserList() {
     const [users, setUsers] = useState<User[]>([]);
-
-    async function updateUser(user: any) {
-        const response = await fetch("/api/users", {
-            method: "PUT",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(user),
-        });
-        if (response.ok) {
-            console.log(response);
-        } else {
-            console.error(response);
-        }
-    }
-
-    async function deleteUser(user: any) {
-        const response = await fetch("/api/users", {
-            method: "DELETE",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(user),
-        });
-        if (response.ok) {
-            // Precondition: deletingUser is in userList
-            console.log(response);
-        } else {
-            console.error(response);
-        }
-    }
 
     useEffect(() => {
         document.title = "Admin | ST2020";
@@ -73,11 +46,16 @@ export default function UserList() {
     }, []);
 
     return (
-        <List>
+        <Grid container spacing={1} alignItems="flex-start">
             {users.map(user => (
-                <UserRow user={user} />
+                <>
+                    <UserRow user={user} />
+                    <UserRow user={user} />
+                    <UserRow user={user} />
+                    <UserRow user={user} />
+                </>
             ))}
-        </List>
+        </Grid>
     );
 }
 
@@ -98,47 +76,49 @@ function UserRow(props: { user: User; inactive?: boolean }) {
     };
 
     return (
-        <Paper>
-            <ListItem>
-                <ListItemAvatar>
-                    {props.user.isAdmin ? (
-                        <Person fontSize="large" />
-                    ) : (
-                        <PersonOutline fontSize="large" />
-                    )}
-                </ListItemAvatar>
-                <ListItemText
-                    disableTypography
-                    primary={
-                        <Grid container {...gridProps}>
-                            <Grid item>
-                                <Typography variant="h6">{props.user.username}</Typography>
+        <Grid item sm={12} md={6}>
+            <Paper>
+                <ListItem>
+                    <ListItemAvatar>
+                        {props.user.isAdmin ? (
+                            <Person fontSize="large" />
+                        ) : (
+                            <PersonOutline fontSize="large" />
+                        )}
+                    </ListItemAvatar>
+                    <ListItemText
+                        disableTypography
+                        primary={
+                            <Grid container {...gridProps}>
+                                <Grid item>
+                                    <Typography variant="h6">{props.user.username}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <LastLoginDisplay date={date} time={time} />
+                                </Grid>
                             </Grid>
-                            <Grid item>
-                                <LastLoginDisplay date={date} time={time} />
+                        }
+                        secondary={
+                            <Grid container {...gridProps}>
+                                <Grid item>
+                                    <Typography variant="subtitle1">{props.user.email}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <PermissionChipGroup groups={["CHEO", "SK"]} />
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    }
-                    secondary={
-                        <Grid container {...gridProps}>
-                            <Grid item>
-                                <Typography variant="subtitle1">{props.user.email}</Typography>
-                            </Grid>
-                            <Grid item>
-                                <PermissionChipGroup groups={["CHEO", "SK"]} />
-                            </Grid>
-                        </Grid>
-                    }
-                />
-                <IconButton onClick={e => setOpen(!open)} className={classes.button}>
-                    {open ? <ExpandMore /> : <ExpandLess />}
-                </IconButton>
-            </ListItem>
-            <Collapse in={open}>
-                <Divider />
-                <UserDetails />
-            </Collapse>
-        </Paper>
+                        }
+                    />
+                    <IconButton onClick={e => setOpen(!open)} className={classes.button}>
+                        {open ? <ExpandMore /> : <ExpandLess />}
+                    </IconButton>
+                </ListItem>
+                <Collapse in={open}>
+                    <Divider />
+                    <UserDetails />
+                </Collapse>
+            </Paper>
+        </Grid>
     );
 }
 
@@ -179,24 +159,33 @@ function UserDetails(props: { inactive?: boolean }) {
 
 function SecretKeyDisplay(props: { title: string; secret: string }) {
     const [open, isOpen] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
 
     return (
         <Box>
             <Typography>
                 <b>{props.title}</b>
-                <IconButton onClick={() => isOpen(!open)}>
-                    {open ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
+                <Tooltip title={`${open ? "Hide" : "Show"} key`}>
+                    <IconButton onClick={() => isOpen(!open)}>
+                        {open ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Copy to clipboard">
+                    <IconButton
+                        onClick={async () => {
+                            navigator.clipboard.writeText(props.secret).then(() => {
+                                enqueueSnackbar(`${props.title} copied to clipboard.`);
+                            });
+                        }}
+                    >
+                        <FileCopy />
+                    </IconButton>
+                </Tooltip>
             </Typography>
             {open ? (
                 <Typography style={{ cursor: "pointer" }}>{props.secret}</Typography>
             ) : (
-                <Skeleton
-                    animation={false}
-                    variant="text"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => isOpen(!open)}
-                >
+                <Skeleton animation={false} variant="text" style={{ cursor: "pointer" }}>
                     <Typography>{props.secret}</Typography>
                 </Skeleton>
             )}
