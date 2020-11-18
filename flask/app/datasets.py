@@ -158,8 +158,8 @@ def post_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    col_names = [key for key in request.json]
-    enum_error = routes.enum_validate(models.Dataset, request.json, col_names)
+    enum_cols = ["condition", "extraction_protocol", "read_type", "discriminator"]
+    enum_error = routes.enum_validate(models.Dataset, request.json, enum_cols)
 
     if enum_error:
         return enum_error, 400
@@ -191,12 +191,9 @@ def post_dataset():
             "discriminator": request.json.get("discriminator"),
         }
     )
-    try:
-        db.session.add(dataset)
-        db.session.commit()
-        ds_id = dataset.dataset_id
-        location_header = "/api/datasets/{}".format(ds_id)
-        return jsonify(dataset), 201, {"location": location_header}
-    except:
-        db.session.rollback()
-        return "Server error", 500
+    db.session.add(dataset)
+    routes.transaction_or_abort(db.session.commit)
+    ds_id = dataset.dataset_id
+    location_header = "/api/datasets/{}".format(ds_id)
+
+    return jsonify(dataset), 201, {"location": location_header}
