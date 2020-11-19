@@ -57,7 +57,6 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                 const response = await fetch("/api/datasets/" + dataset.dataset_id);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
                     analysisList = analysisList.concat(data.analyses as Analysis[]);
                 } else {
                     throw new Error(
