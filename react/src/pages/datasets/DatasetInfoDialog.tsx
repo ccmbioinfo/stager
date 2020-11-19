@@ -7,10 +7,9 @@ import { Dataset, Analysis, Sample } from "../utils/typings";
 import {
     formatDateString,
     getAnalysisInfoList,
-    getDatasetTitles,
-    getDatasetValues,
-    getSecDatasetTitles,
-    getSecDatasetValues,
+    getDatasetFields,
+    getSecDatasetFields,
+    createFieldObj,
 } from "../utils/functions";
 import DetailSection from "../utils/components/DetailSection";
 import InfoList from "../utils/components/InfoList";
@@ -25,31 +24,17 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getSamplesTitles() {
+function getSamplesFields(sample: Sample) {
     return [
-        "Sample ID",
-        "Sample Type",
-        "Extraction Date",
-        "Tissue Processing Protocol",
-        "Notes",
-        "Created",
-        "Created By",
-        "Updated",
-        "Updated By",
-    ];
-}
-
-function getSampleValues(sample: Sample) {
-    return [
-        sample.tissue_sample_id,
-        sample.tissue_sample_type,
-        formatDateString(sample.extraction_date),
-        sample.tissue_processing,
-        sample.notes,
-        formatDateString(sample.created),
-        sample.created_by,
-        formatDateString(sample.updated),
-        sample.updated_by,
+        createFieldObj("Sample ID", sample.tissue_sample_id),
+        createFieldObj("Sample Type", sample.tissue_sample_type),
+        createFieldObj("Extraction Date", formatDateString(sample.extraction_date)),
+        createFieldObj("Tissue Processing Protocol", sample.tissue_processing),
+        createFieldObj("Notes", sample.notes),
+        createFieldObj("Created", formatDateString(sample.created)),
+        createFieldObj("Created By", sample.created_by),
+        createFieldObj("Updated", formatDateString(sample.updated)),
+        createFieldObj("Updated By", sample.updated_by),
     ];
 }
 
@@ -66,7 +51,8 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
     const [dataset, setDataset] = useState<Dataset>();
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
-
+    //for updating the dialog content when re-open the dialog
+    const [num, reRender] = useState(0);
     useEffect(() => {
         fetch("/api/datasets/" + dataset_id)
             .then(response => response.json())
@@ -78,7 +64,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             .catch(error => {
                 console.error(error);
             });
-    }, [dataset_id]);
+    }, [dataset_id, num]);
 
     return (
         <Dialog
@@ -88,30 +74,35 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             maxWidth="lg"
             fullWidth={true}
         >
-            <DialogHeader id={labeledBy} onClose={onClose}>
+            <DialogHeader
+                id={labeledBy}
+                onClose={() => {
+                    onClose();
+                    reRender(n => n + 1);
+                }}
+            >
                 Details of Dataset ID {dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
                     {dataset && (
-                        <></>
-                        // <DetailSection
-                        //     titles={getDatasetTitles()}
-                        //     values={getDatasetValues(dataset)}
-                        //     collapsibleTitles={getSecDatasetTitles()}
-                        //     collapsibleValues={getSecDatasetValues(dataset)}
-                        // />
+                        <DetailSection
+                            fields={getDatasetFields(dataset)}
+                            collapsibleFields={getSecDatasetFields(dataset)}
+                            editable
+                            dataType="dataset"
+                            dataID={dataset.dataset_id}
+                            // callback={()=> {setTest(n=>n+1)}}
+                        />
                     )}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
                     {sample && (
-                        // <DetailSection
-                        //     titles={getSamplesTitles()}
-                        //     values={getSampleValues(sample)}
-                        //     title="Associated Tissue Sample"
-                        // />
-                        <></>
+                        <DetailSection
+                            fields={getSamplesFields(sample)}
+                            title="Associated Tissue Sample"
+                        />
                     )}
                 </div>
                 <Divider />

@@ -37,6 +37,9 @@ export default function DatasetTable() {
 
     const { enqueueSnackbar } = useSnackbar();
 
+    //for updating the table after the dialog is closed
+    const [num, reRender] = useState(0);
+
     useEffect(() => {
         fetch("/api/enums").then(async response => {
             if (response.ok) {
@@ -69,7 +72,7 @@ export default function DatasetTable() {
                 );
             }
         });
-    }, []);
+    }, [num]);
 
     return (
         <div>
@@ -83,7 +86,10 @@ export default function DatasetTable() {
                 <DatasetInfoDialog
                     dataset_id={infoDataset.dataset_id}
                     open={showInfo}
-                    onClose={() => setShowInfo(false)}
+                    onClose={() => {
+                        setShowInfo(false);
+                        reRender(n => n + 1);
+                    }}
                 />
             )}
             <MaterialTable

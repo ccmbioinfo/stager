@@ -26,6 +26,8 @@ export default function ParticipantTable() {
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
     const { enqueueSnackbar } = useSnackbar();
+    //for updating the table after the dialog is closed
+    const [num, reRender] = useState(0);
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -67,7 +69,7 @@ export default function ParticipantTable() {
                 );
             }
         });
-    }, []);
+    }, [num]);
 
     return (
         <div>
@@ -75,7 +77,10 @@ export default function ParticipantTable() {
                 <ParticipantInfoDialog
                     open={detail}
                     participant={activeRow}
-                    onClose={() => setDetail(false)}
+                    onClose={() => {
+                        setDetail(false);
+                        reRender(n => n + 1);
+                    }}
                 />
             )}
             <MaterialTable

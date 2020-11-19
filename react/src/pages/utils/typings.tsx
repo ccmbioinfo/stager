@@ -92,10 +92,8 @@ export interface Pipeline {
 export interface Info {
     primaryListTitle: string;
     secondaryListTitle?: string;
-    titles: string[];
-    values: FieldDisplayValueType[];
-    collapsibleTitles?: string[];
-    collapsibleValues?: FieldDisplayValueType[];
+    fields: Field[];
+    collapsibleFields?: Field[];
 }
 
 // Define these as classes so that we can create an array of keys later
@@ -144,5 +142,6 @@ export interface DataEntryHeader {
 export interface Field {
     title: string;
     value: FieldDisplayValueType;
+    fieldName?: string;
     disableEdit?: boolean;
 }

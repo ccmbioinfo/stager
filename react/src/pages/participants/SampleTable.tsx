@@ -2,7 +2,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
 import MaterialTable, { MTableCell } from "material-table";
-import { formatDateString } from "../utils/functions";
+import { formatDateString, createFieldObj } from "../utils/functions";
 import { Dataset, Sample, Info } from "../utils/typings";
 import InfoList from "../utils/components/InfoList";
 
@@ -16,42 +16,23 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getTitles() {
+function getFields(dataset: Dataset) {
     return [
-        "Input HPF Path",
-        "Condition",
-        "Extraction Protocol",
-        "Capture Kit",
-        "Library Prep Method",
-        "Library Prep Date",
-        "Read Length",
-        "Read Type",
-        "Sequencing ID",
-        "Sequencing Centre",
-        "Creation Time",
-        "Created By",
-        "Last Updated",
-        "Updated By",
-        "Discriminator",
-    ];
-}
-function getValues(dataset: Dataset) {
-    return [
-        dataset.input_hpf_path,
-        dataset.condition,
-        dataset.extraction_protocol,
-        dataset.capture_kit,
-        dataset.library_prep_method,
-        formatDateString(dataset.library_prep_date),
-        dataset.read_length,
-        dataset.read_type,
-        dataset.sequencing_id,
-        dataset.sequencing_centre,
-        formatDateString(dataset.created),
-        dataset.created_by,
-        formatDateString(dataset.updated),
-        dataset.updated_by,
-        dataset.discriminator,
+        createFieldObj("Input HPF Path", dataset.input_hpf_path),
+        createFieldObj("Condition", dataset.condition),
+        createFieldObj("Extraction Protocol", dataset.extraction_protocol),
+        createFieldObj("Capture Kit", dataset.capture_kit),
+        createFieldObj("Library Prep Method", dataset.library_prep_method),
+        createFieldObj("Library Prep Date", formatDateString(dataset.library_prep_date)),
+        createFieldObj("Read Length", dataset.read_length),
+        createFieldObj("Read Type", dataset.read_type),
+        createFieldObj("Sequencing ID", dataset.sequencing_id),
+        createFieldObj("Sequencing Centre", dataset.sequencing_centre),
+        createFieldObj("Creation Time", formatDateString(dataset.created)),
+        createFieldObj("Created By", dataset.created_by),
+        createFieldObj("Last Updated", formatDateString(dataset.updated)),
+        createFieldObj("Updated By", dataset.updated_by),
+        createFieldObj("Discriminator", dataset.discriminator),
     ];
 }
 
@@ -89,8 +70,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
                     return {
                         primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
-                        titles: getTitles(),
-                        values: getValues(dataset),
+                        fields: getFields(dataset),
                     };
                 });
                 return (
@@ -107,6 +87,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 paging: false,
                 selection: false,
                 search: false,
+                // filtering:true,
                 headerStyle: {
                     padding: 0,
                 },

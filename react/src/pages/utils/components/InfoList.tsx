@@ -59,12 +59,10 @@ export default function InfoList(props: { infoList: Info[]; title?: string; icon
                         </ListItem>
                         <Collapse in={showInfo[index]}>
                             <Box className={classes.box}>
-                                {/* <DetailSection
-                                    titles={info.titles}
-                                    values={info.values}
-                                    collapsibleTitles={info.collapsibleTitles}
-                                    collapsibleValues={info.collapsibleValues}
-                                /> */}
+                                <DetailSection
+                                    fields={info.fields}
+                                    collapsibleFields={info.collapsibleFields}
+                                />
                             </Box>
                         </Collapse>
                     </Paper>

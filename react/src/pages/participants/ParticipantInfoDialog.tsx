@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { formatDateString, getAnalysisTitles, getAnalysisValues } from "../utils/functions";
-import { Participant, Analysis, Info, FieldDisplayValueType, Field } from "../utils/typings";
+import { formatDateString, getAnalysisFields, createFieldObj } from "../utils/functions";
+import { Participant, Analysis, Info, Field } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
@@ -19,30 +19,19 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getTitleValuePair(
-    title: string,
-    value: FieldDisplayValueType,
-    disableEdit?: boolean
-): Field {
-    return {
-        title: title,
-        value: value,
-        disableEdit: disableEdit,
-    };
-}
 function getParticipantFields(participant: Participant): Field[] {
     return [
-        getTitleValuePair("Participant ID", participant.participant_id, true),
-        getTitleValuePair("Family ID", participant.family_id, true),
-        getTitleValuePair("Family Codename", participant.family_codename),
-        getTitleValuePair("Sex", participant.sex),
-        getTitleValuePair("Affected", participant.affected),
-        getTitleValuePair("Solved", participant.solved),
-        getTitleValuePair("Notes", participant.notes),
-        getTitleValuePair("Time of Creation", formatDateString(participant.created)),
-        getTitleValuePair("Created By", participant.created_by),
-        getTitleValuePair("Time of Update", formatDateString(participant.updated)),
-        getTitleValuePair("Updated By", participant.updated_by),
+        createFieldObj("Family Codename", participant.family_codename, "family_codename"),
+        createFieldObj("Participant Type", participant.participant_type, "participant_type"),
+        createFieldObj("Sex", participant.sex, "sex"),
+        createFieldObj("Affected", participant.affected, "affected"),
+        createFieldObj("Solved", participant.solved, "solved"),
+        createFieldObj("Dataset Types", participant.dataset_types, "dataset_types", true),
+        createFieldObj("Notes", participant.notes, "notes"),
+        createFieldObj("Time of Creation", formatDateString(participant.created), "created", true),
+        createFieldObj("Created By", participant.created_by, "created_by", true),
+        createFieldObj("Time of Update", formatDateString(participant.updated), "updated", true),
+        createFieldObj("Updated By", participant.updated_by, "updated_by", true),
     ];
 }
 function getAnalysisInfoList(analyses: Analysis[]): Info[] {
@@ -50,8 +39,7 @@ function getAnalysisInfoList(analyses: Analysis[]): Info[] {
         return {
             primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
-            titles: getAnalysisTitles(),
-            values: getAnalysisValues(analysis),
+            fields: getAnalysisFields(analysis),
         };
     });
 }
@@ -92,7 +80,12 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection fields={getParticipantFields(participant)} />
+                    <DetailSection
+                        fields={getParticipantFields(participant)}
+                        editable
+                        dataType="participant"
+                        dataID={participant.participant_id}
+                    />
                 </div>
                 <Divider />
                 <div>
