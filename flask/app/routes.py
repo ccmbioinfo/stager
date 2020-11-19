@@ -502,14 +502,17 @@ def get_tissue_sample(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+            .one_or_none()
         )
     else:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
             .options(joinedload(models.TissueSample.datasets))
-            .first_or_404()
+            .one_or_none()
         )
+
+    if not tissue_sample:
+        return "Not Found", 404
 
     return jsonify(
         {

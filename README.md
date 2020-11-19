@@ -44,6 +44,9 @@ In production, Flask should not be used as a server. We use Gunicorn, a WSGI app
 included in the requirements. For example, `gunicorn --bind 0.0.0.0:5000 --preload --workers 1 --threads 2 wsgi:app`
 will prefork one worker child process with two threads to serve up the Flask routes, listening on port 5000.
 
+N.B. If using `contains_eager` in a SQLAlchemy query, do not use `first_or_404`
+as this will affect each collection, so each collection will contain at most
+one item, which is certainly not the intent. Use `one_or_none` instead in this case.
 ### Web frontend
 You will need a recent Node.js and Yarn (`npm install -g yarn`).
 1. Switch to the `react` directory.
@@ -137,5 +140,5 @@ investigated if we have free time.
 
 To clean up these containers:
 ```bash
-docker-compose -p st2020test -f docker-compose.test.services.yaml down
+docker-compose -p st2020test -f docker-compose.test.yaml down
 ```

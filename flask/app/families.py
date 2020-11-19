@@ -74,7 +74,7 @@ def get_family(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+            .one_or_none()
         )
     else:
         family = (
@@ -84,8 +84,11 @@ def get_family(id: int):
                 .joinedload(models.Participant.tissue_samples)
                 .joinedload(models.TissueSample.datasets)
             )
-            .first_or_404()
+            .one_or_none()
         )
+
+    if not family:
+        return "Not Found", 404
 
     return jsonify(
         [
