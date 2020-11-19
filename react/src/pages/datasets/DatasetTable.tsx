@@ -87,7 +87,7 @@ export default function DatasetTable() {
             />
             {infoDataset && (
                 <DatasetInfoDialog
-                    dataset_id={infoDataset.dataset_id}
+                    dataset={infoDataset}
                     open={showInfo}
                     onClose={() => {
                         setShowInfo(false);

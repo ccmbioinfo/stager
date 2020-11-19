@@ -40,31 +40,28 @@ function getSamplesFields(sample: Sample) {
 
 interface DialogProp {
     open: boolean;
-    dataset_id: string;
+    dataset: Dataset;
     onClose: () => void;
 }
 
-export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogProp) {
+export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
 
-    const [dataset, setDataset] = useState<Dataset>();
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
-    //for updating the dialog content when re-open the dialog
-    const [num, reRender] = useState(0);
+    
     useEffect(() => {
-        fetch("/api/datasets/" + dataset_id)
+        fetch("/api/datasets/" + dataset.dataset_id)
             .then(response => response.json())
             .then(data => {
-                setDataset(data as Dataset);
                 setAnalyses(data.analyses as Analysis[]);
                 setSample(data.tissue_sample as Sample);
             })
             .catch(error => {
                 console.error(error);
             });
-    }, [dataset_id, num]);
+    }, [dataset]);
 
     return (
         <Dialog
@@ -78,10 +75,9 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 id={labeledBy}
                 onClose={() => {
                     onClose();
-                    reRender(n => n + 1);
                 }}
             >
-                Details of Dataset ID {dataset_id}
+                Details of Dataset ID {dataset.dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
