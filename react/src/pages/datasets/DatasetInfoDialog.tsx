@@ -89,9 +89,11 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                         <DetailSection
                             fields={getDatasetFields(dataset)}
                             collapsibleFields={getSecDatasetFields(dataset)}
-                            editable
-                            dataType="dataset"
-                            dataID={dataset.dataset_id}
+                            dataInfo={{
+                                type: "dataset",
+                                ID: dataset.dataset_id,
+                                identifier:dataset.dataset_id,
+                            }}
                         />
                     )}
                 </div>

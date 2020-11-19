@@ -90,9 +90,11 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                 <div className={classes.infoSection}>
                     <DetailSection
                         fields={getParticipantFields(participant)}
-                        editable
-                        dataType="participant"
-                        dataID={participant.participant_id}
+                        dataInfo={{
+                            type: "participant",
+                            ID: participant.participant_id,
+                            identifier: participant.participant_codename,
+                        }}
                     />
                 </div>
                 <Divider />

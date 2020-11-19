@@ -67,6 +67,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+const capitalizeFirstLetter = (s : string| undefined) => {
+    if(s) return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 const formatValue = (value: FieldDisplayValueType) => {
     let val = value;
     if (Array.isArray(value)) val = value.join(", ");
@@ -275,14 +279,17 @@ function GridFieldsDisplay({
         </Grid>
     );
 }
+interface DataInfo{
+   type: "participant" | "dataset";
+    ID: string;
+    identifier: string; // participant codename for participant, dataset ID for dataset
+}
 
 interface DetailSectionProps {
     fields: Field[];
     collapsibleFields?: Field[];
     title?: string;
-    editable?: boolean;
-    dataType?: "participant" | "dataset";
-    dataID?: string;
+   dataInfo?: DataInfo; // dataInfo indicates data is editable
     linkPath?: string;
 }
 
@@ -290,9 +297,7 @@ export default function DetailSection({
     fields,
     collapsibleFields,
     title,
-    editable,
-    dataType,
-    dataID,
+    dataInfo
 }: DetailSectionProps) {
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
@@ -328,14 +333,10 @@ export default function DetailSection({
 
     async function updateData() {
         let url;
-        let identifier;
-        if (dataType === "participant") {
-            url = `/api/participants/${dataID}`;
-            identifier = fields.find(element => element.fieldName === "participant_codename")
-                ?.value;
+        if (dataInfo?.type === "participant") {
+            url = `/api/participants/${dataInfo?.ID}`;
         } else {
-            url = `/api/datasets/${dataID}`;
-            identifier = fields.find(element => element.fieldName === "dataset_id")?.value;
+            url = `/api/datasets/${dataInfo?.ID}`;
         }
         const newData: { [key: string]: any } = {};
         primaryFields.concat(secondaryFields).forEach(field => {
@@ -349,7 +350,7 @@ export default function DetailSection({
             body: JSON.stringify(newData),
         });
         if (response.ok) {
-            enqueueSnackbar(`${dataType} ${identifier} updated successfully`, {
+            enqueueSnackbar(`${capitalizeFirstLetter(dataInfo?.type)} ${dataInfo?.identifier} updated successfully`, {
                 variant: "success",
             });
         } else {
@@ -358,10 +359,10 @@ export default function DetailSection({
                 setSecondaryFields(collapsibleFields);
             }
             console.error(
-                `PATCH /api/${dataType}s/${dataID} failed with ${response.status}: ${response.statusText}`
+                `PATCH /api/${dataInfo?.type}s/${dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
             );
             enqueueSnackbar(
-                `Failed to edit ${dataType} ${identifier} - ${response.status} ${response.statusText}`,
+                `Failed to edit ${dataInfo?.type} ${dataInfo?.identifier} - ${response.status} ${response.statusText}`,
                 { variant: "error" }
             );
         }
@@ -371,7 +372,7 @@ export default function DetailSection({
         <>
             <Grid container spacing={gridSpacing} justify="space-evenly">
                 <Box className={classes.actionButtons}>
-                    {editable && (
+                    {dataInfo && (
                         <FormControlLabel
                             control={<Switch color="primary" checked={editMode} size="small" />}
                             label="Edit Mode"
