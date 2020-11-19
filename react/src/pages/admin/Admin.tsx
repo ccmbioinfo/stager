@@ -52,25 +52,25 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function Admin() {
     const classes = useStyles();
-    const [value, setValue] = React.useState(0);
-
-    const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-        setValue(newValue);
-    };
+    const [currentTab, setCurrentTab] = React.useState(0);
 
     return (
         <main className={classes.root}>
             <div className={classes.appBarSpacer} />
             <AppBar position="static">
-                <Tabs value={value} onChange={handleChange} aria-label="admin-tabs">
+                <Tabs
+                    value={currentTab}
+                    onChange={(e, tab) => setCurrentTab(tab)}
+                    aria-label="admin-tabs"
+                >
                     <Tab label="Manage Users" {...a11yProps(0)} />
                     <Tab label="Manage Uploaders" {...a11yProps(1)} />
                 </Tabs>
             </AppBar>
-            <TabPanel value={value} index={0}>
+            <TabPanel value={currentTab} index={0}>
                 <UserList />
             </TabPanel>
-            <TabPanel value={value} index={1}>
+            <TabPanel value={currentTab} index={1}>
                 <ManagedUploaders />
             </TabPanel>
         </main>
