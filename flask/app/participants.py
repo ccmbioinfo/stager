@@ -14,14 +14,14 @@ from werkzeug.exceptions import HTTPException
 
 @app.route("/api/participants", methods=["GET"])
 @login_required
-def participants_list():
+def list_participants():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
 
     if user_id:
-        db_participants = (
+        participants = (
             models.Participant.query.options(
                 joinedload(models.Participant.family),
                 contains_eager(models.Participant.tissue_samples).contains_eager(
@@ -44,28 +44,29 @@ def participants_list():
             .all()
         )
     else:
-        db_participants = models.Participant.query.options(
+        participants = models.Participant.query.options(
             joinedload(models.Participant.family),
             joinedload(models.Participant.tissue_samples).joinedload(
                 models.TissueSample.datasets
             ),
         ).all()
 
-    participants = [
-        {
-            **asdict(participant),
-            "family_codename": participant.family.family_codename,
-            "tissue_samples": [
-                {
-                    **asdict(tissue_sample),
-                    "datasets": tissue_sample.datasets,
-                }
-                for tissue_sample in participant.tissue_samples
-            ],
-        }
-        for participant in db_participants
-    ]
-    return jsonify(participants)
+    return jsonify(
+        [
+            {
+                **asdict(participant),
+                "family_codename": participant.family.family_codename,
+                "tissue_samples": [
+                    {
+                        **asdict(tissue_sample),
+                        "datasets": tissue_sample.datasets,
+                    }
+                    for tissue_sample in participant.tissue_samples
+                ],
+            }
+            for participant in participants
+        ]
+    )
 
 
 @app.route("/api/participants/<int:id>", methods=["DELETE"])
@@ -75,9 +76,9 @@ def delete_participant(id: int):
     participant = (
         models.Participant.query.filter(models.Participant.participant_id == id)
         .options(joinedload(models.Participant.tissue_samples))
-        .one_or_none()
+        .first_or_404()
     )
-    if participant and not participant.tissue_samples:
+    if not participant.tissue_samples:
         try:
             db.session.delete(participant)
             db.session.commit()
@@ -85,10 +86,8 @@ def delete_participant(id: int):
         except:
             db.session.rollback()
             return "Server error", 500
-    elif participant:
-        return "Participant has tissue samples, cannot delete", 422
     else:
-        return "Not Found", 404
+        return "Participant has tissue samples, cannot delete", 422
 
 
 @app.route("/api/participants/<int:id>", methods=["PATCH"])
@@ -104,7 +103,7 @@ def update_participant(id: int):
         user_id = current_user.user_id
 
     if user_id:
-        table = (
+        participant = (
             models.Participant.query.filter(models.Participant.participant_id == id)
             .join(models.TissueSample)
             .join(models.Dataset)
@@ -119,15 +118,12 @@ def update_participant(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
+            .first_or_404()
         )
     else:
-        table = models.Participant.query.filter(
+        participant = models.Participant.query.filter(
             models.Participant.participant_id == id
-        ).one_or_none()
-
-    if not table:
-        return "Not Found", 404
+        ).first_or_404()
 
     editable_columns = [
         "participant_codename",
@@ -137,15 +133,13 @@ def update_participant(id: int):
         "solved",
         "notes",
     ]
-    enum_error = routes.mixin(table, request.json, editable_columns)
+    enum_error = routes.mixin(participant, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
 
-    try:
-        table.updated_by = current_user.user_id
-    except:
-        pass  # LOGIN_DISABLED
+    if user_id:
+        participant.updated_by = user_id
 
     routes.transaction_or_abort(db.session.commit)
 

@@ -9,14 +9,14 @@ from .routes import check_admin
 
 @app.route("/api/families", methods=["GET"])
 @login_required
-def families_list():
+def list_families():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
 
     if user_id:
-        db_families = (
+        families = (
             models.Family.query.options(contains_eager(models.Family.participants))
             .join(models.Participant)
             .join(models.TissueSample)
@@ -35,21 +35,18 @@ def families_list():
             .all()
         )
     else:
-        db_families = models.Family.query.options(
+        families = models.Family.query.options(
             joinedload(models.Family.participants)
         ).all()
 
-    families = [
-        {**asdict(family), "participants": family.participants}
-        for family in db_families
-    ]
-
-    return jsonify(families)
+    return jsonify(
+        [{**asdict(family), "participants": family.participants} for family in families]
+    )
 
 
 @app.route("/api/families/<int:id>", methods=["GET"])
 @login_required
-def families_by_id(id: int):
+def get_family(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
@@ -77,7 +74,7 @@ def families_by_id(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
+            .first_or_404()
         )
     else:
         family = (
@@ -87,37 +84,35 @@ def families_by_id(id: int):
                 .joinedload(models.Participant.tissue_samples)
                 .joinedload(models.TissueSample.datasets)
             )
-            .one_or_none()
+            .first_or_404()
         )
 
-    if not family:
-        return "Not Found", 404
-
-    families = [
-        {
-            **asdict(family),
-            "participants": [
-                {
-                    **asdict(participants),
-                    "tissue_samples": [
-                        {
-                            **asdict(tissue_samples),
-                            "datasets": tissue_samples.datasets,
-                        }
-                        for tissue_samples in participants.tissue_samples
-                    ],
-                }
-                for participants in family.participants
-            ],
-        }
-    ]
-    return jsonify(families)
+    return jsonify(
+        [
+            {
+                **asdict(family),
+                "participants": [
+                    {
+                        **asdict(participants),
+                        "tissue_samples": [
+                            {
+                                **asdict(tissue_samples),
+                                "datasets": tissue_samples.datasets,
+                            }
+                            for tissue_samples in participants.tissue_samples
+                        ],
+                    }
+                    for participants in family.participants
+                ],
+            }
+        ]
+    )
 
 
 @app.route("/api/families/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
-def delete_families(id: int):
+def delete_family(id: int):
     family = models.Family.query.filter_by(family_id=id).options(
         joinedload(models.Family.participants)
     )
@@ -138,7 +133,7 @@ def delete_families(id: int):
 
 @app.route("/api/families/<int:id>", methods=["PATCH"])
 @login_required
-def edit_families(id: int):
+def update_family(id: int):
 
     if not request.json:
         return "Request body must be JSON", 415
@@ -170,20 +165,15 @@ def edit_families(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
+            .first_or_404()
         )
     else:
-        family = models.Family.query.filter_by(family_id=id).one_or_none()
-
-    if not family:
-        return "Not Found", 404
+        family = models.Family.query.filter_by(family_id=id).first_or_404()
 
     family.family_codename = fam_codename
 
-    try:
-        family.updated_by = current_user.user_id
-    except:
-        pass  # LOGIN_DISABLED
+    if user_id:
+        family.updated_by = user_id
 
     try:
         db.session.commit()

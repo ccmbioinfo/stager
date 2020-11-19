@@ -14,7 +14,7 @@ from werkzeug.exceptions import HTTPException
 
 @app.route("/api/datasets", methods=["GET"])
 @login_required
-def datasets_list():
+def list_datasets():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
@@ -33,24 +33,25 @@ def datasets_list():
     else:
         query = models.Dataset.query
 
-    db_datasets = query.options(
+    datasets = query.options(
         joinedload(models.Dataset.tissue_sample)
         .joinedload(models.TissueSample.participant)
         .joinedload(models.Participant.family)
     ).all()
 
-    datasets = [
-        {
-            **asdict(dataset),
-            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
-            "participant_codename": dataset.tissue_sample.participant.participant_codename,
-            "participant_type": dataset.tissue_sample.participant.participant_type,
-            "sex": dataset.tissue_sample.participant.sex,
-            "family_codename": dataset.tissue_sample.participant.family.family_codename,
-        }
-        for dataset in db_datasets
-    ]
-    return jsonify(datasets)
+    return jsonify(
+        [
+            {
+                **asdict(dataset),
+                "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                "participant_type": dataset.tissue_sample.participant.participant_type,
+                "sex": dataset.tissue_sample.participant.sex,
+                "family_codename": dataset.tissue_sample.participant.family.family_codename,
+            }
+            for dataset in datasets
+        ]
+    )
 
 
 @app.route("/api/datasets/<int:id>", methods=["GET"])
@@ -77,7 +78,7 @@ def get_dataset(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
+            .first_or_404()
         )
     else:
         dataset = (
@@ -88,54 +89,29 @@ def get_dataset(id: int):
                 .joinedload(models.TissueSample.participant)
                 .joinedload(models.Participant.family),
             )
-            .one_or_none()
-        )
-    if not dataset:
-        return "Not Found", 404
-    else:
-        return jsonify(
-            {
-                **asdict(dataset),
-                "tissue_sample": dataset.tissue_sample,
-                "participant_codename": dataset.tissue_sample.participant.participant_codename,
-                "participant_type": dataset.tissue_sample.participant.participant_type,
-                "sex": dataset.tissue_sample.participant.sex,
-                "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                "analyses": [
-                    {
-                        **asdict(analysis),
-                        "requester": analysis.requester_user.username,
-                        "updated_by": analysis.updated_by_user.username,
-                        "assignee": analysis.assignee_user
-                        and analysis.assignee_user.username,
-                    }
-                    for analysis in dataset.analyses
-                ],
-            }
+            .first_or_404()
         )
 
-
-@app.route("/api/datasets/<int:id>", methods=["DELETE"])
-@login_required
-@routes.check_admin
-def delete_dataset(id: int):
-    dataset = (
-        models.Dataset.query.filter(models.Dataset.dataset_id == id)
-        .options(joinedload(models.Dataset.analyses))
-        .one_or_none()
+    return jsonify(
+        {
+            **asdict(dataset),
+            "tissue_sample": dataset.tissue_sample,
+            "participant_codename": dataset.tissue_sample.participant.participant_codename,
+            "participant_type": dataset.tissue_sample.participant.participant_type,
+            "sex": dataset.tissue_sample.participant.sex,
+            "family_codename": dataset.tissue_sample.participant.family.family_codename,
+            "analyses": [
+                {
+                    **asdict(analysis),
+                    "requester": analysis.requester_user.username,
+                    "updated_by": analysis.updated_by_user.username,
+                    "assignee": analysis.assignee_user
+                    and analysis.assignee_user.username,
+                }
+                for analysis in dataset.analyses
+            ],
+        }
     )
-    if dataset and not dataset.analyses:
-        try:
-            db.session.delete(dataset)
-            db.session.commit()
-            return "Updated", 204
-        except:
-            db.session.rollback()
-            return "Server error", 500
-    elif dataset:
-        return "Dataset has analyses, cannot delete", 422
-    else:
-        return "Not Found", 404
 
 
 @app.route("/api/datasets/<int:id>", methods=["PATCH"])
@@ -150,7 +126,7 @@ def update_dataset(id: int):
         user_id = current_user.user_id
 
     if user_id:
-        table = (
+        dataset = (
             models.Dataset.query.filter_by(dataset_id=id)
             .join(models.groups_datasets_table)
             .join(
@@ -159,13 +135,10 @@ def update_dataset(id: int):
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
+            .first_or_404()
         )
     else:
-        table = models.Dataset.query.filter_by(dataset_id=id).one_or_none()
-
-    if not table:
-        return "Not Found", 404
+        dataset = models.Dataset.query.filter_by(dataset_id=id).first_or_404()
 
     editable_columns = [
         "dataset_type",
@@ -185,16 +158,34 @@ def update_dataset(id: int):
         "discriminator",
     ]
 
-    enum_error = routes.mixin(table, request.json, editable_columns)
-
+    enum_error = routes.mixin(dataset, request.json, editable_columns)
     if enum_error:
         return enum_error, 400
 
-    try:
-        table.updated_by = current_user.user_id
-    except:
-        pass  # LOGIN_DISABLED
+    if user_id:
+        dataset.updated_by = user_id
 
     routes.transaction_or_abort(db.session.commit)
 
-    return jsonify(table)
+    return jsonify(dataset)
+
+
+@app.route("/api/datasets/<int:id>", methods=["DELETE"])
+@login_required
+@routes.check_admin
+def delete_dataset(id: int):
+    dataset = (
+        models.Dataset.query.filter(models.Dataset.dataset_id == id)
+        .options(joinedload(models.Dataset.analyses))
+        .first_or_404()
+    )
+    if not dataset.analyses:
+        try:
+            db.session.delete(dataset)
+            db.session.commit()
+            return "Updated", 204
+        except:
+            db.session.rollback()
+            return "Server error", 500
+    else:
+        return "Dataset has analyses, cannot delete", 422
