@@ -349,7 +349,6 @@ export default function DetailSection({
             body: JSON.stringify(newData),
         });
         if (response.ok) {
-            const updatedData = await response.json();
             enqueueSnackbar(`${dataType} ${identifier} updated successfully`, {
                 variant: "success",
             });
