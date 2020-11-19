@@ -3,9 +3,13 @@ import { createHash } from "crypto";
 import {
     Box,
     BoxProps,
+    Button,
+    ButtonGroup,
+    Checkbox,
     Chip,
     Collapse,
     Divider,
+    FormControlLabel,
     Grid,
     GridProps,
     IconButton,
@@ -14,6 +18,8 @@ import {
     ListItemText,
     makeStyles,
     Paper,
+    TextField,
+    Toolbar,
     Tooltip,
     Typography,
     TypographyProps,
@@ -26,14 +32,15 @@ import {
     FileCopy,
     LockOpen,
     Person,
+    PersonAdd,
+    PersonAddDisabled,
     PersonOutline,
     Visibility,
     VisibilityOff,
 } from "@material-ui/icons";
 import { Skeleton } from "@material-ui/lab";
-
-import { User } from "../utils/typings";
 import { useSnackbar } from "notistack";
+import { GroupChip, User } from "../utils/typings";
 
 export default function UserList() {
     const [users, setUsers] = useState<User[]>([]);
@@ -65,7 +72,7 @@ const useRowStyles = makeStyles(theme => ({
     },
 }));
 
-function UserRow(props: { user: User; inactive?: boolean }) {
+function UserRow(props: { user: User }) {
     const classes = useRowStyles();
     const [date, time] = new Date().toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
@@ -115,7 +122,7 @@ function UserRow(props: { user: User; inactive?: boolean }) {
                 </ListItem>
                 <Collapse in={open}>
                     <Divider />
-                    <UserDetails />
+                    <UserDetails user={props.user} />
                 </Collapse>
             </Paper>
         </Grid>
@@ -127,32 +134,62 @@ const useDetailStyles = makeStyles(theme => ({
         margin: theme.spacing(1),
         padding: theme.spacing(2),
     },
+    grow: {
+        flexGrow: 1,
+    },
 }));
 
-function UserDetails(props: { inactive?: boolean }) {
+function UserDetails(props: { user: User }) {
     const classes = useDetailStyles();
 
     return (
         <Box className={classes.root}>
-            <Grid container xs={12}>
-                <Grid item xs={12}>
+            <Grid container xs={12} spacing={1}>
+                <Grid container item md={12} lg={6} spacing={1}>
+                    <Grid item xs={6}>
+                        <FormControlLabel
+                            label={<b>Active User</b>}
+                            control={<Checkbox checked={true} color="primary" />}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <FormControlLabel
+                            label={<b>Admin</b>}
+                            control={<Checkbox checked={props.user.isAdmin} color="primary" />}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <SecretKeyDisplay
+                            title="MinIO Access Key"
+                            secret={createHash("md5").update("accesskey").digest("hex")}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <SecretKeyDisplay
+                            title="MinIO Secret Key"
+                            secret={createHash("md5").update("secretkey").digest("hex")}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <NewPasswordForm />
+                    </Grid>
+                </Grid>
+                <Grid item md={12} lg={6}>
                     <Typography>
-                        <b>Status:</b> {props.inactive ? "Inactive" : "Active"}
+                        <b>Group Management</b>
                     </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                    <SecretKeyDisplay
-                        title="MinIO Access Key"
-                        secret={createHash("md5").update("accesskey").digest("hex")}
-                    />
-                </Grid>
-                <Grid item xs={12}>
-                    <SecretKeyDisplay
-                        title="MinIO Secret Key"
-                        secret={createHash("md5").update("secretkey").digest("hex")}
-                    />
+                    <GroupManagementSection />
                 </Grid>
             </Grid>
+            <Toolbar>
+                <div className={classes.grow} />
+                <ButtonGroup>
+                    <Button variant="contained">Cancel</Button>
+                    <Button variant="contained" color="primary">
+                        Save Changes
+                    </Button>
+                </ButtonGroup>
+            </Toolbar>
         </Box>
     );
 }
@@ -204,20 +241,148 @@ function LastLoginDisplay(props: { date: string; time: string } & TypographyProp
     );
 }
 
-const useChipStyles = makeStyles(theme => ({
+const usePermStyles = makeStyles(theme => ({
     chip: {
         marginLeft: theme.spacing(1),
     },
 }));
 
 function PermissionChipGroup(props: { groups: string[] } & BoxProps) {
-    const classes = useChipStyles();
+    const classes = usePermStyles();
     const { groups, ...boxProps } = props;
     return (
         <Box {...boxProps}>
             {props.groups.map((groupName, index) => (
-                <Chip label={groupName} className={classes.chip} />
+                <Chip size="small" label={groupName} className={classes.chip} />
             ))}
         </Box>
+    );
+}
+
+function NewPasswordForm() {
+    const [showPassword, setShowPassword] = useState(false);
+
+    return (
+        <>
+            <Typography>
+                <b>Change Password</b>
+                <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+            </Typography>
+            <TextField
+                required
+                variant="filled"
+                fullWidth
+                margin="dense"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                label="New password"
+            />
+            <TextField
+                required
+                variant="filled"
+                fullWidth
+                margin="dense"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                label="Confirm password"
+            />
+        </>
+    );
+}
+
+const useGroupStyles = makeStyles(theme => ({
+    root: {
+        margin: theme.spacing(1),
+    },
+}));
+
+function GroupManagementSection() {
+    const classes = useGroupStyles();
+    const [groups, setGroups] = useState<GroupChip[]>(
+        ["FOO", "BAR", "BAZ", "FAZ"].map((label, index) => ({
+            label: label,
+            key: index,
+            selected: false,
+        }))
+    );
+
+    function toggleSelected(chip: GroupChip) {
+        setGroups(
+            groups.map(group =>
+                group.key === chip.key ? { ...group, selected: !group.selected } : group
+            )
+        );
+    }
+
+    return (
+        <Grid container xs={12} spacing={1} className={classes.root}>
+            <Grid item container xs={12} alignItems="center">
+                <Grid item>
+                    <PersonAdd fontSize="large" />
+                </Grid>
+                <Grid item>
+                    <ChipArray
+                        chips={groups.filter(chip => !!chip.selected)}
+                        onClick={toggleSelected}
+                    />
+                </Grid>
+            </Grid>
+            <Grid item container xs={12} alignItems="center">
+                <Grid item>
+                    <PersonAddDisabled fontSize="large" />
+                </Grid>
+                <Grid item>
+                    <ChipArray
+                        chips={groups.filter(chip => !chip.selected)}
+                        onClick={toggleSelected}
+                    />
+                </Grid>
+            </Grid>
+        </Grid>
+    );
+}
+
+const useChipStyles = makeStyles(theme => ({
+    chipList: {
+        display: "flex",
+        justifyContent: "center",
+        flexWrap: "wrap",
+        listStyle: "none",
+        padding: theme.spacing(0.5),
+        margin: 0,
+    },
+    chip: {
+        margin: theme.spacing(0.5),
+    },
+    paper: {
+        margin: theme.spacing(1),
+    },
+}));
+
+function ChipArray(props: { chips: GroupChip[]; onClick: (chip: GroupChip) => void }) {
+    const classes = useChipStyles();
+
+    return (
+        <>
+            {props.chips.length > 0 && (
+                <Paper className={classes.paper}>
+                    <Box component="ul" className={classes.chipList}>
+                        {props.chips.map(chip => {
+                            return (
+                                <li key={chip.key}>
+                                    <Chip
+                                        label={chip.label}
+                                        className={classes.chip}
+                                        onClick={() => props.onClick(chip)}
+                                    />
+                                </li>
+                            );
+                        })}
+                    </Box>
+                </Paper>
+            )}
+        </>
     );
 }

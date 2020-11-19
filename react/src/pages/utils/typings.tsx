@@ -147,3 +147,9 @@ export interface User {
     email: string;
     isAdmin: boolean;
 }
+
+export interface GroupChip {
+    key: number;
+    label: string;
+    selected?: boolean;
+}
