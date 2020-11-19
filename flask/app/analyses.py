@@ -104,15 +104,18 @@ def get_analysis(id: int):
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
             .join(models.Pipeline)
-            .first_or_404()
+            .one_or_none()
         )
     else:
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .outerjoin(models.Analysis.datasets)
             .join(models.Pipeline)
-            .first_or_404()
+            .one_or_none()
         )
+
+    if not analysis:
+        return "Not Found", 404
 
     return jsonify(
         {
