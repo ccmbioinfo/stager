@@ -145,7 +145,6 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
  */
 export function getDatasetFields(dataset: Dataset) {
     return [
-        // createFieldObj("Dataset ID", dataset.dataset_id),
         createFieldObj("Dataset Type", dataset.dataset_type, "dataset_type"),
         createFieldObj(
             "Participant Codename",

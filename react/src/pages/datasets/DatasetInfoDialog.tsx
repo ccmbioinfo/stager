@@ -72,7 +72,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
             aria-labelledby={labeledBy}
             open={open}
             maxWidth="lg"
-            fullWidth={true}
+            fullWidth
         >
             <DialogHeader
                 id={labeledBy}
@@ -92,7 +92,6 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             editable
                             dataType="dataset"
                             dataID={dataset.dataset_id}
-                            // callback={()=> {setTest(n=>n+1)}}
                         />
                     )}
                 </div>
