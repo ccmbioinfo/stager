@@ -11,6 +11,24 @@ from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
 
+editable_columns = [
+    "dataset_type",
+    "input_hpf_path",
+    "notes",
+    "condition",
+    "extraction_protocol",
+    "capture_kit",
+    "library_prep_method",
+    "library_prep_date",
+    "read_length",
+    "read_type",
+    "sequencing_id",
+    "sequencing_date",
+    "sequencing_centre",
+    "batch_id",
+    "discriminator",
+]
+
 
 @app.route("/api/datasets", methods=["GET"])
 @login_required
@@ -107,24 +125,6 @@ def update_dataset(id: int):
 
     table = models.Dataset.query.get_or_404(id)
 
-    editable_columns = [
-        "dataset_type",
-        "input_hpf_path",
-        "notes",
-        "condition",
-        "extraction_protocol",
-        "capture_kit",
-        "library_prep_method",
-        "library_prep_date",
-        "read_length",
-        "read_type",
-        "sequencing_id",
-        "sequencing_date",
-        "sequencing_centre",
-        "batch_id",
-        "discriminator",
-    ]
-
     enum_error = routes.mixin(table, request.json, editable_columns)
 
     if enum_error:
@@ -138,3 +138,61 @@ def update_dataset(id: int):
     routes.transaction_or_abort(db.session.commit)
 
     return jsonify(table)
+
+
+@app.route("/api/datasets", methods=["POST"])
+@login_required
+def post_dataset():
+    if not request.json:
+        return "Request body must be JSON", 400
+
+    dataset_type = request.json.get("dataset_type")
+    if not dataset_type:
+        return "A dataset type must be provided", 400
+
+    tissue_sample_id = request.json.get("tissue_sample_id")
+    if not tissue_sample_id:
+        return "A tissue sample id must be provided", 400
+
+    models.TissueSample.query.filter_by(
+        tissue_sample_id=tissue_sample_id
+    ).first_or_404()
+
+    enum_error = routes.enum_validate(models.Dataset, request.json, editable_columns)
+
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        created_by = updated_by = current_user.user_id
+    except:  # LOGIN DISABLED
+        created_by = updated_by = 1
+
+    dataset = models.Dataset(
+        **{
+            "tissue_sample_id": tissue_sample_id,
+            "dataset_type": dataset_type,
+            "input_hpf_path": request.json.get("input_hpf_path"),
+            "notes": request.json.get("notes"),
+            "condition": request.json.get("condition"),
+            "extraction_protocol": request.json.get("extraction_protocol"),
+            "capture_kit": request.json.get("capture_kit"),
+            "library_prep_method": request.json.get("library_prep_method"),
+            "library_prep_date": request.json.get("library_prep_date"),
+            "read_length": request.json.get("read_length"),
+            "read_type": request.json.get("read_type"),
+            "sequencing_id": request.json.get("sequencing_id"),
+            "sequencing_date": request.json.get("sequencing_date"),
+            "sequencing_centre": request.json.get("sequencing_centre"),
+            "batch_id": request.json.get("batch_id"),
+            "created_by": created_by,
+            "updated_by": updated_by,
+            "discriminator": request.json.get("discriminator"),
+        }
+    )
+    db.session.add(dataset)
+    routes.transaction_or_abort(db.session.commit)
+    ds_id = dataset.dataset_id
+    location_header = "/api/datasets/{}".format(ds_id)
+
+    return jsonify(dataset), 201, {"location": location_header}
