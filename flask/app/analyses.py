@@ -69,7 +69,7 @@ def list_analyses():
                 "updated_by": updated_by and updated_by.username,
                 "assignee": assignee and assignee.username,
             }
-            for analysis, requester, updated_by, assignee in db_analyses
+            for analysis, requester, updated_by, assignee in analyses
         ]
     )
 
