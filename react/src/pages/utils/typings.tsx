@@ -94,6 +94,7 @@ export interface Info {
     secondaryListTitle?: string;
     fields: Field[];
     collapsibleFields?: Field[];
+    identifier?: string;
 }
 
 // Define these as classes so that we can create an array of keys later

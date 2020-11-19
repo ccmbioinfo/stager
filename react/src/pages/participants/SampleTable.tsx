@@ -75,7 +75,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 });
                 return (
                     <div className={classes.datasetList}>
-                        <InfoList infoList={infoList} icon={<Dns />} />
+                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets" />
                     </div>
                 );
             }}
@@ -87,7 +87,6 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 paging: false,
                 selection: false,
                 search: false,
-                // filtering:true,
                 headerStyle: {
                     padding: 0,
                 },

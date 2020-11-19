@@ -214,14 +214,14 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         }}
                     />
                     <Route
-                        path="/analysis"
+                        path="/analysis/:id?"
                         render={() => {
                             setPageName("Analyses");
                             return <Analyses />;
                         }}
                     />
                     <Route
-                        path="/datasets"
+                        path="/datasets/:id?"
                         render={() => {
                             setPageName("Datasets");
                             return <Datasets />;
@@ -242,7 +242,7 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         }}
                     />
                     <Route
-                        path={["/", "/participants"]}
+                        path={["/participants/:id?", "/"]}
                         render={() => {
                             setPageName("Participants");
                             return <Participants />;

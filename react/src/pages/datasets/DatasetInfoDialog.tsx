@@ -112,6 +112,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                             infoList={getAnalysisInfoList(analyses)}
                             title="Analyses which use this dataset"
                             icon={<ShowChart />}
+                            linkPath="/analysis"
                         />
                     )}
                 </div>

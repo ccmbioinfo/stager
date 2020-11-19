@@ -79,6 +79,7 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
                             infoList={getDatasetInfoList(datasets)}
                             title="Associated Datasets"
                             icon={<Dns />}
+                            linkPath="/datasets"
                         />
                     )}
                 </div>

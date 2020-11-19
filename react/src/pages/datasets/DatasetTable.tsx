@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
@@ -39,6 +40,8 @@ export default function DatasetTable() {
 
     //for updating the table after the dialog is closed
     const [num, reRender] = useState(0);
+    const { id: paramID } = useParams<{ id?: string }>();
+    const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
         fetch("/api/enums").then(async response => {
@@ -94,6 +97,12 @@ export default function DatasetTable() {
             )}
             <MaterialTable
                 columns={[
+                    {
+                        title: "Dataset ID",
+                        field: "dataset_id",
+                        editable: "never",
+                        defaultFilter: paramFilter,
+                    },
                     { title: "Participant", field: "participant_codename", editable: "never" },
                     { title: "Family", field: "family_codename", editable: "never" },
                     {
@@ -244,6 +253,11 @@ export default function DatasetTable() {
                     header: {
                         actions: "", //remove action buttons' header
                     },
+                }}
+                onFilterChange={filters => {
+                    const newValue = filters.find(filter => filter.column.field === "analysis_id")
+                        ?.value;
+                    setParamFilter(newValue ? newValue : "");
                 }}
             />
         </div>

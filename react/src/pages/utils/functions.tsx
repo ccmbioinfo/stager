@@ -135,6 +135,7 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
             primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
             fields: getAnalysisFields(analysis),
+            identifier: analysis.analysis_id,
         };
     });
 }
@@ -195,6 +196,7 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
             secondaryListTitle: `Participant: ${dataset.participant_codename} - Click for more details`,
             fields: getDatasetFields(dataset),
             collapsibleFields: getSecDatasetFields(dataset),
+            identifier: dataset.dataset_id,
         };
     });
 }

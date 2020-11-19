@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { Cancel, FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
@@ -28,6 +29,8 @@ export default function ParticipantTable() {
     const { enqueueSnackbar } = useSnackbar();
     //for updating the table after the dialog is closed
     const [num, reRender] = useState(0);
+
+    const { id: paramID } = useParams<{ id?: string }>();
 
     async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -88,6 +91,7 @@ export default function ParticipantTable() {
                     {
                         title: "Participant Codename",
                         field: "participant_codename",
+                        defaultFilter: paramID,
                     },
                     {
                         title: "Family Codename",

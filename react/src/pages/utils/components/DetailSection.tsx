@@ -39,11 +39,6 @@ const useStyles = makeStyles(theme => ({
         margin: theme.spacing(0.2),
         width: "50%",
     },
-    button: {
-        textTransform: "none",
-        padding: theme.spacing(0.5),
-        minWidth: 0,
-    },
     box: {
         padding: theme.spacing(0.5),
     },
@@ -66,6 +61,9 @@ const useStyles = makeStyles(theme => ({
     actionButtons: {
         position: "absolute",
         right: theme.spacing(1),
+    },
+    button: {
+        marginRight: theme.spacing(1),
     },
 }));
 
@@ -285,6 +283,7 @@ interface DetailSectionProps {
     editable?: boolean;
     dataType?: "participant" | "dataset";
     dataID?: string;
+    linkPath?: string;
 }
 
 export default function DetailSection({
@@ -441,6 +440,7 @@ export default function DetailSection({
                         </Grid>
                     </Collapse>
                     <Button
+                        className={classes.button}
                         variant="contained"
                         size="small"
                         onClick={() => {

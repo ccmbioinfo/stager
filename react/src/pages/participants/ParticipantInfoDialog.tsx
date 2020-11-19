@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { formatDateString, getAnalysisFields, createFieldObj } from "../utils/functions";
-import { Participant, Analysis, Info, Field } from "../utils/typings";
+import { formatDateString, getAnalysisInfoList, createFieldObj } from "../utils/functions";
+import { Participant, Analysis, Field } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
 import InfoList from "../utils/components/InfoList";
+import { useSnackbar } from "notistack";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -34,15 +35,6 @@ function getParticipantFields(participant: Participant): Field[] {
         createFieldObj("Updated By", participant.updated_by, "updated_by", true),
     ];
 }
-function getAnalysisInfoList(analyses: Analysis[]): Info[] {
-    return analyses.map(analysis => {
-        return {
-            primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
-            secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
-            fields: getAnalysisFields(analysis),
-        };
-    });
-}
 
 interface DialogProp {
     open: boolean;
@@ -55,17 +47,34 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
 
+    const { enqueueSnackbar } = useSnackbar();
+
     useEffect(() => {
-        // TODO: get real data
-        fetch("/api/datasets/1")
-            .then(response => response.json())
-            .then(data => {
-                setAnalyses(data.analyses as Analysis[]);
+        (async () => {
+            const datasets = participant.tissue_samples.flatMap(sample => sample.datasets);
+            let analysisList: Analysis[] = [];
+            for (const dataset of datasets) {
+                const response = await fetch("/api/datasets/" + dataset.dataset_id);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    analysisList = analysisList.concat(data.analyses as Analysis[]);
+                } else {
+                    throw new Error(
+                        `GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`
+                    );
+                }
+            }
+            return analysisList;
+        })()
+            .then(analysisList => {
+                setAnalyses(analysisList);
             })
             .catch(error => {
                 console.error(error);
+                enqueueSnackbar(error.message, { variant: "error" });
             });
-    }, [participant]);
+    }, [participant, enqueueSnackbar]);
 
     return (
         <Dialog
@@ -97,6 +106,7 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                         infoList={getAnalysisInfoList(analyses)}
                         title="Analyses"
                         icon={<ShowChart />}
+                        linkPath="/analysis"
                     />
                 </div>
             </DialogContent>
