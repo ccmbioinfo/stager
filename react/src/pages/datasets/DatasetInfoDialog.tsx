@@ -50,7 +50,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp
 
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
-    
+
     useEffect(() => {
         fetch("/api/datasets/" + dataset.dataset_id)
             .then(response => response.json())
@@ -64,13 +64,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp
     }, [dataset]);
 
     return (
-        <Dialog
-            onClose={onClose}
-            aria-labelledby={labeledBy}
-            open={open}
-            maxWidth="lg"
-            fullWidth
-        >
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
             <DialogHeader
                 id={labeledBy}
                 onClose={() => {
@@ -88,7 +82,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp
                             dataInfo={{
                                 type: "dataset",
                                 ID: dataset.dataset_id,
-                                identifier:dataset.dataset_id,
+                                identifier: dataset.dataset_id,
                             }}
                         />
                     )}

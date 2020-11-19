@@ -67,9 +67,9 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const capitalizeFirstLetter = (s : string| undefined) => {
-    if(s) return s.charAt(0).toUpperCase() + s.slice(1)
-}
+const capitalizeFirstLetter = (s: string | undefined) => {
+    if (s) return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 const formatValue = (value: FieldDisplayValueType) => {
     let val = value;
@@ -279,8 +279,8 @@ function GridFieldsDisplay({
         </Grid>
     );
 }
-interface DataInfo{
-   type: "participant" | "dataset";
+interface DataInfo {
+    type: "participant" | "dataset";
     ID: string;
     identifier: string; // participant codename for participant, dataset ID for dataset
 }
@@ -289,7 +289,7 @@ interface DetailSectionProps {
     fields: Field[];
     collapsibleFields?: Field[];
     title?: string;
-   dataInfo?: DataInfo; // dataInfo indicates data is editable
+    dataInfo?: DataInfo; // dataInfo indicates data is editable
     linkPath?: string;
 }
 
@@ -297,7 +297,7 @@ export default function DetailSection({
     fields,
     collapsibleFields,
     title,
-    dataInfo
+    dataInfo,
 }: DetailSectionProps) {
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
@@ -350,9 +350,14 @@ export default function DetailSection({
             body: JSON.stringify(newData),
         });
         if (response.ok) {
-            enqueueSnackbar(`${capitalizeFirstLetter(dataInfo?.type)} ${dataInfo?.identifier} updated successfully`, {
-                variant: "success",
-            });
+            enqueueSnackbar(
+                `${capitalizeFirstLetter(dataInfo?.type)} ${
+                    dataInfo?.identifier
+                } updated successfully`,
+                {
+                    variant: "success",
+                }
+            );
         } else {
             setPrimaryFields(fields);
             if (collapsibleFields) {
