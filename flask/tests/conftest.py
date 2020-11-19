@@ -1,6 +1,7 @@
 import os, pytest
 from app import create_app, db
 from app.config import Config
+from app.models import *
 
 
 class TestConfig(Config):
@@ -51,3 +52,129 @@ def client(application):
     # Teardown
     with application.app_context():
         db.drop_all()
+
+
+@pytest.fixture
+def test_database(client):
+    group = Group(group_code="ach", group_name="Alberta")
+    db.session.add(group)
+    db.session.flush()
+
+    admin = User(username="admin", email="noreply@sickkids.ca", is_admin=True)
+    admin.set_password("admin")
+    db.session.add(admin)
+    db.session.flush()
+
+    user = User(username="user", email="test@sickkids.ca")
+    user.set_password("user")
+    user.groups.append(group)
+    db.session.add(user)
+    db.session.flush()
+
+    wes = DatasetType(dataset_type="WES")
+    wgs = DatasetType(dataset_type="WGS")
+    db.session.add(wes)
+    db.session.add(wgs)
+    db.session.flush()
+
+    family_a = Family(
+        family_codename="A", created_by=admin.user_id, updated_by=admin.user_id
+    )
+
+    participant_1 = Participant(
+        participant_codename="001",
+        sex=Sex.Female,
+        participant_type=ParticipantType.Proband,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    family_a.participants.append(participant_1)
+
+    sample_1 = TissueSample(
+        tissue_sample_type=TissueSampleType.Blood,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    participant_1.tissue_samples.append(sample_1)
+
+    dataset_1 = Dataset(
+        dataset_type=wes.dataset_type,
+        condition=DatasetCondition.Somatic,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    sample_1.datasets.append(dataset_1)
+
+    dataset_2 = Dataset(
+        dataset_type=wgs.dataset_type,
+        condition=DatasetCondition.Somatic,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    dataset_2.groups.append(group)
+    sample_1.datasets.append(dataset_2)
+
+    participant_2 = Participant(
+        participant_codename="002",
+        sex=Sex.Female,
+        participant_type=ParticipantType.Parent,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    family_a.participants.append(participant_2)
+
+    sample_2 = TissueSample(
+        tissue_sample_type=TissueSampleType.Blood,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    participant_2.tissue_samples.append(sample_2)
+
+    dataset_3 = Dataset(
+        dataset_type=wes.dataset_type,
+        condition=DatasetCondition.Somatic,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    dataset_3.groups.append(group)
+    sample_2.datasets.append(dataset_3)
+
+    db.session.add(family_a)
+    db.session.flush()
+
+    family_b = Family(
+        family_codename="B", created_by=admin.user_id, updated_by=admin.user_id
+    )
+
+    participant_3 = Participant(
+        participant_codename="003",
+        sex=Sex.Male,
+        participant_type=ParticipantType.Proband,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    family_b.participants.append(participant_3)
+
+    sample_3 = TissueSample(
+        tissue_sample_type=TissueSampleType.Blood,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    participant_3.tissue_samples.append(sample_3)
+
+    dataset_4 = Dataset(
+        dataset_type=wgs.dataset_type,
+        condition=DatasetCondition.Somatic,
+        created_by=admin.user_id,
+        updated_by=admin.user_id,
+    )
+    sample_3.datasets.append(dataset_4)
+
+    db.session.add(family_b)
+    db.session.commit()
+
+    yield
+
+    # all tables are dropped anyway
+    # db.session.delete(user)
+    # db.session.delete(admin)
