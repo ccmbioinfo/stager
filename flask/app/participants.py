@@ -143,4 +143,4 @@ def update_participant(id: int):
 
     routes.transaction_or_abort(db.session.commit)
 
-    return jsonify(table)
+    return jsonify(participant)
