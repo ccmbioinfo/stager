@@ -10,9 +10,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
 import { User, UserAction } from "../utils/typings";
 import UserRow from "./NewUserRow";
-import { useSnackbar } from "notistack";
 
 async function updateUser(user: User) {
     return fetch("/api/users", {
@@ -111,6 +111,24 @@ export default function UserList() {
                                         const message = await response.text();
                                         enqueueSnackbar(
                                             `User update failed - ${response.status} ${message}`,
+                                            { variant: "error" }
+                                        );
+                                    });
+                            }}
+                            onDelete={user => {
+                                deleteUser(user)
+                                    .then(async response => {
+                                        const message = await response.text();
+                                        enqueueSnackbar(
+                                            `User deleted successfully - ${response.status} ${message}`,
+                                            { variant: "success" }
+                                        );
+                                        dispatch({ type: "delete", payload: user });
+                                    })
+                                    .catch(async response => {
+                                        const message = await response.text();
+                                        enqueueSnackbar(
+                                            `User deletion failed - ${response.status} ${message}`,
                                             { variant: "error" }
                                         );
                                     });
