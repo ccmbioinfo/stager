@@ -40,9 +40,15 @@ interface DialogProp {
     open: boolean;
     participant: Participant;
     onClose: () => void;
+    onUpdate: (participant_id: string, newParticipant: { [key: string]: any }) => void;
 }
 
-export default function ParticipantInfoDialog({ participant, open, onClose }: DialogProp) {
+export default function ParticipantInfoDialog({
+    participant,
+    open,
+    onClose,
+    onUpdate,
+}: DialogProp) {
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -94,6 +100,7 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                             type: "participant",
                             ID: participant.participant_id,
                             identifier: participant.participant_codename,
+                            onUpdate: onUpdate,
                         }}
                     />
                 </div>

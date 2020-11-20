@@ -27,8 +27,6 @@ export default function ParticipantTable() {
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
     const { enqueueSnackbar } = useSnackbar();
-    //for updating the table after the dialog is closed
-    const [num, reRender] = useState(0);
 
     const { id: paramID } = useParams<{ id?: string }>();
 
@@ -71,7 +69,7 @@ export default function ParticipantTable() {
                 );
             }
         });
-    }, [num]);
+    }, []);
 
     return (
         <div>
@@ -79,9 +77,23 @@ export default function ParticipantTable() {
                 <ParticipantInfoDialog
                     open={detail}
                     participant={activeRow}
+                    onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
+                        const updatedParticipants = [...participants];
+                        const idx = participants.findIndex(
+                            participant => participant.participant_id === participant_id
+                        );
+                        const updatedParticipant = { ...participants[idx] } as {
+                            [key: string]: any;
+                        };
+                        Object.keys(newParticipant).forEach(key => {
+                            updatedParticipant[key] = newParticipant[key];
+                        });
+                        updatedParticipants[idx] = updatedParticipant as Participant;
+
+                        setParticipants(updatedParticipants);
+                    }}
                     onClose={() => {
                         setDetail(false);
-                        reRender(n => n + 1);
                     }}
                 />
             )}

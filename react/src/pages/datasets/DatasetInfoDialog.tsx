@@ -42,9 +42,10 @@ interface DialogProp {
     open: boolean;
     dataset: Dataset;
     onClose: () => void;
+    onUpdate: (dataset_id: string, newDataset: { [key: string]: any }) => void;
 }
 
-export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp) {
+export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
 
@@ -83,6 +84,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose }: DialogProp
                                 type: "dataset",
                                 ID: dataset.dataset_id,
                                 identifier: dataset.dataset_id,
+                                onUpdate: onUpdate,
                             }}
                         />
                     )}

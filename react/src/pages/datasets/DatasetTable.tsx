@@ -38,8 +38,6 @@ export default function DatasetTable() {
 
     const { enqueueSnackbar } = useSnackbar();
 
-    //for updating the table after the dialog is closed
-    const [num, reRender] = useState(0);
     const { id: paramID } = useParams<{ id?: string }>();
     const [paramFilter, setParamFilter] = useState(paramID);
 
@@ -75,7 +73,7 @@ export default function DatasetTable() {
                 );
             }
         });
-    }, [num]);
+    }, []);
 
     return (
         <div>
@@ -91,7 +89,18 @@ export default function DatasetTable() {
                     open={showInfo}
                     onClose={() => {
                         setShowInfo(false);
-                        reRender(n => n + 1);
+                    }}
+                    onUpdate={(dataset_id: string, newDataset: { [key: string]: any }) => {
+                        const updatedDatasets = [...datasets];
+                        const idx = datasets.findIndex(
+                            dataset => dataset.dataset_id === dataset_id
+                        );
+                        const updatedDataset = { ...datasets[idx] } as { [key: string]: any };
+                        Object.keys(newDataset).forEach(key => {
+                            updatedDataset[key] = newDataset[key];
+                        });
+                        updatedDatasets[idx] = updatedDataset as Dataset;
+                        setDatasets(updatedDatasets);
                     }}
                 />
             )}

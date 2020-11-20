@@ -283,6 +283,7 @@ interface DataInfo {
     type: "participant" | "dataset";
     ID: string;
     identifier: string; // participant codename for participant, dataset ID for dataset
+    onUpdate?: (participant_id: string, newParticipant: { [key: string]: any }) => void;
 }
 
 interface DetailSectionProps {
@@ -350,6 +351,9 @@ export default function DetailSection({
             body: JSON.stringify(newData),
         });
         if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+            if (dataInfo?.onUpdate) dataInfo?.onUpdate(dataInfo.ID, data);
             enqueueSnackbar(
                 `${capitalizeFirstLetter(dataInfo?.type)} ${
                     dataInfo?.identifier
