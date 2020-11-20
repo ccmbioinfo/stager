@@ -1,103 +1,95 @@
 import React, { useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActions from "@material-ui/core/CardActions";
-import CardContent from "@material-ui/core/CardContent";
-import Checkbox from "@material-ui/core/Checkbox";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import {
+    Collapse,
+    Divider,
+    Grid,
+    GridProps,
+    IconButton,
+    ListItem,
+    ListItemAvatar,
+    ListItemText,
+    makeStyles,
+    Paper,
+    Typography,
+} from "@material-ui/core";
+import { ExpandLess, ExpandMore, Person, PersonOutline } from "@material-ui/icons";
+import { User } from "../utils/typings";
+import UserDetails from "./UserDetails";
+import LastLoginDisplay from "../utils/components/LastLoginDisplay";
+import ChipGroup from "../utils/components/ChipGroup";
 
-const useStyles = makeStyles(theme => ({
-    actions: {
-        padding: theme.spacing(2),
-    },
-    expand: {
-        marginLeft: "auto",
+const useRowStyles = makeStyles(theme => ({
+    button: {
+        marginLeft: theme.spacing(1),
     },
 }));
 
-export interface UserRowState {
-    username: string;
-    email: string;
-    isAdmin: boolean;
-    password: string;
-    confirmPassword: string;
-}
+/**
+ * Displays details about a user. Includes a collapsible panel for
+ * viewing and editing credentials.
+ */
+export default function UserRow(props: {
+    user: User;
+    onSave: (newUser: User) => void;
+    onDelete: (deleteUser: User) => void;
+}) {
+    const classes = useRowStyles();
+    const [date, time] = new Date().toISOString().split(/[T|.]/);
+    const [open, setOpen] = useState(false);
 
-export interface UserRowProps extends UserRowState {
-    onUpdate: (state: UserRowState) => void;
-    onDelete: (state: UserRowState) => void;
-}
-
-export default function UserRow(props: UserRowProps) {
-    const [isAdmin, setAdmin] = useState(props.isAdmin);
-    const [password, setPassword] = useState(props.password);
-    const [confirmPassword, setConfirmPassword] = useState(props.confirmPassword);
-    const state = {
-        username: props.username,
-        email: props.email,
-        isAdmin,
-        password,
-        confirmPassword,
+    const gridProps: GridProps = {
+        justify: "space-between",
+        alignItems: "baseline",
+        spacing: 2,
     };
-    const classes = useStyles();
+
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6">{props.username}</Typography>
-                <Typography variant="subtitle1">{props.email}</Typography>
-                <FormControlLabel
-                    label="Admin?"
-                    control={
-                        <Checkbox
-                            checked={isAdmin}
-                            onChange={e => setAdmin(e.target.checked)}
-                            color="primary"
-                        />
-                    }
-                />
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="dense"
-                    type="password"
-                    autoComplete="new-password"
-                    label="New password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                />
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="dense"
-                    type="password"
-                    autoComplete="new-password"
-                    label="Confirm password"
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                />
-            </CardContent>
-            <CardActions disableSpacing className={classes.actions}>
-                <Button variant="outlined" color="secondary" onClick={() => props.onDelete(state)}>
-                    <DeleteOutlineIcon />
-                    Delete
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    className={classes.expand}
-                    onClick={() => props.onUpdate(state)}
-                >
-                    <EditIcon />
-                    Update
-                </Button>
-            </CardActions>
-        </Card>
+        <Grid item sm={12} md={6}>
+            <Paper>
+                <ListItem>
+                    <ListItemAvatar>
+                        {props.user.isAdmin ? (
+                            <Person fontSize="large" />
+                        ) : (
+                            <PersonOutline fontSize="large" />
+                        )}
+                    </ListItemAvatar>
+                    <ListItemText
+                        disableTypography
+                        primary={
+                            <Grid container {...gridProps}>
+                                <Grid item>
+                                    <Typography variant="h6">{props.user.username}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <LastLoginDisplay date={date} time={time} />
+                                </Grid>
+                            </Grid>
+                        }
+                        secondary={
+                            <Grid container {...gridProps}>
+                                <Grid item>
+                                    <Typography variant="subtitle1">{props.user.email}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <ChipGroup names={["CHEO", "SK"]} size="small" />
+                                </Grid>
+                            </Grid>
+                        }
+                    />
+                    <IconButton onClick={e => setOpen(!open)} className={classes.button}>
+                        {open ? <ExpandMore /> : <ExpandLess />}
+                    </IconButton>
+                </ListItem>
+                <Collapse in={open}>
+                    <Divider />
+                    <UserDetails
+                        user={props.user}
+                        onSave={props.onSave}
+                        onDelete={props.onDelete}
+                    />
+                </Collapse>
+            </Paper>
+        </Grid>
     );
 }

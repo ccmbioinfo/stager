@@ -16,6 +16,7 @@ import { User } from "../utils/typings";
 import SecretDisplay from "../utils/components/SecretDisplay";
 import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
 import ChipTransferList, { TransferChip } from "../utils/components/ChipTransferList";
+import ConfirmModal from "./ConfirmModal";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -65,6 +66,9 @@ export default function UserDetails(props: {
     } as User;
     const [newState, dispatch] = useReducer(reducer, oldState);
 
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [confirmSave, setConfirmSave] = useState(false);
+
     // TODO: hook up with actual permission groups
     const [tempGroups, setTempGroups] = useState<TransferChip[]>(
         ["FOO", "BAR", "BAZ"].map((label, index) => ({
@@ -75,103 +79,123 @@ export default function UserDetails(props: {
     );
 
     return (
-        <Box className={classes.root}>
-            <Grid container xs={12} spacing={1}>
-                <Grid container item md={12} lg={6} spacing={1}>
-                    <Grid item xs={6}>
-                        <FormControlLabel
-                            disabled // TODO: Re-enable when you can deactivate users
-                            label={<b>Active User</b>}
-                            control={<Checkbox checked={true} color="primary" />}
-                        />
+        <>
+            <ConfirmModal
+                id="confirm-modal-update"
+                color="primary"
+                open={confirmSave}
+                onClose={() => setConfirmSave(false)}
+                onConfirm={() => props.onSave(newState)}
+                title="Confirm updating user"
+            >
+                Are you sure you want to save changes to user {oldState.username}?
+            </ConfirmModal>
+            <ConfirmModal
+                id="confirm-modal-delete"
+                color="secondary"
+                open={confirmDelete}
+                onClose={() => setConfirmDelete(false)}
+                onConfirm={() => props.onDelete(oldState)}
+                title="Delete user"
+            >
+                Are you sure you want to delete user {oldState.username}?
+            </ConfirmModal>
+            <Box className={classes.root}>
+                <Grid container xs={12} spacing={1}>
+                    <Grid container item md={12} lg={6} spacing={1}>
+                        <Grid item xs={6}>
+                            <FormControlLabel
+                                disabled // TODO: Re-enable when you can deactivate users
+                                label={<b>Active User</b>}
+                                control={<Checkbox checked={true} color="primary" />}
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControlLabel
+                                label={<b>Admin</b>}
+                                control={
+                                    <Checkbox
+                                        checked={newState.isAdmin}
+                                        color="primary"
+                                        onChange={e =>
+                                            dispatch({
+                                                type: "set",
+                                                payload: { ...newState, isAdmin: e.target.checked },
+                                            })
+                                        }
+                                    />
+                                }
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <SecretDisplay
+                                title="MinIO Access Key"
+                                // TODO: Replace this with the actual secret
+                                secret={createHash("md5").update(props.user.username).digest("hex")}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <SecretDisplay
+                                title="MinIO Secret Key"
+                                // TODO: Replace this with the actual secret
+                                secret={createHash("md5").update(props.user.email).digest("hex")}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <NewPasswordForm
+                                passwords={{
+                                    password: newState.password!,
+                                    confirmPassword: newState.confirmPassword!,
+                                }}
+                                dispatch={dispatch}
+                            />
+                        </Grid>
                     </Grid>
-                    <Grid item xs={6}>
-                        <FormControlLabel
-                            label={<b>Admin</b>}
-                            control={
-                                <Checkbox
-                                    checked={newState.isAdmin}
-                                    color="primary"
-                                    onChange={e =>
-                                        dispatch({
-                                            type: "set",
-                                            payload: { ...newState, isAdmin: e.target.checked },
-                                        })
-                                    }
-                                />
-                            }
-                        />
+                    <Grid item md={12} lg={6}>
+                        <Typography>
+                            <b>Group Management</b>
+                        </Typography>
+                        <ChipTransferList chips={tempGroups} setChips={setTempGroups} />
                     </Grid>
-                    <Grid item xs={12}>
-                        <SecretDisplay
-                            title="MinIO Access Key"
-                            // TODO: Replace this with the actual secret
-                            secret={createHash("md5").update(props.user.username).digest("hex")}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <SecretDisplay
-                            title="MinIO Secret Key"
-                            // TODO: Replace this with the actual secret
-                            secret={createHash("md5").update(props.user.email).digest("hex")}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <NewPasswordForm
-                            passwords={{
-                                password: newState.password!,
-                                confirmPassword: newState.confirmPassword!,
+                </Grid>
+                <Toolbar className={classes.toolbar}>
+                    <Button
+                        color="secondary"
+                        variant="contained"
+                        className={classes.button}
+                        disabled // TODO: Re-enable when resetting MinIO Creds is ready
+                    >
+                        Reset MinIO Credentials
+                    </Button>
+                    <Button
+                        color="secondary"
+                        variant="contained"
+                        startIcon={<Delete />}
+                        className={classes.button}
+                        onClick={() => setConfirmDelete(true)}
+                    >
+                        Delete
+                    </Button>
+                    <div className={classes.grow} />
+                    <ButtonGroup>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                dispatch({ type: "set", payload: oldState });
                             }}
-                            dispatch={dispatch}
-                        />
-                    </Grid>
-                </Grid>
-                <Grid item md={12} lg={6}>
-                    <Typography>
-                        <b>Group Management</b>
-                    </Typography>
-                    <ChipTransferList chips={tempGroups} setChips={setTempGroups} />
-                </Grid>
-            </Grid>
-            <Toolbar className={classes.toolbar}>
-                <Button
-                    color="secondary"
-                    variant="contained"
-                    className={classes.button}
-                    disabled // TODO: Re-enable when resetting MinIO Creds is ready
-                >
-                    Reset MinIO Credentials
-                </Button>
-                <Button
-                    color="secondary"
-                    variant="contained"
-                    startIcon={<Delete />}
-                    className={classes.button}
-                    onClick={() => props.onDelete(props.user)}
-                >
-                    Delete
-                </Button>
-                <div className={classes.grow} />
-                <ButtonGroup>
-                    <Button
-                        variant="contained"
-                        onClick={() => {
-                            dispatch({ type: "set", payload: oldState });
-                        }}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                            props.onSave(newState);
-                        }}
-                    >
-                        Save Changes
-                    </Button>
-                </ButtonGroup>
-            </Toolbar>
-        </Box>
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => setConfirmSave(true)}
+                        >
+                            Save Changes
+                        </Button>
+                    </ButtonGroup>
+                </Toolbar>
+            </Box>
+        </>
     );
 }
