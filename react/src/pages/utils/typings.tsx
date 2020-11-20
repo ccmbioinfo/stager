@@ -13,6 +13,16 @@ export enum PipelineStatus {
 }
 
 /*****   INTERFACES   *****/
+export interface Family {
+    family_id: string,
+    family_codename: string,
+    created: string;
+    created_by: number;
+    updated: string;
+    updated_by: number;
+    participants: Participant[];
+}
+
 export interface Participant {
     participant_id: string;
     participant_codename: string;
