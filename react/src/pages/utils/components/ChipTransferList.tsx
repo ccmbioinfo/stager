@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { Box, Chip, Grid, makeStyles, Paper } from "@material-ui/core";
-import { GroupChip } from "../typings";
 import { PersonAdd, PersonAddDisabled } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
@@ -9,23 +8,26 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+export interface TransferChip {
+    label: string;
+    key: number;
+    selected: boolean;
+    content?: unknown;
+}
+
 /**
  * A chip transfer list. Users can click on chips to
  * move them between the two lists.
  */
-export default function ChipTransferList() {
+export default function ChipTransferList(props: {
+    chips: TransferChip[];
+    setChips: (chips: TransferChip[]) => void;
+}) {
     const classes = useStyles();
-    const [items, setItems] = useState<GroupChip[]>(
-        ["FOO", "BAR", "BAZ", "FAZ"].map((label, index) => ({
-            label: label,
-            key: index,
-            selected: false,
-        }))
-    );
 
-    function toggleSelected(chip: GroupChip) {
-        setItems(
-            items.map(item =>
+    function toggleSelected(chip: TransferChip) {
+        props.setChips(
+            props.chips.map(item =>
                 item.key === chip.key ? { ...item, selected: !item.selected } : item
             )
         );
@@ -39,7 +41,7 @@ export default function ChipTransferList() {
                 </Grid>
                 <Grid item>
                     <ChipArray
-                        chips={items.filter(chip => !!chip.selected)}
+                        chips={props.chips.filter(chip => !!chip.selected)}
                         onClick={toggleSelected}
                     />
                 </Grid>
@@ -50,7 +52,7 @@ export default function ChipTransferList() {
                 </Grid>
                 <Grid item>
                     <ChipArray
-                        chips={items.filter(chip => !chip.selected)}
+                        chips={props.chips.filter(chip => !chip.selected)}
                         onClick={toggleSelected}
                     />
                 </Grid>
@@ -76,7 +78,7 @@ const useChipStyles = makeStyles(theme => ({
     },
 }));
 
-function ChipArray(props: { chips: GroupChip[]; onClick: (chip: GroupChip) => void }) {
+function ChipArray(props: { chips: TransferChip[]; onClick: (chip: TransferChip) => void }) {
     const classes = useChipStyles();
 
     return (

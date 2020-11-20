@@ -28,7 +28,7 @@ const useRowStyles = makeStyles(theme => ({
  * Displays details about a user. Includes a collapsible panel for
  * viewing and editing credentials.
  */
-export default function UserRow(props: { user: User }) {
+export default function UserRow(props: { user: User; onSave: (newUser: User) => void }) {
     const classes = useRowStyles();
     const [date, time] = new Date().toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
@@ -78,7 +78,7 @@ export default function UserRow(props: { user: User }) {
                 </ListItem>
                 <Collapse in={open}>
                     <Divider />
-                    <UserDetails user={props.user} />
+                    <UserDetails user={props.user} onSave={props.onSave} />
                 </Collapse>
             </Paper>
         </Grid>

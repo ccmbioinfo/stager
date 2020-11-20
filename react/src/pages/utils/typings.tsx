@@ -148,8 +148,7 @@ export interface User {
     isAdmin: boolean;
 }
 
-export interface GroupChip {
-    key: number;
-    label: string;
-    selected?: boolean;
+export interface UserAction {
+    type: "set" | "update" | "add" | "delete";
+    payload: User | User[];
 }
