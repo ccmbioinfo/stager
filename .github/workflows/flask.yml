@@ -18,6 +18,12 @@ jobs:
     - run: cp sample.env .env
     - name: Build development image
       run: docker-compose -p st2020test -f docker-compose.test.yaml build
+    - name: Log into registry and push image
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+        IMAGE_ID=$(echo docker.pkg.github.com/${{ github.repository }}/app | tr '[A-Z]' '[a-z]')
+        docker tag ccmbio/st2020 $IMAGE_ID:latest
+        docker push $IMAGE_ID:latest
     - name: Start services
       run: docker-compose -p st2020test -f docker-compose.test.yaml up -d mysql minio
     - name: Check mc version
