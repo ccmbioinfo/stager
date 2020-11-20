@@ -115,6 +115,7 @@ To start the separate test service instances in the background, run:
 ```bash
 docker-compose -p st2020test -f docker-compose.test.yaml up -d mysql minio
 ```
+This step is optional because the following steps will start these containers anyway.
 
 These containers do not have their ports exposed to the host like in development.
 To expose them to the host (perhaps you want to run Python in a virtualenv), add the
@@ -126,8 +127,10 @@ remove the `-d` flag.
 
 Now you can run pytest with:
 ```bash
-docker-compose -p st2020test -f docker-compose.test.yaml run --rm app
+docker-compose -p st2020test -f docker-compose.test.yaml run --rm -T app
 ```
+`--rm` removes the test container after it's done running. `-T` does not connect the TTY
+or `mc` will dump some unexpected messages to stdout the first time and break its first test.
 
 Alternatively, if you are using Python on your host machine, exposed the ports for these
 containers (or other equivalent test servers), and set your environment variables as
