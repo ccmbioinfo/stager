@@ -258,20 +258,16 @@ function GridFieldsDisplay({
                 } else {
                     return (
                         <>
-                            {editMode ? (
-                                <Fade in={editMode} mountOnEnter unmountOnExit>
-                                    <Box>
-                                        <TextField field={field} enums={enums} onEdit={onEdit} />
-                                    </Box>
-                                </Fade>
-                            ) : null}
-                            {!editMode ? (
-                                <Fade in={!editMode} mountOnEnter unmountOnExit>
-                                    <Box className={classes.box}>
-                                        <FieldDisplay title={field.title} value={field.value} />
-                                    </Box>
-                                </Fade>
-                            ) : null}
+                            <Fade in={editMode} >
+                                <Box hidden={!editMode}>
+                                    <TextField field={field} enums={enums} onEdit={onEdit} />
+                                </Box>
+                            </Fade>
+                            <Fade in={!editMode} >
+                                <Box className={classes.box} hidden={editMode}>
+                                    <FieldDisplay title={field.title} value={field.value} />
+                                </Box>
+                            </Fade>
                         </>
                     );
                 }
