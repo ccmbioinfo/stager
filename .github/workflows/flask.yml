@@ -2,7 +2,7 @@ name: Build and test backend
 on:
   push:
     branches:
-      - master
+      - '*'
     paths-ignore:
       - react/**/*
   pull_request:
@@ -20,6 +20,8 @@ jobs:
       run: docker-compose -p st2020test -f docker-compose.test.yaml build
     - name: Start services
       run: docker-compose -p st2020test -f docker-compose.test.yaml up -d mysql minio
+    - name: Check mc version
+      run: docker-compose -p st2020test -f docker-compose.test.yaml run --rm --entrypoint "mc --version" app
     - name: Pytest
       run: docker-compose -p st2020test -f docker-compose.test.yaml run --rm app
     - name: Black
