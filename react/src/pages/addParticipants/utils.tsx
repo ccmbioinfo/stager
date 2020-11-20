@@ -6,6 +6,7 @@ export const dateColumns: Array<keyof DataEntryRow> = ["sequencing_date"];
 
 // Columns whose values are predefined
 export const enumerableColumns: Array<keyof DataEntryRow> = [
+    "input_hpf_path",
     "condition",
     "dataset_type",
     "participant_type",
@@ -82,7 +83,8 @@ export function getOptions(
     col: DataEntryHeader,
     rowIndex: number,
     families: Array<any>,
-    enums: any
+    enums: any,
+    files: string[]
 ): Option[] {
     const row = rows[rowIndex];
     const rowOptions = rows
@@ -157,6 +159,9 @@ export function getOptions(
 
         case "solved":
             return booleans.map(b => toOption(b, "Is Solved"));
+
+        case "input_hpf_path":
+            return files.map(f => toOption(f, "Unlinked files"));
 
         case "condition":
             if (enums) {
