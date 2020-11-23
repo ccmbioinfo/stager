@@ -7,10 +7,9 @@ import { Dataset, Analysis, Sample } from "../utils/typings";
 import {
     formatDateString,
     getAnalysisInfoList,
-    getDatasetTitles,
-    getDatasetValues,
-    getSecDatasetTitles,
-    getSecDatasetValues,
+    getDatasetFields,
+    getSecDatasetFields,
+    createFieldObj,
 } from "../utils/functions";
 import DetailSection from "../utils/components/DetailSection";
 import InfoList from "../utils/components/InfoList";
@@ -25,80 +24,68 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getSamplesTitles() {
+function getSamplesFields(sample: Sample) {
     return [
-        "Sample ID",
-        "Sample Type",
-        "Extraction Date",
-        "Tissue Processing Protocol",
-        "Notes",
-        "Created",
-        "Created By",
-        "Updated",
-        "Updated By",
-    ];
-}
-
-function getSampleValues(sample: Sample) {
-    return [
-        sample.tissue_sample_id,
-        sample.tissue_sample_type,
-        formatDateString(sample.extraction_date),
-        sample.tissue_processing,
-        sample.notes,
-        formatDateString(sample.created),
-        sample.created_by,
-        formatDateString(sample.updated),
-        sample.updated_by,
+        createFieldObj("Sample ID", sample.tissue_sample_id),
+        createFieldObj("Sample Type", sample.tissue_sample_type),
+        createFieldObj("Extraction Date", formatDateString(sample.extraction_date)),
+        createFieldObj("Tissue Processing Protocol", sample.tissue_processing),
+        createFieldObj("Notes", sample.notes),
+        createFieldObj("Created", formatDateString(sample.created)),
+        createFieldObj("Created By", sample.created_by),
+        createFieldObj("Updated", formatDateString(sample.updated)),
+        createFieldObj("Updated By", sample.updated_by),
     ];
 }
 
 interface DialogProp {
     open: boolean;
-    dataset_id: string;
+    dataset: Dataset;
     onClose: () => void;
+    onUpdate: (dataset_id: string, newDataset: { [key: string]: any }) => void;
 }
 
-export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogProp) {
+export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
 
-    const [dataset, setDataset] = useState<Dataset>();
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
     useEffect(() => {
-        fetch("/api/datasets/" + dataset_id)
+        fetch("/api/datasets/" + dataset.dataset_id)
             .then(response => response.json())
             .then(data => {
-                setDataset(data as Dataset);
                 setAnalyses(data.analyses as Analysis[]);
                 setSample(data.tissue_sample as Sample);
             })
             .catch(error => {
                 console.error(error);
             });
-    }, [dataset_id]);
+    }, [dataset]);
 
     return (
-        <Dialog
-            onClose={onClose}
-            aria-labelledby={labeledBy}
-            open={open}
-            maxWidth="lg"
-            fullWidth={true}
-        >
-            <DialogHeader id={labeledBy} onClose={onClose}>
-                Details of Dataset ID {dataset_id}
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
+            <DialogHeader
+                id={labeledBy}
+                onClose={() => {
+                    onClose();
+                }}
+            >
+                Details of Dataset ID {dataset.dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
                     {dataset && (
                         <DetailSection
-                            titles={getDatasetTitles()}
-                            values={getDatasetValues(dataset)}
-                            collapsibleTitles={getSecDatasetTitles()}
-                            collapsibleValues={getSecDatasetValues(dataset)}
+                            fields={getDatasetFields(dataset)}
+                            collapsibleFields={getSecDatasetFields(dataset)}
+                            dataInfo={{
+                                type: "dataset",
+                                ID: dataset.dataset_id,
+                                identifier: dataset.dataset_id,
+                                onUpdate: onUpdate,
+                            }}
                         />
                     )}
                 </div>
@@ -106,8 +93,7 @@ export default function DatasetInfoDialog({ dataset_id, open, onClose }: DialogP
                 <div className={classes.infoSection}>
                     {sample && (
                         <DetailSection
-                            titles={getSamplesTitles()}
-                            values={getSampleValues(sample)}
+                            fields={getSamplesFields(sample)}
                             title="Associated Tissue Sample"
                         />
                     )}

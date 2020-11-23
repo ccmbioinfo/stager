@@ -96,9 +96,20 @@ export default function DatasetTable() {
             />
             {infoDataset && (
                 <DatasetInfoDialog
-                    dataset_id={infoDataset.dataset_id}
+                    dataset={infoDataset}
                     open={showInfo}
-                    onClose={() => setShowInfo(false)}
+                    onClose={() => {
+                        setShowInfo(false);
+                    }}
+                    onUpdate={(dataset_id: string, newDataset: { [key: string]: any }) => {
+                        setDatasets(
+                            datasets.map(dataset =>
+                                dataset.dataset_id === dataset_id
+                                    ? { ...dataset, ...newDataset }
+                                    : dataset
+                            )
+                        );
+                    }}
                 />
             )}
             <MaterialTable
