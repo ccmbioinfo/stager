@@ -1,19 +1,43 @@
 from dataclasses import asdict
+import inspect
 
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, class_mapper
 from .routes import check_admin, transaction_or_abort
 
 
 @app.route("/api/families", methods=["GET"])
 @login_required
 def families_list():
+    starts_with = request.args.get("starts_with", default="")
+    starts_with = f"{starts_with}%"
+    max_rows = request.args.get("max_rows", default=10000)
+    try:
+        int(max_rows)
+    except:
+        return "Max rows must be a valid  integer", 400
 
-    db_families = models.Family.query.options(
-        joinedload(models.Family.participants)
-    ).all()
+    order = request.args.get("order")
+    if order:
+        columns = models.Family.__table__.columns._data.keys()
+        if order not in columns:
+            return f"Column name must be one of {columns}", 400
+        else:
+            column = getattr(models.Family, order)
+            db_families = (
+                models.Family.query.options(joinedload(models.Family.participants))
+                .filter(models.Family.family_codename.like(starts_with))
+                .order_by(column)
+                .limit(max_rows)
+            )
+    else:
+        db_families = (
+            models.Family.query.options(joinedload(models.Family.participants))
+            .filter(models.Family.family_codename.like(starts_with))
+            .limit(max_rows)
+        )
 
     families = [
         {
