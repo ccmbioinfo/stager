@@ -120,7 +120,10 @@ export default function UserDetails(props: {
                                         onChange={e =>
                                             dispatch({
                                                 type: "set",
-                                                payload: { ...newState, isAdmin: e.target.checked },
+                                                payload: {
+                                                    ...newState,
+                                                    isAdmin: e.target.checked,
+                                                },
                                             })
                                         }
                                     />

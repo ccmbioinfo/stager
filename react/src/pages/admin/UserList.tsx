@@ -109,41 +109,39 @@ export default function UserList() {
                     <>
                         <UserRow
                             user={user}
-                            onSave={user => {
-                                updateUser(user)
-                                    .then(async response => {
-                                        const message = await response.text();
+                            onSave={newUser => {
+                                updateUser(newUser).then(async response => {
+                                    const message = await response.text();
+                                    if (response.ok) {
                                         enqueueSnackbar(
-                                            `User ${user.username} updated successfully - ${response.status} ${message}`,
+                                            `User ${newUser.username} updated successfully - ${response.status} ${message}`,
                                             { variant: "success" }
                                         );
-                                        dispatch({ type: "update", payload: user });
-                                    })
-                                    .catch(async response => {
-                                        const message = await response.text();
+                                        dispatch({ type: "update", payload: newUser });
+                                    } else {
                                         enqueueSnackbar(
-                                            `User ${user.username} update failed - ${response.status} ${message}`,
+                                            `User ${newUser.username} update failed - ${response.status} ${message}`,
                                             { variant: "error" }
                                         );
-                                    });
+                                    }
+                                });
                             }}
-                            onDelete={user => {
-                                deleteUser(user)
-                                    .then(async response => {
-                                        const message = await response.text();
+                            onDelete={newUser => {
+                                deleteUser(newUser).then(async response => {
+                                    const message = await response.text();
+                                    if (response.ok) {
                                         enqueueSnackbar(
-                                            `User ${user.username} deleted successfully - ${response.status} ${message}`,
+                                            `User ${newUser.username} deleted successfully - ${response.status} ${message}`,
                                             { variant: "success" }
                                         );
-                                        dispatch({ type: "delete", payload: user });
-                                    })
-                                    .catch(async response => {
-                                        const message = await response.text();
+                                        dispatch({ type: "delete", payload: newUser });
+                                    } else {
                                         enqueueSnackbar(
-                                            `User ${user.username} deletion failed - ${response.status} ${message}`,
+                                            `User ${newUser.username} deletion failed - ${response.status} ${message}`,
                                             { variant: "error" }
                                         );
-                                    });
+                                    }
+                                });
                             }}
                         />
                     </>

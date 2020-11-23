@@ -149,6 +149,7 @@ export interface User {
     password?: string;
     confirmPassword?: string;
     groupMemberships?: string[];
+    deactivated?: boolean;
 }
 
 export interface UserAction {

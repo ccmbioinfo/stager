@@ -12,7 +12,7 @@ import {
     Paper,
     Typography,
 } from "@material-ui/core";
-import { ExpandLess, ExpandMore, Person, PersonOutline } from "@material-ui/icons";
+import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
 import { User } from "../utils/typings";
 import UserDetails from "./UserDetails";
 import LastLoginDisplay from "../utils/components/LastLoginDisplay";
@@ -48,7 +48,7 @@ export default function UserRow(props: {
             <Paper>
                 <ListItem>
                     <ListItemAvatar>
-                        {props.user.isAdmin ? (
+                        {!props.user.deactivated ? (
                             <Person fontSize="large" />
                         ) : (
                             <PersonOutline fontSize="large" />
@@ -59,7 +59,10 @@ export default function UserRow(props: {
                         primary={
                             <Grid container {...gridProps}>
                                 <Grid item>
-                                    <Typography variant="h6">{props.user.username}</Typography>
+                                    <Typography variant="h6">
+                                        {props.user.username}{" "}
+                                        {props.user.isAdmin && <Security fontSize="inherit" />}
+                                    </Typography>
                                 </Grid>
                                 <Grid item>
                                     <LastLoginDisplay date={date} time={time} />
