@@ -44,8 +44,11 @@ class User(UserMixin, db.Model):
 class Group(db.Model):
     group_id: int = db.Column(db.Integer, primary_key=True)
     group_code: str = db.Column(
-        db.String(50), nullable=False, unique=True
-    )  # i.e. CHEO, SK, AB
+        db.String(50),
+        CheckConstraint("LENGTH(group_code) > 2 AND LENGTH(group_code) < 64 AND group_code REGEXP '^[a-z,0-9,-]*$' AND BINARY group_code = LOWER(group_code)"),
+        nullable=False,
+        unique=True,
+    )
     group_name: str = db.Column(
         db.String(250), nullable=False, unique=True
     )  # full group name
