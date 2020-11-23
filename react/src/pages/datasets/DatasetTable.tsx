@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
+import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { toKeyValue, formatDateString } from "../utils/functions";
@@ -32,6 +33,7 @@ export default function DatasetTable() {
     const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
     const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
     const [conditions, setConditions] = useState<KeyValue>({});
+    const [files, setFiles] = useState<string[]>([]);
 
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
@@ -73,6 +75,15 @@ export default function DatasetTable() {
                 );
             }
         });
+        fetch("/api/unlinked").then(async response => {
+            if (response.ok) {
+                setFiles(((await response.json()) as string[]).sort());
+            } else {
+                console.error(
+                    `GET /api/unlinked failed with ${response.status}: ${response.statusText}`
+                );
+            }
+        });
     }, []);
 
     return (
@@ -85,9 +96,20 @@ export default function DatasetTable() {
             />
             {infoDataset && (
                 <DatasetInfoDialog
-                    dataset_id={infoDataset.dataset_id}
+                    dataset={infoDataset}
                     open={showInfo}
-                    onClose={() => setShowInfo(false)}
+                    onClose={() => {
+                        setShowInfo(false);
+                    }}
+                    onUpdate={(dataset_id: string, newDataset: { [key: string]: any }) => {
+                        setDatasets(
+                            datasets.map(dataset =>
+                                dataset.dataset_id === dataset_id
+                                    ? { ...dataset, ...newDataset }
+                                    : dataset
+                            )
+                        );
+                    }}
                 />
             )}
             <MaterialTable
@@ -107,7 +129,7 @@ export default function DatasetTable() {
                         lookup: tissueSampleTypes,
                     },
                     {
-                        title: "Dataset Type",
+                        title: "Type",
                         field: "dataset_type",
                         defaultFilter: datasetTypeFilter,
                         lookup: datasetTypes,
@@ -132,6 +154,23 @@ export default function DatasetTable() {
                         ),
                     },
                     {
+                        title: "File",
+                        field: "input_hpf_path",
+                        grouping: false,
+                        editComponent: props => (
+                            <Autocomplete
+                                selectOnFocus
+                                clearOnBlur
+                                handleHomeEndKeys
+                                autoHighlight
+                                onChange={(event, newValue) => props.onChange(newValue)}
+                                options={files}
+                                value={props.value}
+                                renderInput={params => <TextField {...params} variant="standard" />}
+                            />
+                        ),
+                    },
+                    {
                         title: "Updated",
                         field: "updated",
                         type: "string",
@@ -139,6 +178,12 @@ export default function DatasetTable() {
                         render: rowData => formatDateString(rowData.updated),
                     },
                     { title: "Updated By", field: "updated_by", editable: "never" },
+                    {
+                        title: "ID",
+                        field: "dataset_id",
+                        editable: "never",
+                        defaultFilter: paramFilter,
+                    },
                 ]}
                 data={datasets}
                 title="Datasets"
@@ -169,6 +214,16 @@ export default function DatasetTable() {
                                         ? { ...dataset, ...updatedDataset }
                                         : dataset
                                 )
+                            );
+                            // Remove the new value from the list of unlinked files to prevent reuse
+                            // Readd the previous value if there was one since it is available again
+                            const removeUsed = files.filter(
+                                file => file !== newDataset.input_hpf_path
+                            );
+                            setFiles(
+                                oldDataset?.input_hpf_path
+                                    ? [oldDataset.input_hpf_path, ...removeUsed].sort()
+                                    : removeUsed
                             );
                             enqueueSnackbar(
                                 `Dataset ID ${newDataset.dataset_id} updated successfully`,

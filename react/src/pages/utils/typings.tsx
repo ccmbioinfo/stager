@@ -13,6 +13,16 @@ export enum PipelineStatus {
 }
 
 /*****   INTERFACES   *****/
+export interface Family {
+    family_id: string;
+    family_codename: string;
+    created: string;
+    created_by: number;
+    updated: string;
+    updated_by: number;
+    participants: Participant[];
+}
+
 export interface Participant {
     participant_id: string;
     participant_codename: string;
@@ -92,10 +102,8 @@ export interface Pipeline {
 export interface Info {
     primaryListTitle: string;
     secondaryListTitle?: string;
-    titles: string[];
-    values: FieldDisplayValueType[];
-    collapsibleTitles?: string[];
-    collapsibleValues?: FieldDisplayValueType[];
+    fields: Field[];
+    collapsibleFields?: Field[];
     identifier?: string;
 }
 
@@ -112,6 +120,7 @@ export class DataEntryRowOptional {
     sex?: string;
     affected?: boolean;
     solved?: boolean;
+    input_hpf_path?: string;
     notes?: string;
     condition?: string;
     extraction_protocol?: string;
@@ -155,4 +164,11 @@ export interface User {
 export interface UserAction {
     type: "set" | "update" | "add" | "delete";
     payload: User | User[];
+}
+
+export interface Field {
+    title: string;
+    value: FieldDisplayValueType;
+    fieldName?: string;
+    disableEdit?: boolean;
 }

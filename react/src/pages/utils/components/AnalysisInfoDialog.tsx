@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, Divider, DialogContent } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dns } from "@material-ui/icons";
-import { formatDateString, getDatasetInfoList } from "../functions";
+import { formatDateString, getDatasetInfoList, createFieldObj } from "../functions";
 import { Analysis, Dataset, Pipeline } from "../typings";
 import { DialogHeader } from "./components";
 import DetailSection from "./DetailSection";
@@ -27,29 +27,16 @@ interface AlertInfoDialogProp {
     onClose: () => void;
 }
 
-function getAnalysisTitles() {
+function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
     return [
-        "Assigned to",
-        "Requested by",
-        "Status",
-        "Last Updated",
-        "Notes",
-        "Pipeline",
-        "Pipeline ID",
-        "Supported Types",
-    ];
-}
-
-function getAnalysisValues(analysis: Analysis, pipeline: Pipeline | undefined) {
-    return [
-        analysis.assignee,
-        analysis.requester,
-        analysis.analysis_state,
-        formatDateString(analysis.updated),
-        analysis.notes,
-        `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`,
-        analysis.pipeline_id,
-        pipeline?.supported_types,
+        createFieldObj("Assigned to", analysis.assignee),
+        createFieldObj("Requested by", analysis.requester),
+        createFieldObj("Status", analysis.analysis_state),
+        createFieldObj("Last Updated", formatDateString(analysis.updated)),
+        createFieldObj("Notes", analysis.notes),
+        createFieldObj("Pipeline", `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`),
+        createFieldObj("Pipeline ID", analysis.pipeline_id),
+        createFieldObj("Supported Types", pipeline?.supported_types),
     ];
 }
 
@@ -83,10 +70,7 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection
-                        titles={getAnalysisTitles()}
-                        values={getAnalysisValues(analysis, pipeline)}
-                    />
+                    <DetailSection fields={getAnalysisFields(analysis, pipeline)} />
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>

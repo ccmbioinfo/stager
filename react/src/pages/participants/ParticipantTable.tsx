@@ -77,7 +77,18 @@ export default function ParticipantTable() {
                 <ParticipantInfoDialog
                     open={detail}
                     participant={activeRow}
-                    onClose={() => setDetail(false)}
+                    onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
+                        setParticipants(
+                            participants.map(participant =>
+                                participant.participant_id === participant_id
+                                    ? { ...participant, ...newParticipant }
+                                    : participant
+                            )
+                        );
+                    }}
+                    onClose={() => {
+                        setDetail(false);
+                    }}
                 />
             )}
             <MaterialTable

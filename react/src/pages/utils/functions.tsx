@@ -8,6 +8,8 @@ import {
     DataEntryRowBase,
     DataEntryRowOptional,
     DataEntryRowRNASeq,
+    FieldDisplayValueType,
+    Field,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -106,40 +108,21 @@ export function isRowSelected(row: any): boolean {
 }
 
 /**
- * Return the titles of analysis detail in dialogs
+ * Return the titles and values  of analysis detail as a Field Object in dialogs
  */
-export function getAnalysisTitles() {
+export function getAnalysisFields(analysis: Analysis) {
     return [
-        "Analysis ID",
-        "State",
-        "Pipeline ID",
-        "Assigned to",
-        "HPF Path",
-        "qSub ID",
-        "Notes",
-        "Requested",
-        "Requested By",
-        "Started",
-        "Last Updated",
-    ];
-}
-
-/**
- * Return the values of analysis detail in dialogs
- */
-export function getAnalysisValues(analysis: Analysis) {
-    return [
-        analysis.analysis_id,
-        analysis.analysis_state,
-        analysis.pipeline_id,
-        analysis.assignee,
-        analysis.result_hpf_path,
-        analysis.qsubID,
-        analysis.notes,
-        formatDateString(analysis.requested),
-        analysis.requester,
-        formatDateString(analysis.started),
-        formatDateString(analysis.updated),
+        createFieldObj("Analysis ID", analysis.analysis_id),
+        createFieldObj("State", analysis.analysis_state),
+        createFieldObj("Pipeline ID", analysis.pipeline_id),
+        createFieldObj("Assigned to", analysis.assignee),
+        createFieldObj("HPF Path", analysis.result_hpf_path),
+        createFieldObj("qSub ID", analysis.qsubID),
+        createFieldObj("Notes", analysis.notes),
+        createFieldObj("Requested", formatDateString(analysis.requested)),
+        createFieldObj("Requested By", analysis.requester),
+        createFieldObj("Started", formatDateString(analysis.started)),
+        createFieldObj("Last Updated", formatDateString(analysis.updated)),
     ];
 }
 
@@ -151,85 +134,55 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
         return {
             primaryListTitle: `Analysis ID ${analysis.analysis_id}`,
             secondaryListTitle: `Current State: ${analysis.analysis_state} - Click for more details`,
-            titles: getAnalysisTitles(),
-            values: getAnalysisValues(analysis),
+            fields: getAnalysisFields(analysis),
             identifier: analysis.analysis_id,
         };
     });
 }
 
 /**
- * Return the titles of dataset detail in dialogs
+ * Return the titles and values of dataset detail as a Field object in dialogs
  */
-export function getDatasetTitles() {
+export function getDatasetFields(dataset: Dataset) {
     return [
-        "Dataset ID",
-        "Dataset Type",
-        "Participant Codename",
-        "Family Codename",
-        "Tissue ID",
-        "Sequencing Centre",
-        "Notes",
-        "Created",
-        "Created By",
-        "Updated",
-        "Updated By",
+        createFieldObj("Dataset Type", dataset.dataset_type, "dataset_type"),
+        createFieldObj(
+            "Participant Codename",
+            dataset.participant_codename,
+            "participant_codename",
+            true
+        ),
+        createFieldObj("Family Codename", dataset.family_codename, "family_codename", true),
+        createFieldObj("Tissue ID", dataset.tissue_sample_id, "tissue_sample_id", true),
+        createFieldObj("Sequencing Centre", dataset.sequencing_centre, "sequencing_centre"),
+        createFieldObj("Notes", dataset.notes, "notes"),
+        createFieldObj("Created", formatDateString(dataset.created), "created", true),
+        createFieldObj("Created By", dataset.created_by, "created_by", true),
+        createFieldObj("Updated", formatDateString(dataset.updated), "updated", true),
+        createFieldObj("Updated By", dataset.updated_by, "updated_by", true),
     ];
 }
 
 /**
- * Return the values of dataset detail in dialogs
+ * Return the secondary titles and values (hidden in show more detail) of dataset detail as a Field object in dialogs
  */
-export function getDatasetValues(dataset: Dataset) {
+export function getSecDatasetFields(dataset: Dataset) {
     return [
-        dataset.dataset_id,
-        dataset.dataset_type,
-        dataset.participant_codename,
-        dataset.family_codename,
-        dataset.tissue_sample_id,
-        dataset.sequencing_centre,
-        dataset.notes,
-        formatDateString(dataset.created),
-        dataset.created_by,
-        formatDateString(dataset.updated),
-    ];
-}
-
-/**
- * Return the secondary titles (hidden in show more detail) of dataset detail in dialogs
- */
-export function getSecDatasetTitles() {
-    return [
-        "Batch ID",
-        "HPF Path",
-        "Condition",
-        "Extraction Protocol",
-        "Capture Kit",
-        "Discriminator",
-        "Library Prep Method",
-        "Library Prep Date",
-        "Read Length",
-        "Read Type",
-        "Sequencing ID",
-    ];
-}
-
-/**
- * Return the secondary values (hidden in show more detail) of dataset detail in dialogs
- */
-export function getSecDatasetValues(dataset: Dataset) {
-    return [
-        dataset.batch_id,
-        dataset.input_hpf_path,
-        dataset.condition,
-        dataset.extraction_protocol,
-        dataset.capture_kit,
-        dataset.discriminator,
-        dataset.library_prep_method,
-        formatDateString(dataset.library_prep_date),
-        dataset.read_length,
-        dataset.read_type,
-        dataset.sequencing_id,
+        createFieldObj("Batch ID", dataset.batch_id, "batch_id"),
+        createFieldObj("HPF Path", dataset.input_hpf_path, "input_hpf_path"),
+        createFieldObj("Condition", dataset.condition, "condition"),
+        createFieldObj("Extraction Protocol", dataset.extraction_protocol, "extraction_protocol"),
+        createFieldObj("Capture Kit", dataset.capture_kit, "capture_kit"),
+        createFieldObj("Discriminator", dataset.discriminator, "discriminator"),
+        createFieldObj("Library Prep Method", dataset.library_prep_method, "library_prep_method"),
+        createFieldObj(
+            "Library Prep Date",
+            formatDateString(dataset.library_prep_date),
+            "library_prep_date"
+        ),
+        createFieldObj("Read Length", dataset.read_length, "read_length"),
+        createFieldObj("Read Type", dataset.read_type, "read_type"),
+        createFieldObj("Sequencing ID", dataset.sequencing_id, "sequencing_id"),
     ];
 }
 
@@ -241,10 +194,8 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
         return {
             primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
             secondaryListTitle: `Participant: ${dataset.participant_codename} - Click for more details`,
-            titles: getDatasetTitles(),
-            values: getDatasetValues(dataset),
-            collapsibleTitles: getSecDatasetTitles(),
-            collapsibleValues: getSecDatasetValues(dataset),
+            fields: getDatasetFields(dataset),
+            collapsibleFields: getSecDatasetFields(dataset),
             identifier: dataset.dataset_id,
         };
     });
@@ -285,4 +236,18 @@ export function snakeCaseToTitle(str: string): string {
         .split("_")
         .join(" ")
         .replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1));
+}
+
+export function createFieldObj(
+    title: string,
+    value: FieldDisplayValueType,
+    fieldName?: string,
+    disableEdit?: boolean
+): Field {
+    return {
+        title: title,
+        value: value,
+        fieldName: fieldName,
+        disableEdit: disableEdit,
+    };
 }
