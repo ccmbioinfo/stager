@@ -1,4 +1,4 @@
-import { DataEntryHeader, DataEntryRow } from "../utils/typings";
+import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
 import { getDataEntryHeaders, snakeCaseToTitle } from "../utils/functions";
 
 export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
@@ -82,7 +82,7 @@ export function getOptions(
     rows: DataEntryRow[],
     col: DataEntryHeader,
     rowIndex: number,
-    families: Array<any>,
+    families: Family[],
     enums: any,
     files: string[]
 ): Option[] {

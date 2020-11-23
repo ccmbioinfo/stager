@@ -19,7 +19,7 @@ import {
     Button,
 } from "@material-ui/core";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow } from "../utils/typings";
+import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
 import { Option, getOptions as _getOptions, getColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
@@ -74,7 +74,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         })
     );
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
-    const [families, setFamilies] = useState<Array<any>>([]);
+    const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
     const [files, setFiles] = useState<string[]>([]);
 
@@ -84,7 +84,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         fetch("/api/families")
             .then(response => response.json())
             .then(data => {
-                setFamilies(data);
+                setFamilies(data as Family[]);
             })
             .catch(error => {
                 console.error(error);
