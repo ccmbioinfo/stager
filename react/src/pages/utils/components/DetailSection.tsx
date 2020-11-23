@@ -290,12 +290,6 @@ interface DetailSectionProps {
     linkPath?: string;
 }
 
-const useStyles = makeStyles(theme => ({
-    button: {
-        marginRight: theme.spacing(1),
-    },
-}));
-
 export default function DetailSection({
     fields,
     collapsibleFields,
