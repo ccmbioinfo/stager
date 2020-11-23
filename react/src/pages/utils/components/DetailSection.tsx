@@ -258,12 +258,12 @@ function GridFieldsDisplay({
                 } else {
                     return (
                         <>
-                            <Fade in={editMode} >
+                            <Fade in={editMode}>
                                 <Box hidden={!editMode}>
                                     <TextField field={field} enums={enums} onEdit={onEdit} />
                                 </Box>
                             </Fade>
-                            <Fade in={!editMode} >
+                            <Fade in={!editMode}>
                                 <Box className={classes.box} hidden={editMode}>
                                     <FieldDisplay title={field.title} value={field.value} />
                                 </Box>
