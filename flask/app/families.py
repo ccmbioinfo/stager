@@ -4,7 +4,7 @@ import inspect
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
-from sqlalchemy.orm import joinedload, class_mapper
+from sqlalchemy.orm import joinedload
 from .routes import check_admin, transaction_or_abort
 
 
@@ -21,7 +21,7 @@ def families_list():
 
     order = request.args.get("order")
     if order:
-        columns = models.Family.__table__.columns._data.keys()
+        columns = models.Family.__table__.columns.keys()
         if order not in columns:
             return f"Column name must be one of {columns}", 400
         else:
