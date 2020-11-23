@@ -14,8 +14,8 @@ export enum PipelineStatus {
 
 /*****   INTERFACES   *****/
 export interface Family {
-    family_id: string,
-    family_codename: string,
+    family_id: string;
+    family_codename: string;
     created: string;
     created_by: number;
     updated: string;
