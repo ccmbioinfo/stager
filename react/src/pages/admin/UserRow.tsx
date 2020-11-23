@@ -10,6 +10,7 @@ import {
     ListItemText,
     makeStyles,
     Paper,
+    Theme,
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
@@ -18,9 +19,16 @@ import UserDetails from "./UserDetails";
 import LastLoginDisplay from "../utils/components/LastLoginDisplay";
 import ChipGroup from "../utils/components/ChipGroup";
 
-const useRowStyles = makeStyles(theme => ({
+const useRowStyles = makeStyles<Theme, boolean>(theme => ({
     button: {
         marginLeft: theme.spacing(1),
+    },
+    title: {
+        color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
+        fontStyle: active => (active ? "none" : "italic"),
+    },
+    icon: {
+        color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
     },
 }));
 
@@ -33,7 +41,7 @@ export default function UserRow(props: {
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
 }) {
-    const classes = useRowStyles();
+    const classes = useRowStyles(!props.user.deactivated);
     const [date, time] = new Date().toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
 
@@ -47,7 +55,7 @@ export default function UserRow(props: {
         <Grid item sm={12} md={6}>
             <Paper>
                 <ListItem>
-                    <ListItemAvatar>
+                    <ListItemAvatar className={classes.icon}>
                         {!props.user.deactivated ? (
                             <Person fontSize="large" />
                         ) : (
@@ -59,7 +67,7 @@ export default function UserRow(props: {
                         primary={
                             <Grid container {...gridProps}>
                                 <Grid item>
-                                    <Typography variant="h6">
+                                    <Typography variant="h6" className={classes.title}>
                                         {props.user.username}{" "}
                                         {props.user.isAdmin && <Security fontSize="inherit" />}
                                     </Typography>
@@ -72,7 +80,9 @@ export default function UserRow(props: {
                         secondary={
                             <Grid container {...gridProps}>
                                 <Grid item>
-                                    <Typography variant="subtitle1">{props.user.email}</Typography>
+                                    <Typography variant="subtitle1" className={classes.title}>
+                                        {props.user.email}
+                                    </Typography>
                                 </Grid>
                                 <Grid item>
                                     <ChipGroup names={["CHEO", "SK"]} size="small" />
