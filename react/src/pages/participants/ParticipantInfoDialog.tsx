@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => ({
 
 function getParticipantFields(participant: Participant): Field[] {
     return [
-        createFieldObj("Family Codename", participant.family_codename, "family_codename"),
+        createFieldObj("Family Codename", participant.family_codename, "family_codename", true),
         createFieldObj("Participant Type", participant.participant_type, "participant_type"),
         createFieldObj("Sex", participant.sex, "sex"),
         createFieldObj("Affected", participant.affected, "affected"),

@@ -149,9 +149,10 @@ export function getDatasetFields(dataset: Dataset) {
         createFieldObj(
             "Participant Codename",
             dataset.participant_codename,
-            "participant_codename"
+            "participant_codename",
+            true
         ),
-        createFieldObj("Family Codename", dataset.family_codename, "family_codename"),
+        createFieldObj("Family Codename", dataset.family_codename, "family_codename", true),
         createFieldObj("Tissue ID", dataset.tissue_sample_id, "tissue_sample_id", true),
         createFieldObj("Sequencing Centre", dataset.sequencing_centre, "sequencing_centre"),
         createFieldObj("Notes", dataset.notes, "notes"),
