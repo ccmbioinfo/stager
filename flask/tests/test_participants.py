@@ -2,17 +2,9 @@ import pytest
 from app import db, models
 from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
+from test_datasets import login_as
 
 import json
-
-
-def login_as(client, identity):
-    return client.post(
-        "/api/login",
-        json={"username": identity, "password": identity},
-        follow_redirects=True,
-    )
-
 
 # Tests
 
@@ -86,7 +78,6 @@ def test_list_participant_user(test_database, client):
 
 # DELETE /api/participants/:id
 
-
 def test_delete_participant(test_database, client):
     # Test without permission, will work when check_admin is implemented
     # assert login_as(client, "user").status_code == 200
@@ -120,14 +111,32 @@ def test_delete_participant(test_database, client):
     db.session.commit()
 
     assert login_as(client, "admin").status_code == 200
-    response = client.delete("/api/participants/1")
-    assert response.status_code == 204
+    assert client.delete("/api/participants/1").status_code == 204
+    # Make sure it's gone
     response2 = client.get("/api/participants")
     assert response2.status_code == 200
     assert len(response2.get_json()) == 2
 
 
 # PATCH /api/participants/:id
+
+def test_patch_participant(test_database, client):
+    assert login_as(client, "user").status_code == 200
+    # Test existence
+    assert client.patch("/api/participants/4", json={"notes":"blank"}).status_code == 404
+    # Test permission
+    assert client.patch("/api/participants/3", json={"notes":"blank"}).status_code == 404
+    # Test changing invalid field
+    assert client.patch("/api/participants/1", json={"participant_type":"not_an_enum"}).status_code == 400
+    # Test success
+    response = client.patch("/api/participants/1", json={"notes":"blank"})
+    assert response.status_code == 200
+    # Make sure it updated
+    participant = (
+        models.Participant.query.filter(models.Participant.participant_id == 1)
+        .one_or_none()
+    )
+    assert participant.notes == "blank"
 
 
 # POST /api/participants
