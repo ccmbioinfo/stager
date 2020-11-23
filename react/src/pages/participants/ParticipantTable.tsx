@@ -78,19 +78,13 @@ export default function ParticipantTable() {
                     open={detail}
                     participant={activeRow}
                     onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
-                        const updatedParticipants = [...participants];
-                        const idx = participants.findIndex(
-                            participant => participant.participant_id === participant_id
+                        setParticipants(
+                            participants.map(participant =>
+                                participant.participant_id === participant_id
+                                    ? { ...participant, ...newParticipant }
+                                    : participant
+                            )
                         );
-                        const updatedParticipant = { ...participants[idx] } as {
-                            [key: string]: any;
-                        };
-                        Object.keys(newParticipant).forEach(key => {
-                            updatedParticipant[key] = newParticipant[key];
-                        });
-                        updatedParticipants[idx] = updatedParticipant as Participant;
-
-                        setParticipants(updatedParticipants);
                     }}
                     onClose={() => {
                         setDetail(false);
