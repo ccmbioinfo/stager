@@ -78,6 +78,7 @@ def test_list_participant_user(test_database, client):
 
 # DELETE /api/participants/:id
 
+
 def test_delete_participant(test_database, client):
     # Test without permission, will work when check_admin is implemented
     # assert login_as(client, "user").status_code == 200
@@ -97,7 +98,11 @@ def test_delete_participant(test_database, client):
     # Standard test, need to clear everything below first
     participant = (
         models.Participant.query.filter(models.Participant.participant_id == 1)
-        .options(joinedload(models.Participant.tissue_samples).joinedload(models.TissueSample.datasets).joinedload(models.Dataset.analyses))
+        .options(
+            joinedload(models.Participant.tissue_samples)
+            .joinedload(models.TissueSample.datasets)
+            .joinedload(models.Dataset.analyses)
+        )
         .one_or_none()
     )
 
@@ -120,23 +125,77 @@ def test_delete_participant(test_database, client):
 
 # PATCH /api/participants/:id
 
+
 def test_patch_participant(test_database, client):
     assert login_as(client, "user").status_code == 200
     # Test existence
-    assert client.patch("/api/participants/4", json={"notes":"blank"}).status_code == 404
+    assert (
+        client.patch("/api/participants/4", json={"notes": "blank"}).status_code == 404
+    )
     # Test permission
-    assert client.patch("/api/participants/3", json={"notes":"blank"}).status_code == 404
-    # Test changing invalid field
-    assert client.patch("/api/participants/1", json={"participant_type":"not_an_enum"}).status_code == 400
+    assert (
+        client.patch("/api/participants/3", json={"notes": "blank"}).status_code == 404
+    )
+    # Test enum error
+    assert (
+        client.patch(
+            "/api/participants/1", json={"participant_type": "not_an_enum"}
+        ).status_code
+        == 400
+    )
     # Test success
-    response = client.patch("/api/participants/1", json={"notes":"blank"})
+    response = client.patch("/api/participants/1", json={"notes": "blank"})
     assert response.status_code == 200
     # Make sure it updated
-    participant = (
-        models.Participant.query.filter(models.Participant.participant_id == 1)
-        .one_or_none()
-    )
+    participant = models.Participant.query.filter(
+        models.Participant.participant_id == 1
+    ).one_or_none()
     assert participant.notes == "blank"
 
 
 # POST /api/participants
+
+
+def test_post_participants(test_database, client):
+    assert login_as(client, "user").status_code == 200
+    # Test family does not exist
+    assert client.post("/api/participants", json={"family_id": "3"}).status_code == 404
+    # Test if participant in family already exists
+    assert (
+        client.post(
+            "/api/participants", json={"family_id": "1", "participant_codename": "001"}
+        ).status_code
+        == 422
+    )
+    # Test enum error
+    assert (
+        client.post(
+            "/api/participants",
+            json={
+                "family_id": "1",
+                "participant_codename": "003",
+                "participant_type": "not_an_enum",
+            },
+        ).status_code
+        == 400
+    )
+    # Test success and check db
+    assert (
+        client.post(
+            "/api/participants",
+            json={
+                "family_id": "1",
+                "participant_codename": "004",
+                "participant_type": "Parent",
+                "sex": "Female",
+                "notes": "nothing",
+            },
+        ).status_code
+        == 201
+    )
+    participant = models.Participant.query.filter(
+        models.Participant.family_id == 1,
+        models.Participant.participant_codename == "004",
+    ).one_or_none()
+    assert participant.notes == "nothing"
+    assert participant.created_by == 2
