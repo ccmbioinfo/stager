@@ -275,6 +275,10 @@ class Dataset(db.Model):
         "Analysis", secondary=datasets_analyses_table, backref="datasets"
     )
 
+    groups = db.relationship(
+        "Group", secondary=groups_datasets_table, backref="datasets"
+    )
+
 
 @dataclass
 class RNASeqDataset(Dataset):
