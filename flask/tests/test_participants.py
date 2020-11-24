@@ -4,8 +4,6 @@ from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
 from test_datasets import login_as
 
-import json
-
 # Tests
 
 # GET /api/participants
