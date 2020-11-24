@@ -161,11 +161,6 @@ export interface User {
     deactivated?: boolean;
 }
 
-export interface UserAction {
-    type: "set" | "update" | "add" | "delete";
-    payload: User | User[];
-}
-
 export interface Field {
     title: string;
     value: FieldDisplayValueType;

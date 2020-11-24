@@ -23,7 +23,7 @@ export default function SecretDisplay(props: { title: string; secret: string }) 
                 </Tooltip>
                 <Tooltip title="Copy to clipboard">
                     <IconButton
-                        onClick={async () => {
+                        onClick={() => {
                             navigator.clipboard.writeText(props.secret).then(() => {
                                 enqueueSnackbar(`${props.title} copied to clipboard.`);
                             });
@@ -34,9 +34,9 @@ export default function SecretDisplay(props: { title: string; secret: string }) 
                 </Tooltip>
             </Typography>
             {open ? (
-                <Typography style={{ cursor: "pointer" }}>{props.secret}</Typography>
+                <Typography>{props.secret}</Typography>
             ) : (
-                <Skeleton animation={false} variant="text" style={{ cursor: "pointer" }}>
+                <Skeleton animation={false} variant="text">
                     <Typography>{props.secret}</Typography>
                 </Skeleton>
             )}

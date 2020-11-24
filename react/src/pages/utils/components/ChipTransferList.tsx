@@ -34,7 +34,7 @@ export default function ChipTransferList(props: {
     }
 
     return (
-        <Grid container xs={12} spacing={1} className={classes.root}>
+        <Grid container spacing={1} className={classes.root}>
             <Grid item container xs={12} alignItems="center">
                 <Grid item>
                     <PersonAdd fontSize="large" />
@@ -86,17 +86,15 @@ function ChipArray(props: { chips: TransferChip[]; onClick: (chip: TransferChip)
             {props.chips.length > 0 && (
                 <Paper className={classes.paper}>
                     <Box component="ul" className={classes.chipList}>
-                        {props.chips.map(chip => {
-                            return (
-                                <li key={chip.key}>
-                                    <Chip
-                                        label={chip.label}
-                                        className={classes.chip}
-                                        onClick={() => props.onClick(chip)}
-                                    />
-                                </li>
-                            );
-                        })}
+                        {props.chips.map(chip => (
+                            <li key={chip.key}>
+                                <Chip
+                                    label={chip.label}
+                                    className={classes.chip}
+                                    onClick={() => props.onClick(chip)}
+                                />
+                            </li>
+                        ))}
                     </Box>
                 </Paper>
             )}

@@ -3,6 +3,7 @@ import {
     Box,
     Grid,
     IconButton,
+    List,
     makeStyles,
     Paper,
     Toolbar,
@@ -11,7 +12,7 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, UserAction } from "../utils/typings";
+import { User } from "../utils/typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
 
@@ -41,6 +42,11 @@ const useStyles = makeStyles(theme => ({
         flexGrow: 1,
     },
 }));
+
+interface UserAction {
+    type: "set" | "update" | "add" | "delete";
+    payload: User | User[];
+}
 
 // Use a reducer for state management to handle update, add, delete
 function reducer(state: User[], action: UserAction) {
@@ -104,10 +110,11 @@ export default function UserList() {
                     </IconButton>
                 </Tooltip>
             </Toolbar>
-            <Grid container spacing={1} alignItems="flex-start">
-                {users.map(user => (
-                    <>
+            <List>
+                <Grid container spacing={1} alignItems="flex-start">
+                    {users.map(user => (
                         <UserRow
+                            key={user.username}
                             user={user}
                             onSave={newUser => {
                                 updateUser(newUser).then(async response => {
@@ -144,9 +151,9 @@ export default function UserList() {
                                 });
                             }}
                         />
-                    </>
-                ))}
-            </Grid>
+                    ))}
+                </Grid>
+            </List>
         </>
     );
 }

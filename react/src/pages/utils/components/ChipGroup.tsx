@@ -16,7 +16,12 @@ export default function ChipGroup(props: { names: string[]; size?: ChipProps["si
     return (
         <Box {...boxProps}>
             {props.names.map(name => (
-                <Chip size={props.size} label={name} className={classes.chip} />
+                <Chip
+                    key={`chip-${name}`}
+                    size={props.size}
+                    label={name}
+                    className={classes.chip}
+                />
             ))}
         </Box>
     );

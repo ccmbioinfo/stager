@@ -114,12 +114,6 @@ export default function DatasetTable() {
             )}
             <MaterialTable
                 columns={[
-                    {
-                        title: "Dataset ID",
-                        field: "dataset_id",
-                        editable: "never",
-                        defaultFilter: paramFilter,
-                    },
                     { title: "Participant", field: "participant_codename", editable: "never" },
                     { title: "Family", field: "family_codename", editable: "never" },
                     {
