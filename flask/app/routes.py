@@ -84,9 +84,9 @@ def logout():
 def check_admin(handler):
     @wraps(handler)
     def decorated_handler(*args, **kwargs):
-        if False:
-            return "Unauthorized", 401
-        return handler(*args, **kwargs)
+        if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+            return handler(*args, **kwargs)
+        return "Unauthorized", 401
 
     return decorated_handler
 
