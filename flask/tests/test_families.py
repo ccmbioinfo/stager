@@ -93,10 +93,10 @@ def test_get_family(test_database, client):
 
 def test_delete_families(test_database, client):
     # Test without permission, will work when check_admin is implemented
-    # assert login_as(client, "user").status_code == 200
-    # response = client.delete('/api/families/1')
-    # assert response.status_code == 401
-    # assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
+    assert login_as(client, "user").status_code == 200
+    response = client.delete('/api/families/1')
+    assert response.status_code == 401
+    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
     assert login_as(client, "admin").status_code == 200
