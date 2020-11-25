@@ -77,6 +77,10 @@ def test_database(client):
     db.session.add(wgs)
     db.session.flush()
 
+    pipeline_1 = Pipeline(pipeline_name="CRG", pipeline_version="1.2")
+    db.session.add(pipeline_1)
+    db.session.flush()
+
     family_a = Family(
         family_codename="A", created_by=admin.user_id, updated_by=admin.user_id
     )
@@ -139,6 +143,32 @@ def test_database(client):
     dataset_3.groups.append(group)
     sample_2.datasets.append(dataset_3)
 
+    analysis_1 = Analysis(
+        analysis_state=AnalysisState.Requested,
+        requester=admin.user_id,
+        assignee=admin.user_id,
+        updated_by=admin.user_id,
+        pipeline_id=pipeline_1.pipeline_id,
+        requested="2020-07-28",
+        started="2020-08-04",
+        updated="2020-08-04",
+    )
+    dataset_1.analyses.append(analysis_1)
+    dataset_3.analyses.append(analysis_1)
+
+    analysis_2 = Analysis(
+        analysis_state=AnalysisState.Requested,
+        requester=admin.user_id,
+        assignee=admin.user_id,
+        updated_by=admin.user_id,
+        pipeline_id=pipeline_1.pipeline_id,
+        requested="2020-07-28",
+        started="2020-08-04",
+        updated="2020-08-04",
+    )
+    dataset_2.analyses.append(analysis_2)
+    dataset_3.analyses.append(analysis_2)
+
     db.session.add(family_a)
     db.session.flush()
 
@@ -169,6 +199,19 @@ def test_database(client):
         updated_by=admin.user_id,
     )
     sample_3.datasets.append(dataset_4)
+
+    analysis_3 = Analysis(
+        analysis_state=AnalysisState.Requested,
+        requester=admin.user_id,
+        assignee=admin.user_id,
+        updated_by=admin.user_id,
+        pipeline_id=pipeline_1.pipeline_id,
+        requested="2020-07-28",
+        started="2020-08-04",
+        updated="2020-08-04",
+    )
+    dataset_1.analyses.append(analysis_3)
+    dataset_4.analyses.append(analysis_3)
 
     db.session.add(family_b)
     db.session.commit()
