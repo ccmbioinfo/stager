@@ -15,6 +15,7 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "TEST_ST_DATABASE_URI", "mysql+pymysql://admin:admin@localhost/st2020testing"
     )
+    SQLALCHEMY_LOG = False
     MINIO_ENDPOINT = os.getenv("TEST_MINIO_ENDPOINT", "localhost:9000")
     MINIO_SECRET_KEY = os.getenv(
         "TEST_MINIO_SECRET_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"

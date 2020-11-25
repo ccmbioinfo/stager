@@ -11,6 +11,7 @@ class Config(object):
         "ST_DATABASE_URI", "mysql+pymysql://admin:admin@localhost/st2020"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_LOG = True
     DEFAULT_ADMIN = os.getenv("ST_DEFAULT_ADMIN", "admin")
     DEFAULT_ADMIN_EMAIL = os.getenv(
         "ST_DEFAULT_EMAIL", "admin@sampletracker.ccm.sickkids.ca"
