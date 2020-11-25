@@ -80,7 +80,7 @@ def test_list_participants_user_from_admin(test_database, client):
 
 
 def test_delete_participant(test_database, client):
-    # Test without permission, will work when check_admin is implemented
+    # Test without permission
     assert login_as(client, "user").status_code == 200
     response = client.delete('/api/participants/1')
     assert response.status_code == 401
