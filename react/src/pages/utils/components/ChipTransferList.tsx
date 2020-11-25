@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Chip, Grid, makeStyles, Paper } from "@material-ui/core";
 import { PersonAdd, PersonAddDisabled } from "@material-ui/icons";
 
@@ -8,11 +8,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export interface TransferChip {
+interface TransferChip {
     label: string;
     key: number;
     selected: boolean;
-    content?: unknown;
 }
 
 /**
@@ -20,17 +19,32 @@ export interface TransferChip {
  * move them between the two lists.
  */
 export default function ChipTransferList(props: {
-    chips: TransferChip[];
-    setChips: (chips: TransferChip[]) => void;
+    labels: string[];
+    defaultSelected?: string[];
+    onSelectionChange: (selectedLabels: string[]) => void;
 }) {
     const classes = useStyles();
+    const [chips, setChips] = useState<TransferChip[]>([]);
+
+    // Set state as side effect incase defaultSelected changes
+    useEffect(() => {
+        setChips(
+            props.labels.map((label, index) => ({
+                label: label,
+                key: index,
+                selected:
+                    props.defaultSelected !== undefined &&
+                    !!props.defaultSelected.find(val => val === label),
+            }))
+        );
+    }, [props.labels, props.defaultSelected]);
 
     function toggleSelected(chip: TransferChip) {
-        props.setChips(
-            props.chips.map(item =>
-                item.key === chip.key ? { ...item, selected: !item.selected } : item
-            )
+        const newChips = chips.map(item =>
+            item.key === chip.key ? { ...item, selected: !item.selected } : item
         );
+        setChips(newChips);
+        props.onSelectionChange(newChips.filter(chip => chip.selected).map(chip => chip.label));
     }
 
     return (
@@ -41,7 +55,7 @@ export default function ChipTransferList(props: {
                 </Grid>
                 <Grid item>
                     <ChipArray
-                        chips={props.chips.filter(chip => !!chip.selected)}
+                        chips={chips.filter(chip => !!chip.selected)}
                         onClick={toggleSelected}
                     />
                 </Grid>
@@ -52,7 +66,7 @@ export default function ChipTransferList(props: {
                 </Grid>
                 <Grid item>
                     <ChipArray
-                        chips={props.chips.filter(chip => !chip.selected)}
+                        chips={chips.filter(chip => !chip.selected)}
                         onClick={toggleSelected}
                     />
                 </Grid>

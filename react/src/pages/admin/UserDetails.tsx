@@ -15,7 +15,7 @@ import { Delete } from "@material-ui/icons";
 import { User } from "../utils/typings";
 import SecretDisplay from "../utils/components/SecretDisplay";
 import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
-import ChipTransferList, { TransferChip } from "../utils/components/ChipTransferList";
+import ChipTransferList from "../utils/components/ChipTransferList";
 import ConfirmModal from "./ConfirmModal";
 
 const useDetailStyles = makeStyles(theme => ({
@@ -34,7 +34,17 @@ const useDetailStyles = makeStyles(theme => ({
     },
 }));
 
-function reducer(state: User, action: ConfirmPasswordAction | { type: "set"; payload: User }) {
+interface UserAction {
+    type: "set";
+    payload: User;
+}
+
+interface GroupAction {
+    type: "group";
+    payload: string[];
+}
+
+function reducer(state: User, action: ConfirmPasswordAction | UserAction | GroupAction) {
     switch (action.type) {
         case "password":
             return { ...state, password: action.payload };
@@ -42,10 +52,15 @@ function reducer(state: User, action: ConfirmPasswordAction | { type: "set"; pay
             return { ...state, confirmPassword: action.payload };
         case "set":
             return { ...action.payload };
+        case "group":
+            return { ...state, groupMemberships: action.payload };
         default:
             return state;
     }
 }
+
+// TODO: replace this with group list pulled from backend
+const temporaryMagicGlobalGroupList = ["FOO", "BAR", "BAZ"];
 
 /**
  * The collapsible part of a user row. A form for viewing
@@ -68,15 +83,6 @@ export default function UserDetails(props: {
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
-
-    // TODO: hook up with actual permission groups
-    const [tempGroups, setTempGroups] = useState<TransferChip[]>(
-        ["FOO", "BAR", "BAZ"].map((label, index) => ({
-            label: label,
-            key: index,
-            selected: false,
-        }))
-    );
 
     return (
         <>
@@ -101,7 +107,7 @@ export default function UserDetails(props: {
                 Are you sure you want to delete user {oldState.username}?
             </ConfirmModal>
             <Box className={classes.root}>
-                <Grid container xs={12} spacing={1}>
+                <Grid container spacing={1}>
                     <Grid container item md={12} lg={6} spacing={1}>
                         <Grid item xs={6}>
                             <FormControlLabel
@@ -158,7 +164,13 @@ export default function UserDetails(props: {
                         <Typography>
                             <b>Group Management</b>
                         </Typography>
-                        <ChipTransferList chips={tempGroups} setChips={setTempGroups} />
+                        <ChipTransferList
+                            labels={temporaryMagicGlobalGroupList}
+                            defaultSelected={newState.groupMemberships}
+                            onSelectionChange={selectedLabels =>
+                                dispatch({ type: "group", payload: selectedLabels })
+                            }
+                        />
                     </Grid>
                 </Grid>
                 <Toolbar className={classes.toolbar}>

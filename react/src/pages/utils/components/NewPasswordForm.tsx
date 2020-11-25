@@ -37,6 +37,7 @@ export default function NewPasswordForm(props: {
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 label="New password"
+                value={props.passwords.password}
                 onChange={e => props.dispatch({ type: "password", payload: e.target.value })}
             />
             <TextField
@@ -47,6 +48,7 @@ export default function NewPasswordForm(props: {
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 label="Confirm new password"
+                value={props.passwords.confirmPassword}
                 onChange={e => props.dispatch({ type: "confirm", payload: e.target.value })}
             />
         </>

@@ -91,7 +91,7 @@ export default function UserRow(props: {
                         }
                     />
                     <IconButton onClick={e => setOpen(!open)} className={classes.button}>
-                        {open ? <ExpandMore /> : <ExpandLess />}
+                        {open ? <ExpandLess /> : <ExpandMore />}
                     </IconButton>
                 </ListItem>
                 <Collapse in={open}>
