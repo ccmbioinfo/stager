@@ -49,6 +49,7 @@ def test_list_participant_user(test_database, client):
         and diclist[0]["participant_codename"] == "002"
     )
 
+
 def test_list_participants_user_from_admin(test_database, client):
     # Repeat above test from admin's eyes
     assert login_as(client, "admin").status_code == 200
