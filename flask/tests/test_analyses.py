@@ -78,7 +78,7 @@ def test_get_analyses(test_database, client):
 def test_delete_analysis(test_database, client):
     # Test without permission
     assert login_as(client, "user").status_code == 200
-    response = client.delete('/api/analyses/1')
+    response = client.delete("/api/analyses/1")
     assert response.status_code == 401
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
