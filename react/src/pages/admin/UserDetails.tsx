@@ -17,6 +17,7 @@ import SecretDisplay from "../utils/components/SecretDisplay";
 import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
 import ChipTransferList from "../utils/components/ChipTransferList";
 import ConfirmModal from "./ConfirmModal";
+import ChipSelect from "../utils/components/ChipSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -164,13 +165,7 @@ export default function UserDetails(props: {
                         <Typography>
                             <b>Group Management</b>
                         </Typography>
-                        <ChipTransferList
-                            labels={temporaryMagicGlobalGroupList}
-                            defaultSelected={newState.groupMemberships}
-                            onSelectionChange={selectedLabels =>
-                                dispatch({ type: "group", payload: selectedLabels })
-                            }
-                        />
+                        <ChipSelect labels={temporaryMagicGlobalGroupList} />
                     </Grid>
                 </Grid>
                 <Toolbar className={classes.toolbar}>
