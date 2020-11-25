@@ -38,6 +38,7 @@ def test_list_families_user(test_database, client):
     # Check if it is the correct family
     assert response.get_json()[0]["family_codename"] == "A"
 
+def test_list_families_user_from_admin(test_database, client):
     # Repeat above test from admin's eyes
     assert login_as(client, "admin").status_code == 200
 
