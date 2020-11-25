@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Chip, IconButton, makeStyles, Menu, MenuItem, Paper } from "@material-ui/core";
 import { AddCircle } from "@material-ui/icons";
 
@@ -31,7 +31,7 @@ interface SelectableChip {
 
 export default function ChipSelect(props: {
     labels: string[];
-    defaultSelected?: string[];
+    selected?: string[];
     onSelectionChange?: (selectedLabels: string[]) => void;
 }) {
     const classes = useStyles();
@@ -40,6 +40,18 @@ export default function ChipSelect(props: {
         props.labels.map(label => ({ label: label, key: label, selected: false }))
     );
     const [disableAdd, setDisableAdd] = useState(false);
+
+    useEffect(() => {
+        if (Array.isArray(props.selected)) {
+            setChips(chips =>
+                chips.map(chip => ({
+                    ...chip,
+                    selected: !!props.selected!.find(label => label === chip.label),
+                }))
+            );
+            setDisableAdd(props.selected.length === 0);
+        }
+    }, [props.selected]);
 
     function handleClick(clickedChip: SelectableChip) {
         const newChips = chips.map(chip =>
@@ -68,7 +80,8 @@ export default function ChipSelect(props: {
                 <div className={classes.grow} />
                 <IconButton
                     onClick={e => {
-                        if (chips.filter(c => !c.selected).length > 0) setAnchorEl(e.currentTarget);
+                        if (chips.filter(chip => !chip.selected).length > 0)
+                            setAnchorEl(e.currentTarget);
                     }}
                     disabled={disableAdd}
                 >
