@@ -22,6 +22,7 @@ class TestConfig(Config):
     )
     MINIO_ACCESS_KEY = os.getenv("TEST_MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
     TESTING = True
+    LOGIN_DISABLED=False
 
 
 @pytest.fixture(scope="session")
