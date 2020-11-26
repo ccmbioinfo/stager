@@ -33,40 +33,6 @@ export default function Datasets() {
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth={false} className={classes.container}>
-                <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                        <Paper className={classes.paper}>
-                            <Card
-                                title="Participants"
-                                value="2731"
-                                textSecondary="12 since last week"
-                                linkText="Participant View"
-                            />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Paper className={classes.paper}>
-                            <Card
-                                title="Datasets"
-                                value="3012"
-                                textSecondary="3 CES, 5 RES since last week"
-                                linkText="Dataset View"
-                            />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Paper className={classes.paper}>
-                            <Card
-                                title="Families"
-                                value="728"
-                                textSecondary="2 since last week"
-                                linkText="Family View"
-                            />
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-            <Container maxWidth={false}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
                         <DatasetTable />
