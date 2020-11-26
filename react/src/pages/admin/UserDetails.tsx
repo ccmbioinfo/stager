@@ -165,7 +165,7 @@ export default function UserDetails(props: {
                     </Grid>
                     <Grid item md={12} lg={6}>
                         <Typography>
-                            <b>Group Management</b>
+                            <b>Permission Groups</b>
                         </Typography>
                         <ChipSelect
                             labels={temporaryMagicGlobalGroupList}

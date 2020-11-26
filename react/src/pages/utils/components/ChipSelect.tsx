@@ -37,7 +37,7 @@ export default function ChipSelect(props: {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [chips, setChips] = useState<SelectableChip[]>(
-        props.labels.map(label => ({ label: label, key: label, selected: false }))
+        props.labels.sort().map(label => ({ label: label, key: label, selected: false }))
     );
     const [disableAdd, setDisableAdd] = useState(false);
 
