@@ -1,6 +1,6 @@
 import React from "react";
 import clsx from "clsx";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { BrowserRouter, Switch, Route, RouteProps } from "react-router-dom";
 import {
     makeStyles,
     CssBaseline,
@@ -26,7 +26,7 @@ import {
     MeetingRoom as MeetingRoomIcon,
     VerifiedUser as VerifiedUserIcon,
     AccountCircle as AccountCircleIcon,
-    AddBox,
+    AddBox as AddBoxIcon,
 } from "@material-ui/icons";
 
 import Participants from "./participants/Participants";
@@ -106,6 +106,63 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+interface RouteItem extends RouteProps {
+    pageName: string; // Displays in AppBar
+    linkTo?: string; // Used as path for links
+    main: (props: any) => JSX.Element; // The page itself
+    icon?: React.ReactElement; // Icon for menu links
+}
+
+/**
+ * List of all routes in the application.
+ * The order determines the link order in the Drawer.
+ *
+ * Note: if path is an array or has parameters, make sure that
+ * linkTo is defined to a 'default' that sidebar links will point to.
+ */
+const routes: RouteItem[] = [
+    {
+        pageName: "Participants",
+        path: ["/participants/:id?", "/"],
+        linkTo: "/participants",
+        main: Participants,
+        icon: <PeopleIcon />,
+        exact: true,
+    },
+    {
+        pageName: "Add Participants",
+        path: "/addParticipants",
+        main: AddParticipants,
+        icon: <AddBoxIcon />,
+    },
+    {
+        pageName: "Datasets",
+        path: "/datasets/:id?",
+        linkTo: "/datasets",
+        main: Datasets,
+        icon: <DnsIcon />,
+    },
+    {
+        pageName: "Analyses",
+        path: "/analysis/:id?",
+        linkTo: "/analysis",
+        main: Analyses,
+        icon: <ShowChartIcon />,
+    },
+    {
+        pageName: "Settings",
+        path: "/settings",
+        main: Settings,
+        icon: <SettingsIcon />,
+    },
+    {
+        pageName: "Admin",
+        path: "/admin",
+        main: Admin,
+        icon: <VerifiedUserIcon />,
+    },
+];
+
 export interface NavigationProps {
     signout: () => void;
     username: string;
@@ -115,7 +172,6 @@ export interface NavigationProps {
 export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
-    const [pageName, setPageName] = React.useState("Participants");
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -145,15 +201,21 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Typography
-                            component="h1"
-                            variant="h6"
-                            color="inherit"
-                            noWrap
-                            className={classes.title}
-                        >
-                            {pageName}
-                        </Typography>
+                        <Switch>
+                            {routes.map(route => (
+                                <Route path={route.path} exact={route.exact}>
+                                    <Typography
+                                        component="h1"
+                                        variant="h6"
+                                        color="inherit"
+                                        noWrap
+                                        className={classes.title}
+                                    >
+                                        {route.pageName}
+                                    </Typography>
+                                </Route>
+                            ))}
+                        </Switch>
                         <NotificationPopover lastLoginTime={lastLoginTime} />
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize="large" />
@@ -174,24 +236,14 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     </div>
                     <Divider />
                     <List>
-                        <ListItemRouterLink to="/participants" primary="Participants">
-                            <PeopleIcon />
-                        </ListItemRouterLink>
-                        <ListItemRouterLink to="/addParticipants" primary="Add Participants">
-                            <AddBox />
-                        </ListItemRouterLink>
-                        <ListItemRouterLink to="/datasets" primary="Datasets">
-                            <DnsIcon />
-                        </ListItemRouterLink>
-                        <ListItemRouterLink to="/analysis" primary="Analyses">
-                            <ShowChartIcon />
-                        </ListItemRouterLink>
-                        <ListItemRouterLink to="/settings" primary="Settings">
-                            <SettingsIcon />
-                        </ListItemRouterLink>
-                        <ListItemRouterLink to="/admin" primary="Admin">
-                            <VerifiedUserIcon />
-                        </ListItemRouterLink>
+                        {routes.map((route, index) => (
+                            <ListItemRouterLink
+                                key={index}
+                                to={route.linkTo ? route.linkTo : "" + route.path}
+                                primary={route.pageName}
+                                children={route.icon}
+                            />
+                        ))}
                     </List>
                     <Divider />
                     <div className={classes.bottomItems}>
@@ -206,48 +258,20 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     </div>
                 </Drawer>
                 <Switch>
-                    <Route
-                        path="/admin"
-                        render={() => {
-                            setPageName("Admin");
-                            return <Admin />;
-                        }}
-                    />
-                    <Route
-                        path="/analysis/:id?"
-                        render={() => {
-                            setPageName("Analyses");
-                            return <Analyses />;
-                        }}
-                    />
-                    <Route
-                        path="/datasets/:id?"
-                        render={() => {
-                            setPageName("Datasets");
-                            return <Datasets />;
-                        }}
-                    />
-                    <Route
-                        path="/addParticipants"
-                        render={() => {
-                            setPageName("Add Participants");
-                            return <AddParticipants />;
-                        }}
-                    />
-                    <Route
-                        path="/settings"
-                        render={() => {
-                            setPageName("Settings");
-                            return <Settings username={username} />;
-                        }}
-                    />
-                    <Route
-                        path={["/participants/:id?", "/"]}
-                        render={() => {
-                            setPageName("Participants");
-                            return <Participants />;
-                        }}
-                    />
+                    {routes.map(route => (
+                        <Route
+                            path={route.path}
+                            exact={route.exact}
+                            render={() => {
+                                switch (route.path) {
+                                    case "/settings":
+                                        return <route.main username={username} />;
+                                    default:
+                                        return <route.main />;
+                                }
+                            }}
+                        />
+                    ))}
                 </Switch>
             </BrowserRouter>
         </div>
