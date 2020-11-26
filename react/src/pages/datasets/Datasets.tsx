@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
-import { makeStyles, Container, Grid, Paper } from "@material-ui/core";
-import Card from "../Card";
+import { makeStyles, Container, Grid } from "@material-ui/core";
 import DatasetTable from "./DatasetTable";
 
 const useStyles = makeStyles(theme => ({
