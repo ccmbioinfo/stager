@@ -218,8 +218,17 @@ def test_database(client):
     db.session.add(family_b)
     db.session.commit()
 
-    yield
 
-    # all tables are dropped anyway
-    # db.session.delete(user)
-    # db.session.delete(admin)
+@pytest.fixture
+def login_as(client):
+    def login(identity: str) -> None:
+        assert (
+            client.post(
+                "/api/login",
+                json={"username": identity, "password": identity},
+                follow_redirects=True,
+            ).status_code
+            == 200
+        )
+
+    return login

@@ -2,23 +2,22 @@ import pytest
 from app import db, models
 from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
-from test_datasets import login_as
 
 
 # GET /api/tissue_samples/:id
 
 
-def test_get_tissue_samples(test_database, client):
+def test_get_tissue_samples(test_database, client, login_as):
     # Test invalid sample id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.get("/api/tissue_samples/4").status_code == 404
     # Test wrong permissions
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     assert client.get("/api/tissue_samples/3").status_code == 404
 
     # Test and validate success based on user's permissions
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.get("/api/tissue_samples/1")
     assert response.status_code == 200
     # Check number of datasets in response
@@ -28,20 +27,20 @@ def test_get_tissue_samples(test_database, client):
 # DELETE /api/tissue_samples/:id
 
 
-def test_delete_tissue_samples(test_database, client):
+def test_delete_tissue_samples(test_database, client, login_as):
     # Test without permission
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.delete("/api/tissue_samples/1")
     assert response.status_code == 401
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/tissue_samples/4")
     assert response.status_code == 404
 
     # Test with dataset in it
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/tissue_samples/1")
     assert response.status_code == 422
 
@@ -60,7 +59,7 @@ def test_delete_tissue_samples(test_database, client):
 
     db.session.commit()
 
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.delete("/api/tissue_samples/1").status_code == 204
     # Make sure it's gone
     sample = models.TissueSample.query.filter(
@@ -72,14 +71,14 @@ def test_delete_tissue_samples(test_database, client):
 # POST /api/tissue_samples
 
 
-def test_post_tissue_samples(test_database, client):
+def test_post_tissue_samples(test_database, client, login_as):
     # Test without permission
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.post("/api/tissue_samples")
     assert response.status_code == 401
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     # Test no tissue_sample_type given
     assert (
         client.post(

@@ -3,22 +3,14 @@ from app import db
 from app.models import Dataset
 
 
-def login_as(client, identity):
-    return client.post(
-        "/api/login",
-        json={"username": identity, "password": identity},
-        follow_redirects=True,
-    )
-
-
 # TODO: some tests do not precisely verify response structure
 
 
-def test_list_datasets_admin(client, test_database):
+def test_list_datasets_admin(client, test_database, login_as):
     """
     GET /api/datasets as an administrator
     """
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     # Retrieve all datasets as admin
     response = client.get("/api/datasets")
@@ -41,11 +33,11 @@ def test_list_datasets_admin(client, test_database):
     assert len(response.get_json()) == 0
 
 
-def test_list_datasets_user(client, test_database):
+def test_list_datasets_user(client, test_database, login_as):
     """
     GET /api/datasets as a regular user
     """
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
 
     # Retrieve all datasets I can access
     response = client.get("/api/datasets")
@@ -66,11 +58,11 @@ def test_list_datasets_user(client, test_database):
     assert len(response.get_json()) == 2
 
 
-def test_get_dataset_admin(client, test_database):
+def test_get_dataset_admin(client, test_database, login_as):
     """
     GET /api/datasets/:id as an administrator
     """
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     # Retrieve all datasets as an admin
     for i in range(1, 5):
@@ -96,11 +88,11 @@ def test_get_dataset_admin(client, test_database):
     assert client.get(f"/api/datasets/4?user=2").status_code == 404
 
 
-def test_get_dataset_user(client, test_database):
+def test_get_dataset_user(client, test_database, login_as):
     """
     GET /api/datasets/:id as a regular user
     """
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
 
     # Cannot assume another user's identity, query string ignored
     for query in ["", "?user=1", "?user=2"]:
@@ -110,11 +102,11 @@ def test_get_dataset_user(client, test_database):
         assert client.get(f"/api/datasets/4{query}").status_code == 404
 
 
-def test_update_dataset_admin(client, test_database):
+def test_update_dataset_admin(client, test_database, login_as):
     """
     PATCH /api/datasets/:id as an administrator
     """
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     assert client.patch("/api/datasets/2").status_code == 415
     # Nonexistent
@@ -149,11 +141,11 @@ def test_update_dataset_admin(client, test_database):
             assert dataset[key] == value
 
 
-def test_update_dataset_user(client, test_database):
+def test_update_dataset_user(client, test_database, login_as):
     """
     PATCH /api/datasets/:id as a regular user
     """
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
 
     assert client.patch("/api/datasets/2").status_code == 415
     # Nonexistent
@@ -174,11 +166,11 @@ def test_update_dataset_user(client, test_database):
             assert dataset[key] == value
 
 
-def test_delete_dataset_admin(client, test_database):
+def test_delete_dataset_admin(client, test_database, login_as):
     """
     DELETE /api/datasets/:id as an administrator
     """
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     # Deleting a dataset with analyses
     assert client.delete("/api/datasets/1").status_code == 422
@@ -195,11 +187,11 @@ def test_delete_dataset_admin(client, test_database):
     assert client.get("/api/datasets/400").status_code == 404
 
 
-def test_delete_dataset_user(client, test_database):
+def test_delete_dataset_user(client, test_database, login_as):
     """
     DELETE /api/datasets/:id as a regular user
     """
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
 
     # Regular users cannot delete
     assert client.delete("/api/datasets/1").status_code == 401
@@ -212,11 +204,11 @@ def test_delete_dataset_user(client, test_database):
     assert client.get("/api/datasets/400").status_code == 404
 
 
-def test_create_dataset(client, test_database):
+def test_create_dataset(client, test_database, login_as):
     """
     POST /api/dataset as an administrator
     """
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     assert client.post("/api/datasets").status_code == 415
     invalid_requests = [

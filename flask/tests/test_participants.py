@@ -1,32 +1,30 @@
 import pytest
 from app import db, models
-from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
-from test_datasets import login_as
 
 # Tests
 
 # GET /api/participants
 
 
-def test_no_participants(test_database, client):
-    assert login_as(client, "admin").status_code == 200
+def test_no_participants(test_database, client, login_as):
+    login_as("admin")
 
     response = client.get("/api/participants?user=3")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 
 
-def test_list_participants_admin(test_database, client):
-    assert login_as(client, "admin").status_code == 200
+def test_list_participants_admin(test_database, client, login_as):
+    login_as("admin")
 
     response = client.get("/api/participants")
     assert response.status_code == 200
     assert len(response.get_json()) == 3
 
 
-def test_list_participant_user(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_list_participants_user(test_database, client, login_as):
+    login_as("user")
 
     response = client.get("/api/participants")
     assert response.status_code == 200
@@ -50,9 +48,9 @@ def test_list_participant_user(test_database, client):
     )
 
 
-def test_list_participants_user_from_admin(test_database, client):
+def test_list_participants_user_from_admin(test_database, client, login_as):
     # Repeat above test from admin's eyes
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     response = client.get("/api/participants?user=2")
     assert response.status_code == 200
@@ -79,20 +77,20 @@ def test_list_participants_user_from_admin(test_database, client):
 # DELETE /api/participants/:id
 
 
-def test_delete_participant(test_database, client):
+def test_delete_participant(test_database, client, login_as):
     # Test without permission
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.delete("/api/participants/1")
     assert response.status_code == 401
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/participants/4")
     assert response.status_code == 404
 
     # Test with tissue sample in it
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/participants/1")
     assert response.status_code == 422
 
@@ -116,7 +114,7 @@ def test_delete_participant(test_database, client):
 
     db.session.commit()
 
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.delete("/api/participants/1").status_code == 204
     # Make sure it's gone
     response2 = client.get("/api/participants")
@@ -127,8 +125,8 @@ def test_delete_participant(test_database, client):
 # PATCH /api/participants/:id
 
 
-def test_patch_participant(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_update_participant(test_database, client, login_as):
+    login_as("user")
     # Test existence
     assert (
         client.patch("/api/participants/4", json={"notes": "blank"}).status_code == 404
@@ -157,8 +155,8 @@ def test_patch_participant(test_database, client):
 # POST /api/participants
 
 
-def test_post_participants(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_create_participant(test_database, client, login_as):
+    login_as("user")
     # Test family does not exist
     assert client.post("/api/participants", json={"family_id": "3"}).status_code == 404
     # Test if participant in family already exists

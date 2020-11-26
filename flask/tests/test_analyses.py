@@ -1,32 +1,30 @@
 import pytest
 from app import db, models
-from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
-from test_datasets import login_as
 
 # Tests
 
 # GET /api/analyses
 
 
-def test_no_analyses(test_database, client):
-    assert login_as(client, "admin").status_code == 200
+def test_no_analyses(test_database, client, login_as):
+    login_as("admin")
 
     response = client.get("/api/analyses?user=3")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 
 
-def test_list_anaylses_admin(test_database, client):
-    assert login_as(client, "admin").status_code == 200
+def test_list_analyses_admin(test_database, client, login_as):
+    login_as("admin")
 
     response = client.get("/api/analyses")
     assert response.status_code == 200
     assert len(response.get_json()) == 3
 
 
-def test_list_analyses_user(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_list_analyses_user(test_database, client, login_as):
+    login_as("user")
 
     response = client.get("/api/analyses")
     assert response.status_code == 200
@@ -34,9 +32,9 @@ def test_list_analyses_user(test_database, client):
     assert len(response.get_json()) == 2
 
 
-def test_list_analyses_user_from_admin(test_database, client):
+def test_list_analyses_user_from_admin(test_database, client, login_as):
     # Repeat above test from admin's eyes
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     response = client.get("/api/analyses?user=2")
     assert response.status_code == 200
@@ -47,17 +45,17 @@ def test_list_analyses_user_from_admin(test_database, client):
 # GET /api/analyses/:id
 
 
-def test_get_analyses(test_database, client):
+def test_get_analysis(test_database, client, login_as):
     # Test invalid analysis_id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.get("/api/analyses/4").status_code == 404
     # Test wrong permissions
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     assert client.get("/api/analyses/3").status_code == 404
 
     # Test and validate success based on user's permissions
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.get("/api/analyses/1")
     assert response.status_code == 200
     # Check number of participants in response
@@ -65,7 +63,7 @@ def test_get_analyses(test_database, client):
     assert response.get_json()["datasets"][0]["family_codename"] == "A"
 
     # Test and validate success based on user's permissions
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.get("/api/analyses/2")
     assert response.status_code == 200
     # Check number of participants in response
@@ -75,20 +73,20 @@ def test_get_analyses(test_database, client):
 # DELETE /api/analyses/:id
 
 
-def test_delete_analysis(test_database, client):
+def test_delete_analysis(test_database, client, login_as):
     # Test without permission
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.delete("/api/analyses/1")
     assert response.status_code == 401
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/analyses/4")
     assert response.status_code == 404
 
     # Standard test
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.delete("/api/analyses/1").status_code == 204
     # Make sure it's gone
     response2 = client.get("/api/analyses")
@@ -99,8 +97,8 @@ def test_delete_analysis(test_database, client):
 # PATCH /api/analyses/:id
 
 
-def test_patch_participant(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_update_participant(test_database, client, login_as):
+    login_as("user")
     # Test existence
     assert (
         client.patch("/api/analyses/4", json={"result_hpf_path": "blank"}).status_code
@@ -133,8 +131,8 @@ def test_patch_participant(test_database, client):
 # POST /api/analyses
 
 
-def test_post_analyses(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_create_analysis(test_database, client, login_as):
+    login_as("user")
     # Test no pipeline id given
     assert (
         client.post(
@@ -192,5 +190,5 @@ def test_post_analyses(test_database, client):
     assert len(dataset_1.analyses) == 3
 
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert len(client.get("/api/analyses").get_json()) == 4

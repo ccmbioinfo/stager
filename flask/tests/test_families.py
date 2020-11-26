@@ -1,32 +1,30 @@
 import pytest
 from app import db, models
-from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
-from test_datasets import login_as
 
 # Tests
 
 # GET /api/families
 
 
-def test_no_families(test_database, client):
-    assert login_as(client, "admin").status_code == 200
+def test_no_families(test_database, client, login_as):
+    login_as("admin")
 
     response = client.get("/api/families?user=3")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 
 
-def test_list_families_admin(test_database, client):
-    assert login_as(client, "admin").status_code == 200
+def test_list_families_admin(test_database, client, login_as):
+    login_as("admin")
 
     response = client.get("/api/families")
     assert response.status_code == 200
     assert len(response.get_json()) == 2
 
 
-def test_list_families_user(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_list_families_user(test_database, client, login_as):
+    login_as("user")
 
     response = client.get("/api/families")
     assert response.status_code == 200
@@ -39,9 +37,9 @@ def test_list_families_user(test_database, client):
     assert response.get_json()[0]["family_codename"] == "A"
 
 
-def test_list_families_user_from_admin(test_database, client):
+def test_list_families_user_from_admin(test_database, client, login_as):
     # Repeat above test from admin's eyes
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
 
     response = client.get("/api/families?user=2")
     assert response.status_code == 200
@@ -57,17 +55,17 @@ def test_list_families_user_from_admin(test_database, client):
 # GET /api/families/:id
 
 
-def test_get_family(test_database, client):
+def test_get_family(test_database, client, login_as):
     # Test invalid family id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.get("/api/families/3").status_code == 404
     # Test wrong permissions
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     assert client.get("/api/families/2").status_code == 404
 
     # Test and validate success based on user's permissions
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.get("/api/families/1")
     assert response.status_code == 200
     # Check number of participants in response
@@ -91,20 +89,20 @@ def test_get_family(test_database, client):
 # DELETE /api/families/:id
 
 
-def test_delete_families(test_database, client):
+def test_delete_family(test_database, client, login_as):
     # Test without permission
-    assert login_as(client, "user").status_code == 200
+    login_as("user")
     response = client.delete("/api/families/1")
     assert response.status_code == 401
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/families/3")
     assert response.status_code == 404
 
     # Test with participant in it
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     response = client.delete("/api/families/2")
     assert response.status_code == 422
 
@@ -130,7 +128,7 @@ def test_delete_families(test_database, client):
 
     db.session.commit()
 
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert client.delete("/api/families/1").status_code == 204
     # Make sure it's gone
     response2 = client.get("/api/families")
@@ -141,8 +139,8 @@ def test_delete_families(test_database, client):
 # PATCH /api/families/:id
 
 
-def test_patch_families(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_update_family(test_database, client, login_as):
+    login_as("user")
     # Test existence
     assert (
         client.patch("/api/families/4", json={"family_codename": "C"}).status_code
@@ -177,8 +175,8 @@ def test_patch_families(test_database, client):
 # POST /api/families
 
 
-def test_post_families(test_database, client):
-    assert login_as(client, "user").status_code == 200
+def test_create_family(test_database, client, login_as):
+    login_as("user")
     # Test no codename given
     assert (
         client.post(
@@ -210,5 +208,5 @@ def test_post_families(test_database, client):
     ).one_or_none()
     assert family is not None
     assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
-    assert login_as(client, "admin").status_code == 200
+    login_as("admin")
     assert len(client.get("/api/families").get_json()) == 3
