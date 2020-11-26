@@ -73,7 +73,7 @@ export default function Settings({ username }: { username: string }) {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container}>
+            <Container maxWidth={false} className={classes.container}>
                 <Paper className={classes.paper} component="form">
                     <Typography variant="h4" component="h2">
                         Hello {username}!

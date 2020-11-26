@@ -32,7 +32,7 @@ export default function Datasets() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container}>
+            <Container maxWidth={false} className={classes.container}>
                 <Grid container spacing={2}>
                     <Grid item xs={4}>
                         <Paper className={classes.paper}>
@@ -66,7 +66,7 @@ export default function Datasets() {
                     </Grid>
                 </Grid>
             </Container>
-            <Container>
+            <Container maxWidth={false}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
                         <DatasetTable />
