@@ -364,7 +364,7 @@ export default function Analyses() {
                         },
                     ]}
                     data={rows}
-                    title="Active Analyses"
+                    title="Analyses"
                     options={{
                         pageSize: 10,
                         filtering: true,

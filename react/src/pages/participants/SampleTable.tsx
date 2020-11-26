@@ -40,57 +40,61 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
     const classes = useStyles();
 
     return (
-        <MaterialTable
-            columns={[
-                { title: "Sample ID", field: "tissue_sample_id" },
-                {
-                    title: "Extraction Date",
-                    field: "extraction_date",
-                    render: rowData => formatDateString(rowData.extraction_date),
-                },
-                { title: "Sample Type", field: "tissue_sample_type" },
-                { title: "Tissue Processing", field: "tissue_processing" },
-                { title: "Notes", field: "notes" },
-                {
-                    title: "Creation Time",
-                    field: "created",
-                    render: rowData => formatDateString(rowData.created),
-                },
-                { title: "Create By", field: "created_by" },
-                {
-                    title: "Update Time",
-                    field: "updated",
-                    render: rowData => formatDateString(rowData.updated),
-                },
-                { title: "Updated By", field: "updated_by" },
-            ]}
-            data={samples}
-            title="Samples"
-            detailPanel={rowData => {
-                const infoList: Info[] = rowData.datasets.map(dataset => {
-                    return {
-                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
-                        fields: getFields(dataset),
-                    };
-                });
-                return (
-                    <div className={classes.datasetList}>
-                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets" />
-                    </div>
-                );
-            }}
-            components={{
-                Container: props => <div>{props.children}</div>,
-                Cell: props => <MTableCell {...props} className={classes.cell} />,
-            }}
-            options={{
-                paging: false,
-                selection: false,
-                search: false,
-                headerStyle: {
-                    padding: 0,
-                },
-            }}
-        />
+        <>
+            {samples.length > 0 && (
+                <MaterialTable
+                    columns={[
+                        { title: "Sample ID", field: "tissue_sample_id" },
+                        {
+                            title: "Extraction Date",
+                            field: "extraction_date",
+                            render: rowData => formatDateString(rowData.extraction_date),
+                        },
+                        { title: "Sample Type", field: "tissue_sample_type" },
+                        { title: "Tissue Processing", field: "tissue_processing" },
+                        { title: "Notes", field: "notes" },
+                        {
+                            title: "Creation Time",
+                            field: "created",
+                            render: rowData => formatDateString(rowData.created),
+                        },
+                        { title: "Create By", field: "created_by" },
+                        {
+                            title: "Update Time",
+                            field: "updated",
+                            render: rowData => formatDateString(rowData.updated),
+                        },
+                        { title: "Updated By", field: "updated_by" },
+                    ]}
+                    data={samples}
+                    title="Tissue Samples"
+                    detailPanel={rowData => {
+                        const infoList: Info[] = rowData.datasets.map(dataset => {
+                            return {
+                                primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
+                                fields: getFields(dataset),
+                            };
+                        });
+                        return (
+                            <div className={classes.datasetList}>
+                                <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets" />
+                            </div>
+                        );
+                    }}
+                    components={{
+                        Container: props => <div>{props.children}</div>,
+                        Cell: props => <MTableCell {...props} className={classes.cell} />,
+                    }}
+                    options={{
+                        paging: false,
+                        selection: false,
+                        search: false,
+                        headerStyle: {
+                            padding: 0,
+                        },
+                    }}
+                />
+            )}
+        </>
     );
 }

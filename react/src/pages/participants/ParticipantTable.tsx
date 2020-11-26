@@ -152,37 +152,6 @@ export default function ParticipantTable() {
                     padding: "dense",
                     grouping: true,
                 }}
-                components={{
-                    Toolbar: props => (
-                        <div>
-                            <MTableToolbar {...props} />
-                            <div style={{ marginLeft: "24px" }}>
-                                <Chip
-                                    label="Proband"
-                                    clickable
-                                    className={classes.chip}
-                                    onClick={() => setFilter(["Proband"])}
-                                />
-                                <Chip
-                                    label="Parent"
-                                    clickable
-                                    className={classes.chip}
-                                    onClick={() => setFilter(["Parent"])}
-                                />
-                                <Chip
-                                    label="Sibling"
-                                    clickable
-                                    className={classes.chip}
-                                    onClick={() => setFilter(["Sibling"])}
-                                />
-                                <IconButton className={classes.chip} onClick={() => setFilter([])}>
-                                    {" "}
-                                    <Cancel />{" "}
-                                </IconButton>
-                            </div>
-                        </div>
-                    ),
-                }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {
                         const response = await fetch(
