@@ -1,139 +1,159 @@
-import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import Snackbar, { SnackbarProps } from "@material-ui/core/Snackbar";
-import AddIcon from "@material-ui/icons/Add";
+import React, { useEffect, useReducer, useState } from "react";
+import {
+    Box,
+    Grid,
+    IconButton,
+    List,
+    makeStyles,
+    Paper,
+    Toolbar,
+    Tooltip,
+    Typography,
+} from "@material-ui/core";
+import { PersonAdd } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
+import { User } from "../utils/typings";
+import UserRow from "./UserRow";
+import CreateUserModal from "./CreateUserModal";
 
-import UserRow, { UserRowState } from "./UserRow";
-import ConfirmModal from "./ConfirmModal";
-import CreateUserModal, { CreateUser } from "./CreateUserModal";
+async function updateUser(user: User) {
+    return fetch("/api/users", {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+    });
+}
+
+async function deleteUser(user: User) {
+    return fetch("/api/users", {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+    });
+}
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-        overflow: "auto",
-    },
-    addButton: {
+    toolbar: {
         marginBottom: theme.spacing(1),
+    },
+    grow: {
+        flexGrow: 1,
     },
 }));
 
+interface UserAction {
+    type: "set" | "update" | "add" | "delete";
+    payload: User | User[];
+}
+
+// Use a reducer for state management to handle update, add, delete
+function reducer(state: User[], action: UserAction) {
+    switch (action.type) {
+        case "set":
+            // Sets the state; only to be used when fetching data
+            if (Array.isArray(action.payload)) return action.payload;
+            return [action.payload];
+        case "update":
+            // Update the user with this username.
+            const newUser = action.payload as User;
+            return state.map(user =>
+                user.username === newUser.username ? { ...user, ...newUser } : user
+            );
+        case "add":
+            return state.concat(action.payload);
+        case "delete":
+            return state.filter(user => user.username !== (action.payload as User).username);
+        default:
+            console.error(`Invalid action: ${action}`);
+            return state;
+    }
+}
+
 export default function UserList() {
-    const [userList, setUserList] = useState<UserRowState[]>([]);
-    const [addingUser, setAddingUser] = useState(false);
-    const [updatingUser, setUpdatingUser] = useState<UserRowState | null>(null);
-    const [deletingUser, setDeletingUser] = useState<UserRowState | null>(null);
-    const [message, setMessage] = useState("");
-    const [messageColor, setMessageColor] = useState<SnackbarProps["color"]>("secondary");
-
-    async function addUserSuccess(user: CreateUser) {
-        setUserList(userList.concat(user));
-        setAddingUser(false);
-    }
-
-    async function updateUser() {
-        const response = await fetch("/api/users", {
-            method: "PUT",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatingUser),
-        });
-        if (response.ok) {
-            setMessage(`Updated ${updatingUser!.username}.`);
-            setMessageColor("primary");
-        } else {
-            setMessage(`Bad request for ${updatingUser!.username}.`);
-            setMessageColor("secondary");
-        }
-        setUpdatingUser(null);
-    }
-
-    async function deleteUser() {
-        const response = await fetch("/api/users", {
-            method: "DELETE",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(deletingUser),
-        });
-        if (response.ok) {
-            // Precondition: deletingUser is in userList
-            setUserList(userList.filter(user => user.username !== deletingUser!.username));
-            setMessage(`Deleted ${deletingUser!.username}.`);
-            setMessageColor("primary");
-        } else {
-            setMessage(`Failed to delete ${deletingUser!.username}.`);
-            setMessageColor("secondary");
-        }
-        setDeletingUser(null);
-    }
+    const classes = useStyles();
+    const [users, dispatch] = useReducer(reducer, []);
+    const [openNewUser, setOpenNewUser] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
         document.title = "Admin | ST2020";
         fetch("/api/users")
             .then(response => response.json())
-            .then(setUserList); // No safety check on JSON structure
+            .then(data =>
+                dispatch({
+                    type: "set",
+                    payload: data,
+                })
+            ); // No safety check on JSON structure
     }, []);
 
-    const classes = useStyles();
-
     return (
-        <main className={classes.root}>
+        <>
             <CreateUserModal
                 id="create-modal"
-                open={addingUser}
-                onClose={() => setAddingUser(false)}
-                onSuccess={addUserSuccess}
+                open={openNewUser}
+                onClose={() => setOpenNewUser(false)}
+                onSuccess={user => {
+                    dispatch({ type: "add", payload: user });
+                    setOpenNewUser(false);
+                    enqueueSnackbar(`New user ${user.username} created successfully`);
+                }}
             />
-            <ConfirmModal
-                id="confirm-modal-update"
-                color="primary"
-                open={!!updatingUser}
-                onClose={() => setUpdatingUser(null)}
-                onConfirm={updateUser}
-                title="Confirm updating user"
-            >
-                Update {updatingUser && updatingUser.username} and maybe overwrite password?
-            </ConfirmModal>
-            <ConfirmModal
-                id="confirm-modal-delete"
-                color="secondary"
-                open={!!deletingUser}
-                onClose={() => setDeletingUser(null)}
-                onConfirm={deleteUser}
-                title="Delete user"
-            >
-                Really delete {deletingUser && deletingUser.username}?
-            </ConfirmModal>
-            <Snackbar
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-                open={!!message}
-                onClose={() => setMessage("")}
-                message={message}
-                color={messageColor}
-            />
-            <Button
-                variant="contained"
-                color="primary"
-                className={classes.addButton}
-                onClick={() => setAddingUser(true)}
-            >
-                <AddIcon />
-                Add new
-            </Button>
-            <Grid container spacing={2}>
-                {userList.map(user => (
-                    <Grid item xs={12} md={6}>
+            <Toolbar component={Paper} className={classes.toolbar}>
+                <Typography variant="h6">Users</Typography>
+                <Box className={classes.grow} />
+                <Tooltip title="Add new user">
+                    <IconButton onClick={() => setOpenNewUser(true)}>
+                        <PersonAdd />
+                    </IconButton>
+                </Tooltip>
+            </Toolbar>
+            <List>
+                <Grid container spacing={1} alignItems="flex-start">
+                    {users.map(user => (
                         <UserRow
                             key={user.username}
-                            {...user}
-                            onUpdate={setUpdatingUser}
-                            onDelete={setDeletingUser}
+                            user={user}
+                            onSave={newUser => {
+                                updateUser(newUser).then(async response => {
+                                    const message = await response.text();
+                                    if (response.ok) {
+                                        enqueueSnackbar(
+                                            `User ${newUser.username} updated successfully - ${response.status} ${message}`,
+                                            { variant: "success" }
+                                        );
+                                        dispatch({ type: "update", payload: newUser });
+                                    } else {
+                                        enqueueSnackbar(
+                                            `User ${newUser.username} update failed - ${response.status} ${message}`,
+                                            { variant: "error" }
+                                        );
+                                    }
+                                });
+                            }}
+                            onDelete={newUser => {
+                                deleteUser(newUser).then(async response => {
+                                    const message = await response.text();
+                                    if (response.ok) {
+                                        enqueueSnackbar(
+                                            `User ${newUser.username} deleted successfully - ${response.status} ${message}`,
+                                            { variant: "success" }
+                                        );
+                                        dispatch({ type: "delete", payload: newUser });
+                                    } else {
+                                        enqueueSnackbar(
+                                            `User ${newUser.username} deletion failed - ${response.status} ${message}`,
+                                            { variant: "error" }
+                                        );
+                                    }
+                                });
+                            }}
                         />
-                    </Grid>
-                ))}
-            </Grid>
-        </main>
+                    ))}
+                </Grid>
+            </List>
+        </>
     );
 }
