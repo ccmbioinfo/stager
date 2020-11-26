@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { formatDateString, getAnalysisInfoList } from "../utils/functions";
-import { Participant, Analysis } from "../utils/typings";
+import { formatDateString, getAnalysisInfoList, createFieldObj } from "../utils/functions";
+import { Participant, Analysis, Field } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
@@ -20,44 +20,35 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const getParticipantTitles = () => {
+function getParticipantFields(participant: Participant): Field[] {
     return [
-        "Participant ID",
-        "Family ID",
-        "Family Codename",
-        "Sex",
-        "Affected",
-        "Solved",
-        "Notes",
-        "Time of Creation",
-        "Created By",
-        "Time of Update",
-        "Updated By",
+        createFieldObj("Family Codename", participant.family_codename, "family_codename", true),
+        createFieldObj("Participant Type", participant.participant_type, "participant_type"),
+        createFieldObj("Sex", participant.sex, "sex"),
+        createFieldObj("Affected", participant.affected, "affected"),
+        createFieldObj("Solved", participant.solved, "solved"),
+        createFieldObj("Dataset Types", participant.dataset_types, "dataset_types", true),
+        createFieldObj("Notes", participant.notes, "notes"),
+        createFieldObj("Time of Creation", formatDateString(participant.created), "created", true),
+        createFieldObj("Created By", participant.created_by, "created_by", true),
+        createFieldObj("Time of Update", formatDateString(participant.updated), "updated", true),
+        createFieldObj("Updated By", participant.updated_by, "updated_by", true),
     ];
-};
-const getParticipantValues = (participant: Participant) => {
-    return [
-        participant.participant_id,
-        participant.family_id,
-        participant.family_codename,
-        participant.sex,
-        participant.affected,
-        participant.solved,
-        participant.notes,
-        formatDateString(participant.created),
-        participant.created_by,
-        formatDateString(participant.updated),
-        participant.updated_by,
-    ];
-};
+}
 
 interface DialogProp {
     open: boolean;
     participant: Participant;
     onClose: () => void;
+    onUpdate: (participant_id: string, newParticipant: { [key: string]: any }) => void;
 }
 
-export default function ParticipantInfoDialog({ participant, open, onClose }: DialogProp) {
+export default function ParticipantInfoDialog({
+    participant,
+    open,
+    onClose,
+    onUpdate,
+}: DialogProp) {
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -72,7 +63,6 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
                 const response = await fetch("/api/datasets/" + dataset.dataset_id);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
                     analysisList = analysisList.concat(data.analyses as Analysis[]);
                 } else {
                     throw new Error(
@@ -105,8 +95,13 @@ export default function ParticipantInfoDialog({ participant, open, onClose }: Di
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
                     <DetailSection
-                        titles={getParticipantTitles()}
-                        values={getParticipantValues(participant)}
+                        fields={getParticipantFields(participant)}
+                        dataInfo={{
+                            type: "participant",
+                            ID: participant.participant_id,
+                            identifier: participant.participant_codename,
+                            onUpdate: onUpdate,
+                        }}
                     />
                 </div>
                 <Divider />

@@ -4,90 +4,139 @@ import inspect
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort
 
 
 @app.route("/api/families", methods=["GET"])
 @login_required
-def families_list():
-    starts_with = request.args.get("starts_with", default="")
+def list_families():
+    starts_with = request.args.get("starts_with", default="", type=str)
     starts_with = f"{starts_with}%"
-    max_rows = request.args.get("max_rows", default=10000)
+    max_rows = request.args.get("max_rows", default=100)
+    order_by_col = request.args.get("order", default="family_id", type=str)
     try:
         int(max_rows)
     except:
         return "Max rows must be a valid  integer", 400
 
-    order = request.args.get("order")
-    if order:
-        columns = models.Family.__table__.columns.keys()
-        if order not in columns:
-            return f"Column name must be one of {columns}", 400
-        else:
-            column = getattr(models.Family, order)
-            db_families = (
-                models.Family.query.options(joinedload(models.Family.participants))
-                .filter(models.Family.family_codename.like(starts_with))
-                .order_by(column)
-                .limit(max_rows)
-            )
+    columns = models.Family.__table__.columns.keys()
+
+    if order_by_col not in columns:
+        return f"Column name for ordering must be one of {columns}", 400
+    column = getattr(models.Family, order_by_col)
+
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
     else:
-        db_families = (
+        user_id = current_user.user_id
+
+    if user_id:
+        families = (
+            models.Family.query.options(contains_eager(models.Family.participants))
+            .filter(models.Family.family_codename.like(starts_with))
+            .join(models.Participant)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .order_by(column)
+            .limit(max_rows)
+        )
+    else:
+        families = (
             models.Family.query.options(joinedload(models.Family.participants))
             .filter(models.Family.family_codename.like(starts_with))
+            .order_by(column)
             .limit(max_rows)
         )
 
-    families = [
-        {
-            **asdict(family),
-            "participants": family.participants,
-        }
-        for family in db_families
-    ]
-
-    return jsonify(families)
+    return jsonify(
+        [{**asdict(family), "participants": family.participants} for family in families]
+    )
 
 
 @app.route("/api/families/<int:id>", methods=["GET"])
 @login_required
-def families_by_id(id: int):
-    family = (
-        models.Family.query.filter_by(family_id=id)
-        .options(
-            joinedload(models.Family.participants)
-            .joinedload(models.Participant.tissue_samples)
-            .joinedload(models.TissueSample.datasets)
-        )
-        .first_or_404()
-    )
+def get_family(id: int):
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
 
-    families = [
-        {
-            **asdict(family),
-            "participants": [
-                {
-                    **asdict(participants),
-                    "tissue_samples": [
-                        {
-                            **asdict(tissue_samples),
-                            "datasets": tissue_samples.datasets,
-                        }
-                        for tissue_samples in participants.tissue_samples
-                    ],
-                }
-                for participants in family.participants
-            ],
-        }
-    ]
-    return jsonify(families)
+    if user_id:
+        family = (
+            models.Family.query.filter_by(family_id=id)
+            .options(
+                contains_eager(models.Family.participants)
+                .contains_eager(models.Participant.tissue_samples)
+                .contains_eager(models.TissueSample.datasets)
+            )
+            .join(models.Participant)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        family = (
+            models.Family.query.filter_by(family_id=id)
+            .options(
+                joinedload(models.Family.participants)
+                .joinedload(models.Participant.tissue_samples)
+                .joinedload(models.TissueSample.datasets)
+            )
+            .one_or_none()
+        )
+
+    if not family:
+        return "Not Found", 404
+
+    return jsonify(
+        [
+            {
+                **asdict(family),
+                "participants": [
+                    {
+                        **asdict(participants),
+                        "tissue_samples": [
+                            {
+                                **asdict(tissue_samples),
+                                "datasets": tissue_samples.datasets,
+                            }
+                            for tissue_samples in participants.tissue_samples
+                        ],
+                    }
+                    for participants in family.participants
+                ],
+            }
+        ]
+    )
 
 
 @app.route("/api/families/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
-def delete_families(id: int):
+def delete_family(id: int):
     family = models.Family.query.filter_by(family_id=id).options(
         joinedload(models.Family.participants)
     )
@@ -108,7 +157,7 @@ def delete_families(id: int):
 
 @app.route("/api/families/<int:id>", methods=["PATCH"])
 @login_required
-def edit_families(id: int):
+def update_family(id: int):
 
     if not request.json:
         return "Request body must be JSON", 415
@@ -118,14 +167,37 @@ def edit_families(id: int):
     except KeyError:
         return "No family codename provided", 400
 
-    family = models.Family.query.get_or_404(id)
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        family = (
+            models.Family.query.filter_by(family_id=id)
+            .join(models.Participant)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .first_or_404()
+        )
+    else:
+        family = models.Family.query.filter_by(family_id=id).first_or_404()
 
     family.family_codename = fam_codename
 
-    try:
-        family.updated_by = current_user.user_id
-    except:
-        pass  # LOGIN_DISABLED
+    if user_id:
+        family.updated_by = user_id
 
     try:
         db.session.commit()

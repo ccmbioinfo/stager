@@ -2,8 +2,8 @@ import React from "react";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
 import MaterialTable, { MTableCell } from "material-table";
-import { formatDateString, getDatasetInfoList } from "../utils/functions";
-import { Sample, Info } from "../utils/typings";
+import { formatDateString, createFieldObj } from "../utils/functions";
+import { Dataset, Sample, Info } from "../utils/typings";
 import InfoList from "../utils/components/InfoList";
 
 const useStyles = makeStyles(theme => ({
@@ -15,6 +15,26 @@ const useStyles = makeStyles(theme => ({
         padding: 0,
     },
 }));
+
+function getFields(dataset: Dataset) {
+    return [
+        createFieldObj("Input HPF Path", dataset.input_hpf_path),
+        createFieldObj("Condition", dataset.condition),
+        createFieldObj("Extraction Protocol", dataset.extraction_protocol),
+        createFieldObj("Capture Kit", dataset.capture_kit),
+        createFieldObj("Library Prep Method", dataset.library_prep_method),
+        createFieldObj("Library Prep Date", formatDateString(dataset.library_prep_date)),
+        createFieldObj("Read Length", dataset.read_length),
+        createFieldObj("Read Type", dataset.read_type),
+        createFieldObj("Sequencing ID", dataset.sequencing_id),
+        createFieldObj("Sequencing Centre", dataset.sequencing_centre),
+        createFieldObj("Creation Time", formatDateString(dataset.created)),
+        createFieldObj("Created By", dataset.created_by),
+        createFieldObj("Last Updated", formatDateString(dataset.updated)),
+        createFieldObj("Updated By", dataset.updated_by),
+        createFieldObj("Discriminator", dataset.discriminator),
+    ];
+}
 
 export default function SampleTable({ samples }: { samples: Sample[] }) {
     const classes = useStyles();
@@ -47,8 +67,11 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
             data={samples}
             title="Samples"
             detailPanel={rowData => {
-                const infoList: Info[] = getDatasetInfoList(rowData.datasets).map(info => {
-                    return { ...info, secondaryListTitle: "" };
+                const infoList: Info[] = rowData.datasets.map(dataset => {
+                    return {
+                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
+                        fields: getFields(dataset),
+                    };
                 });
                 return (
                     <div className={classes.datasetList}>

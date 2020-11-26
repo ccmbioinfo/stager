@@ -29,11 +29,11 @@ def add_dummy_data():
     if len(db.session.query(models.Group).all()) == 0:
         # group code/name pairs
         default_groups = {
-            "C4R": "Care4Rare",
-            "CHEO": "Children's Hospital of Eastern Ontario",
-            "BCCH": "BC Children's Hospital",
-            "ACH": "Alberta Children's Hospital",
-            "SK": "The Hospital for Sick Children",
+            "c4r": "Care4Rare",
+            "cheo": "Children's Hospital of Eastern Ontario",
+            "bcch": "BC Children's Hospital",
+            "ach": "Alberta Children's Hospital",
+            "sch": "The Hospital for Sick Children",
         }
 
         for default_code, default_name in default_groups.items():

@@ -71,10 +71,8 @@ export default function InfoList(props: {
                         <Collapse in={showInfo[index]}>
                             <Box className={classes.box}>
                                 <DetailSection
-                                    titles={info.titles}
-                                    values={info.values}
-                                    collapsibleTitles={info.collapsibleTitles}
-                                    collapsibleValues={info.collapsibleValues}
+                                    fields={info.fields}
+                                    collapsibleFields={info.collapsibleFields}
                                 />
                                 {props.linkPath && info.identifier && (
                                     <Button

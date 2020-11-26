@@ -12,7 +12,7 @@ from . import db, login, models
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import aliased, joinedload, contains_eager
 from werkzeug.exceptions import HTTPException
 import pandas as pd
 
@@ -481,48 +481,72 @@ def bulk_update():
 @app.route("/api/tissue_samples/<int:id>", methods=["GET"])
 @login_required
 def get_tissue_sample(id: int):
-    tissue_sample = (
-        models.TissueSample.query.filter_by(tissue_sample_id=id)
-        .options(joinedload(models.TissueSample.datasets))
-        .one_or_none()
-    )
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        tissue_sample = (
+            models.TissueSample.query.filter_by(tissue_sample_id=id)
+            .options(contains_eager(models.TissueSample.datasets))
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        tissue_sample = (
+            models.TissueSample.query.filter_by(tissue_sample_id=id)
+            .options(joinedload(models.TissueSample.datasets))
+            .one_or_none()
+        )
+
     if not tissue_sample:
         return "Not Found", 404
-    else:
-        return jsonify(
-            {
-                **asdict(tissue_sample),
-                "datasets": tissue_sample.datasets,
-            }
-        )
+
+    return jsonify(
+        {
+            **asdict(tissue_sample),
+            "datasets": tissue_sample.datasets,
+        }
+    )
 
 
 @app.route("/api/tissue_samples/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
-def delete_tissue(id: int):
-    tissue = (
+def delete_tissue_sample(id: int):
+    tissue_sample = (
         models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == id)
         .options(joinedload(models.TissueSample.datasets))
-        .one_or_none()
+        .first_or_404()
     )
-    if tissue and not tissue.datasets:
+    if not tissue_sample.datasets:
         try:
-            db.session.delete(tissue)
+            db.session.delete(tissue_sample)
             db.session.commit()
             return "Updated", 204
         except:
             db.session.rollback()
             return "Server error", 500
-    elif tissue:
-        return "Tissue has dataset(s), cannot delete", 422
     else:
-        return "Not Found", 404
+        return "Tissue has dataset(s), cannot delete", 422
 
 
 @app.route("/api/tissue_samples", methods=["POST"])
 @login_required
-def post_tissue():
+@check_admin
+def create_tissue_sample():
     if not request.json:
         return "Request body must be JSON", 400
 
