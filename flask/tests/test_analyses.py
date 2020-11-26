@@ -50,7 +50,6 @@ def test_get_analysis(test_database, client, login_as):
     login_as("admin")
     assert client.get("/api/analyses/4").status_code == 404
     # Test wrong permissions
-    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
     login_as("user")
     assert client.get("/api/analyses/3").status_code == 404
 
@@ -78,7 +77,6 @@ def test_delete_analysis(test_database, client, login_as):
     login_as("user")
     response = client.delete("/api/analyses/1")
     assert response.status_code == 401
-    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
     login_as("admin")
@@ -189,6 +187,5 @@ def test_create_analysis(test_database, client, login_as):
     assert len(analysis.datasets) == 2
     assert len(dataset_1.analyses) == 3
 
-    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
     login_as("admin")
     assert len(client.get("/api/analyses").get_json()) == 4

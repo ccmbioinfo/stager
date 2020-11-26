@@ -222,6 +222,7 @@ def test_database(client):
 @pytest.fixture
 def login_as(client):
     def login(identity: str) -> None:
+        client.post("/api/logout", json={"useless": "why"})
         assert (
             client.post(
                 "/api/login",

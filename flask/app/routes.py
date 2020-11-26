@@ -548,7 +548,7 @@ def delete_tissue_sample(id: int):
 @check_admin
 def create_tissue_sample():
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     tissue_sample_type = request.json.get("tissue_sample_type")
     if not tissue_sample_type:

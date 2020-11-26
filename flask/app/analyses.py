@@ -142,9 +142,8 @@ def get_analysis(id: int):
 @app.route("/api/analyses", methods=["POST"])
 @login_required
 def create_analysis():
-
     if not request.json:
-        return "Request body must be JSON!", 400
+        return "Request body must be JSON!", 415
     try:
         dts_pks = request.json["datasets"]
     except KeyError:

@@ -60,7 +60,6 @@ def test_get_family(test_database, client, login_as):
     login_as("admin")
     assert client.get("/api/families/3").status_code == 404
     # Test wrong permissions
-    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
     login_as("user")
     assert client.get("/api/families/2").status_code == 404
 
@@ -94,7 +93,6 @@ def test_delete_family(test_database, client, login_as):
     login_as("user")
     response = client.delete("/api/families/1")
     assert response.status_code == 401
-    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
 
     # Test with wrong id
     login_as("admin")
@@ -177,6 +175,9 @@ def test_update_family(test_database, client, login_as):
 
 def test_create_family(test_database, client, login_as):
     login_as("user")
+    assert client.post("/api/families").status_code == 401
+
+    login_as("admin")
     # Test no codename given
     assert (
         client.post(
@@ -207,6 +208,6 @@ def test_create_family(test_database, client, login_as):
         models.Family.family_codename == "C"
     ).one_or_none()
     assert family is not None
-    assert client.post("/api/logout", json={"useless": "why"}).status_code == 204
+
     login_as("admin")
     assert len(client.get("/api/families").get_json()) == 3
