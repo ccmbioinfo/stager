@@ -86,7 +86,7 @@ export default function UserDetails(props: {
     const [confirmSave, setConfirmSave] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
-    
+
     return (
         <>
             <ConfirmModal
