@@ -28,11 +28,16 @@ editable_columns = [
 def list_participants():
 
     # parsing query parameters
-    max_rows = request.args.get("max_rows", default=100, type=int)
+    max_rows = request.args.get("max_rows", default=100)
     starts_with = request.args.get("starts_with", default="", type=str)
     starts_with = f"{starts_with}%"  # sql syntax
     order_by_col = request.args.get("order", default="participant_id", type=str)
     # need some default or we need an ifelse statement, one with order_by method and one without. AFAIK there is no 'default' parameter we can pass into order_by to get the default sql ordering scheme
+
+    try:
+        int(max_rows)
+    except:
+        return "Max rows must be a valid integer", 400
 
     columns = models.Participant.__table__.columns.keys()
 
