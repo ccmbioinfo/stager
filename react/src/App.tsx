@@ -89,12 +89,9 @@ export default function App() {
         },
         palette: {
             type: darkMode ? "dark" : "light",
-            // primary: {
-            //     main: darkMode ? "#364599" : "#3f51b5",
-            // },
-            // secondary: {
-            //     main: darkMode ? "#ba0041" : "#f50057",
-            // },
+            background: {
+                default :darkMode ? '#2A2A2B': "#fafafa"
+            }
         },
         overrides: {
             MuiFilledInput: {

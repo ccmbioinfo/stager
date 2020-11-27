@@ -43,7 +43,7 @@ import NotificationPopover from "./NotificationPopover";
 
 const drawerWidth = 200;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = (darkMode: boolean) => makeStyles((theme) => ({
     root: {
         display: "flex",
         height: "100%",
@@ -95,6 +95,7 @@ const useStyles = makeStyles(theme => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
+        backgroundColor: darkMode ? "#383838": "inherit"
     },
     drawerPaperClose: {
         overflowX: "hidden",
@@ -103,6 +104,7 @@ const useStyles = makeStyles(theme => ({
             duration: theme.transitions.duration.leavingScreen,
         }),
         width: theme.spacing(7),
+        backgroundColor: darkMode ? "#383838": "inherit"
     },
     bottomItems: {
         marginTop: "auto",
@@ -124,7 +126,7 @@ export default function Navigation({
     darkMode,
     toggleDarkMode,
 }: NavigationProps) {
-    const classes = useStyles();
+    const classes = useStyles(darkMode)();
     const [open, setOpen] = React.useState(false);
     const [pageName, setPageName] = React.useState("Participants");
 
