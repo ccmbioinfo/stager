@@ -93,6 +93,7 @@ export default function ChipSelect(props: {
                     .filter(chip => !chip.selected)
                     .map(chip => (
                         <MenuItem
+                            key={chip.key}
                             onClick={() => {
                                 setAnchorEl(null);
                                 handleClick(chip);
