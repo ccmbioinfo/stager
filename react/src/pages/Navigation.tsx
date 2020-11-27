@@ -171,13 +171,15 @@ export interface NavigationProps {
 
 export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
     const classes = useStyles();
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = React.useState(localStorage.getItem("drawerOpen") === "true");
 
     const handleDrawerOpen = () => {
         setOpen(true);
+        localStorage.setItem("drawerOpen", String(true));
     };
     const handleDrawerClose = () => {
         setOpen(false);
+        localStorage.setItem("drawerOpen", String(false));
     };
 
     return (
