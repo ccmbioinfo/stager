@@ -56,48 +56,42 @@ export default function InfoList(props: {
     }, [props.infoList]);
     return (
         <>
-            {props.infoList.length > 0 && (
-                <>
-                    {props.title && <Typography variant="h6">{props.title}</Typography>}
-                    <List className={classes.list}>
-                        {infoList.map((info, index) => (
-                            <Paper key={index} className={classes.listPaper} elevation={1}>
-                                <ListItem button onClick={() => clickListItem(index)}>
-                                    <ListItemIcon>{props.icon}</ListItemIcon>
-                                    <ListItemText
-                                        primary={info.primaryListTitle}
-                                        secondary={info.secondaryListTitle}
-                                    />
-                                    {showInfo[index] ? <ExpandLess /> : <ExpandMore />}
-                                </ListItem>
-                                <Collapse in={showInfo[index]}>
-                                    <Box className={classes.box}>
-                                        <DetailSection
-                                            fields={info.fields}
-                                            collapsibleFields={info.collapsibleFields}
-                                        />
-                                        {props.linkPath && info.identifier && (
-                                            <Button
-                                                className={classes.button}
-                                                onClick={() => {
-                                                    history.push(
-                                                        `${props.linkPath}/${info.identifier}`
-                                                    );
-                                                }}
-                                                variant="contained"
-                                                size="small"
-                                                endIcon={<MenuOpen />}
-                                            >
-                                                Open in table
-                                            </Button>
-                                        )}
-                                    </Box>
-                                </Collapse>
-                            </Paper>
-                        ))}
-                    </List>
-                </>
-            )}
+            {props.title && <Typography variant="h6">{props.title}</Typography>}
+            <List className={classes.list}>
+                {infoList.map((info, index) => (
+                    <Paper key={index} className={classes.listPaper} elevation={1}>
+                        <ListItem button onClick={() => clickListItem(index)}>
+                            <ListItemIcon>{props.icon}</ListItemIcon>
+                            <ListItemText
+                                primary={info.primaryListTitle}
+                                secondary={info.secondaryListTitle}
+                            />
+                            {showInfo[index] ? <ExpandLess /> : <ExpandMore />}
+                        </ListItem>
+                        <Collapse in={showInfo[index]}>
+                            <Box className={classes.box}>
+                                <DetailSection
+                                    fields={info.fields}
+                                    collapsibleFields={info.collapsibleFields}
+                                />
+                                {props.linkPath && info.identifier && (
+                                    <Button
+                                        className={classes.button}
+                                        onClick={() => {
+                                            history.push(`${props.linkPath}/${info.identifier}`);
+                                        }}
+                                        variant="contained"
+                                        size="small"
+                                        endIcon={<MenuOpen />}
+                                    >
+                                        Open in table
+                                    </Button>
+                                )}
+                            </Box>
+                        </Collapse>
+                    </Paper>
+                ))}
+            </List>
         </>
     );
 }

@@ -204,8 +204,8 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                             <MenuIcon />
                         </IconButton>
                         <Switch>
-                            {routes.map(route => (
-                                <Route path={route.path} exact={route.exact}>
+                            {routes.map((route, index) => (
+                                <Route key={index} path={route.path} exact={route.exact}>
                                     <Typography
                                         component="h1"
                                         variant="h6"
@@ -260,8 +260,9 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                     </div>
                 </Drawer>
                 <Switch>
-                    {routes.map(route => (
+                    {routes.map((route, index) => (
                         <Route
+                            key={index}
                             path={route.path}
                             exact={route.exact}
                             render={() => {
