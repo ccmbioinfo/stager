@@ -8,6 +8,7 @@ import { countArray, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
+import Note from "../utils/components/Note";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -121,6 +122,7 @@ export default function ParticipantTable() {
                         title: "Notes",
                         field: "notes",
                         grouping: false,
+                        render: rowData => <Note>{rowData.notes}</Note>,
                         editComponent: props => (
                             <TextField
                                 multiline
