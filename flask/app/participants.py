@@ -26,6 +26,25 @@ editable_columns = [
 @app.route("/api/participants", methods=["GET"])
 @login_required
 def list_participants():
+
+    # parsing query parameters
+    max_rows = request.args.get("max_rows", default=100)
+    starts_with = request.args.get("starts_with", default="", type=str)
+    starts_with = f"{starts_with}%"  # sql syntax
+    order_by_col = request.args.get("order", default="participant_id", type=str)
+    # need some default or we need an ifelse statement, one with order_by method and one without. AFAIK there is no 'default' parameter we can pass into order_by to get the default sql ordering scheme
+
+    try:
+        int(max_rows)
+    except:
+        return "Max rows must be a valid integer", 400
+
+    columns = models.Participant.__table__.columns.keys()
+
+    if order_by_col not in columns:
+        return f"Column name for ordering must be one of {columns}", 400
+    column = getattr(models.Participant, order_by_col)
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
@@ -39,6 +58,7 @@ def list_participants():
                     models.TissueSample.datasets
                 ),
             )
+            .filter(models.Participant.participant_codename.like(starts_with))
             .join(models.TissueSample)
             .join(models.Dataset)
             .join(
@@ -52,15 +72,21 @@ def list_participants():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .all()
+            .order_by(column)
+            .limit(max_rows)
         )
     else:
-        participants = models.Participant.query.options(
-            joinedload(models.Participant.family),
-            joinedload(models.Participant.tissue_samples).joinedload(
-                models.TissueSample.datasets
-            ),
-        ).all()
+        participants = (
+            models.Participant.query.options(
+                joinedload(models.Participant.family),
+                joinedload(models.Participant.tissue_samples).joinedload(
+                    models.TissueSample.datasets
+                ),
+            )
+            .filter(models.Participant.participant_codename.like(starts_with))
+            .order_by(column)
+            .limit(max_rows)
+        )
 
     return jsonify(
         [
