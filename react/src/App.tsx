@@ -11,18 +11,7 @@ const onClickDismiss = (key: SnackbarKey) => () => {
     notistackRef.current!.closeSnackbar(key);
 };
 
-const globalTheme = createMuiTheme({
-    typography: {
-        fontSize: 12,
-    },
-    mixins: {
-        toolbar: {
-            minHeight: 48,
-        },
-    },
-});
-
-function BaseApp() {
+function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [username, setUsername] = useState("");
     const [lastLoginTime, setLastLoginTime] = useState("");
@@ -66,7 +55,13 @@ function BaseApp() {
                     vertical: "bottom",
                 }}
             >
-                <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />
+                <Navigation
+                    signout={signout}
+                    username={username}
+                    lastLoginTime={lastLoginTime}
+                    darkMode={props.darkMode}
+                    toggleDarkMode={props.toggleDarkMode}
+                />
             </SnackbarProvider>
         );
     } else {
@@ -81,10 +76,64 @@ function BaseApp() {
 }
 
 export default function App() {
+    const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
+    const darkModeStyles = {
+        MuiFilledInput: {
+            input: {
+                "&:-webkit-autofill": {
+                    WebkitBoxShadow: "0 0 0 100px #565656 inset",
+                },
+            },
+            root: {
+                "&$focused": {
+                    backgroundColor: "#9c9899",
+                    color: "white",
+                },
+            },
+        },
+        MuiFormLabel: {
+            root: {
+                "&$focused": {
+                    color: "#fff",
+                },
+            },
+        },
+    };
+    const globalTheme = createMuiTheme({
+        typography: {
+            fontSize: 12,
+        },
+        mixins: {
+            toolbar: {
+                minHeight: 48,
+            },
+        },
+        palette: {
+            type: darkMode ? "dark" : "light",
+            primary: {
+                main: darkMode ? "#364599" : "#3f51b5",
+            },
+            secondary: {
+                main: darkMode ? "#ba0041" : "#f50057",
+            },
+        },
+        overrides: darkMode ? darkModeStyles : {},
+    });
+
+    useEffect(() => {
+        localStorage.setItem("darkMode", String(darkMode));
+    }, []);
+    console.log(darkMode);
     return (
         <React.StrictMode>
             <ThemeProvider theme={globalTheme}>
-                <BaseApp />
+                <BaseApp
+                    darkMode={darkMode}
+                    toggleDarkMode={() => {
+                        localStorage.setItem("darkMode", String(!darkMode));
+                        setDarkMode(!darkMode);
+                    }}
+                />
             </ThemeProvider>
         </React.StrictMode>
     );

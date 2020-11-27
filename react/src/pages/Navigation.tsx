@@ -15,6 +15,7 @@ import {
     Divider,
     IconButton,
     Tooltip,
+    Switch as MuiSwitch,
 } from "@material-ui/core";
 import {
     Menu as MenuIcon,
@@ -27,6 +28,8 @@ import {
     VerifiedUser as VerifiedUserIcon,
     AccountCircle as AccountCircleIcon,
     AddBox,
+    Brightness3,
+    Brightness5,
 } from "@material-ui/icons";
 
 import Participants from "./participants/Participants";
@@ -104,15 +107,26 @@ const useStyles = makeStyles(theme => ({
     bottomItems: {
         marginTop: "auto",
     },
+    accountIcon: {
+        marginLeft: `-${theme.spacing(3)}`,
+    },
 }));
 
 export interface NavigationProps {
     signout: () => void;
     username: string;
     lastLoginTime: string;
+    darkMode: boolean;
+    toggleDarkMode: () => void;
 }
 
-export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
+export default function Navigation({
+    username,
+    signout,
+    lastLoginTime,
+    darkMode,
+    toggleDarkMode,
+}: NavigationProps) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const [pageName, setPageName] = React.useState("Participants");
@@ -154,9 +168,18 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                         >
                             {pageName}
                         </Typography>
+                        <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
+                            <MuiSwitch
+                                checked={darkMode}
+                                onChange={toggleDarkMode}
+                                color="default"
+                                checkedIcon={<Brightness3 />}
+                                icon={<Brightness5 />}
+                            />
+                        </Tooltip>
                         <NotificationPopover lastLoginTime={lastLoginTime} />
                         <Tooltip title={"Logged in as " + username} arrow>
-                            <AccountCircleIcon fontSize="large" />
+                            <AccountCircleIcon fontSize="large" className={classes.accountIcon} />
                         </Tooltip>
                     </Toolbar>
                 </AppBar>
