@@ -1,5 +1,4 @@
 from dataclasses import asdict
-import inspect
 
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
@@ -18,7 +17,7 @@ def list_families():
     try:
         int(max_rows)
     except:
-        return "Max rows must be a valid  integer", 400
+        return "Max rows must be a valid integer", 400
 
     columns = models.Family.__table__.columns.keys()
 
