@@ -27,6 +27,7 @@ import { setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
+    onChange?: (data: DataEntryRow[]) => void;
 }
 
 function createEmptyRows(amount?: number): DataEntryRow[] {
@@ -73,6 +74,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             return { ...header, hidden: !defaultOptionals.includes(header.field) };
         })
     );
+
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
@@ -115,15 +117,15 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             const removeNewValue = files.filter(file => file !== newValue);
             setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
         }
-        setRows(
-            rows.map((value, index) => {
-                if (index === rowIndex) {
-                    return setProp({ ...value }, col.field, newValue);
-                } else {
-                    return value;
-                }
-            })
-        );
+        const newRows = rows.map((value, index) => {
+            if (index === rowIndex) {
+                return setProp({ ...value }, col.field, newValue);
+            } else {
+                return value;
+            }
+        });
+        setRows(newRows);
+        if (props.onChange) props.onChange(newRows);
     }
 
     // Return the options for a given cell based on row, column
