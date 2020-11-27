@@ -60,7 +60,15 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const defaultOptionals = ["notes", "sex", "input_hpf_path"];
+const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
+let tempOptionals: string[];
+if (storedDefaults !== null) {
+    tempOptionals = JSON.parse(storedDefaults);
+} else {
+    tempOptionals = ["notes", "sex", "input_hpf_path"];
+    window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempOptionals));
+}
+const defaultOptionals = tempOptionals;
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
@@ -132,11 +140,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     function toggleHideColumn(colField: keyof DataEntryRow) {
-        setOptionals(
-            optionals.map(value => {
-                if (value.field === colField) return { ...value, hidden: !value.hidden };
-                return value;
-            })
+        const newOptionals = optionals.map(value => {
+            if (value.field === colField) return { ...value, hidden: !value.hidden };
+            return value;
+        });
+        setOptionals(newOptionals);
+        window.localStorage.setItem(
+            "data-entry-default-columns",
+            JSON.stringify(newOptionals.filter(value => !value.hidden).map(value => value.field))
         );
     }
 
