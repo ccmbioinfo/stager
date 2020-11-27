@@ -44,7 +44,6 @@ function a11yProps(index: any) {
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
         flexGrow: 1,
-        backgroundColor: theme.palette.background.paper,
         overflow: "auto",
     },
     appBarSpacer: theme.mixins.toolbar,
@@ -59,7 +58,7 @@ export default function Admin() {
     };
 
     return (
-        <main className={classes.root}>
+        <Box className={classes.root}>
             <div className={classes.appBarSpacer} />
             <AppBar position="static">
                 <Tabs value={value} onChange={handleChange} aria-label="admin-tabs">
@@ -73,6 +72,6 @@ export default function Admin() {
             <TabPanel value={value} index={1}>
                 <ManagedUploaders />
             </TabPanel>
-        </main>
+        </Box>
     );
 }

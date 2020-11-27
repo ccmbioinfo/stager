@@ -52,7 +52,7 @@ const useStyles = makeStyles(theme => ({
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-end",
-        padding: theme.spacing(0.5, 1),
+        padding: theme.spacing(0, 1),
         ...theme.mixins.toolbar,
     },
     appBar: {
@@ -106,9 +106,6 @@ const useStyles = makeStyles(theme => ({
     },
     bottomItems: {
         marginTop: "auto",
-    },
-    accountIcon: {
-        marginLeft: `-${theme.spacing(3)}`,
     },
 }));
 
@@ -179,7 +176,7 @@ export default function Navigation({
                         </Tooltip>
                         <NotificationPopover lastLoginTime={lastLoginTime} />
                         <Tooltip title={"Logged in as " + username} arrow>
-                            <AccountCircleIcon fontSize="large" className={classes.accountIcon} />
+                            <AccountCircleIcon fontSize="large" />
                         </Tooltip>
                     </Toolbar>
                 </AppBar>

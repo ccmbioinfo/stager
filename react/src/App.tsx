@@ -77,28 +77,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 
 export default function App() {
     const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
-    const darkModeStyles = {
-        MuiFilledInput: {
-            input: {
-                "&:-webkit-autofill": {
-                    WebkitBoxShadow: "0 0 0 100px #565656 inset",
-                },
-            },
-            root: {
-                "&$focused": {
-                    backgroundColor: "#9c9899",
-                    color: "white",
-                },
-            },
-        },
-        MuiFormLabel: {
-            root: {
-                "&$focused": {
-                    color: "#fff",
-                },
-            },
-        },
-    };
+    // const styles =
     const globalTheme = createMuiTheme({
         typography: {
             fontSize: 12,
@@ -110,14 +89,34 @@ export default function App() {
         },
         palette: {
             type: darkMode ? "dark" : "light",
-            primary: {
-                main: darkMode ? "#364599" : "#3f51b5",
-            },
-            secondary: {
-                main: darkMode ? "#ba0041" : "#f50057",
-            },
+            // primary: {
+            //     main: darkMode ? "#364599" : "#3f51b5",
+            // },
+            // secondary: {
+            //     main: darkMode ? "#ba0041" : "#f50057",
+            // },
         },
-        overrides: darkMode ? darkModeStyles : {},
+        overrides: {
+            MuiFilledInput: {
+                input: {
+                    "&:-webkit-autofill": {
+                        WebkitBoxShadow: `0 0 0 100px ${
+                            darkMode ? "#565656" : "transparent"
+                        } inset`,
+                        WebkitTextFillColor: darkMode ? "#fff" : "#000",
+                    },
+                },
+            },
+            MuiFormLabel: darkMode
+                ? {
+                      root: {
+                          "&$focused": {
+                              color: "#fff",
+                          },
+                      },
+                  }
+                : {},
+        },
     });
 
     useEffect(() => {
