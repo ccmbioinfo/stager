@@ -1,6 +1,5 @@
 import pytest
 from app import db, models
-from flask import request, jsonify, current_app as app
 from sqlalchemy.orm import joinedload
 
 # GET /api/pipelines
@@ -61,25 +60,25 @@ def test_post_bulk(test_database, client, login_as):
         == 422
     )
 
-    # Test enum error, THIS SOMEHOW ADDS A PARTCIPANT TO THE DB?????? so it breaks a check below???
-    # assert (
-    #     client.post(
-    #         "/api/_bulk",
-    #         json=[
-    #             {
-    #                 "family_codename": "1001",
-    #                 "participant_codename": "ANYTHING ELSE",
-    #                 "tissue_sample": "Blood",
-    #                 "tissue_sample_type": "DEFINITELY NOT AN ENUM",
-    #                 "dataset_type": "WGS",
-    #                 "condition": "GermLine",
-    #                 "gender": "Male",
-    #                 "participant_type": "Parent",
-    #             }
-    #         ],
-    #     ).status_code
-    #     == 400
-    # )
+    # Test enum error
+    assert (
+        client.post(
+            "/api/_bulk",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "ANYTHING ELSE",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "DEFINITELY NOT AN ENUM",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "gender": "Male",
+                    "participant_type": "Parent",
+                }
+            ],
+        ).status_code
+        == 400
+    )
 
     # Test json array
     assert (

@@ -373,6 +373,7 @@ def bulk_update():
         )
 
         if enum_error:
+            db.session.rollback()
             return f"Error on line {str(i + 1)} - " + enum_error, 400
 
         ptp_objs = models.Participant(
@@ -404,6 +405,7 @@ def bulk_update():
             )
 
             if enum_error:
+                db.session.rollback()
                 return f"Error on line {str(i + 1)}: " + enum_error, 400
 
             tis_objs = models.TissueSample(
@@ -427,6 +429,7 @@ def bulk_update():
             enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
 
             if enum_error:
+                db.session.rollback()
                 return f"Error on line {str(i + 1)} - " + enum_error, 400
 
             dts_objs = models.Dataset(
