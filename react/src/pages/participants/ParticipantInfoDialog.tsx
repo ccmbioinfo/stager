@@ -104,19 +104,27 @@ export default function ParticipantInfoDialog({
                         }}
                     />
                 </div>
-                <Divider />
-                <div>
-                    <SampleTable samples={participant.tissue_samples} />
-                </div>
-                <Divider />
-                <div className={classes.infoSection}>
-                    <InfoList
-                        infoList={getAnalysisInfoList(analyses)}
-                        title="Analyses"
-                        icon={<ShowChart />}
-                        linkPath="/analysis"
-                    />
-                </div>
+                {participant.tissue_samples.length > 0 && (
+                    <>
+                        <Divider />
+                        <div>
+                            <SampleTable samples={participant.tissue_samples} />
+                        </div>
+                    </>
+                )}
+                {analyses.length > 0 && (
+                    <>
+                        <Divider />
+                        <div className={classes.infoSection}>
+                            <InfoList
+                                infoList={getAnalysisInfoList(analyses)}
+                                title="Analyses"
+                                icon={<ShowChart />}
+                                linkPath="/analysis"
+                            />
+                        </div>
+                    </>
+                )}
             </DialogContent>
         </Dialog>
     );
