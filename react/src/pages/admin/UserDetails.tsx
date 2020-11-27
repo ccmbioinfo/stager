@@ -15,8 +15,9 @@ import { Delete } from "@material-ui/icons";
 import { User } from "../utils/typings";
 import SecretDisplay from "../utils/components/SecretDisplay";
 import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
-import ChipTransferList from "../utils/components/ChipTransferList";
 import ConfirmModal from "./ConfirmModal";
+import ChipSelect from "../utils/components/ChipSelect";
+import { useSnackbar } from "notistack";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -83,6 +84,8 @@ export default function UserDetails(props: {
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
+
+    const { enqueueSnackbar } = useSnackbar();
 
     return (
         <>
@@ -162,13 +165,13 @@ export default function UserDetails(props: {
                     </Grid>
                     <Grid item md={12} lg={6}>
                         <Typography>
-                            <b>Group Management</b>
+                            <b>Permission Groups</b>
                         </Typography>
-                        <ChipTransferList
+                        <ChipSelect
                             labels={temporaryMagicGlobalGroupList}
-                            defaultSelected={newState.groupMemberships}
-                            onSelectionChange={selectedLabels =>
-                                dispatch({ type: "group", payload: selectedLabels })
+                            selected={newState.groupMemberships}
+                            onSelectionChange={selection =>
+                                dispatch({ type: "group", payload: selection })
                             }
                         />
                     </Grid>
@@ -197,6 +200,7 @@ export default function UserDetails(props: {
                             variant="contained"
                             onClick={() => {
                                 dispatch({ type: "set", payload: oldState });
+                                enqueueSnackbar("User changes reverted to original state");
                             }}
                         >
                             Cancel

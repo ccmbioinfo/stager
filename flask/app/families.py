@@ -10,6 +10,21 @@ from .routes import check_admin, transaction_or_abort
 @app.route("/api/families", methods=["GET"])
 @login_required
 def list_families():
+    starts_with = request.args.get("starts_with", default="", type=str)
+    starts_with = f"{starts_with}%"
+    max_rows = request.args.get("max_rows", default=100)
+    order_by_col = request.args.get("order", default="family_id", type=str)
+    try:
+        int(max_rows)
+    except:
+        return "Max rows must be a valid integer", 400
+
+    columns = models.Family.__table__.columns.keys()
+
+    if order_by_col not in columns:
+        return f"Column name for ordering must be one of {columns}", 400
+    column = getattr(models.Family, order_by_col)
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
@@ -18,6 +33,7 @@ def list_families():
     if user_id:
         families = (
             models.Family.query.options(contains_eager(models.Family.participants))
+            .filter(models.Family.family_codename.like(starts_with))
             .join(models.Participant)
             .join(models.TissueSample)
             .join(models.Dataset)
@@ -32,12 +48,16 @@ def list_families():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .all()
+            .order_by(column)
+            .limit(max_rows)
         )
     else:
-        families = models.Family.query.options(
-            joinedload(models.Family.participants)
-        ).all()
+        families = (
+            models.Family.query.options(joinedload(models.Family.participants))
+            .filter(models.Family.family_codename.like(starts_with))
+            .order_by(column)
+            .limit(max_rows)
+        )
 
     return jsonify(
         [{**asdict(family), "participants": family.participants} for family in families]
