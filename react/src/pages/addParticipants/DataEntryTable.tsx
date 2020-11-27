@@ -23,27 +23,11 @@ import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
 import { Option, getOptions as _getOptions, getColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
-import { setProp } from "../utils/functions";
+import { createEmptyRows, setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
-    data?: DataEntryRow[];
-    onChange?: (data: DataEntryRow[]) => void;
-}
-
-function createEmptyRows(amount?: number): DataEntryRow[] {
-    if (!amount || amount < 1) amount = 1;
-
-    var arr = [];
-    for (let i = 0; i < amount; i++) {
-        arr.push({
-            family_codename: "",
-            participant_codename: "",
-            participant_type: "",
-            tissue_sample_type: "",
-            dataset_type: "",
-        });
-    }
-    return arr;
+    data: DataEntryRow[];
+    onChange: (data: DataEntryRow[]) => void;
 }
 
 const useTableStyles = makeStyles(theme => ({
@@ -75,7 +59,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         })
     );
 
-    const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
     const [files, setFiles] = useState<string[]>([]);
@@ -113,24 +96,23 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         } else if (col.field === "input_hpf_path") {
             // Remove the new value from the list of unlinked files to prevent reuse
             // Readd the previous value if there was one since it is available again
-            const oldValue = rows[rowIndex].input_hpf_path;
+            const oldValue = props.data[rowIndex].input_hpf_path;
             const removeNewValue = files.filter(file => file !== newValue);
             setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
         }
-        const newRows = rows.map((value, index) => {
+        const newRows = props.data.map((value, index) => {
             if (index === rowIndex) {
                 return setProp({ ...value }, col.field, newValue);
             } else {
                 return value;
             }
         });
-        setRows(newRows);
-        if (props.onChange) props.onChange(newRows);
+        props.onChange(newRows);
     }
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryHeader): Option[] {
-        return _getOptions(rows, col, rowIndex, families, enums, files);
+        return _getOptions(props.data, col, rowIndex, families, enums, files);
     }
 
     function toggleHideColumn(colField: keyof DataEntryRow) {
@@ -179,22 +161,24 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.map((row, rowIndex) => (
+                        {props.data.map((row, rowIndex) => (
                             <TableRow key={rowIndex}>
                                 <DataEntryActionCell
                                     tooltipTitle="Delete row"
                                     icon={<Delete />}
                                     onClick={() =>
-                                        setRows(rows.filter((value, index) => index !== rowIndex))
+                                        props.onChange(
+                                            props.data.filter((value, index) => index !== rowIndex)
+                                        )
                                     }
-                                    disabled={rows.length === 1}
+                                    disabled={props.data.length === 1}
                                 />
                                 <DataEntryActionCell
                                     tooltipTitle="Duplicate row"
                                     icon={<LibraryAdd />}
                                     onClick={() =>
-                                        setRows(
-                                            rows.flatMap((value, index) =>
+                                        props.onChange(
+                                            props.data.flatMap((value, index) =>
                                                 index === rowIndex
                                                     ? [value, { ...value } as DataEntryRow]
                                                     : value
@@ -250,7 +234,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     disableElevation
                                     disableRipple
                                     startIcon={<Add />}
-                                    onClick={() => setRows(rows.concat(createEmptyRows(1)))}
+                                    onClick={() =>
+                                        props.onChange(props.data.concat(createEmptyRows(1)))
+                                    }
                                 >
                                     Add new row
                                 </Button>

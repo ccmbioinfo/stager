@@ -10,6 +10,7 @@ import {
     DataEntryRowRNASeq,
     FieldDisplayValueType,
     Field,
+    DataEntryRow,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -250,4 +251,20 @@ export function createFieldObj(
         fieldName: fieldName,
         disableEdit: disableEdit,
     };
+}
+
+export function createEmptyRows(amount?: number): DataEntryRow[] {
+    if (!amount || amount < 1) amount = 1;
+
+    var arr = [];
+    for (let i = 0; i < amount; i++) {
+        arr.push({
+            family_codename: "",
+            participant_codename: "",
+            participant_type: "",
+            tissue_sample_type: "",
+            dataset_type: "",
+        });
+    }
+    return arr;
 }

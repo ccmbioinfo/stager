@@ -16,7 +16,7 @@ import { User } from "../utils/typings";
 import SecretDisplay from "../utils/components/SecretDisplay";
 import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
 import ChipTransferList from "../utils/components/ChipTransferList";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "../utils/components/ConfirmModal";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -88,7 +88,6 @@ export default function UserDetails(props: {
         <>
             <ConfirmModal
                 id="confirm-modal-update"
-                color="primary"
                 open={confirmSave}
                 onClose={() => setConfirmSave(false)}
                 onConfirm={() => props.onSave(newState)}
@@ -98,11 +97,11 @@ export default function UserDetails(props: {
             </ConfirmModal>
             <ConfirmModal
                 id="confirm-modal-delete"
-                color="secondary"
                 open={confirmDelete}
                 onClose={() => setConfirmDelete(false)}
                 onConfirm={() => props.onDelete(oldState)}
                 title="Delete user"
+                colors={{ cancel: "secondary" }}
             >
                 Are you sure you want to delete user {oldState.username}?
             </ConfirmModal>
