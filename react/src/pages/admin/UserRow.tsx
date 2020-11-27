@@ -56,7 +56,7 @@ export default function UserRow(props: UserRowProps) {
                         <Checkbox
                             checked={isAdmin}
                             onChange={e => setAdmin(e.target.checked)}
-                            color="primary"
+                            color="secondary"
                         />
                     }
                 />
@@ -84,12 +84,12 @@ export default function UserRow(props: UserRowProps) {
                 />
             </CardContent>
             <CardActions disableSpacing className={classes.actions}>
-                <Button variant="outlined" color="secondary" onClick={() => props.onDelete(state)}>
+                <Button variant="contained" color="secondary" onClick={() => props.onDelete(state)}>
                     <DeleteOutlineIcon />
                     Delete
                 </Button>
                 <Button
-                    variant="outlined"
+                    variant="contained"
                     color="primary"
                     className={classes.expand}
                     onClick={() => props.onUpdate(state)}
