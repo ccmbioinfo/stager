@@ -264,6 +264,7 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
             participant_type: "",
             tissue_sample_type: "",
             dataset_type: "",
+            condition: "GermLine",
         });
     }
     return arr;

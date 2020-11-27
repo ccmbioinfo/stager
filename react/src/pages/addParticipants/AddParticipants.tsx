@@ -51,7 +51,10 @@ export default function AddParticipants() {
         });
 
         if (response.ok) {
-            enqueueSnackbar(`You did it`, { variant: "success" });
+            const responseData: Array<any> = await response.json();
+            enqueueSnackbar(`${responseData.length} participants successfully added.`, {
+                variant: "success",
+            });
             history.push("/datasets");
         } else {
             const message = `Error: ${response.status} - ${
