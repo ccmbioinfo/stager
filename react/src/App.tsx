@@ -77,7 +77,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 
 export default function App() {
     const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
-    // const styles =
     const globalTheme = createMuiTheme({
         typography: {
             fontSize: 12,
@@ -90,8 +89,8 @@ export default function App() {
         palette: {
             type: darkMode ? "dark" : "light",
             background: {
-                default :darkMode ? '#2A2A2B': "#fafafa"
-            }
+                default: darkMode ? "#2A2A2B" : "#fafafa",
+            },
         },
         overrides: {
             MuiFilledInput: {

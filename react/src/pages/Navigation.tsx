@@ -43,73 +43,74 @@ import NotificationPopover from "./NotificationPopover";
 
 const drawerWidth = 200;
 
-const useStyles = (darkMode: boolean) => makeStyles((theme) => ({
-    root: {
-        display: "flex",
-        height: "100%",
-    },
-    toolbarIcon: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        padding: theme.spacing(0, 1),
-        ...theme.mixins.toolbar,
-    },
-    appBar: {
-        zIndex: theme.zIndex.drawer + 1,
-        transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-    },
-    appBarShift: {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    },
-    toolbar: {
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
-    },
-    toolbarShift: {
-        paddingLeft: theme.spacing(2),
-        paddingRight: theme.spacing(3),
-    },
-    menuButton: {
-        marginRight: theme.spacing(4),
-    },
-    menuButtonHidden: {
-        marginRight: theme.spacing(3),
-        display: "none",
-    },
-    title: {
-        flexGrow: 1,
-    },
-    drawerPaper: {
-        position: "relative",
-        width: drawerWidth,
-        transition: theme.transitions.create("width", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-        backgroundColor: darkMode ? "#383838": "inherit"
-    },
-    drawerPaperClose: {
-        overflowX: "hidden",
-        transition: theme.transitions.create("width", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        backgroundColor: darkMode ? "#383838": "inherit"
-    },
-    bottomItems: {
-        marginTop: "auto",
-    },
-}));
+const useStyles = (darkMode: boolean) =>
+    makeStyles(theme => ({
+        root: {
+            display: "flex",
+            height: "100%",
+        },
+        toolbarIcon: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            padding: theme.spacing(0, 1),
+            ...theme.mixins.toolbar,
+        },
+        appBar: {
+            zIndex: theme.zIndex.drawer + 1,
+            transition: theme.transitions.create(["width", "margin"], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+            }),
+        },
+        appBarShift: {
+            marginLeft: drawerWidth,
+            width: `calc(100% - ${drawerWidth}px)`,
+            transition: theme.transitions.create(["width", "margin"], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+        },
+        toolbar: {
+            paddingLeft: theme.spacing(3),
+            paddingRight: theme.spacing(3),
+        },
+        toolbarShift: {
+            paddingLeft: theme.spacing(2),
+            paddingRight: theme.spacing(3),
+        },
+        menuButton: {
+            marginRight: theme.spacing(4),
+        },
+        menuButtonHidden: {
+            marginRight: theme.spacing(3),
+            display: "none",
+        },
+        title: {
+            flexGrow: 1,
+        },
+        drawerPaper: {
+            position: "relative",
+            width: drawerWidth,
+            transition: theme.transitions.create("width", {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+            backgroundColor: darkMode ? "#383838" : "inherit",
+        },
+        drawerPaperClose: {
+            overflowX: "hidden",
+            transition: theme.transitions.create("width", {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+            }),
+            width: theme.spacing(7),
+            backgroundColor: darkMode ? "#383838" : "inherit",
+        },
+        bottomItems: {
+            marginTop: "auto",
+        },
+    }));
 
 export interface NavigationProps {
     signout: () => void;
