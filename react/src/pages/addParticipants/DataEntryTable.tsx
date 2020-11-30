@@ -18,7 +18,7 @@ import {
     Typography,
     Button,
 } from "@material-ui/core";
-import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
+import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
 import { Option, getOptions as _getOptions, getColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
@@ -60,15 +60,19 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
-let tempOptionals: string[];
-if (storedDefaults !== null) {
-    tempOptionals = JSON.parse(storedDefaults);
-} else {
-    tempOptionals = ["notes", "sex", "input_hpf_path"];
-    window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempOptionals));
+const fallbackColumns = ["notes", "sex", "input_hpf_path"];
+
+function getDefaultColumns(fallbackColumns: string[]) {
+    const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
+    let tempCols = fallbackColumns;
+
+    if (storedDefaults !== null) {
+        tempCols = JSON.parse(storedDefaults);
+    } else {
+        window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempCols));
+    }
+    return tempCols;
 }
-const defaultOptionals = tempOptionals;
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
@@ -76,11 +80,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
 
-    const [optionals, setOptionals] = useState<DataEntryHeader[]>(
-        getColumns("optional").map(header => {
-            return { ...header, hidden: !defaultOptionals.includes(header.field) };
-        })
-    );
+    function getOptionalHeaders() {
+        return getColumns("optional").map(header => ({
+            ...header,
+            hidden: !getDefaultColumns(fallbackColumns).includes(header.field),
+        }));
+    }
+
+    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
     const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
     const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
@@ -153,7 +160,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     return (
         <Paper>
-            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
+            <DataEntryToolbar
+                columns={optionals}
+                handleColumnAction={toggleHideColumn}
+                handleResetAction={() => {
+                    window.localStorage.removeItem("data-entry-default-columns");
+                    setOptionals(getOptionalHeaders());
+                }}
+            />
             <TableContainer>
                 <Table>
                     <caption>* - Required | ** - Required only if Dataset Type is RRS</caption>
@@ -285,6 +299,7 @@ const useToolbarStyles = makeStyles(theme => ({
  */
 function DataEntryToolbar(props: {
     handleColumnAction: (field: keyof DataEntryRow) => void;
+    handleResetAction: () => void;
     columns: DataEntryHeader[];
 }) {
     const classes = useToolbarStyles();
@@ -305,6 +320,11 @@ function DataEntryToolbar(props: {
                     columns={props.columns}
                     onClick={props.handleColumnAction}
                 />
+                <Tooltip title="Reset column defaults">
+                    <IconButton onClick={() => props.handleResetAction()}>
+                        <Restore />
+                    </IconButton>
+                </Tooltip>
             </Toolbar>
             <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
         </>
