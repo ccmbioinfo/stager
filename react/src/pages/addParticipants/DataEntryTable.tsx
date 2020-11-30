@@ -19,11 +19,11 @@ import {
     Button,
 } from "@material-ui/core";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../utils/typings";
 import { Option, getOptions as _getOptions, getColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
-import { setProp } from "../utils/functions";
+import { getDataEntryHeaders, setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
     data?: DataEntryRow[];
@@ -62,13 +62,34 @@ const useTableStyles = makeStyles(theme => ({
 
 const fallbackColumns = ["notes", "sex", "input_hpf_path"];
 
+function getEnvColumns(): Array<keyof DataEntryRowOptional> | null {
+    const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
+    console.log(envCols);
+    if (envCols !== undefined) {
+        const validFields = getDataEntryHeaders().optional;
+        const envFields = envCols.split(",");
+        const usableFields = envFields.filter(
+            field => !!validFields.find(valid => valid === field)
+        );
+        return usableFields as Array<keyof DataEntryRowOptional>;
+    } else {
+        return null;
+    }
+}
+
 function getDefaultColumns(fallbackColumns: string[]) {
     const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
     let tempCols = fallbackColumns;
+    const envCols = getEnvColumns();
 
     if (storedDefaults !== null) {
+        // User already has stored preferences
         tempCols = JSON.parse(storedDefaults);
+    } else if (Array.isArray(envCols) && envCols.length > 0) {
+        // No preferences, use .env
+        tempCols = envCols;
     } else {
+        // No .env, use fallback columns
         window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempCols));
     }
     return tempCols;
