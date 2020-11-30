@@ -186,7 +186,7 @@ export default function Navigation({
 }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = React.useState(localStorage.getItem("drawerOpen") === "true");
-    
+
     const handleDrawerOpen = () => {
         setOpen(true);
         localStorage.setItem("drawerOpen", String(true));
