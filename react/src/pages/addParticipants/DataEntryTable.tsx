@@ -195,6 +195,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         getOptions={getOptions}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                         key={col.field}
+                                        required
                                     />
                                 ))}
                                 {optionals.map(
