@@ -134,7 +134,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={props.onClose} color="primary">
+                <Button onClick={props.onClose} color="default" variant="outlined">
                     Cancel
                 </Button>
                 <Button type="submit" onClick={submit} color="primary" variant="contained">

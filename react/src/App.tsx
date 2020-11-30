@@ -115,9 +115,6 @@ export default function App() {
         },
     });
 
-    useEffect(() => {
-        localStorage.setItem("darkMode", String(darkMode));
-    }, []);
     return (
         <React.StrictMode>
             <ThemeProvider theme={globalTheme}>
