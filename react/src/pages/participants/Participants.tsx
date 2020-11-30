@@ -25,7 +25,7 @@ export default function Participants() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container className={classes.container} maxWidth="lg">
+            <Container className={classes.container} maxWidth={false}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
                         <ParticipantTable />

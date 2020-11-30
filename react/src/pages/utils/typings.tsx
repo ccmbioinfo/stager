@@ -151,6 +151,16 @@ export interface DataEntryHeader {
     hidden?: boolean;
 }
 
+export interface User {
+    username: string;
+    email: string;
+    isAdmin: boolean;
+    password?: string;
+    confirmPassword?: string;
+    groupMemberships?: string[];
+    deactivated?: boolean;
+}
+
 export interface Field {
     title: string;
     value: FieldDisplayValueType;
