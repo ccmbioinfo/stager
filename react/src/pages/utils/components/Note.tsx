@@ -1,17 +1,22 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core";
+import React, { useState } from "react";
+import { makeStyles, Popover, Typography } from "@material-ui/core";
 
 const useStyles = makeStyles(theme => ({
     notes: {
-        // TODO: Find a better way to set maxWidth using container width
+        minWidth: "inherit",
         maxWidth: "16em",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        "&:hover": {
-            whiteSpace: "normal",
-            textOverflow: "default",
-        },
+        cursor: "pointer",
+        textDecoration: "underline dashed",
+        textDecorationColor: theme.palette.text.hint,
+    },
+    typography: {
+        padding: theme.spacing(1),
+    },
+    paper: {
+        maxWidth: theme.breakpoints.values.sm,
     },
 }));
 
@@ -20,6 +25,21 @@ const useStyles = makeStyles(theme => ({
  */
 export default function Note(props: { children: React.ReactNode }) {
     const classes = useStyles();
+    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
 
-    return <div className={classes.notes}>{props.children}</div>;
+    return (
+        <>
+            <div className={classes.notes} onClick={event => setAnchorEl(event.currentTarget)}>
+                {props.children}
+            </div>
+            <Popover
+                open={!!anchorEl}
+                anchorEl={anchorEl}
+                onClose={() => setAnchorEl(null)}
+                PaperProps={{ className: classes.paper }}
+            >
+                <Typography className={classes.typography}>{props.children}</Typography>
+            </Popover>
+        </>
+    );
 }
