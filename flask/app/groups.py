@@ -2,7 +2,7 @@ from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
-from .routes import check_admin, transaction_or_abort
+from .routes import check_admin, transaction_or_abort, mixin
 
 
 @app.route("/api/groups", methods=["GET"])
@@ -62,3 +62,41 @@ def get_group(group_code):
             ],
         }
     )
+
+
+@app.route("/api/groups/<string:group_code>", methods=["PATCH"])
+@login_required
+@check_admin
+def update_group(group_code):
+
+    if not request.json:
+        return "Request body must be JSON", 415
+
+    group = models.Group.query.filter_by(group_code=group_code).first_or_404()
+
+
+    if "group_name" in request.json:
+        if request.json["group_name"]:
+            # Check if display name is in use, 422
+            conflicting_group = models.Group.query.filter_by(group_name=request.json["group_name"]).one_or_none()
+            if (conflicting_group is not None) and (conflicting_group != group):
+                return "Group name in use", 422
+            group.group_name = request.json["group_name"]
+
+    # Check if a user to be added doesn't exist, 404
+    if "users" in request.json:
+        if len(request.json["users"]) != 0:
+            users = models.User.query.filter(models.User.username.in_(request.json["users"])).all()
+            # Make sure all users are valid
+            if len(users) != len(request.json["users"]):
+                return "Invalid username provided", 404
+            # SQLAlchemy ignores duplicates into users_groups
+            for user in users:
+                group.users.append(user)
+
+    try:
+        db.session.commit()
+        return jsonify(group)
+    except:
+        db.session.rollback()
+        return "Server error", 500
