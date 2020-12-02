@@ -76,7 +76,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 }
 
 export default function App() {
-    const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+    const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const [darkMode, setDarkMode] = useState(
         localStorage.getItem("darkMode") === null
             ? prefersDarkMode
