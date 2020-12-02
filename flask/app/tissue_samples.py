@@ -7,6 +7,14 @@ from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort, mixin, enum_validate
 
 
+editable_columns = [
+    "extraction_date",
+    "tissue_sample_type",
+    "tissue_processing",
+    "notes",
+]
+
+
 @app.route("/api/tissue_samples/<int:id>", methods=["GET"])
 @login_required
 def get_tissue_sample(id: int):
@@ -89,9 +97,7 @@ def create_tissue_sample():
 
     models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
 
-    enum_error = enum_validate(
-        models.TissueSample, request.json, ["tissue_sample_type", "tissue_processing"]
-    )
+    enum_error = enum_validate(models.TissueSample, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
@@ -159,12 +165,7 @@ def update_tissue_sample(id: int):
             .options(joinedload(models.TissueSample.datasets))
             .one_or_none()
         )
-    editable_columns = [
-        "extraction_date",
-        "tissue_sample_type",
-        "tissue_processing",
-        "notes",
-    ]
+
     enum_error = mixin(tissue_sample, request.json, editable_columns)
 
     if enum_error:
