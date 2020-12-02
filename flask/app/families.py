@@ -3,7 +3,7 @@ from dataclasses import asdict
 from flask import abort, jsonify, request, Response, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, aliased
 from .routes import check_admin, transaction_or_abort
 
 
@@ -30,11 +30,20 @@ def list_families():
     else:
         user_id = current_user.user_id
 
+    u1 = aliased(models.User)
+    u2 = aliased(models.User)
+
     if user_id:
-        families = (
-            models.Family.query.options(contains_eager(models.Family.participants))
+        query = (
+            # models.Family.query.options(contains_eager(models.Family.participants))
+            db.session.query(models.Family, u1, u2)
+            .options(contains_eager(models.Family.participants))
             .filter(models.Family.family_codename.like(starts_with))
-            .join(models.Participant)
+            .join(
+                # explicitly join on family id between participant and family
+                models.Participant,
+                models.Family.family_id == models.Participant.family_id,
+            )
             .join(models.TissueSample)
             .join(models.Dataset)
             .join(
@@ -48,19 +57,41 @@ def list_families():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .order_by(column)
-            .limit(max_rows)
         )
     else:
-        families = (
-            models.Family.query.options(joinedload(models.Family.participants))
+        query = (
+            # models.Family.query.options(joinedload(models.Family.participants))
+            db.session.query(models.Family, u1, u2)
+            .options((contains_eager(models.Family.participants)))
             .filter(models.Family.family_codename.like(starts_with))
-            .order_by(column)
-            .limit(max_rows)
         )
 
+    families = (
+        query.options()
+        .join(u1, models.Family.updated_by == u1.user_id)
+        .join(u2, models.Family.created_by == u2.user_id)
+        .order_by(column)
+        .limit(max_rows)
+    )
+
     return jsonify(
-        [{**asdict(family), "participants": family.participants} for family in families]
+        [
+            {
+                **asdict(family),
+                "updated_by": updated_by and updated_by.username,
+                "created_by": created_by and created_by.username,
+                "participants": [
+                    {
+                        **asdict(participant),
+                        # this is not correct to me since the join was performed on Family..
+                        # "updated_by": updated_by and updated_by.username,
+                        # "created_by": created_by and created_by.username,
+                    }
+                    for participant in family.participants
+                ],
+            }
+            for family, updated_by, created_by in families
+        ]
     )
 
 
