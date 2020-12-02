@@ -114,6 +114,7 @@ export class DataEntryRowBase {
     participant_type!: string;
     tissue_sample_type!: string;
     dataset_type!: string;
+    condition!: string;
 }
 
 export class DataEntryRowOptional {
@@ -122,7 +123,6 @@ export class DataEntryRowOptional {
     solved?: boolean;
     input_hpf_path?: string;
     notes?: string;
-    condition?: string;
     extraction_protocol?: string;
     capture_kit?: string;
     library_prep_method?: string;

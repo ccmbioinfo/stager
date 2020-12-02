@@ -11,6 +11,7 @@ import {
     FieldDisplayValueType,
     Field,
     StringTable,
+    DataEntryRow,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -290,4 +291,21 @@ export function rowDataToTable(columnDefs: any[], data: any[]) {
  */
 export function exportCSV(columnDefs: any[], data: any[], filename: string) {
     downloadCSV(rowDataToTable(columnDefs, data), filename);
+}
+        
+export function createEmptyRows(amount?: number): DataEntryRow[] {
+    if (!amount || amount < 1) amount = 1;
+
+    var arr = [];
+    for (let i = 0; i < amount; i++) {
+        arr.push({
+            family_codename: "",
+            participant_codename: "",
+            participant_type: "",
+            tissue_sample_type: "",
+            dataset_type: "",
+            condition: "GermLine",
+        });
+    }
+    return arr;
 }
