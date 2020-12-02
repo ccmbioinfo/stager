@@ -10,6 +10,7 @@ import {
     DataEntryRowRNASeq,
     FieldDisplayValueType,
     Field,
+    StringTable,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -250,4 +251,43 @@ export function createFieldObj(
         fieldName: fieldName,
         disableEdit: disableEdit,
     };
+}
+
+/**
+ * Convert given table to CSV and downloads it to user.
+ *
+ * @param table A 2D array of strings to convert to CSV. Inner arrays are rows. table[0] is the header row.
+ * @param filename What to call the downloaded file
+ * @see https://github.com/mholt/PapaParse/issues/175
+ */
+export function downloadCSV(table: StringTable, filename: string) {
+    const rows = table.map(row => row.join(",")).join("\r\n");
+    const blob = new Blob([rows], {
+        type: "text/csv;charset=utf-8",
+    });
+    var a = window.document.createElement("a");
+    a.href = window.URL.createObjectURL(blob);
+    a.setAttribute("download", filename + ".csv");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+/**
+ * Used for material-table exportCSV.
+ */
+export function rowDataToTable(columnDefs: any[], data: any[]) {
+    const headers = columnDefs.map(columnDef => `"${columnDef.field}"`);
+    const dataRows = data.map(rowData =>
+        columnDefs.map(columnDef => `"${rowData[columnDef.field]}"`)
+    );
+    return [headers].concat(dataRows) as string[][];
+}
+
+/**
+ * Alias for the above two functions together. Generates a table given the columnDefs and
+ * rowData, and downloads as CSV.
+ */
+export function exportCSV(columnDefs: any[], data: any[], filename: string) {
+    downloadCSV(rowDataToTable(columnDefs, data), filename);
 }

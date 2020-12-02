@@ -4,7 +4,7 @@ import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, toKeyValue } from "../utils/functions";
+import { countArray, exportCSV, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -140,6 +140,9 @@ export default function ParticipantTable() {
                     search: false,
                     padding: "dense",
                     grouping: true,
+                    exportAllData: true,
+                    exportButton: { csv: true, pdf: false },
+                    exportCsv: (columns, data) => exportCSV(columns, data, "Participants"),
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {
