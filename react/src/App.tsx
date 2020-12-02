@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { IconButton, createMuiTheme, ThemeProvider, useMediaQuery } from "@material-ui/core";
+import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 
