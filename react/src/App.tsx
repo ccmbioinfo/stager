@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
+import React, { useState, useEffect, useMemo } from "react";
+import { IconButton, createMuiTheme, ThemeProvider, useMediaQuery } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 
@@ -76,44 +76,58 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 }
 
 export default function App() {
-    const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
-    const globalTheme = createMuiTheme({
-        typography: {
-            fontSize: 12,
-        },
-        mixins: {
-            toolbar: {
-                minHeight: 48,
-            },
-        },
-        palette: {
-            type: darkMode ? "dark" : "light",
-            background: {
-                default: darkMode ? "#2A2A2B" : "#fafafa",
-            },
-        },
-        overrides: {
-            MuiFilledInput: {
-                input: {
-                    "&:-webkit-autofill": {
-                        WebkitBoxShadow: `0 0 0 100px ${
-                            darkMode ? "#565656" : "transparent"
-                        } inset`,
-                        WebkitTextFillColor: darkMode ? "#fff" : "#000",
+    const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+    console.log(prefersDarkMode);
+    const [darkMode, setDarkMode] = useState(
+        localStorage.getItem("darkMode") === null
+            ? prefersDarkMode
+            : localStorage.getItem("darkMode") === "true"
+    );
+    const globalTheme = useMemo(
+        () =>
+            createMuiTheme({
+                typography: {
+                    fontSize: 12,
+                },
+                mixins: {
+                    toolbar: {
+                        minHeight: 48,
                     },
                 },
-            },
-            MuiFormLabel: darkMode
-                ? {
-                      root: {
-                          "&$focused": {
-                              color: "#fff",
-                          },
-                      },
-                  }
-                : {},
-        },
-    });
+                palette: {
+                    type: darkMode ? "dark" : "light",
+                    background: {
+                        default: darkMode ? "#2A2A2B" : "#fafafa",
+                    },
+                },
+                overrides: {
+                    MuiFilledInput: {
+                        input: {
+                            "&:-webkit-autofill": {
+                                WebkitBoxShadow: `0 0 0 100px ${
+                                    darkMode ? "#565656" : "transparent"
+                                } inset`,
+                                WebkitTextFillColor: darkMode ? "#fff" : "#000",
+                            },
+                        },
+                    },
+                    MuiFormLabel: darkMode
+                        ? {
+                              root: {
+                                  "&$focused": {
+                                      color: "#fff",
+                                  },
+                              },
+                          }
+                        : {},
+                },
+            }),
+        [darkMode]
+    );
+
+    useEffect(() => {
+        setDarkMode(prefersDarkMode);
+    }, [prefersDarkMode]);
 
     return (
         <React.StrictMode>
