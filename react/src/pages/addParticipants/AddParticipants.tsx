@@ -85,7 +85,7 @@ export default function AddParticipants() {
         if (problemRows.size > 0) {
             let errorMessage = "Cannot submit. Required fields missing for rows:";
             problemRows.forEach((fields, key) => {
-                const fieldStr = fields.toString().replaceAll(/\[\]/g, "");
+                const fieldStr = fields.join(", ");
                 errorMessage += `\n${key + 1}: (${fieldStr})`;
             });
             setErrorMessage(errorMessage);
