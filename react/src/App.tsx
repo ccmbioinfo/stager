@@ -77,7 +77,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 
 export default function App() {
     const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-    console.log(prefersDarkMode);
     const [darkMode, setDarkMode] = useState(
         localStorage.getItem("darkMode") === null
             ? prefersDarkMode
@@ -124,10 +123,6 @@ export default function App() {
             }),
         [darkMode]
     );
-
-    useEffect(() => {
-        setDarkMode(prefersDarkMode);
-    }, [prefersDarkMode]);
 
     return (
         <React.StrictMode>
