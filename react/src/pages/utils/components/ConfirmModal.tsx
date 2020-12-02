@@ -13,7 +13,7 @@ export interface ConfirmModalProps {
     open: boolean;
     onClose: () => void;
     onConfirm: () => void;
-    color: ButtonProps["color"];
+    colors?: { confirm?: ButtonProps["color"]; cancel?: ButtonProps["color"] };
 }
 
 export default function ConfirmModal(props: ConfirmModalProps) {
@@ -31,10 +31,19 @@ export default function ConfirmModal(props: ConfirmModalProps) {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={props.onClose} color="primary">
+                <Button
+                    onClick={props.onClose}
+                    color={props.colors?.cancel || "default"}
+                    variant="contained"
+                >
                     No, go back
                 </Button>
-                <Button onClick={props.onConfirm} color={props.color} variant="contained" autoFocus>
+                <Button
+                    onClick={props.onConfirm}
+                    color={props.colors?.confirm || "primary"}
+                    variant="contained"
+                    autoFocus
+                >
                     Yes
                 </Button>
             </DialogActions>
