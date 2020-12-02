@@ -83,7 +83,7 @@ def list_families():
                 "participants": [
                     {
                         **asdict(participant),
-                        # this is not correct to me since the join was performed on Family..
+                        # this does not look correct to me since the join was performed on Family..
                         # "updated_by": updated_by and updated_by.username,
                         # "created_by": created_by and created_by.username,
                     }
