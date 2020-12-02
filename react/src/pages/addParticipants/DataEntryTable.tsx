@@ -62,19 +62,21 @@ const useTableStyles = makeStyles(theme => ({
 
 const fallbackColumns = ["notes", "sex", "input_hpf_path"];
 
-function getEnvColumns(): Array<keyof DataEntryRowOptional> | null {
-    const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
-    console.log(envCols);
-    if (envCols !== undefined) {
-        const validFields = getDataEntryHeaders().optional;
-        const envFields = envCols.split(",");
-        const usableFields = envFields.filter(
-            field => !!validFields.find(valid => valid === field)
-        );
-        return usableFields as Array<keyof DataEntryRowOptional>;
-    } else {
-        return null;
+function getEnvColumns(): Array<keyof DataEntryRowOptional> {
+    if (process.env.NODE_ENV === "development") {
+        const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
+        if (envCols !== undefined) {
+            const validFields = getDataEntryHeaders().optional;
+            const envFields = envCols.split(",");
+            const usableFields = envFields.filter(
+                field => !!validFields.find(valid => valid === field)
+            );
+            return usableFields as Array<keyof DataEntryRowOptional>;
+        } else {
+            return [];
+        }
     }
+    return [];
 }
 
 function getDefaultColumns(fallbackColumns: string[]) {
@@ -85,7 +87,7 @@ function getDefaultColumns(fallbackColumns: string[]) {
     if (storedDefaults !== null) {
         // User already has stored preferences
         tempCols = JSON.parse(storedDefaults);
-    } else if (Array.isArray(envCols) && envCols.length > 0) {
+    } else if (envCols.length > 0) {
         // No preferences, use .env
         tempCols = envCols;
     } else {
@@ -102,9 +104,10 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const RNASeqCols = getColumns("RNASeq");
 
     function getOptionalHeaders() {
+        const defaults = getDefaultColumns(fallbackColumns);
         return getColumns("optional").map(header => ({
             ...header,
-            hidden: !getDefaultColumns(fallbackColumns).includes(header.field),
+            hidden: !defaults.includes(header.field),
         }));
     }
 
@@ -342,7 +345,7 @@ function DataEntryToolbar(props: {
                     onClick={props.handleColumnAction}
                 />
                 <Tooltip title="Reset column defaults">
-                    <IconButton onClick={() => props.handleResetAction()}>
+                    <IconButton onClick={props.handleResetAction}>
                         <Restore />
                     </IconButton>
                 </Tooltip>
