@@ -62,16 +62,17 @@ class Family(db.Model):
     # Family.FamilyID
     family_codename: str = db.Column(db.String(50), nullable=False, unique=True)
     created: str = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    created_by: int = db.Column(
+    created_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     updated: str = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    updated_by: int = db.Column(
+    updated_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    participants = db.relationship("Participant", backref="family")
+    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
+    created_by_user = db.relationship("User", foreign_keys=[created_by_id])
 
 
 class Sex(str, Enum):
@@ -105,16 +106,18 @@ class Participant(db.Model):
     solved: bool = db.Column(db.Boolean)  # TODO uncomment and rebuild
     notes: str = db.Column(db.Text)
     created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    created_by: int = db.Column(
+    created_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     updated: datetime = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    updated_by: int = db.Column(
+    updated_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     tissue_samples = db.relationship("TissueSample", backref="participant")
+    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
+    created_by_user = db.relationship("User", foreign_keys=[created_by_id])
 
 
 class TissueSampleType(str, Enum):
@@ -150,16 +153,18 @@ class TissueSample(db.Model):
     tissue_processing: TissueProcessing = db.Column(db.Enum(TissueProcessing))
     notes: str = db.Column(db.Text)
     created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    created_by: int = db.Column(
+    created_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     updated: datetime = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.now
     )
-    updated_by: int = db.Column(
+    updated_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     datasets = db.relationship("Dataset", backref="tissue_sample")
+    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
+    created_by_user = db.relationship("User", foreign_keys=[created_by_id])
 
 
 @dataclass
@@ -258,7 +263,7 @@ class Dataset(db.Model):
     sequencing_centre: str = db.Column(db.String(100))
     batch_id: str = db.Column(db.String(50))
     created: datetime = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by: int = db.Column(
+    created_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     # Dataset.NotesLastUpdatedDate
@@ -266,7 +271,7 @@ class Dataset(db.Model):
         db.DateTime, nullable=False, onupdate=datetime.now, default=datetime.utcnow
     )
     # Dataset.NotesLastUpdatedBy
-    updated_by: int = db.Column(
+    updated_by_id: int = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
 
@@ -283,6 +288,9 @@ class Dataset(db.Model):
     groups = db.relationship(
         "Group", secondary=groups_datasets_table, backref="datasets"
     )
+
+    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
+    created_by_user = db.relationship("User", foreign_keys=[created_by_id])
 
 
 @dataclass
