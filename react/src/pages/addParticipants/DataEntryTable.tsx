@@ -48,20 +48,18 @@ const useTableStyles = makeStyles(theme => ({
 const fallbackColumns = ["notes", "sex", "input_hpf_path"];
 
 function getEnvColumns(): Array<keyof DataEntryRowOptional> {
-    if (process.env.NODE_ENV === "development") {
-        const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
-        if (envCols !== undefined) {
-            const validFields = getDataEntryHeaders().optional;
-            const envFields = envCols.split(",");
-            const usableFields = envFields.filter(
-                field => !!validFields.find(valid => valid === field)
-            );
-            return usableFields as Array<keyof DataEntryRowOptional>;
-        } else {
-            return [];
-        }
+    const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
+    if (envCols !== undefined) {
+        const validFields = getDataEntryHeaders().optional;
+        const envFields = envCols.split(",");
+        const usableFields =
+            process.env.NODE_ENV === "development"
+                ? envFields.filter(field => !!validFields.find(valid => valid === field))
+                : envFields;
+        return usableFields as Array<keyof DataEntryRowOptional>;
+    } else {
+        return [];
     }
-    return [];
 }
 
 function getDefaultColumns(fallbackColumns: string[]) {
