@@ -336,34 +336,34 @@ def add_dummy_data():
             {
                 "analysis_state": "Running",
                 "pipeline_id": 1,
-                "assigned_by_id": 1,
-                "requested_by_id": 1,
+                "assignee": 1,
+                "requester": 1,
                 "requested": "2020-07-28",
                 "started": "2020-08-04",
                 "updated": "2020-08-04",
-                "updated_by_id": 1,
+                "updated_by": 1,
             },
             {
                 "analysis_state": "Requested",
                 "pipeline_id": 2,
-                "assigned_by_id": 1,
-                "requested_by_id": 1,
+                "assignee": 1,
+                "requester": 1,
                 "requested": "2020-08-10",
                 "started": None,
                 "updated": "2020-08-10",
-                "updated_by_id": 1,
+                "updated_by": 1,
             },
         ]
         for a in default_analyses:
             analysis = models.Analysis(
                 analysis_state=a["analysis_state"],
                 pipeline_id=a["pipeline_id"],
-                assigned_by_id=a["assigned_by_id"],
-                requested_by_id=a["requested_by_id"],
+                assignee=a["assignee"],
+                requester=a["requester"],
                 requested=a["requested"],
                 started=a["started"],
                 updated=a["updated"],
-                updated_by_id=a["updated_by_id"],
+                updated_by=a["updated_by"],
             )
             db.session.add(analysis)
 
