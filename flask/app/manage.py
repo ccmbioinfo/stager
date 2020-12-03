@@ -46,14 +46,14 @@ def add_dummy_data():
     # add families
     if len(db.session.query(models.Family).all()) == 0:
         default_families = [
-            {"family_codename": "1000", "created_by": 1, "updated_by": 1},
-            {"family_codename": "1001", "created_by": 1, "updated_by": 1},
+            {"family_codename": "1000", "created_by_id": 1, "updated_by_id": 1},
+            {"family_codename": "1001", "created_by_id": 1, "updated_by_id": 1},
         ]
         for f in default_families:
             family = models.Family(
                 family_codename=f["family_codename"],
-                created_by=f["created_by"],
-                updated_by=f["updated_by"],
+                created_by_id=f["created_by_id"],
+                updated_by_id=f["updated_by_id"],
             )
             db.session.add(family)
 
@@ -76,8 +76,8 @@ def add_dummy_data():
                 "affected": True,
                 "month_of_birth": "2000-01-01",
                 "notes": "Extra info about sample here",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
             {
                 "family_id": 1,
@@ -87,8 +87,8 @@ def add_dummy_data():
                 "affected": False,
                 "month_of_birth": "1970-01-01",
                 "notes": "",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
             {
                 "family_id": 1,
@@ -98,8 +98,8 @@ def add_dummy_data():
                 "affected": False,
                 "month_of_birth": "1970-02-01",
                 "notes": "",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
             {
                 "family_id": 1,
@@ -109,8 +109,8 @@ def add_dummy_data():
                 "affected": False,
                 "month_of_birth": "1970-03-01",
                 "notes": "",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
         ]
         for p in default_participants:
@@ -122,8 +122,8 @@ def add_dummy_data():
                 affected=p["affected"],
                 month_of_birth=p["month_of_birth"],
                 notes=p["notes"],
-                created_by=p["created_by"],
-                updated_by=p["updated_by"],
+                created_by_id=p["created_by_id"],
+                updated_by_id=p["updated_by_id"],
             )
             db.session.add(participant)
 
@@ -141,22 +141,22 @@ def add_dummy_data():
                 "participant_id": 1,
                 "extraction_date": "2020-01-04",
                 "tissue_sample_type": "Blood",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
             {
                 "participant_id": 2,
                 "extraction_date": "2020-01-04",
                 "tissue_sample_type": "Blood",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
             {
                 "participant_id": 3,
                 "extraction_date": "2020-01-04",
                 "tissue_sample_type": "Blood",
-                "created_by": 1,
-                "updated_by": 1,
+                "created_by_id": 1,
+                "updated_by_id": 1,
             },
         ]
         for t in default_tissues:
@@ -164,8 +164,8 @@ def add_dummy_data():
                 participant_id=t["participant_id"],
                 extraction_date=t["extraction_date"],
                 tissue_sample_type=t["tissue_sample_type"],
-                created_by=t["created_by"],
-                updated_by=t["updated_by"],
+                created_by_id=t["created_by_id"],
+                updated_by_id=t["updated_by_id"],
             )
             db.session.add(tissue)
 
@@ -221,7 +221,7 @@ def add_dummy_data():
                 "tissue_sample_id": 1,
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
-                "created_by": 1,
+                "created_by_id": 1,
                 "condition": "Germline",
                 "input_hpf_path": "",
             },
@@ -229,7 +229,7 @@ def add_dummy_data():
                 "tissue_sample_id": 3,
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
-                "created_by": 1,
+                "created_by_id": 1,
                 "condition": "Germline",
                 "input_hpf_path": "",
             },
@@ -237,7 +237,7 @@ def add_dummy_data():
                 "tissue_sample_id": 3,
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
-                "created_by": 1,
+                "created_by_id": 1,
                 "condition": "Germline",
                 "input_hpf_path": "",
             },
@@ -247,8 +247,8 @@ def add_dummy_data():
                 tissue_sample_id=d["tissue_sample_id"],
                 dataset_type=d["dataset_type"],
                 condition=d["condition"],
-                created_by=d["created_by"],
-                updated_by=d["created_by"],
+                created_by_id=d["created_by_id"],
+                updated_by_id=d["created_by_id"],
                 created=d["entered"],
                 sequencing_centre="CHEO",  # TODO: remove
                 extraction_protocol="Something",  # TODO: remove
