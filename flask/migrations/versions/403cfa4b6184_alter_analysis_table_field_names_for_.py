@@ -30,6 +30,14 @@ def upgrade():
     )
     op.drop_column("analysis", "requester")
     op.drop_column("analysis", "assignee")
+
+    op.add_column("analysis", sa.Column("updated_by_id", sa.Integer(), nullable=False))
+    op.drop_constraint("analysis_ibfk_4", "analysis", type_="foreignkey")
+    op.create_foreign_key(
+        None, "analysis", "user", ["updated_by_id"], ["user_id"], onupdate="cascade"
+    )
+    op.drop_column("analysis", "updated_by")
+
     # ### end Alembic commands ###
 
 
@@ -63,4 +71,19 @@ def downgrade():
     )
     op.drop_column("analysis", "requester_id")
     op.drop_column("analysis", "assignee_id")
+
+    op.add_column(
+        "analysis",
+        sa.Column("updated_by", mysql.INTEGER(), autoincrement=False, nullable=False),
+    )
+    op.drop_constraint(None, "analysis", type_="foreignkey")
+    op.create_foreign_key(
+        "analysis_ibfk_4",
+        "analysis",
+        "user",
+        ["updated_by"],
+        ["user_id"],
+        onupdate="CASCADE",
+    )
+    op.drop_column("analysis", "updated_by_id")
     # ### end Alembic commands ###

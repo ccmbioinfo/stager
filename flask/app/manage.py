@@ -341,7 +341,7 @@ def add_dummy_data():
                 "requested": "2020-07-28",
                 "started": "2020-08-04",
                 "updated": "2020-08-04",
-                "updated_by": 1,
+                "updated_by_id": 1,
             },
             {
                 "analysis_state": "Requested",
@@ -351,7 +351,7 @@ def add_dummy_data():
                 "requested": "2020-08-10",
                 "started": None,
                 "updated": "2020-08-10",
-                "updated_by": 1,
+                "updated_by_id": 1,
             },
         ]
         for a in default_analyses:
@@ -363,7 +363,7 @@ def add_dummy_data():
                 requested=a["requested"],
                 started=a["started"],
                 updated=a["updated"],
-                updated_by=a["updated_by"],
+                updated_by_id=a["updated_by_id"],
             )
             db.session.add(analysis)
 

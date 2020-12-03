@@ -357,10 +357,10 @@ class Analysis(db.Model):
     # AnalysisStatus.UpdateDate
     updated: datetime = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
     # AnalysisStatus.UpdateUser
-    updated_by = db.Column(
+    updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    updated_by_user = db.relationship("User", foreign_keys=[updated_by])
+    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
     assignee = db.relationship("User", foreign_keys=[assignee_id])
     requester = db.relationship("User", foreign_keys=[requester_id])
 
