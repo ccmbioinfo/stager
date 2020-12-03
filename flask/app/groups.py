@@ -3,7 +3,9 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort, mixin
-
+from minio import  Minio
+from os import environ
+from .madmin import MinioAdmin, readwrite_buckets_policy
 
 @app.route("/api/groups", methods=["GET"])
 @login_required
@@ -74,25 +76,45 @@ def update_group(group_code):
 
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
-
     if "group_name" in request.json:
         if request.json["group_name"]:
             # Check if display name is in use, 422
-            conflicting_group = models.Group.query.filter_by(group_name=request.json["group_name"]).one_or_none()
+            conflicting_group = models.Group.query.filter_by(
+                group_name=request.json["group_name"]
+            ).one_or_none()
             if (conflicting_group is not None) and (conflicting_group != group):
                 return "Group name in use", 422
             group.group_name = request.json["group_name"]
 
+    minioAdmin = MinioAdmin(
+        endpoint=environ["MINIO_ENDPOINT"],
+        access_key=environ["MINIO_ACCESS_KEY"],
+        secret_key=environ["MINIO_SECRET_KEY"],
+    )
+
     # Check if a user to be added doesn't exist, 404
     if "users" in request.json:
         if len(request.json["users"]) != 0:
-            users = models.User.query.filter(models.User.username.in_(request.json["users"])).all()
+            users = models.User.query.filter(
+                models.User.username.in_(request.json["users"])
+            ).all()
             # Make sure all users are valid
             if len(users) != len(request.json["users"]):
                 return "Invalid username provided", 404
-            # SQLAlchemy ignores duplicates into users_groups
+
+            # Clear users from db and minio group
+            group.users[:] = []
+            group_info = minioAdmin.get_group(group_code)
+            for old_user in group_info["members"]:
+                minioAdmin.group_remove(group_code, old_user)
+
             for user in users:
+                # Add to db groups
                 group.users.append(user)
+                # Update/add them to the minio groups
+                minioAdmin.group_add(group_code, user.minio_access_key)
+            # Reset policy for group in case the group did not exist
+            minioAdmin.set_policy(group_code, group=group_code)
 
     try:
         db.session.commit()
