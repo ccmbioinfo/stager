@@ -95,7 +95,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
-    const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
 
     const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
