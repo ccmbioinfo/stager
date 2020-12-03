@@ -336,8 +336,8 @@ def add_dummy_data():
             {
                 "analysis_state": "Running",
                 "pipeline_id": 1,
-                "assignee": 1,
-                "requester": 1,
+                "assignee_id": 1,
+                "requester_id": 1,
                 "requested": "2020-07-28",
                 "started": "2020-08-04",
                 "updated": "2020-08-04",
@@ -346,8 +346,8 @@ def add_dummy_data():
             {
                 "analysis_state": "Requested",
                 "pipeline_id": 2,
-                "assignee": 1,
-                "requester": 1,
+                "assignee_id": 1,
+                "requester_id": 1,
                 "requested": "2020-08-10",
                 "started": None,
                 "updated": "2020-08-10",
@@ -358,8 +358,8 @@ def add_dummy_data():
             analysis = models.Analysis(
                 analysis_state=a["analysis_state"],
                 pipeline_id=a["pipeline_id"],
-                assignee=a["assignee"],
-                requester=a["requester"],
+                assignee_id=a["assignee_id"],
+                requester_id=a["requester_id"],
                 requested=a["requested"],
                 started=a["started"],
                 updated=a["updated"],
