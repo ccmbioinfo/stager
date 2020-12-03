@@ -359,9 +359,9 @@ class Analysis(db.Model):
     updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
-    assigned_by_user = db.relationship("User", foreign_keys=[assigned_by_id])
-    requested_by_user = db.relationship("User", foreign_keys=[requested_by_id])
+    updated_by = db.relationship("User", foreign_keys=[updated_by_id])
+    assigned_by = db.relationship("User", foreign_keys=[assigned_by_id])
+    requested_by = db.relationship("User", foreign_keys=[requested_by_id])
 
 
 @dataclass
