@@ -299,11 +299,20 @@ export default function DetailSection({
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
     const [editMode, setEditMode] = useState<boolean>(false);
-    const [primaryFields, setPrimaryFields] = useState<Field[]>(fields);
+    const [primaryFields, setPrimaryFields] = useState<Field[]>([]);
     const [secondaryFields, setSecondaryFields] = useState<Field[]>(
         collapsibleFields ? collapsibleFields : []
     );
     const { enqueueSnackbar } = useSnackbar();
+
+    // Props are the main source of truth about the state of the fields
+    useEffect(() => {
+        setPrimaryFields(fields);
+    }, [fields]);
+
+    useEffect(() => {
+        setSecondaryFields(collapsibleFields ? collapsibleFields : []);
+    }, [collapsibleFields]);
 
     function OnEditData(fieldName: string | undefined, value: any) {
         if (fieldName) {
@@ -349,7 +358,7 @@ export default function DetailSection({
         if (response.ok) {
             const data = await response.json();
             console.log(data);
-            if (dataInfo?.onUpdate) dataInfo?.onUpdate(dataInfo.ID, data);
+            if (dataInfo?.onUpdate) dataInfo!.onUpdate(dataInfo.ID, data);
             enqueueSnackbar(
                 `${capitalizeFirstLetter(dataInfo?.type)} ${
                     dataInfo?.identifier

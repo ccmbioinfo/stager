@@ -103,11 +103,15 @@ export default function DatasetTable() {
                     }}
                     onUpdate={(dataset_id: string, newDataset: { [key: string]: any }) => {
                         setDatasets(
-                            datasets.map(dataset =>
-                                dataset.dataset_id === dataset_id
-                                    ? { ...dataset, ...newDataset }
-                                    : dataset
-                            )
+                            datasets.map(dataset => {
+                                if (dataset.dataset_id === dataset_id) {
+                                    const updatedDataset = { ...dataset, ...newDataset };
+                                    setInfoDataset(updatedDataset);
+                                    return updatedDataset;
+                                } else {
+                                    return dataset;
+                                }
+                            })
                         );
                     }}
                 />
