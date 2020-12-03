@@ -166,6 +166,9 @@ def update_tissue_sample(id: int):
             .one_or_none()
         )
 
+    if not tissue_sample:
+        return "Not Found", 404
+
     enum_error = mixin(tissue_sample, request.json, editable_columns)
 
     if enum_error:
