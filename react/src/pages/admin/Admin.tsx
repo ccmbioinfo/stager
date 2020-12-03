@@ -44,7 +44,6 @@ function a11yProps(index: any) {
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
         flexGrow: 1,
-        backgroundColor: theme.palette.background.paper,
         overflow: "auto",
     },
     appBarSpacer: theme.mixins.toolbar,
@@ -55,7 +54,7 @@ export default function Admin() {
     const [currentTab, setCurrentTab] = React.useState(0);
 
     return (
-        <main className={classes.root}>
+        <Box className={classes.root}>
             <div className={classes.appBarSpacer} />
             <AppBar position="static">
                 <Tabs
@@ -73,6 +72,6 @@ export default function Admin() {
             <TabPanel value={currentTab} index={1}>
                 <ManagedUploaders />
             </TabPanel>
-        </main>
+        </Box>
     );
 }

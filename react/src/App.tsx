@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
@@ -11,18 +11,7 @@ const onClickDismiss = (key: SnackbarKey) => () => {
     notistackRef.current!.closeSnackbar(key);
 };
 
-const globalTheme = createMuiTheme({
-    typography: {
-        fontSize: 12,
-    },
-    mixins: {
-        toolbar: {
-            minHeight: 48,
-        },
-    },
-});
-
-function BaseApp() {
+function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [username, setUsername] = useState("");
     const [lastLoginTime, setLastLoginTime] = useState("");
@@ -66,7 +55,13 @@ function BaseApp() {
                     vertical: "bottom",
                 }}
             >
-                <Navigation signout={signout} username={username} lastLoginTime={lastLoginTime} />
+                <Navigation
+                    signout={signout}
+                    username={username}
+                    lastLoginTime={lastLoginTime}
+                    darkMode={props.darkMode}
+                    toggleDarkMode={props.toggleDarkMode}
+                />
             </SnackbarProvider>
         );
     } else {
@@ -81,10 +76,64 @@ function BaseApp() {
 }
 
 export default function App() {
+    const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const [darkMode, setDarkMode] = useState(
+        localStorage.getItem("darkMode") === null
+            ? prefersDarkMode
+            : localStorage.getItem("darkMode") === "true"
+    );
+    const globalTheme = useMemo(
+        () =>
+            createMuiTheme({
+                typography: {
+                    fontSize: 12,
+                },
+                mixins: {
+                    toolbar: {
+                        minHeight: 48,
+                    },
+                },
+                palette: {
+                    type: darkMode ? "dark" : "light",
+                    background: {
+                        default: darkMode ? "#2A2A2B" : "#fafafa",
+                    },
+                },
+                overrides: {
+                    MuiFilledInput: {
+                        input: {
+                            "&:-webkit-autofill": {
+                                WebkitBoxShadow: `0 0 0 100px ${
+                                    darkMode ? "#565656" : "transparent"
+                                } inset`,
+                                WebkitTextFillColor: darkMode ? "#fff" : "#000",
+                            },
+                        },
+                    },
+                    MuiFormLabel: darkMode
+                        ? {
+                              root: {
+                                  "&$focused": {
+                                      color: "#fff",
+                                  },
+                              },
+                          }
+                        : {},
+                },
+            }),
+        [darkMode]
+    );
+
     return (
         <React.StrictMode>
             <ThemeProvider theme={globalTheme}>
-                <BaseApp />
+                <BaseApp
+                    darkMode={darkMode}
+                    toggleDarkMode={() => {
+                        localStorage.setItem("darkMode", String(!darkMode));
+                        setDarkMode(!darkMode);
+                    }}
+                />
             </ThemeProvider>
         </React.StrictMode>
     );
