@@ -65,7 +65,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 { title: "Updated By", field: "updated_by" },
             ]}
             data={samples}
-            title="Samples"
+            title="Tissue Samples"
             detailPanel={rowData => {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
                     return {

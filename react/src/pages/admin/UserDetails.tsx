@@ -12,11 +12,12 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
 import { User } from "../utils/typings";
 import SecretDisplay from "../utils/components/SecretDisplay";
 import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
-import ChipTransferList from "../utils/components/ChipTransferList";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "../utils/components/ConfirmModal";
+import ChipSelect from "../utils/components/ChipSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -84,11 +85,12 @@ export default function UserDetails(props: {
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
 
+    const { enqueueSnackbar } = useSnackbar();
+
     return (
         <>
             <ConfirmModal
                 id="confirm-modal-update"
-                color="primary"
                 open={confirmSave}
                 onClose={() => setConfirmSave(false)}
                 onConfirm={() => props.onSave(newState)}
@@ -98,11 +100,11 @@ export default function UserDetails(props: {
             </ConfirmModal>
             <ConfirmModal
                 id="confirm-modal-delete"
-                color="secondary"
                 open={confirmDelete}
                 onClose={() => setConfirmDelete(false)}
                 onConfirm={() => props.onDelete(oldState)}
                 title="Delete user"
+                colors={{ cancel: "secondary" }}
             >
                 Are you sure you want to delete user {oldState.username}?
             </ConfirmModal>
@@ -162,13 +164,13 @@ export default function UserDetails(props: {
                     </Grid>
                     <Grid item md={12} lg={6}>
                         <Typography>
-                            <b>Group Management</b>
+                            <b>Permission Groups</b>
                         </Typography>
-                        <ChipTransferList
+                        <ChipSelect
                             labels={temporaryMagicGlobalGroupList}
-                            defaultSelected={newState.groupMemberships}
-                            onSelectionChange={selectedLabels =>
-                                dispatch({ type: "group", payload: selectedLabels })
+                            selected={newState.groupMemberships}
+                            onSelectionChange={selection =>
+                                dispatch({ type: "group", payload: selection })
                             }
                         />
                     </Grid>
@@ -197,6 +199,7 @@ export default function UserDetails(props: {
                             variant="contained"
                             onClick={() => {
                                 dispatch({ type: "set", payload: oldState });
+                                enqueueSnackbar("User changes reverted to original state");
                             }}
                         >
                             Cancel

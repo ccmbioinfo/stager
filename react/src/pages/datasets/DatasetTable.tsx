@@ -9,6 +9,7 @@ import { toKeyValue, formatDateString } from "../utils/functions";
 import { KeyValue, Dataset, Pipeline } from "../utils/typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
+import Note from "../utils/components/Note";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -137,6 +138,7 @@ export default function DatasetTable() {
                         title: "Notes",
                         field: "notes",
                         grouping: false,
+                        render: rowData => <Note>{rowData.notes}</Note>,
                         editComponent: props => (
                             <TextField
                                 multiline
