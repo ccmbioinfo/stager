@@ -3,9 +3,10 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort, mixin
-from minio import  Minio
+from minio import Minio
 from os import environ
 from .madmin import MinioAdmin, readwrite_buckets_policy
+
 
 @app.route("/api/groups", methods=["GET"])
 @login_required
@@ -162,7 +163,7 @@ def create_group():
         environ["MINIO_ENDPOINT"],
         access_key=environ["MINIO_ACCESS_KEY"],
         secret_key=environ["MINIO_SECRET_KEY"],
-        secure=False
+        secure=False,
     )
 
     minioAdmin = MinioAdmin(
