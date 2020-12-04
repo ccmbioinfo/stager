@@ -384,9 +384,34 @@ export default function DetailSection({
 
     return (
         <>
-            <Grid container spacing={gridSpacing} justify="space-evenly">
-                <Box className={classes.actionButtons}>
-                    {dataInfo && (
+            <Grid container spacing={gridSpacing} justify="space-between">
+                {title && (
+                    <Grid item xs={titleWidth}>
+                        <Typography variant="h6">{title}</Typography>
+                    </Grid>
+                )}
+                <Grid
+                    container
+                    spacing={gridSpacing}
+                    item
+                    xs={dataInfo ? 10 : 12}
+                    justify="space-evenly"
+                >
+                    <GridFieldsDisplay
+                        fields={primaryFields}
+                        editMode={editMode}
+                        onEdit={OnEditData}
+                        position="left"
+                    />
+                    <GridFieldsDisplay
+                        fields={primaryFields}
+                        editMode={editMode}
+                        onEdit={OnEditData}
+                        position="right"
+                    />
+                </Grid>
+                {dataInfo && (
+                    <Grid item xs={2}>
                         <FormControlLabel
                             control={<Switch color="primary" checked={editMode} size="small" />}
                             label="Edit Mode"
@@ -403,37 +428,20 @@ export default function DetailSection({
                                 setEditMode(!editMode);
                             }}
                         />
-                    )}
-                    {editMode && (
-                        <IconButton
-                            className={classes.fab}
-                            color="secondary"
-                            onClick={() => {
-                                setEditMode(false);
-                                updateData();
-                            }}
-                        >
-                            <Check fontSize="large" />
-                        </IconButton>
-                    )}
-                </Box>
-                {title && (
-                    <Grid item xs={titleWidth}>
-                        <Typography variant="h6">{title}</Typography>
+                        {editMode && (
+                            <IconButton
+                                className={classes.fab}
+                                color="secondary"
+                                onClick={() => {
+                                    setEditMode(false);
+                                    updateData();
+                                }}
+                            >
+                                <Check fontSize="large" />
+                            </IconButton>
+                        )}
                     </Grid>
                 )}
-                <GridFieldsDisplay
-                    fields={primaryFields}
-                    editMode={editMode}
-                    onEdit={OnEditData}
-                    position="left"
-                />
-                <GridFieldsDisplay
-                    fields={primaryFields}
-                    editMode={editMode}
-                    onEdit={OnEditData}
-                    position="right"
-                />
             </Grid>
             {collapsibleFields && (
                 <>
