@@ -9,6 +9,7 @@ import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import Note from "../utils/components/Note";
+import BooleanDisplay from "../utils/components/BooleanDisplay";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -47,12 +48,11 @@ export default function ParticipantTable() {
                 const participants = await response.json();
                 // Collect all dataset type labels from all tissue samples
                 // for each participant in the dataset_types array
-                participants.forEach(
-                    (participant: Participant) =>
-                        (participant.dataset_types = participant.tissue_samples
-                            .map(({ datasets }) => datasets.map(dataset => dataset.dataset_type))
-                            .flat())
-                );
+                participants.forEach((participant: Participant) => {
+                    participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
+                        datasets.map(dataset => dataset.dataset_type)
+                    );
+                });
                 setParticipants(participants as Participant[]);
             } else {
                 console.error(
@@ -99,8 +99,28 @@ export default function ParticipantTable() {
                         field: "participant_type",
                         lookup: participantTypes,
                     },
-                    { title: "Affected", field: "affected", type: "boolean" },
-                    { title: "Solved", field: "solved", type: "boolean" },
+                    {
+                        title: "Affected",
+                        field: "affected",
+                        render: (rowData, type) => (
+                            <BooleanDisplay<Participant>
+                                value={rowData}
+                                fieldName={"affected"}
+                                type={type}
+                            />
+                        ),
+                    },
+                    {
+                        title: "Solved",
+                        field: "solved",
+                        render: (rowData, type) => (
+                            <BooleanDisplay<Participant>
+                                value={rowData}
+                                fieldName={"solved"}
+                                type={type}
+                            />
+                        ),
+                    },
                     {
                         title: "Sex",
                         field: "sex",
