@@ -12,13 +12,7 @@ import {
     FormControlLabel,
     Typography,
     Box,
-    ThemeProvider,
-    Chip,
     List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    Button,
     Grid
 } from "@material-ui/core";
 import { Link, Description } from "@material-ui/icons";
@@ -53,9 +47,6 @@ export function DataEntryCell(props: {
     onEdit: (newValue: string | boolean | string[]) => void;
     disabled?: boolean;
 }) {
-    // console.log(props.row);
-    // console.log(props.col.field);
-    // console.log(props.row[props.col.field]);
     if (booleanColumns.includes(props.col.field)) {
         return (
             <CheckboxCell
@@ -73,7 +64,6 @@ export function DataEntryCell(props: {
             />
         );
     } else if (props.col.field === "input_hpf_path") {
-        // console.log(props.getOptions(props.rowIndex, props.col)
         return (
             <FileLinkingCell
                 value={props.row[props.col.field]}
