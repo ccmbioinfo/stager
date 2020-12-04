@@ -94,28 +94,27 @@ def update_group(group_code):
 
     # Check if a user to be added doesn't exist, 404
     if "users" in request.json:
-        if len(request.json["users"]) != 0:
-            users = models.User.query.filter(
-                models.User.username.in_(request.json["users"])
-            ).all()
-            # Make sure all users are valid
-            if len(users) != len(request.json["users"]):
-                return "Invalid username provided", 404
+        users = models.User.query.filter(
+            models.User.username.in_(request.json["users"])
+        ).all()
+        # Make sure all users are valid
+        if len(users) != len(request.json["users"]):
+            return "Invalid username provided", 404
 
-            # Clear users from db and minio group
-            if len(group.users) != 0:
-                group_info = minioAdmin.get_group(group_code)
-                for old_user in group_info["members"]:
-                    minioAdmin.group_remove(group_code, old_user)
-                group.users[:] = []
+        # Clear users from db and minio group
+        if len(group.users) != 0:
+            group_info = minioAdmin.get_group(group_code)
+            for old_user in group_info["members"]:
+                minioAdmin.group_remove(group_code, old_user)
+            group.users[:] = []
 
-            for user in users:
-                # Add to db groups
-                group.users.append(user)
-                # Update/add them to the minio groups
-                minioAdmin.group_add(group_code, user.minio_access_key)
-            # Reset policy for group in case the group did not exist
-            minioAdmin.set_policy(group_code, group=group_code)
+        for user in users:
+            # Add to db groups
+            group.users.append(user)
+            # Update/add them to the minio groups
+            minioAdmin.group_add(group_code, user.minio_access_key)
+        # Reset policy for group in case the group did not exist
+        minioAdmin.set_policy(group_code, group=group_code)
 
     try:
         db.session.commit()
@@ -197,30 +196,35 @@ def create_group():
     return request.json, 201, {"location": location_header}
 
 
-# @app.route("/api/groups/<string:group_code>", methods=["DELETE"])
-# @login_required
-# @check_admin
-# def delete_group(group_code):
+@app.route("/api/groups/<string:group_code>", methods=["DELETE"])
+@login_required
+@check_admin
+def delete_group(group_code):
 
-#     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
+    group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
-#     minioAdmin = MinioAdmin(
-#         endpoint=environ["MINIO_ENDPOINT"],
-#         access_key=environ["MINIO_ACCESS_KEY"],
-#         secret_key=environ["MINIO_SECRET_KEY"],
-#     )
+    minioAdmin = MinioAdmin(
+        endpoint=environ["MINIO_ENDPOINT"],
+        access_key=environ["MINIO_ACCESS_KEY"],
+        secret_key=environ["MINIO_SECRET_KEY"],
+    )
 
+    # Check group users in db
+    if len(group.users) != 0:
+        return "Group has users, cannot delete!", 422
 
+    # Check group users in minio, in case it is somehow different from db
+    if group_code in minioAdmin.list_groups():
+        group_info = minioAdmin.get_group(group_code)
+        if "members" in group_info:
+            return "Group has users, cannot delete!", 422
 
-#     # Make sure db group and minio group are empty
-#     if len(group.users) == 0 and :
-#         try:
-#             # Try deleting minio group as well
-#             group.delete()
-#             db.session.commit()
-#             return "Deletion successful", 204
-#         except:
-#             db.session.rollback()
-#             return "Deletion of entity failed!", 422
-#     else:
-#         return "Group has users, cannot delete!", 422
+    try:
+        # Try deleting minio group as well
+        db.session.delete(group)
+        db.session.commit()
+        minioAdmin.group_remove(group_code)
+        return "Deletion successful", 204
+    except:
+        db.session.rollback()
+        return "Deletion of entity failed!", 422
