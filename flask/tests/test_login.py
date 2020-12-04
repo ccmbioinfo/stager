@@ -1,6 +1,5 @@
 import pytest
 from app import db, models
-from flask import request, jsonify, current_app as app
 
 # Helper functions
 

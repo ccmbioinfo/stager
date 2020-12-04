@@ -84,9 +84,9 @@ def logout():
 def check_admin(handler):
     @wraps(handler)
     def decorated_handler(*args, **kwargs):
-        if False:
-            return "Unauthorized", 401
-        return handler(*args, **kwargs)
+        if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+            return handler(*args, **kwargs)
+        return "Unauthorized", 401
 
     return decorated_handler
 
@@ -373,6 +373,7 @@ def bulk_update():
         )
 
         if enum_error:
+            db.session.rollback()
             return f"Error on line {str(i + 1)} - " + enum_error, 400
 
         ptp_objs = models.Participant(
@@ -404,6 +405,7 @@ def bulk_update():
             )
 
             if enum_error:
+                db.session.rollback()
                 return f"Error on line {str(i + 1)}: " + enum_error, 400
 
             tis_objs = models.TissueSample(
@@ -427,6 +429,7 @@ def bulk_update():
             enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
 
             if enum_error:
+                db.session.rollback()
                 return f"Error on line {str(i + 1)} - " + enum_error, 400
 
             dts_objs = models.Dataset(
@@ -548,7 +551,7 @@ def delete_tissue_sample(id: int):
 @check_admin
 def create_tissue_sample():
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     tissue_sample_type = request.json.get("tissue_sample_type")
     if not tissue_sample_type:

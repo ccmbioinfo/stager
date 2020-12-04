@@ -1,0 +1,7 @@
+participant_codename,family_codename,tissue_sample_type,dataset_type,affected,participant_type,sex,month_of_birth,solved,condition,extraction_protocol,capture_kit,library_prep_method,read_length,read_type,sequencing_id,sequencing_date,sequencing_centre,batch_id
+PTP01,FAM01,Blood,WES,TRUE,Parent,Male,2016-01-01,FALSE,Control,Something,,,,PairedEnd,,,,
+PTP02,FAM01,Blood,WES,FALSE,Parent,Female,2012-01-01,FALSE,GermLine,Something,,,,SingleEnd,,,,
+PTP03,FAM01,Blood,WES,TRUE,Proband,Female,2000-06-01,FALSE,GermLine,Something,,,,PairedEnd,,,,
+BBB01,FAM02,Saliva,WES,FALSE,Parent,Male,1990-08-01,TRUE,GermLine,Something,,,,SingleEnd,,,,
+BBB02,FAM02,Saliva,WGS,TRUE,Parent,Male,1970-01-01,TRUE,GermLine,Something,,,,PairedEnd,,,,
+BBB03,FAM03,Saliva,WGS,TRUE,Proband,Female,1980-01-01,TRUE,GermLine,Something,,,,SingleEnd,,,,
