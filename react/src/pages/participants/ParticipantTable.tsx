@@ -4,7 +4,7 @@ import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, toKeyValue } from "../utils/functions";
+import { countArray, stringToBoolean, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -52,6 +52,8 @@ export default function ParticipantTable() {
                     participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
                         datasets.map(dataset => dataset.dataset_type)
                     );
+                    participant.affected += "";
+                    participant.solved += "";
                 });
                 setParticipants(participants as Participant[]);
             } else {
@@ -170,7 +172,11 @@ export default function ParticipantTable() {
                             {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(newParticipant),
+                                body: JSON.stringify({
+                                    ...newParticipant,
+                                    affected: stringToBoolean(newParticipant.affected),
+                                    solved: stringToBoolean(newParticipant.solved),
+                                }),
                             }
                         );
                         if (response.ok) {

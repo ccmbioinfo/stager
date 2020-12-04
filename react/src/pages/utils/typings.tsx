@@ -29,8 +29,8 @@ export interface Participant {
     family_id: string;
     family_codename: string;
     participant_type: string;
-    affected: boolean;
-    solved: boolean;
+    affected: PseudoBoolean;
+    solved: PseudoBoolean;
     sex: string;
     notes: string;
     dataset_types: string[];
@@ -167,3 +167,5 @@ export interface Field {
     fieldName?: string;
     disableEdit?: boolean;
 }
+
+export type PseudoBoolean = "true" | "false" | "null" | "undefined";

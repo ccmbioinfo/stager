@@ -11,6 +11,7 @@ import {
     FieldDisplayValueType,
     Field,
     DataEntryRow,
+    PseudoBoolean,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -268,4 +269,19 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
         });
     }
     return arr;
+}
+
+export function stringToBoolean(value: PseudoBoolean) {
+    switch (value) {
+        case "true":
+            return true;
+        case "false":
+            return false;
+        case "null":
+            return null;
+        case "undefined":
+            return undefined;
+        default:
+            return value;
+    }
 }
