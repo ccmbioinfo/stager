@@ -10,6 +10,7 @@ import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import Note from "../utils/components/Note";
 import BooleanDisplay from "../utils/components/BooleanDisplay";
+import BooleanEditComponent from "../utils/components/BooleanEditComponent";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -71,6 +72,8 @@ export default function ParticipantTable() {
                     open={detail}
                     participant={activeRow}
                     onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
+                        newParticipant.solved += "";
+                        newParticipant.affected += "";
                         setParticipants(
                             participants.map(participant =>
                                 participant.participant_id === participant_id
@@ -105,23 +108,17 @@ export default function ParticipantTable() {
                         title: "Affected",
                         field: "affected",
                         render: (rowData, type) => (
-                            <BooleanDisplay<Participant>
-                                value={rowData}
-                                fieldName={"affected"}
-                                type={type}
-                            />
+                            <BooleanDisplay value={rowData} fieldName={"affected"} type={type} />
                         ),
+                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
                     },
                     {
                         title: "Solved",
                         field: "solved",
                         render: (rowData, type) => (
-                            <BooleanDisplay<Participant>
-                                value={rowData}
-                                fieldName={"solved"}
-                                type={type}
-                            />
+                            <BooleanDisplay value={rowData} fieldName={"solved"} type={type} />
                         ),
+                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
                     },
                     {
                         title: "Sex",

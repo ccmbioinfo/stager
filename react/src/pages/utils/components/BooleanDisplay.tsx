@@ -1,42 +1,32 @@
-import React from "react";
-import { PseudoBoolean } from "../typings";
+import React, { useEffect, useState } from "react";
+import { PseudoBoolean, PseudoBooleanReadableMap } from "../typings";
 
 /**
  * Displays a PseudoBoolean value in a user-readable manner.
  * Specifically used for the render prop for Material-Table columns.
  */
-export default function BooleanDisplay<T extends object>(props: {
-    value: T | PseudoBoolean;
-    fieldName: keyof T;
+export default function BooleanDisplay(props: {
+    value: any | PseudoBoolean;
+    fieldName: any;
     type: "row" | "group";
 }) {
-    let displayValue;
-    let switchValue;
+    const [value, setValue] = useState<string>("");
 
-    if (props.type === "row") {
-        switchValue = (props.value as T)[props.fieldName];
-    } else {
-        switchValue = props.value;
-    }
+    useEffect(() => {
+        let switchValue: PseudoBoolean;
 
-    switch (switchValue) {
-        case "true":
-            displayValue = "Yes";
-            break;
-        case "false":
-            displayValue = "No";
-            break;
-        case "null":
-            displayValue = "Unknown";
-            break;
-        case "undefined":
-            displayValue = "Not specified";
-            break;
-    }
+        if (props.type === "row") {
+            switchValue = (props.value as any)[props.fieldName];
+        } else {
+            switchValue = props.value;
+        }
+
+        setValue(PseudoBooleanReadableMap[switchValue]);
+    }, [props.type, props.value, props.fieldName]);
 
     return (
         <>
-            <b>{displayValue}</b> ({"" + switchValue})
+            <b>{value}</b>
         </>
     );
 }

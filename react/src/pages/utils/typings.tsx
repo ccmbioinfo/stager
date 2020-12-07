@@ -169,3 +169,9 @@ export interface Field {
 }
 
 export type PseudoBoolean = "true" | "false" | "null" | "undefined";
+export const PseudoBooleanReadableMap: Record<PseudoBoolean, string> = {
+    true: "Yes",
+    false: "No",
+    null: "Unknown",
+    undefined: "Not specified",
+};
