@@ -196,7 +196,7 @@ def delete_dataset(id: int):
 @login_required
 def create_dataset():
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     dataset_type = request.json.get("dataset_type")
     if not dataset_type:

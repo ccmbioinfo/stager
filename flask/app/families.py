@@ -208,9 +208,10 @@ def update_family(id: int):
 
 @app.route("/api/families", methods=["POST"])
 @login_required
+@check_admin
 def create_family():
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     try:
         updated_by = current_user.user_id
