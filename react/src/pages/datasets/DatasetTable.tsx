@@ -9,6 +9,7 @@ import { toKeyValue, formatDateString } from "../utils/functions";
 import { KeyValue, Dataset, Pipeline } from "../utils/typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
+import Note from "../utils/components/Note";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -103,11 +104,15 @@ export default function DatasetTable() {
                     }}
                     onUpdate={(dataset_id: string, newDataset: { [key: string]: any }) => {
                         setDatasets(
-                            datasets.map(dataset =>
-                                dataset.dataset_id === dataset_id
-                                    ? { ...dataset, ...newDataset }
-                                    : dataset
-                            )
+                            datasets.map(dataset => {
+                                if (dataset.dataset_id === dataset_id) {
+                                    const updatedDataset = { ...dataset, ...newDataset };
+                                    setInfoDataset(updatedDataset);
+                                    return updatedDataset;
+                                } else {
+                                    return dataset;
+                                }
+                            })
                         );
                     }}
                 />
@@ -137,6 +142,7 @@ export default function DatasetTable() {
                         title: "Notes",
                         field: "notes",
                         grouping: false,
+                        render: rowData => <Note>{rowData.notes}</Note>,
                         editComponent: props => (
                             <TextField
                                 multiline

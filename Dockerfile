@@ -7,4 +7,4 @@ COPY --from=mc /usr/bin/mc /usr/bin/mc
 COPY . .
 EXPOSE 5000
 ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./utils/run.sh"]
-CMD ["prod --bind 0.0.0.0:5000 --preload --workers 1 --threads 2"]
+CMD ["prod", "--bind", "0.0.0.0:5000", "--preload", "--workers", "1", "--threads", "2"]

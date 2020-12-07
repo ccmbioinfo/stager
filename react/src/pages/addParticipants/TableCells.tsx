@@ -71,6 +71,7 @@ export function DataEntryCell(props: {
     getOptions: (rowIndex: number, col: DataEntryHeader) => Option[];
     onEdit: (newValue: string | boolean | string[]) => void;
     disabled?: boolean;
+    required?: boolean;
 }) {
     if (booleanColumns.includes(props.col.field)) {
         return (
@@ -106,6 +107,7 @@ export function DataEntryCell(props: {
             disabled={props.disabled}
             column={props.col}
             aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
+            required={props.required}
         />
     );
 }
@@ -120,6 +122,7 @@ export function AutocompleteCell(
         onEdit: (newValue: string) => void;
         disabled?: boolean;
         column: DataEntryHeader;
+        required?: boolean;
     } & TableCellProps
 ) {
     const onEdit = (newValue: Option) => {
@@ -132,6 +135,8 @@ export function AutocompleteCell(
             arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
             val.inputValue !== props.value.inputValue
     );
+
+    const isError = props.required && props.value.inputValue.trim() === "";
 
     return (
         <TableCell>
@@ -151,7 +156,14 @@ export function AutocompleteCell(
                 }}
                 options={options}
                 value={props.value}
-                renderInput={params => <TextField {...params} variant="standard" />}
+                renderInput={params => (
+                    <TextField
+                        {...params}
+                        variant="standard"
+                        error={isError}
+                        helperText={isError && "Field is required."}
+                    />
+                )}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
                 filterOptions={(options, params) => {
                     const filtered = filter(options, params);

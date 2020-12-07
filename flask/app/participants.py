@@ -177,10 +177,10 @@ def update_participant(id: int):
 
 @app.route("/api/participants", methods=["POST"])
 @login_required
+@routes.check_admin
 def create_participant():
-
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     try:
         updated_by = current_user.user_id

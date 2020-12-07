@@ -25,6 +25,8 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, unique=False, default=False)
     last_login = db.Column(db.DateTime)
     deactivated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
+    minio_access_key = db.Column(db.String(150))
+    minio_secret_key = db.Column(db.String(150))
 
     groups = db.relationship("Group", secondary=users_groups_table, backref="users")
 

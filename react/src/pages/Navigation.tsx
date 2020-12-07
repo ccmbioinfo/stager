@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import clsx from "clsx";
 import { BrowserRouter, Switch, Route, RouteProps } from "react-router-dom";
 import {
@@ -15,6 +15,7 @@ import {
     Divider,
     IconButton,
     Tooltip,
+    Switch as MuiSwitch,
 } from "@material-ui/core";
 import {
     Menu as MenuIcon,
@@ -26,6 +27,8 @@ import {
     MeetingRoom as MeetingRoomIcon,
     VerifiedUser as VerifiedUserIcon,
     AccountCircle as AccountCircleIcon,
+    Brightness3,
+    Brightness5,
     AddBox as AddBoxIcon,
 } from "@material-ui/icons";
 
@@ -40,71 +43,78 @@ import NotificationPopover from "./NotificationPopover";
 
 const drawerWidth = 200;
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: "flex",
-        height: "100%",
-    },
-    toolbarIcon: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        padding: theme.spacing(0.5, 1),
-        ...theme.mixins.toolbar,
-    },
-    appBar: {
-        zIndex: theme.zIndex.drawer + 1,
-        transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-    },
-    appBarShift: {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    },
-    toolbar: {
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
-    },
-    toolbarShift: {
-        paddingLeft: theme.spacing(2),
-        paddingRight: theme.spacing(3),
-    },
-    menuButton: {
-        marginRight: theme.spacing(4),
-    },
-    menuButtonHidden: {
-        marginRight: theme.spacing(3),
-        display: "none",
-    },
-    title: {
-        flexGrow: 1,
-    },
-    drawerPaper: {
-        position: "relative",
-        width: drawerWidth,
-        transition: theme.transitions.create("width", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    },
-    drawerPaperClose: {
-        overflowX: "hidden",
-        transition: theme.transitions.create("width", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-    },
-    bottomItems: {
-        marginTop: "auto",
-    },
-}));
+const useStyles = (darkMode: boolean) =>
+    useMemo(
+        () =>
+            makeStyles(theme => ({
+                root: {
+                    display: "flex",
+                    height: "100%",
+                },
+                toolbarIcon: {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    padding: theme.spacing(0, 1),
+                    ...theme.mixins.toolbar,
+                },
+                appBar: {
+                    zIndex: theme.zIndex.drawer + 1,
+                    transition: theme.transitions.create(["width", "margin"], {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.leavingScreen,
+                    }),
+                },
+                appBarShift: {
+                    marginLeft: drawerWidth,
+                    width: `calc(100% - ${drawerWidth}px)`,
+                    transition: theme.transitions.create(["width", "margin"], {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
+                },
+                toolbar: {
+                    paddingLeft: theme.spacing(3),
+                    paddingRight: theme.spacing(3),
+                },
+                toolbarShift: {
+                    paddingLeft: theme.spacing(2),
+                    paddingRight: theme.spacing(3),
+                },
+                menuButton: {
+                    marginRight: theme.spacing(4),
+                },
+                menuButtonHidden: {
+                    marginRight: theme.spacing(3),
+                    display: "none",
+                },
+                title: {
+                    flexGrow: 1,
+                },
+                drawerPaper: {
+                    position: "relative",
+                    width: drawerWidth,
+                    transition: theme.transitions.create("width", {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
+                    backgroundColor: darkMode ? "#383838" : "inherit",
+                },
+                drawerPaperClose: {
+                    overflowX: "hidden",
+                    transition: theme.transitions.create("width", {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.leavingScreen,
+                    }),
+                    width: theme.spacing(7),
+                    backgroundColor: darkMode ? "#383838" : "inherit",
+                },
+                bottomItems: {
+                    marginTop: "auto",
+                },
+            })),
+        [darkMode]
+    );
 
 interface RouteItem extends RouteProps {
     pageName: string; // Displays in AppBar
@@ -167,11 +177,19 @@ export interface NavigationProps {
     signout: () => void;
     username: string;
     lastLoginTime: string;
+    darkMode: boolean;
+    toggleDarkMode: () => void;
 }
 
-export default function Navigation({ username, signout, lastLoginTime }: NavigationProps) {
-    const classes = useStyles();
-    const [open, setOpen] = React.useState(localStorage.getItem("drawerOpen") === "true");
+export default function Navigation({
+    username,
+    signout,
+    lastLoginTime,
+    darkMode,
+    toggleDarkMode,
+}: NavigationProps) {
+    const classes = useStyles(darkMode)();
+    const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -218,6 +236,15 @@ export default function Navigation({ username, signout, lastLoginTime }: Navigat
                                 </Route>
                             ))}
                         </Switch>
+                        <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
+                            <MuiSwitch
+                                checked={darkMode}
+                                onChange={toggleDarkMode}
+                                color="default"
+                                checkedIcon={<Brightness3 />}
+                                icon={<Brightness5 />}
+                            />
+                        </Tooltip>
                         <NotificationPopover lastLoginTime={lastLoginTime} />
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize="large" />

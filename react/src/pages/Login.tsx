@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles, Button, Container, Paper, TextField, Typography } from "@material-ui/core";
+import {
+    makeStyles,
+    Button,
+    Container,
+    Paper,
+    TextField,
+    Typography,
+    Box,
+} from "@material-ui/core";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -7,6 +15,7 @@ const useStyles = makeStyles(theme => ({
         flexDirection: "column",
         justifyContent: "center",
         height: "100%",
+        backgroundColor: theme.palette.background.default,
     },
     form: {
         padding: theme.spacing(2),
@@ -53,46 +62,48 @@ export default function LoginForm({
     }, []);
     const classes = useStyles();
     return (
-        <Container maxWidth="sm" className={classes.root}>
-            <Paper component="form" className={classes.form}>
-                <Typography variant="h5" component="h2" gutterBottom>
-                    Sign in to ST2020
-                </Typography>
-                {error && (
-                    <Typography component="p" color="secondary">
-                        {error}
+        <Box className={classes.root}>
+            <Container maxWidth="sm">
+                <Paper component="form" className={classes.form}>
+                    <Typography variant="h5" component="h2" gutterBottom>
+                        Sign in to ST2020
                     </Typography>
-                )}
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="normal"
-                    className={classes.textField}
-                    label="Username"
-                    onChange={bind(setUsername)}
-                />
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="normal"
-                    className={classes.textField}
-                    type="password"
-                    label="Password"
-                    onChange={bind(setPassword)}
-                    autoComplete="current-password"
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    type="submit"
-                    onClick={authenticate}
-                >
-                    Sign in
-                </Button>
-            </Paper>
-        </Container>
+                    {error && (
+                        <Typography component="p" color="secondary">
+                            {error}
+                        </Typography>
+                    )}
+                    <TextField
+                        required
+                        variant="filled"
+                        fullWidth
+                        margin="normal"
+                        className={classes.textField}
+                        label="Username"
+                        onChange={bind(setUsername)}
+                    />
+                    <TextField
+                        required
+                        variant="filled"
+                        fullWidth
+                        margin="normal"
+                        className={classes.textField}
+                        type="password"
+                        label="Password"
+                        onChange={bind(setPassword)}
+                        autoComplete="current-password"
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        type="submit"
+                        onClick={authenticate}
+                    >
+                        Sign in
+                    </Button>
+                </Paper>
+            </Container>
+        </Box>
     );
 }

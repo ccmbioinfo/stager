@@ -4,10 +4,6 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-logging.basicConfig()
-logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
-
 db = SQLAlchemy()
 login = LoginManager()
 migrate = Migrate()
@@ -22,6 +18,11 @@ def create_app(config):
     app = Flask(__name__)
 
     app.config.from_object(config)
+
+    if config.SQLALCHEMY_LOG:
+        logging.basicConfig()
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
 
     flask_logging.create_logger(app)
     login.session_protection = "strong"

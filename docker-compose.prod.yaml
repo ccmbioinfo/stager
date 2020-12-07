@@ -1,4 +1,4 @@
-version: "2"
+version: "3.8"
 
 services:
   mysql:
@@ -23,7 +23,7 @@ services:
   app:
     build:
       context: flask
-      dockerfile: Dockerfile
+      dockerfile: ../Dockerfile
     image: ccmbio/st2020:edge
     environment:
       FLASK_ENV: production
@@ -39,6 +39,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "9000:9000"
     volumes:
       - ./react/build:/var/www/sample-tracker/react/build
       - ./nginx/conf.d:/etc/nginx/conf.d
