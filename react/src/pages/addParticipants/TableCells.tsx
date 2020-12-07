@@ -92,7 +92,11 @@ export function DataEntryCell(props: {
     } else if (props.col.field === "input_hpf_path") {
         return (
             <FileLinkingCell
-                value={props.row[props.col.field]}
+                values={
+                    props.row[props.col.field] !== undefined
+                        ? (props.row[props.col.field] as string[])
+                        : []
+                }
                 options={props.getOptions(props.rowIndex, props.col)}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
@@ -244,17 +248,18 @@ const compareOption = (a: Option, b: Option) => {
 };
 /* A cell for linking files to a dataset. */
 export function FileLinkingCell(props: {
-    value: string[] | undefined;
+    values: string[];
     options: Option[];
     onEdit: (newValue: string[]) => void;
     disabled?: boolean;
 }) {
     const classes = useCellStyles();
-    const values: string[] = props.value ? props.value : [];
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
     const [options, setOptions] = React.useState<Option[]>(
         [
-            ...values.map(value => ({ title: value, inputValue: value, selected: true } as Option)),
+            ...props.values.map(
+                value => ({ title: value, inputValue: value, selected: true } as Option)
+            ),
             ...props.options.map(option => ({ ...option, selected: false } as Option)),
         ].sort(compareOption)
     );
@@ -286,13 +291,13 @@ export function FileLinkingCell(props: {
     useEffect(() => {
         setOptions(
             [
-                ...values.map(
+                ...(props.values ? props.values : []).map(
                     value => ({ title: value, inputValue: value, selected: true } as Option)
                 ),
                 ...props.options.map(option => ({ ...option, selected: false } as Option)),
             ].sort(compareOption)
         );
-    }, [props.options, values]);
+    }, [props.options, props.values]);
 
     return (
         <TableCell padding="none" align="center">
@@ -300,11 +305,11 @@ export function FileLinkingCell(props: {
                 placement="left"
                 interactive
                 title={
-                    values.length === 0 ? (
+                    props.values.length === 0 ? (
                         <Typography variant="body2">No files selected</Typography>
                     ) : (
                         <List>
-                            {values.map(value => {
+                            {props.values.map(value => {
                                 return (
                                     <Grid container wrap="nowrap" spacing={1} alignItems="center">
                                         <Grid item>
@@ -331,7 +336,7 @@ export function FileLinkingCell(props: {
                     onClick={handleClick}
                     disabled={props.disabled}
                 >
-                    <Badge badgeContent={props.value ? props.value.length : 0} color="primary">
+                    <Badge badgeContent={props.values ? props.values.length : 0} color="primary">
                         <Link fontSize="large" />
                     </Badge>
                 </IconButton>
@@ -351,7 +356,7 @@ export function FileLinkingCell(props: {
             >
                 <Box className={classes.popoverBox}>
                     <div className={classes.popoverBoxHeader}>
-                        {props.options.length === 0 && values.length === 0 ? (
+                        {props.options.length === 0 && props.values.length === 0 ? (
                             <Typography variant="h6" className={classes.popoverTitle}>
                                 No files available
                             </Typography>
