@@ -292,7 +292,7 @@ export function FileLinkingCell(props: {
                 ...props.options.map(option => ({ ...option, selected: false } as Option)),
             ].sort(compareOption)
         );
-    }, [props.options]);
+    }, [props.options, values]);
 
     return (
         <TableCell padding="none" align="center">
