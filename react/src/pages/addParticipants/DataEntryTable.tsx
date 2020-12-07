@@ -235,7 +235,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         props.onChange(
                                             props.data.flatMap((value, index) =>
                                                 index === rowIndex
-                                                    ? [value, { ...value, input_hpf_path: undefined } as DataEntryRow]
+                                                    ? [
+                                                          value,
+                                                          {
+                                                              ...value,
+                                                              input_hpf_path: undefined,
+                                                          } as DataEntryRow,
+                                                      ]
                                                     : value
                                             )
                                         )

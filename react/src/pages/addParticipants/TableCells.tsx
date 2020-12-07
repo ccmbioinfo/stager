@@ -398,16 +398,16 @@ export function FileLinkingCell(props: {
                                         }}
                                         filterOptions={(options, params): Option[] => {
                                             const filtered = filter(options, params);
-                                            if (filtered.length === 0) {
-                                                filteredOptions = [];
-                                                return [];
-                                            }
-                                            const result = [
-                                                { title: "Select all", inputValue: "Select all" },
-                                                ...filtered,
-                                            ];
-                                            filteredOptions = result;
-                                            return result;
+                                            filtered.length === 0
+                                                ? (filteredOptions = [])
+                                                : (filteredOptions = [
+                                                      {
+                                                          title: "Select all",
+                                                          inputValue: "Select all",
+                                                      },
+                                                      ...filtered,
+                                                  ]);
+                                            return filteredOptions;
                                         }}
                                         renderOption={option =>
                                             option.title === "Select all" ? (
@@ -452,24 +452,22 @@ export function FileLinkingCell(props: {
                             <FormControlLabel
                                 control={
                                     <Checkbox
+                                        color="primary"
                                         checked={option.selected}
                                         onChange={() => {
                                             setOptions(
                                                 options
-                                                    .map(currOption => {
-                                                        if (currOption.title === option.title) {
-                                                            return {
-                                                                ...currOption,
-                                                                selected: !currOption.selected,
-                                                            };
-                                                        } else {
-                                                            return { ...currOption };
-                                                        }
-                                                    })
+                                                    .map(currOption =>
+                                                        currOption.title === option.title
+                                                            ? {
+                                                                  ...currOption,
+                                                                  selected: !currOption.selected,
+                                                              }
+                                                            : { ...currOption }
+                                                    )
                                                     .sort(compareOption)
                                             );
                                         }}
-                                        color="primary"
                                     />
                                 }
                                 label={option.title}
