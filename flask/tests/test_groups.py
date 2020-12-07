@@ -110,6 +110,7 @@ def test_delete_group(test_database, client, login_as):
     assert group == None
     assert len(minioAdmin.list_groups()) == 0
 
+
 """
 
 
