@@ -37,6 +37,10 @@ const useStyles = makeStyles(theme => ({
         alignItems: "center",
         paddingBottom: theme.spacing(1),
     },
+    icon: {
+        padding: 0,
+        marginRight: theme.spacing(1),
+    },
 }));
 
 export interface NotificationPopoverProps {
@@ -75,8 +79,8 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     }, [lastLoginTime]);
 
     return (
-        <div>
-            <IconButton onClick={handlePopoverOpen}>
+        <>
+            <IconButton onClick={handlePopoverOpen} className={classes.icon}>
                 <Tooltip title="See notifications" arrow>
                     <Badge badgeContent={analyses.length} color="secondary">
                         <NotificationsActive fontSize="large" style={{ fill: "white" }} />
@@ -135,6 +139,6 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                     analysis={clickedAnalysis}
                 />
             )}
-        </div>
+        </>
     );
 }
