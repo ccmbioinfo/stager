@@ -109,12 +109,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         } else if (col.field === "input_hpf_path") {
-            // Remove the new value from the list of unlinked files to prevent reuse
-            // Readd the previous value if there was one since it is available again
+            // Remove the new values from the list of unlinked files to prevent reuse
+            // Readd the previous values that are not selected if there was one since it is available again
             const notReselectedOldValue = rows[rowIndex].input_hpf_path?.filter(
                 oldValue => (newValue as string[]).find(value => oldValue === value) === undefined
             );
-            // const removeNewValue = files.filter(file => file !== newValue);
             const removeNewValue = files.filter(
                 file => (newValue as string[]).find(value => file === value) === undefined
             );
@@ -204,12 +203,12 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                             rows.flatMap((value, index) => {
                                                 return index === rowIndex
                                                     ? [
-                                                        value,
-                                                        {
-                                                            ...value,
-                                                            input_hpf_path: undefined,
-                                                        } as DataEntryRow,
-                                                    ]
+                                                          value,
+                                                          {
+                                                              ...value,
+                                                              input_hpf_path: undefined,
+                                                          } as DataEntryRow,
+                                                      ]
                                                     : value;
                                             })
                                         )
