@@ -5,6 +5,7 @@ from conftest import TestConfig
 from app.madmin import MinioAdmin, readwrite_buckets_policy
 from minio import Minio
 
+
 @pytest.fixture
 def minioAdmin():
     madmin = MinioAdmin(
@@ -36,6 +37,7 @@ def minioAdmin():
         madmin.remove_policy("ach")
     except:
         pass
+
 
 # Tests
 
@@ -136,9 +138,6 @@ def test_delete_group(test_database, client, login_as, minioAdmin):
     assert len(minioAdmin.list_groups()) == 0
 
 
-
-
-
 # PATCH /api/groups/:id
 
 
@@ -146,8 +145,7 @@ def test_update_group(test_database, client, login_as, minioAdmin):
     login_as("admin")
     # Test existence
     assert (
-        client.patch("/api/groups/code", json={"group_name": "yes"}).status_code
-        == 404
+        client.patch("/api/groups/code", json={"group_name": "yes"}).status_code == 404
     )
 
     # Test success and check db and minio
@@ -156,18 +154,24 @@ def test_update_group(test_database, client, login_as, minioAdmin):
     user = models.User.query.filter(models.User.username == "user").one_or_none()
     user.minio_access_key = "user"
     assert (
-        client.patch("/api/groups/ach", json={"group_name": "Alberta2", "users": ["admin"]}).status_code
+        client.patch(
+            "/api/groups/ach", json={"group_name": "Alberta2", "users": ["admin"]}
+        ).status_code
         == 200
     )
     # Make sure it updated
-    group = models.Group.query.filter(models.Group.group_name == "Alberta2").one_or_none()
+    group = models.Group.query.filter(
+        models.Group.group_name == "Alberta2"
+    ).one_or_none()
     assert group is not None
     assert len(group.users) == 1
     assert group.users[0].username == "admin"
 
     # Reset
     assert (
-        client.patch("/api/groups/ach", json={"group_name": "Alberta", "users": ["user"]}).status_code
+        client.patch(
+            "/api/groups/ach", json={"group_name": "Alberta", "users": ["user"]}
+        ).status_code
         == 200
     )
 
@@ -201,16 +205,11 @@ def test_create_group(test_database, client, login_as, minioAdmin):
     assert (
         client.post(
             "/api/groups",
-            json={
-                "group_code": "code",
-                "group_name": "Actually nothing suspicious"
-            },
+            json={"group_code": "code", "group_name": "Actually nothing suspicious"},
         ).status_code
         == 201
     )
-    group = models.Group.query.filter(
-        models.Group.group_code == "code"
-    ).one_or_none()
+    group = models.Group.query.filter(models.Group.group_code == "code").one_or_none()
     assert group is not None
     assert len(minioAdmin.list_policies()) == 6
     minioClient = Minio(
@@ -233,16 +232,12 @@ def test_create_group(test_database, client, login_as, minioAdmin):
             json={
                 "group_code": "code2",
                 "group_name": "Actually nothing else suspicious",
-                "users": [
-                    "user"
-                ]
+                "users": ["user"],
             },
         ).status_code
         == 201
     )
-    group = models.Group.query.filter(
-        models.Group.group_code == "code2"
-    ).one_or_none()
+    group = models.Group.query.filter(models.Group.group_code == "code2").one_or_none()
     assert group is not None
     assert len(minioAdmin.list_policies()) == 6
     assert len(minioAdmin.get_group("code2")["members"]) == 1
