@@ -4,7 +4,6 @@ from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort, mixin
 from minio import Minio
-from os import environ
 from .madmin import MinioAdmin, readwrite_buckets_policy
 
 
@@ -88,9 +87,9 @@ def update_group(group_code):
             group.group_name = request.json["group_name"]
 
     minioAdmin = MinioAdmin(
-        endpoint=environ["MINIO_ENDPOINT"],
-        access_key=environ["MINIO_ACCESS_KEY"],
-        secret_key=environ["MINIO_SECRET_KEY"],
+        endpoint=app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
     )
 
     # Check if a user to be added doesn't exist, 404
@@ -160,16 +159,16 @@ def create_group():
             group_obj.users.append(user)
 
     minioClient = Minio(
-        environ["MINIO_ENDPOINT"],
-        access_key=environ["MINIO_ACCESS_KEY"],
-        secret_key=environ["MINIO_SECRET_KEY"],
+        app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
         secure=False,
     )
 
     minioAdmin = MinioAdmin(
-        endpoint=environ["MINIO_ENDPOINT"],
-        access_key=environ["MINIO_ACCESS_KEY"],
-        secret_key=environ["MINIO_SECRET_KEY"],
+        endpoint=app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
     )
 
     # Create minio bucket via mc, 422 if it already exists
@@ -205,9 +204,9 @@ def delete_group(group_code):
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
     minioAdmin = MinioAdmin(
-        endpoint=environ["MINIO_ENDPOINT"],
-        access_key=environ["MINIO_ACCESS_KEY"],
-        secret_key=environ["MINIO_SECRET_KEY"],
+        endpoint=app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
     )
 
     # Check group users in db
