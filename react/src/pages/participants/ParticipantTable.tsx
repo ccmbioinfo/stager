@@ -11,6 +11,7 @@ import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import Note from "../utils/components/Note";
 import BooleanDisplay from "../utils/components/BooleanDisplay";
 import BooleanEditComponent from "../utils/components/BooleanEditComponent";
+import BooleanFilter from "../utils/components/BooleanFilter";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -111,6 +112,7 @@ export default function ParticipantTable() {
                             <BooleanDisplay value={rowData} fieldName={"affected"} type={type} />
                         ),
                         editComponent: props => <BooleanEditComponent<Participant> {...props} />,
+                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
                     },
                     {
                         title: "Solved",
@@ -119,6 +121,7 @@ export default function ParticipantTable() {
                             <BooleanDisplay value={rowData} fieldName={"solved"} type={type} />
                         ),
                         editComponent: props => <BooleanEditComponent<Participant> {...props} />,
+                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
                     },
                     {
                         title: "Sex",

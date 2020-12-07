@@ -1,7 +1,7 @@
 import React from "react";
 import { FormControl, MenuItem, Select } from "@material-ui/core";
+import { EditComponentProps } from "material-table";
 import { PseudoBoolean, PseudoBooleanReadableMap } from "../typings";
-import { EditCellColumnDef, EditComponentProps } from "material-table";
 
 /**
  * A controlled component to override material-table columns' editComponent prop.
@@ -20,7 +20,9 @@ export default function BooleanEditComponent<RowData extends object>(
                 SelectDisplayProps={{ "aria-label": props.columnDef.title }}
             >
                 {options.map(key => (
-                    <MenuItem value={key}>{PseudoBooleanReadableMap[key]}</MenuItem>
+                    <MenuItem value={key} key={key}>
+                        {PseudoBooleanReadableMap[key]}
+                    </MenuItem>
                 ))}
             </Select>
         </FormControl>
