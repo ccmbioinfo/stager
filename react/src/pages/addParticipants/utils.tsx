@@ -51,7 +51,7 @@ export function toOption(
     disabled?: boolean
 ): Option {
     let inputValue = str;
-    // console.log(str)
+
     switch (typeof str) {
         case "string":
             inputValue = str;
