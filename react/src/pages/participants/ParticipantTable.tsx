@@ -8,6 +8,7 @@ import { countArray, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
+import Note from "../utils/components/Note";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -69,11 +70,18 @@ export default function ParticipantTable() {
                     participant={activeRow}
                     onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
                         setParticipants(
-                            participants.map(participant =>
-                                participant.participant_id === participant_id
-                                    ? { ...participant, ...newParticipant }
-                                    : participant
-                            )
+                            participants.map(participant => {
+                                if (participant.participant_id === participant_id) {
+                                    const updatedParticipant = {
+                                        ...participant,
+                                        ...newParticipant,
+                                    };
+                                    setActiveRow(updatedParticipant);
+                                    return updatedParticipant;
+                                } else {
+                                    return participant;
+                                }
+                            })
                         );
                     }}
                     onClose={() => {
@@ -110,6 +118,7 @@ export default function ParticipantTable() {
                         title: "Notes",
                         field: "notes",
                         grouping: false,
+                        render: rowData => <Note>{rowData.notes}</Note>,
                         editComponent: props => (
                             <TextField
                                 multiline

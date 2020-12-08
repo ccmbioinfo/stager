@@ -84,9 +84,9 @@ def logout():
 def check_admin(handler):
     @wraps(handler)
     def decorated_handler(*args, **kwargs):
-        if False:
-            return "Unauthorized", 401
-        return handler(*args, **kwargs)
+        if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+            return handler(*args, **kwargs)
+        return "Unauthorized", 401
 
     return decorated_handler
 
@@ -373,6 +373,7 @@ def bulk_update():
         )
 
         if enum_error:
+            db.session.rollback()
             return f"Error on line {str(i + 1)} - " + enum_error, 400
 
         ptp_objs = models.Participant(
@@ -404,6 +405,7 @@ def bulk_update():
             )
 
             if enum_error:
+                db.session.rollback()
                 return f"Error on line {str(i + 1)}: " + enum_error, 400
 
             tis_objs = models.TissueSample(
@@ -427,6 +429,7 @@ def bulk_update():
             enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
 
             if enum_error:
+                db.session.rollback()
                 return f"Error on line {str(i + 1)} - " + enum_error, 400
 
             dts_objs = models.Dataset(
@@ -476,3 +479,122 @@ def bulk_update():
     ]
 
     return jsonify(datasets)
+<<<<<<< HEAD
+=======
+
+
+@app.route("/api/tissue_samples/<int:id>", methods=["GET"])
+@login_required
+def get_tissue_sample(id: int):
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+    else:
+        user_id = current_user.user_id
+
+    if user_id:
+        tissue_sample = (
+            models.TissueSample.query.filter_by(tissue_sample_id=id)
+            .options(contains_eager(models.TissueSample.datasets))
+            .join(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .one_or_none()
+        )
+    else:
+        tissue_sample = (
+            models.TissueSample.query.filter_by(tissue_sample_id=id)
+            .options(joinedload(models.TissueSample.datasets))
+            .one_or_none()
+        )
+
+    if not tissue_sample:
+        return "Not Found", 404
+
+    return jsonify(
+        {
+            **asdict(tissue_sample),
+            "datasets": tissue_sample.datasets,
+        }
+    )
+
+
+@app.route("/api/tissue_samples/<int:id>", methods=["DELETE"])
+@login_required
+@check_admin
+def delete_tissue_sample(id: int):
+    tissue_sample = (
+        models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == id)
+        .options(joinedload(models.TissueSample.datasets))
+        .first_or_404()
+    )
+    if not tissue_sample.datasets:
+        try:
+            db.session.delete(tissue_sample)
+            db.session.commit()
+            return "Updated", 204
+        except:
+            db.session.rollback()
+            return "Server error", 500
+    else:
+        return "Tissue has dataset(s), cannot delete", 422
+
+
+@app.route("/api/tissue_samples", methods=["POST"])
+@login_required
+@check_admin
+def create_tissue_sample():
+    if not request.json:
+        return "Request body must be JSON", 415
+
+    tissue_sample_type = request.json.get("tissue_sample_type")
+    if not tissue_sample_type:
+        return "A tissue sample type must be provided", 400
+
+    participant_id = request.json.get("participant_id")
+    if not participant_id:
+        return "A participant id must be provided", 400
+
+    models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
+
+    enum_error = enum_validate(
+        models.TissueSample, request.json, ["tissue_sample_type", "tissue_processing"]
+    )
+
+    if enum_error:
+        return enum_error, 400
+
+    try:
+        created_by = updated_by = current_user.user_id
+    except:  # LOGIN DISABLED
+        created_by = updated_by = 1
+
+    tissue_sample = models.TissueSample(
+        **{
+            "participant_id": participant_id,
+            "extraction_date": request.json.get("extraction_date"),
+            "tissue_sample_type": tissue_sample_type,
+            "tissue_processing": request.json.get("tissue_processing"),
+            "notes": request.json.get("notes"),
+            "created_by": created_by,
+            "updated_by": updated_by,
+        }
+    )
+    try:
+        db.session.add(tissue_sample)
+        db.session.commit()
+        ts_id = tissue_sample.tissue_sample_id
+        location_header = "/api/tissue_samples/{}".format(ts_id)
+        return jsonify(tissue_sample), 201, {"location": location_header}
+    except:
+        db.session.rollback()
+        return "Server error", 500
+>>>>>>> origin/master

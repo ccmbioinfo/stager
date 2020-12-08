@@ -67,11 +67,11 @@ This builds a `ccmbio/st2020` image with the Python dependencies and mounts the 
 
 Start the Create React App development server the [same way as the no-Docker workflow.](#web-frontend)
 
-To rebuild the database after changes to the schema (i.e. to the `models.py` file) run `docker ps -a`, note the CONTAINER ID of `ccmbio/st2020` , and run
+To rebuild the database after changes to the schema (i.e. to the `models.py` file)
 ```
-docker exec -it <CONTAINER ID> /bin/bash
+docker-compose exec app bash
 # and within the container:
-flask db migrate -m "messsage about change"
+flask db migrate -m "Commit message"
 flask db upgrade
 ```
 Exit out of the container, restart and the changes to the schema should be applied.

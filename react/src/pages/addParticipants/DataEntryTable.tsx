@@ -18,31 +18,16 @@ import {
     Typography,
     Button,
 } from "@material-ui/core";
-import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
+import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../utils/typings";
 import { Option, getOptions as _getOptions, getColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
-import { setProp } from "../utils/functions";
+import { getDataEntryHeaders, createEmptyRows, setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
-    data?: DataEntryRow[];
-}
-
-function createEmptyRows(amount?: number): DataEntryRow[] {
-    if (!amount || amount < 1) amount = 1;
-
-    var arr = [];
-    for (let i = 0; i < amount; i++) {
-        arr.push({
-            family_codename: "",
-            participant_codename: "",
-            participant_type: "",
-            tissue_sample_type: "",
-            dataset_type: "",
-        });
-    }
-    return arr;
+    data: DataEntryRow[];
+    onChange: (data: DataEntryRow[]) => void;
 }
 
 const useTableStyles = makeStyles(theme => ({
@@ -60,7 +45,40 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const defaultOptionals = ["notes", "sex", "input_hpf_path"];
+const fallbackColumns = ["notes", "sex", "input_hpf_path"];
+
+function getEnvColumns(): Array<keyof DataEntryRowOptional> {
+    const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
+    if (envCols !== undefined) {
+        const validFields = getDataEntryHeaders().optional;
+        const envFields = envCols.split(",");
+        const usableFields =
+            process.env.NODE_ENV === "development"
+                ? envFields.filter(field => !!validFields.find(valid => valid === field))
+                : envFields;
+        return usableFields as Array<keyof DataEntryRowOptional>;
+    } else {
+        return [];
+    }
+}
+
+function getDefaultColumns(fallbackColumns: string[]) {
+    const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
+    let tempCols = fallbackColumns;
+    const envCols = getEnvColumns();
+
+    if (storedDefaults !== null) {
+        // User already has stored preferences
+        tempCols = JSON.parse(storedDefaults);
+    } else if (envCols.length > 0) {
+        // No preferences, use .env
+        tempCols = envCols;
+    } else {
+        // No .env, use fallback columns
+        window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempCols));
+    }
+    return tempCols;
+}
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
@@ -68,12 +86,16 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
 
-    const [optionals, setOptionals] = useState<DataEntryHeader[]>(
-        getColumns("optional").map(header => {
-            return { ...header, hidden: !defaultOptionals.includes(header.field) };
-        })
-    );
-    const [rows, setRows] = useState<DataEntryRow[]>(props.data ? props.data : createEmptyRows(3));
+    function getOptionalHeaders() {
+        const defaults = getDefaultColumns(fallbackColumns);
+        return getColumns("optional").map(header => ({
+            ...header,
+            hidden: !defaults.includes(header.field),
+        }));
+    }
+
+    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
+
     const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
     const [files, setFiles] = useState<string[]>([]);
@@ -111,38 +133,47 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         } else if (col.field === "input_hpf_path") {
             // Remove the new value from the list of unlinked files to prevent reuse
             // Readd the previous value if there was one since it is available again
-            const oldValue = rows[rowIndex].input_hpf_path;
+            const oldValue = props.data[rowIndex].input_hpf_path;
             const removeNewValue = files.filter(file => file !== newValue);
             setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
         }
-        setRows(
-            rows.map((value, index) => {
-                if (index === rowIndex) {
-                    return setProp({ ...value }, col.field, newValue);
-                } else {
-                    return value;
-                }
-            })
-        );
+        const newRows = props.data.map((value, index) => {
+            if (index === rowIndex) {
+                return setProp({ ...value }, col.field, newValue);
+            } else {
+                return value;
+            }
+        });
+        props.onChange(newRows);
     }
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryHeader): Option[] {
-        return _getOptions(rows, col, rowIndex, families, enums, files);
+        return _getOptions(props.data, col, rowIndex, families, enums, files);
     }
 
     function toggleHideColumn(colField: keyof DataEntryRow) {
-        setOptionals(
-            optionals.map(value => {
-                if (value.field === colField) return { ...value, hidden: !value.hidden };
-                return value;
-            })
+        const newOptionals = optionals.map(value => {
+            if (value.field === colField) return { ...value, hidden: !value.hidden };
+            return value;
+        });
+        setOptionals(newOptionals);
+        window.localStorage.setItem(
+            "data-entry-default-columns",
+            JSON.stringify(newOptionals.filter(value => !value.hidden).map(value => value.field))
         );
     }
 
     return (
         <Paper>
-            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
+            <DataEntryToolbar
+                columns={optionals}
+                handleColumnAction={toggleHideColumn}
+                handleResetAction={() => {
+                    window.localStorage.removeItem("data-entry-default-columns");
+                    setOptionals(getOptionalHeaders());
+                }}
+            />
             <TableContainer>
                 <Table>
                     <caption>* - Required | ** - Required only if Dataset Type is RRS</caption>
@@ -177,22 +208,24 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.map((row, rowIndex) => (
+                        {props.data.map((row, rowIndex) => (
                             <TableRow key={rowIndex}>
                                 <DataEntryActionCell
                                     tooltipTitle="Delete row"
                                     icon={<Delete />}
                                     onClick={() =>
-                                        setRows(rows.filter((value, index) => index !== rowIndex))
+                                        props.onChange(
+                                            props.data.filter((value, index) => index !== rowIndex)
+                                        )
                                     }
-                                    disabled={rows.length === 1}
+                                    disabled={props.data.length === 1}
                                 />
                                 <DataEntryActionCell
                                     tooltipTitle="Duplicate row"
                                     icon={<LibraryAdd />}
                                     onClick={() =>
-                                        setRows(
-                                            rows.flatMap((value, index) =>
+                                        props.onChange(
+                                            props.data.flatMap((value, index) =>
                                                 index === rowIndex
                                                     ? [value, { ...value } as DataEntryRow]
                                                     : value
@@ -209,6 +242,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         getOptions={getOptions}
                                         onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                         key={col.field}
+                                        required
                                     />
                                 ))}
                                 {optionals.map(
@@ -248,7 +282,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     disableElevation
                                     disableRipple
                                     startIcon={<Add />}
-                                    onClick={() => setRows(rows.concat(createEmptyRows(1)))}
+                                    onClick={() =>
+                                        props.onChange(props.data.concat(createEmptyRows(1)))
+                                    }
                                 >
                                     Add new row
                                 </Button>
@@ -274,6 +310,7 @@ const useToolbarStyles = makeStyles(theme => ({
  */
 function DataEntryToolbar(props: {
     handleColumnAction: (field: keyof DataEntryRow) => void;
+    handleResetAction: () => void;
     columns: DataEntryHeader[];
 }) {
     const classes = useToolbarStyles();
@@ -294,6 +331,11 @@ function DataEntryToolbar(props: {
                     columns={props.columns}
                     onClick={props.handleColumnAction}
                 />
+                <Tooltip title="Reset column defaults">
+                    <IconButton onClick={props.handleResetAction}>
+                        <Restore />
+                    </IconButton>
+                </Tooltip>
             </Toolbar>
             <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
         </>

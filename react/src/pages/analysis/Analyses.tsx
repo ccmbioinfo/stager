@@ -19,6 +19,7 @@ import AnalysisInfoDialog from "../utils/components/AnalysisInfoDialog";
 import CancelAnalysisDialog from "./CancelAnalysisDialog";
 import AddAnalysisAlert from "./AddAnalysisAlert";
 import SetAssigneeDialog from "./SetAssigneeDialog";
+import Note from "../utils/components/Note";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -351,7 +352,7 @@ export default function Analyses() {
                             title: "Notes",
                             field: "notes",
                             type: "string",
-                            width: "30%",
+                            render: rowData => <Note>{rowData.notes}</Note>,
                             editComponent: props => (
                                 <TextField
                                     multiline
