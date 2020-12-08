@@ -360,7 +360,7 @@ class Analysis(db.Model):
     updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    updated_by_user = db.relationship("User", foreign_keys=[updated_by_id])
+    updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     assignee = db.relationship("User", foreign_keys=[assignee_id])
     requester = db.relationship("User", foreign_keys=[requester_id])
 

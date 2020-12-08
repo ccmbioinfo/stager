@@ -196,7 +196,7 @@ def update_family(id: int):
     family.family_codename = fam_codename
 
     if user_id:
-        family.updated_by = user_id
+        family.updated_by_id = user_id
 
     try:
         db.session.commit()
@@ -214,11 +214,11 @@ def create_family():
         return "Request body must be JSON", 415
 
     try:
-        updated_by = current_user.user_id
-        created_by = current_user.user_id
+        updated_by_id = current_user.user_id
+        created_by_id = current_user.user_id
     except:  # LOGIN_DISABLED
-        updated_by = 1
-        created_by = 1
+        updated_by_id = 1
+        created_by_id = 1
 
     fam_codename = request.json.get("family_codename")
 
@@ -232,8 +232,8 @@ def create_family():
 
     fam_objs = models.Family(
         family_codename=fam_codename,
-        created_by=created_by,
-        updated_by=updated_by,
+        created_by_id=created_by_id,
+        updated_by_id=updated_by_id,
     )
 
     db.session.add(fam_objs)

@@ -84,38 +84,38 @@ def test_database(client):
     db.session.flush()
 
     family_a = Family(
-        family_codename="A", created_by=admin.user_id, updated_by=admin.user_id
+        family_codename="A", created_by_id=admin.user_id, updated_by_id=admin.user_id
     )
 
     participant_1 = Participant(
         participant_codename="001",
         sex=Sex.Female,
         participant_type=ParticipantType.Proband,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     family_a.participants.append(participant_1)
 
     sample_1 = TissueSample(
         tissue_sample_type=TissueSampleType.Blood,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     participant_1.tissue_samples.append(sample_1)
 
     dataset_1 = Dataset(
         dataset_type=wes.dataset_type,
         condition=DatasetCondition.Somatic,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     sample_1.datasets.append(dataset_1)
 
     dataset_2 = Dataset(
         dataset_type=wgs.dataset_type,
         condition=DatasetCondition.Somatic,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     dataset_2.groups.append(group)
     sample_1.datasets.append(dataset_2)
@@ -124,32 +124,32 @@ def test_database(client):
         participant_codename="002",
         sex=Sex.Female,
         participant_type=ParticipantType.Parent,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     family_a.participants.append(participant_2)
 
     sample_2 = TissueSample(
         tissue_sample_type=TissueSampleType.Blood,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     participant_2.tissue_samples.append(sample_2)
 
     dataset_3 = Dataset(
         dataset_type=wes.dataset_type,
         condition=DatasetCondition.Somatic,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     dataset_3.groups.append(group)
     sample_2.datasets.append(dataset_3)
 
     analysis_1 = Analysis(
         analysis_state=AnalysisState.Requested,
-        requester=admin.user_id,
-        assignee=admin.user_id,
-        updated_by=admin.user_id,
+        requester_id=admin.user_id,
+        assignee_id=admin.user_id,
+        updated_by_id=admin.user_id,
         pipeline_id=pipeline_1.pipeline_id,
         requested="2020-07-28",
         started="2020-08-04",
@@ -160,9 +160,9 @@ def test_database(client):
 
     analysis_2 = Analysis(
         analysis_state=AnalysisState.Requested,
-        requester=admin.user_id,
-        assignee=admin.user_id,
-        updated_by=admin.user_id,
+        requester_id=admin.user_id,
+        assignee_id=admin.user_id,
+        updated_by_id=admin.user_id,
         pipeline_id=pipeline_1.pipeline_id,
         requested="2020-07-28",
         started="2020-08-04",
@@ -175,38 +175,38 @@ def test_database(client):
     db.session.flush()
 
     family_b = Family(
-        family_codename="B", created_by=admin.user_id, updated_by=admin.user_id
+        family_codename="B", created_by_id=admin.user_id, updated_by_id=admin.user_id
     )
 
     participant_3 = Participant(
         participant_codename="003",
         sex=Sex.Male,
         participant_type=ParticipantType.Proband,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     family_b.participants.append(participant_3)
 
     sample_3 = TissueSample(
         tissue_sample_type=TissueSampleType.Blood,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     participant_3.tissue_samples.append(sample_3)
 
     dataset_4 = Dataset(
         dataset_type=wgs.dataset_type,
         condition=DatasetCondition.Somatic,
-        created_by=admin.user_id,
-        updated_by=admin.user_id,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
     )
     sample_3.datasets.append(dataset_4)
 
     analysis_3 = Analysis(
         analysis_state=AnalysisState.Requested,
-        requester=admin.user_id,
-        assignee=admin.user_id,
-        updated_by=admin.user_id,
+        requester_id=admin.user_id,
+        assignee_id=admin.user_id,
+        updated_by_id=admin.user_id,
         pipeline_id=pipeline_1.pipeline_id,
         requested="2020-07-28",
         started="2020-08-04",
