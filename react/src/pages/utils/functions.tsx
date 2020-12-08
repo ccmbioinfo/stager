@@ -87,6 +87,9 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
                 row.state = null;
                 break;
         }
+        if (row.pipeline) {
+            row.pipeline_name = `${row.pipeline.pipeline_name} ${row.pipeline.pipeline_version}`;
+        }
         return { ...row } as Analysis;
     });
     return rows;

@@ -51,7 +51,11 @@ def list_analyses():
     else:
         query = db.session.query(models.Analysis)
 
-    analyses = query.filter(models.Analysis.updated >= since_date).all()
+    analyses = (
+        query.filter(models.Analysis.updated >= since_date)
+        .outerjoin(models.Pipeline)
+        .all()
+    )
     return jsonify(
         [
             {
@@ -60,6 +64,7 @@ def list_analyses():
                 "updated_by_id": analysis.updated_by_id
                 and analysis.updated_by.username,
                 "assignee": analysis.assignee_id and analysis.assignee.username,
+                "pipeline": analysis.pipeline,
             }
             for analysis in analyses
         ]

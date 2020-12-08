@@ -309,8 +309,15 @@ export default function Analyses() {
                             defaultFilter: paramFilter,
                         },
                         {
-                            title: "Pipeline",
+                            title: "Pipeline ID",
                             field: "pipeline_id",
+                            type: "string",
+                            hidden: true,
+                            editable: "never",
+                        },
+                        {
+                            title: "Pipeline",
+                            field: "pipeline_name",
                             type: "string",
                             editable: "never",
                             width: "8%",
