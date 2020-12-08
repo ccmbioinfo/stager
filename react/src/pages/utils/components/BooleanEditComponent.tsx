@@ -7,9 +7,12 @@ import { PseudoBoolean, PseudoBooleanReadableMap } from "../typings";
  * A controlled component to override material-table columns' editComponent prop.
  */
 export default function BooleanEditComponent<RowData extends object>(
-    props: EditComponentProps<RowData>
+    props: Pick<EditComponentProps<RowData>, "value" | "onChange"> &
+        Partial<Exclude<EditComponentProps<RowData>, "value" | "onChange">>
 ) {
-    const options = Object.keys(PseudoBooleanReadableMap) as PseudoBoolean[];
+    const options = Object.keys(PseudoBooleanReadableMap).filter(
+        key => key !== "undefined" // Can set null, but not undefined
+    ) as PseudoBoolean[];
 
     return (
         <FormControl error={Boolean(props.error)}>
@@ -17,7 +20,7 @@ export default function BooleanEditComponent<RowData extends object>(
                 fullWidth
                 value={props.value}
                 onChange={e => props.onChange(e.target.value as PseudoBoolean)}
-                SelectDisplayProps={{ "aria-label": props.columnDef.title }}
+                SelectDisplayProps={{ "aria-label": props.columnDef?.title }}
             >
                 {options.map(key => (
                     <MenuItem value={key} key={key}>

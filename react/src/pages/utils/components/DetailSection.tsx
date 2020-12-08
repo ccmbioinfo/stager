@@ -15,7 +15,7 @@ import {
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { FieldDisplayValueType, Field } from "../typings";
+import { FieldDisplayValueType, Field, PseudoBooleanReadableMap, PseudoBoolean } from "../typings";
 
 const gridSpacing = 2;
 const titleWidth = 12;
@@ -74,8 +74,10 @@ const capitalizeFirstLetter = (s: string | undefined) => {
 const formatValue = (value: FieldDisplayValueType, nullUnknown: boolean = false) => {
     let val = value;
     if (Array.isArray(value)) val = value.join(", ");
-    else if (value === null || value === undefined) nullUnknown ? (val = "Unknown") : (val = "");
-    else if (typeof value === "boolean") val = value ? "Yes" : "No";
+    else if (value === null || value === undefined)
+        nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
+    else if (typeof value === "boolean")
+        val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
     return val;
 };
 
@@ -153,6 +155,7 @@ function TextField({
             </MuiTextField>
         );
     } else if (booleanFields.includes(field.fieldName)) {
+        // Need to clean this up when refactoring this section
         return (
             <MuiTextField
                 className={classes.textField}

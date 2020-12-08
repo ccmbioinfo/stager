@@ -285,3 +285,25 @@ export function stringToBoolean(value: PseudoBoolean) {
             return value;
     }
 }
+
+/**
+ * Return an object containing the key-value pairs that differ between
+ * oldRow and newRow, with the values from newRow.
+ *
+ * @param newRow
+ * @param oldRow
+ */
+export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
+    if (!oldRow) {
+        return { ...newRow };
+    } else {
+        let diffRow: any = {};
+        let k: keyof T;
+        for (k in oldRow) {
+            if (newRow[k] !== oldRow[k]) {
+                diffRow[k] = newRow[k];
+            }
+        }
+        return { ...diffRow };
+    }
+}

@@ -4,7 +4,7 @@ import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, stringToBoolean, toKeyValue } from "../utils/functions";
+import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -167,13 +167,18 @@ export default function ParticipantTable() {
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {
+                        const diffParticipant = rowDiff<Participant>(
+                            newParticipant,
+                            oldParticipant
+                        );
+
                         const response = await fetch(
                             `/api/participants/${newParticipant.participant_id}`,
                             {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
-                                    ...newParticipant,
+                                    ...diffParticipant,
                                     affected: stringToBoolean(newParticipant.affected),
                                     solved: stringToBoolean(newParticipant.solved),
                                 }),
