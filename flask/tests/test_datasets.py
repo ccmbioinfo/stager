@@ -72,8 +72,8 @@ def test_get_dataset_admin(client, test_database, login_as):
         dataset = response.get_json()
         assert dataset["dataset_id"] == i
         assert dataset["condition"] == "Somatic"
-        assert dataset["created_by"] == 1
-        assert dataset["updated_by"] == 1
+        assert dataset["created_by_id"] == 1
+        assert dataset["updated_by_id"] == 1
 
         # Assume user identity belonging to no groups
         assert client.get(f"/api/datasets/{i}?user=1").status_code == 404
@@ -161,7 +161,7 @@ def test_update_dataset_user(client, test_database, login_as):
         response = client.patch("/api/datasets/1", json=body)
         assert response.status_code == 200
         dataset = response.get_json()
-        assert dataset["updated_by"] == 2
+        assert dataset["updated_by_id"] == 2
         for key, value in body.items():
             assert dataset[key] == value
 
@@ -246,8 +246,8 @@ def test_create_dataset(client, test_database, login_as):
     dataset = response.get_json()
     assert dataset["dataset_type"] == "WGS"
     assert dataset["tissue_sample_id"] == 1
-    assert dataset["created_by"] == 1
-    assert dataset["updated_by"] == 1
+    assert dataset["created_by_id"] == 1
+    assert dataset["updated_by_id"] == 1
     assert "created" in dataset and "updated" in dataset
 
     endpoint = f"/api/datasets/{dataset['dataset_id']}"

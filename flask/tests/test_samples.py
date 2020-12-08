@@ -134,5 +134,5 @@ def test_create_tissue_sample(test_database, client, login_as):
     assert sample is not None
     assert sample.participant_id == 1
     assert len(sample.datasets) == 0
-    assert sample.created_by == 1
-    assert sample.updated_by == 1
+    assert sample.created_by_id == 1
+    assert sample.updated_by_id == 1

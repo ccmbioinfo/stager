@@ -199,4 +199,4 @@ def test_create_participant(test_database, client, login_as):
         models.Participant.participant_codename == "004",
     ).one_or_none()
     assert participant.notes == "nothing"
-    assert participant.created_by == 1
+    assert participant.created_by_id == 1
