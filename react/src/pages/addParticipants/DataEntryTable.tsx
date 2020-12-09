@@ -80,6 +80,24 @@ function getDefaultColumns(fallbackColumns: string[]) {
     return tempCols;
 }
 
+function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
+    let participantCodename: string;
+    let familyCodename: string;
+    if (column === "participant_codename" && row.family_codename !== "") {
+        familyCodename = row.family_codename;
+        participantCodename = newValue;
+    } else if (column === "family_codename" && row.participant_codename !== "") {
+        familyCodename = newValue;
+        participantCodename = row.participant_codename;
+    }
+    const family = families.find(fam => fam.family_codename === familyCodename);
+    return family
+        ? family.participants.find(
+              currParticipant => currParticipant.participant_codename === participantCodename
+          )
+        : undefined;
+}
+
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
 
@@ -104,12 +122,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     // rows where participant associated columns are disabled
     const [disabledRows, setDisabledRows] = useState<number[]>([]);
     type ParticipantColumn = "participant_type" | "sex" | "affected" | "solved";
-    const participantCols: Array<ParticipantColumn> = [
-        "participant_type",
-        "sex",
-        "affected",
-        "solved",
-    ];
+    const participantCols: ParticipantColumn[] = ["participant_type", "sex", "affected", "solved"];
 
     useEffect(() => {
         fetch("/api/families")
@@ -136,29 +149,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .catch(console.error);
     }, []);
 
-    function findParticipant(
-        newValue: string,
-        column: string,
-        row: DataEntryRow,
-        families: Family[]
-    ) {
-        let participantCodename: string;
-        let familyCodename: string;
-        if (column === "participant_codename" && row.family_codename !== "") {
-            familyCodename = row.family_codename;
-            participantCodename = newValue;
-        } else if (column === "family_codename" && row.participant_codename !== "") {
-            familyCodename = newValue;
-            participantCodename = row.participant_codename;
-        }
-        const family = families.find(fam => fam.family_codename === familyCodename);
-        return family
-            ? family.participants.find(
-                  currParticipant => currParticipant.participant_codename === participantCodename
-              )
-            : undefined;
-    }
-
     function onEdit(
         newValue: string | boolean,
         rowIndex: number,
@@ -175,9 +165,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
         }
         const newRows = props.data.map((value, index) => {
-            const row = { ...value };
             if (autopopulate && index === rowIndex) {
-                const participant = findParticipant(newValue as string, col.field, row, families);
+                const participant = findParticipant(newValue as string, col.field, value, families);
                 if (participant) {
                     setDisabledRows([...disabledRows, rowIndex]);
                     return setProp(
@@ -190,10 +179,10 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     );
                 } else {
                     setDisabledRows(disabledRows.filter(r => r !== rowIndex));
-                    return setProp(row, col.field, newValue);
+                    return setProp({ ...value }, col.field, newValue);
                 }
             } else if (index === rowIndex) {
-                return setProp(row, col.field, newValue);
+                return setProp({ ...value }, col.field, newValue);
             } else {
                 return value;
             }
@@ -300,8 +289,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         key={col.field}
                                         required
                                         disabled={
-                                            disabledRows.find(r => r === rowIndex) !== undefined &&
-                                            participantCols.find(c => c === col.field) !== undefined
+                                            !!disabledRows.find(r => r === rowIndex) &&
+                                            !!participantCols.find(c => c === col.field)
                                         }
                                     />
                                 ))}
@@ -316,12 +305,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 key={col.field}
                                                 disabled={
-                                                    disabledRows.find(r => r === rowIndex) !==
-                                                        undefined &&
-                                                    participantCols.find(c => c === col.field) !==
-                                                        undefined
-                                                        ? true
-                                                        : false
+                                                    !!disabledRows.find(r => r === rowIndex) &&
+                                                    !!participantCols.find(c => c === col.field)
                                                 }
                                             />
                                         )

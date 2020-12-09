@@ -101,19 +101,13 @@ export function AutocompleteCell(
                 handleHomeEndKeys
                 autoHighlight
                 onChange={(event, newValue) => {
+                    const autocomplete =
+                        props.column.field === "participant_codename" ||
+                        props.column.field === "family_codename";
                     if (newValue) {
-                        console.log(newValue.origin);
-                        onEdit(
-                            toOption(newValue),
-                            props.column.field === "participant_codename" ||
-                                props.column.field === "family_codename"
-                        );
+                        onEdit(toOption(newValue), autocomplete);
                     } else {
-                        onEdit(
-                            toOption(""),
-                            props.column.field === "participant_codename" ||
-                                props.column.field === "family_codename"
-                        );
+                        onEdit(toOption(""), autocomplete);
                     }
                 }}
                 options={options}
