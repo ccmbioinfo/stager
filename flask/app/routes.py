@@ -334,11 +334,11 @@ def bulk_update():
         return "Only Content Type 'text/csv' or 'application/json' Supported", 415
 
     try:
-        updated_by = current_user.user_id
-        created_by = current_user.user_id
+        updated_by_id = current_user.user_id
+        created_by_id = current_user.user_id
     except:  # LOGIN_DISABLED
-        updated_by = 1
-        created_by = 1
+        updated_by_id = 1
+        created_by_id = 1
 
     for i, row in enumerate(dat):
 
@@ -352,8 +352,8 @@ def bulk_update():
 
             fam_objs = models.Family(
                 family_codename=row.get("family_codename"),
-                created_by=created_by,
-                updated_by=updated_by,
+                created_by_id=created_by_id,
+                updated_by_id=updated_by_id,
             )
             db.session.add(fam_objs)
 
@@ -385,8 +385,8 @@ def bulk_update():
             solved=row.get("solved"),
             participant_type=row.get("participant_type"),
             month_of_birth=row.get("month_of_birth"),
-            created_by=created_by,
-            updated_by=updated_by,
+            created_by_id=created_by_id,
+            updated_by_id=updated_by_id,
         )
 
         db.session.add(ptp_objs)
@@ -412,8 +412,8 @@ def bulk_update():
                 participant_id=ptp_query.value("participant_id"),
                 tissue_sample_type=row.get("tissue_sample_type"),
                 notes=row.get("notes"),
-                created_by=created_by,
-                updated_by=updated_by,
+                created_by_id=created_by_id,
+                updated_by_id=updated_by_id,
             )
             db.session.add(tis_objs)
             transaction_or_abort(db.session.flush)
@@ -435,8 +435,8 @@ def bulk_update():
             dts_objs = models.Dataset(
                 tissue_sample_id=tis_query.value("tissue_sample_id"),
                 dataset_type=row.get("dataset_type"),
-                created_by=created_by,
-                updated_by=updated_by,
+                created_by_id=created_by_id,
+                updated_by_id=updated_by_id,
                 condition=row.get("condition"),
                 extraction_protocol=row.get("extraction_protocol"),
                 capture_kit=row.get("capture_kit"),

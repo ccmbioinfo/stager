@@ -137,7 +137,6 @@ def test_create_tissue_sample(test_database, client, login_as):
     assert sample.created_by == 1
     assert sample.updated_by == 1
 
-
 # PATCH /api/tissue_samples
 
 
