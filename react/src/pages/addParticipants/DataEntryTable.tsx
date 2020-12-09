@@ -178,7 +178,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         newValue
                     );
                 } else {
-                    setDisabledRows(disabledRows.filter(r => r !== rowIndex));
+                    setDisabledRows(disabledRows.filter(currRow => currRow !== rowIndex));
                     return setProp({ ...value }, col.field, newValue);
                 }
             } else if (index === rowIndex) {
@@ -289,8 +289,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         key={col.field}
                                         required
                                         disabled={
-                                            !!disabledRows.find(r => r === rowIndex) &&
-                                            !!participantCols.find(c => c === col.field)
+                                            !!disabledRows.find(currRow => currRow === rowIndex) &&
+                                            !!participantCols.find(currCol => currCol === col.field)
                                         }
                                     />
                                 ))}
@@ -305,8 +305,12 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 key={col.field}
                                                 disabled={
-                                                    !!disabledRows.find(r => r === rowIndex) &&
-                                                    !!participantCols.find(c => c === col.field)
+                                                    !!disabledRows.find(
+                                                        currRow => currRow === rowIndex
+                                                    ) &&
+                                                    !!participantCols.find(
+                                                        currCol => currCol === col.field
+                                                    )
                                                 }
                                             />
                                         )
