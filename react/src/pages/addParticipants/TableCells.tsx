@@ -72,14 +72,14 @@ export function AutocompleteCell(
     props: {
         value: Option;
         options: Option[];
-        onEdit: (newValue: string) => void;
+        onEdit: (newValue: string, autocomplete?: boolean) => void;
         disabled?: boolean;
         column: DataEntryHeader;
         required?: boolean;
     } & TableCellProps
 ) {
-    const onEdit = (newValue: Option) => {
-        props.onEdit(newValue.inputValue);
+    const onEdit = (newValue: Option, autopopulate?: boolean) => {
+        props.onEdit(newValue.inputValue, autopopulate);
     };
 
     // Remove 'this' input value from the list of options
@@ -102,9 +102,10 @@ export function AutocompleteCell(
                 autoHighlight
                 onChange={(event, newValue) => {
                     if (newValue) {
-                        onEdit(toOption(newValue));
+                        console.log(newValue.origin)
+                        onEdit(toOption(newValue), (props.column.field === "participant_codename" || props.column.field === "family_codename"));
                     } else {
-                        onEdit(toOption(""));
+                        onEdit(toOption(""), props.column.field === "participant_codename" || props.column.field === "family_codename");
                     }
                 }}
                 options={options}
