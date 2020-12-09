@@ -13,7 +13,6 @@ from werkzeug.exceptions import HTTPException
 
 editable_columns = [
     "dataset_type",
-    "input_hpf_path",
     "notes",
     "condition",
     "extraction_protocol",
@@ -162,6 +161,14 @@ def update_dataset(id: int):
     if enum_error:
         return enum_error, 400
 
+    if "linked_files" in request.json:
+        for existing in dataset.files:
+            if existing.path not in request.json["linked_files"]:
+                db.session.delete(existing)
+        for path in request.json["linked_files"]:
+            if path not in dataset.linked_files:
+                dataset.files.append(models.DatasetFile(path=path))
+
     if user_id:
         dataset.updated_by_id = user_id
 
@@ -223,7 +230,6 @@ def create_dataset():
         **{
             "tissue_sample_id": tissue_sample_id,
             "dataset_type": dataset_type,
-            "input_hpf_path": request.json.get("input_hpf_path"),
             "notes": request.json.get("notes"),
             "condition": request.json.get("condition"),
             "extraction_protocol": request.json.get("extraction_protocol"),
@@ -241,6 +247,10 @@ def create_dataset():
             "discriminator": request.json.get("discriminator"),
         }
     )
+    # TODO: add stricter checks?
+    if request.json.get("linked_files"):
+        for path in request.json["linked_files"]:
+            dataset.files.append(models.DatasetFile(path=path))
     db.session.add(dataset)
     routes.transaction_or_abort(db.session.commit)
     ds_id = dataset.dataset_id

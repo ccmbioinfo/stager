@@ -47,8 +47,8 @@ def get_unlinked_files():
     # Get all linked files
     linked_files = {}
     for dataset in models.Dataset.query.all():
-        if dataset.input_hpf_path is not None:
-            linked_files[dataset.input_hpf_path] = ":)"
+        for path in dataset.linked_files:
+            linked_files[path] = ":)"
 
     # Put all unlinked files in new list
     unlinked_files = []
