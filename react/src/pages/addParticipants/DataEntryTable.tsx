@@ -101,10 +101,15 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [files, setFiles] = useState<string[]>([]);
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
-    // rows where the participant associated columns are disabled
-    const [disabledRows, setDisabledRows] = useState<number[]>([])
-    type ParticipantColumn = "participant_type" | "sex" | "affected" | "solved"
-    const participantCols: Array<ParticipantColumn> = ["participant_type", "sex", "affected", "solved"]
+    // rows where participant associated columns are disabled
+    const [disabledRows, setDisabledRows] = useState<number[]>([]);
+    type ParticipantColumn = "participant_type" | "sex" | "affected" | "solved";
+    const participantCols: Array<ParticipantColumn> = [
+        "participant_type",
+        "sex",
+        "affected",
+        "solved",
+    ];
 
     useEffect(() => {
         fetch("/api/families")
@@ -131,20 +136,35 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .catch(console.error);
     }, []);
 
-    function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
-        let participantCodename: string
-        let familyCodename: string
+    function findParticipant(
+        newValue: string,
+        column: string,
+        row: DataEntryRow,
+        families: Family[]
+    ) {
+        let participantCodename: string;
+        let familyCodename: string;
         if (column === "participant_codename" && row.family_codename !== "") {
-            familyCodename = row.family_codename
-            participantCodename = newValue
+            familyCodename = row.family_codename;
+            participantCodename = newValue;
         } else if (column === "family_codename" && row.participant_codename !== "") {
-            familyCodename = newValue
-            participantCodename = row.participant_codename
+            familyCodename = newValue;
+            participantCodename = row.participant_codename;
         }
-        const family = families.find(fam => fam.family_codename === familyCodename)
-        return family ? family.participants.find(currParticipant => currParticipant.participant_codename === participantCodename) : undefined
+        const family = families.find(fam => fam.family_codename === familyCodename);
+        return family
+            ? family.participants.find(
+                  currParticipant => currParticipant.participant_codename === participantCodename
+              )
+            : undefined;
     }
-    function onEdit(newValue: string | boolean, rowIndex: number, col: DataEntryHeader, autopopulate?: boolean) {
+
+    function onEdit(
+        newValue: string | boolean,
+        rowIndex: number,
+        col: DataEntryHeader,
+        autopopulate?: boolean
+    ) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         } else if (col.field === "input_hpf_path") {
@@ -155,22 +175,29 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
         }
         const newRows = props.data.map((value, index) => {
-
-            const row = { ...value }
+            const row = { ...value };
             if (autopopulate && index === rowIndex) {
-                const participant = findParticipant(newValue as string, col.field, row, families)
+                const participant = findParticipant(newValue as string, col.field, row, families);
                 if (participant) {
-                    disabledRows.push(rowIndex)
-                    participantCols.forEach(currCol => setProp(row, currCol, participant[currCol]))
-                } else if (newValue === "") {
-                    setDisabledRows(disabledRows.filter(r => r !== rowIndex))
+                    setDisabledRows([...disabledRows, rowIndex]);
+                    return setProp(
+                        participantCols.reduce(
+                            (row, currCol) => setProp(row, currCol, participant[currCol]),
+                            { ...value }
+                        ),
+                        col.field,
+                        newValue
+                    );
+                } else {
+                    setDisabledRows(disabledRows.filter(r => r !== rowIndex));
+                    return setProp(row, col.field, newValue);
                 }
-                return setProp(row, col.field, newValue)
             } else if (index === rowIndex) {
                 return setProp(row, col.field, newValue);
+            } else {
+                return value;
             }
-            return value
-        })
+        });
         props.onChange(newRows);
     }
 
@@ -267,10 +294,15 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         rowIndex={rowIndex}
                                         col={col}
                                         getOptions={getOptions}
-                                        onEdit={(newValue, autocomplete?: boolean) => onEdit(newValue, rowIndex, col, autocomplete)}
+                                        onEdit={(newValue, autocomplete?: boolean) =>
+                                            onEdit(newValue, rowIndex, col, autocomplete)
+                                        }
                                         key={col.field}
                                         required
-                                        disabled={(disabledRows.find(r => r === rowIndex)) !== undefined && (participantCols.find(c => c === col.field)) !== undefined ? true : false}
+                                        disabled={
+                                            disabledRows.find(r => r === rowIndex) !== undefined &&
+                                            participantCols.find(c => c === col.field) !== undefined
+                                        }
                                     />
                                 ))}
                                 {optionals.map(
@@ -283,7 +315,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 getOptions={getOptions}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 key={col.field}
-                                                disabled={(disabledRows.find(r => r === rowIndex)) !== undefined && (participantCols.find(c => c === col.field)) !== undefined ? true : false}
+                                                disabled={
+                                                    disabledRows.find(r => r === rowIndex) !==
+                                                        undefined &&
+                                                    participantCols.find(c => c === col.field) !==
+                                                        undefined
+                                                        ? true
+                                                        : false
+                                                }
                                             />
                                         )
                                 )}
