@@ -18,12 +18,12 @@ import {
     Typography,
     Button,
 } from "@material-ui/core";
-import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, Family } from "../utils/typings";
+import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../utils/typings";
 import { Option, getOptions as _getOptions, getColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
-import { createEmptyRows, setProp } from "../utils/functions";
+import { getDataEntryHeaders, createEmptyRows, setProp } from "../utils/functions";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -45,7 +45,40 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const defaultOptionals = ["notes", "sex", "input_hpf_path"];
+const fallbackColumns = ["notes", "sex", "input_hpf_path"];
+
+function getEnvColumns(): Array<keyof DataEntryRowOptional> {
+    const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
+    if (envCols !== undefined) {
+        const validFields = getDataEntryHeaders().optional;
+        const envFields = envCols.split(",");
+        const usableFields =
+            process.env.NODE_ENV === "development"
+                ? envFields.filter(field => !!validFields.find(valid => valid === field))
+                : envFields;
+        return usableFields as Array<keyof DataEntryRowOptional>;
+    } else {
+        return [];
+    }
+}
+
+function getDefaultColumns(fallbackColumns: string[]) {
+    const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
+    let tempCols = fallbackColumns;
+    const envCols = getEnvColumns();
+
+    if (storedDefaults !== null) {
+        // User already has stored preferences
+        tempCols = JSON.parse(storedDefaults);
+    } else if (envCols.length > 0) {
+        // No preferences, use .env
+        tempCols = envCols;
+    } else {
+        // No .env, use fallback columns
+        window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempCols));
+    }
+    return tempCols;
+}
 
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
@@ -53,11 +86,15 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const columns = getColumns("required");
     const RNASeqCols = getColumns("RNASeq");
 
-    const [optionals, setOptionals] = useState<DataEntryHeader[]>(
-        getColumns("optional").map(header => {
-            return { ...header, hidden: !defaultOptionals.includes(header.field) };
-        })
-    );
+    function getOptionalHeaders() {
+        const defaults = getDefaultColumns(fallbackColumns);
+        return getColumns("optional").map(header => ({
+            ...header,
+            hidden: !defaults.includes(header.field),
+        }));
+    }
+
+    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
     const [families, setFamilies] = useState<Family[]>([]);
     const [enums, setEnums] = useState<any>();
@@ -116,17 +153,27 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     function toggleHideColumn(colField: keyof DataEntryRow) {
-        setOptionals(
-            optionals.map(value => {
-                if (value.field === colField) return { ...value, hidden: !value.hidden };
-                return value;
-            })
+        const newOptionals = optionals.map(value => {
+            if (value.field === colField) return { ...value, hidden: !value.hidden };
+            return value;
+        });
+        setOptionals(newOptionals);
+        window.localStorage.setItem(
+            "data-entry-default-columns",
+            JSON.stringify(newOptionals.filter(value => !value.hidden).map(value => value.field))
         );
     }
 
     return (
         <Paper>
-            <DataEntryToolbar columns={optionals} handleColumnAction={toggleHideColumn} />
+            <DataEntryToolbar
+                columns={optionals}
+                handleColumnAction={toggleHideColumn}
+                handleResetAction={() => {
+                    window.localStorage.removeItem("data-entry-default-columns");
+                    setOptionals(getOptionalHeaders());
+                }}
+            />
             <TableContainer>
                 <Table>
                     <caption>* - Required | ** - Required only if Dataset Type is RRS</caption>
@@ -263,6 +310,7 @@ const useToolbarStyles = makeStyles(theme => ({
  */
 function DataEntryToolbar(props: {
     handleColumnAction: (field: keyof DataEntryRow) => void;
+    handleResetAction: () => void;
     columns: DataEntryHeader[];
 }) {
     const classes = useToolbarStyles();
@@ -283,6 +331,11 @@ function DataEntryToolbar(props: {
                     columns={props.columns}
                     onClick={props.handleColumnAction}
                 />
+                <Tooltip title="Reset column defaults">
+                    <IconButton onClick={props.handleResetAction}>
+                        <Restore />
+                    </IconButton>
+                </Tooltip>
             </Toolbar>
             <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
         </>

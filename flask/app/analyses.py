@@ -26,12 +26,9 @@ def list_analyses():
     except:
         return "Malformed query date", 400
 
-    u1 = aliased(models.User)
-    u2 = aliased(models.User)
-    u3 = aliased(models.User)
     if user_id:
         query = (
-            db.session.query(models.Analysis, u1, u2, u3)
+            db.session.query(models.Analysis)
             .options(contains_eager(models.Analysis.datasets))
             .join(
                 models.datasets_analyses_table,
@@ -52,24 +49,19 @@ def list_analyses():
             .filter(models.users_groups_table.columns.user_id == user_id)
         )
     else:
-        query = db.session.query(models.Analysis, u1, u2, u3)
+        query = db.session.query(models.Analysis)
 
-    analyses = (
-        query.filter(models.Analysis.updated >= since_date)
-        .join(u1, models.Analysis.requester == u1.user_id)
-        .join(u2, models.Analysis.updated_by == u2.user_id)
-        .outerjoin(u3, models.Analysis.assignee == u3.user_id)
-        .all()
-    )
+    analyses = query.filter(models.Analysis.updated >= since_date).all()
     return jsonify(
         [
             {
                 **asdict(analysis),
-                "requester": requester and requester.username,
-                "updated_by": updated_by and updated_by.username,
-                "assignee": assignee and assignee.username,
+                "requester": analysis.requester and analysis.requester.username,
+                "updated_by_id": analysis.updated_by_id
+                and analysis.updated_by.username,
+                "assignee": analysis.assignee_id and analysis.assignee.username,
             }
-            for analysis, requester, updated_by, assignee in analyses
+            for analysis in analyses
         ]
     )
 
@@ -120,9 +112,9 @@ def get_analysis(id: int):
     return jsonify(
         {
             **asdict(analysis),
-            "requester": analysis.requester_user.username,
-            "updated_by": analysis.updated_by_user.username,
-            "assignee": analysis.assignee_user and analysis.assignee_user.username,
+            "requester": analysis.requester_id and analysis.requester.username,
+            "updated_by": analysis.updated_by_id and analysis.updated_by.username,
+            "assignee": analysis.assignee_id and analysis.assignee.username,
             "pipeline": analysis.pipeline,
             "datasets": [
                 {
@@ -142,9 +134,8 @@ def get_analysis(id: int):
 @app.route("/api/analyses", methods=["POST"])
 @login_required
 def create_analysis():
-
     if not request.json:
-        return "Request body must be JSON!", 400
+        return "Request body must be JSON!", 415
     try:
         dts_pks = request.json["datasets"]
     except KeyError:
@@ -167,16 +158,16 @@ def create_analysis():
     updated = now
     analysis_state = "Requested"
     try:
-        requester = updated_by = current_user.user_id
+        requester_id = updated_by_id = current_user.user_id
     except:  # LOGIN DISABLED
-        requester = updated_by = 1
+        requester_id = updated_by_id = 1
 
     obj = models.Analysis(
         **{
             "requested": requested,
             "analysis_state": analysis_state,
-            "requester": requester,
-            "updated_by": updated_by,
+            "requester_id": requester_id,
+            "updated_by_id": updated_by_id,
             "updated": updated,
             "requested": requested,
             "pipeline_id": pipeline_id,
@@ -286,16 +277,15 @@ def update_analysis(id: int):
         return enum_error, 400
 
     if user_id:
-        analysis.updated_by = user_id
+        analysis.updated_by_id = user_id
 
     routes.transaction_or_abort(db.session.commit)
 
     return jsonify(
         {
             **asdict(analysis),
-            "assignee": analysis.assignee_user and analysis.assignee_user.username,
-            "requester": analysis.requester_user and analysis.requester_user.username,
-            "updated_by": analysis.updated_by_user
-            and analysis.updated_by_user.username,
+            "assignee": analysis.assignee_id and analysis.assignee.username,
+            "requester": analysis.requester_id and analysis.requester.username,
+            "updated_by_id": analysis.updated_by_id and analysis.updated_by.username,
         }
     )

@@ -299,11 +299,20 @@ export default function DetailSection({
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
     const [editMode, setEditMode] = useState<boolean>(false);
-    const [primaryFields, setPrimaryFields] = useState<Field[]>(fields);
+    const [primaryFields, setPrimaryFields] = useState<Field[]>([]);
     const [secondaryFields, setSecondaryFields] = useState<Field[]>(
         collapsibleFields ? collapsibleFields : []
     );
     const { enqueueSnackbar } = useSnackbar();
+
+    // Props are the main source of truth about the state of the fields
+    useEffect(() => {
+        setPrimaryFields(fields);
+    }, [fields]);
+
+    useEffect(() => {
+        setSecondaryFields(collapsibleFields ? collapsibleFields : []);
+    }, [collapsibleFields]);
 
     function OnEditData(fieldName: string | undefined, value: any) {
         if (fieldName) {
@@ -349,7 +358,7 @@ export default function DetailSection({
         if (response.ok) {
             const data = await response.json();
             console.log(data);
-            if (dataInfo?.onUpdate) dataInfo?.onUpdate(dataInfo.ID, data);
+            if (dataInfo?.onUpdate) dataInfo!.onUpdate(dataInfo.ID, data);
             enqueueSnackbar(
                 `${capitalizeFirstLetter(dataInfo?.type)} ${
                     dataInfo?.identifier
@@ -375,9 +384,34 @@ export default function DetailSection({
 
     return (
         <>
-            <Grid container spacing={gridSpacing} justify="space-evenly">
-                <Box className={classes.actionButtons}>
-                    {dataInfo && (
+            <Grid container spacing={gridSpacing} justify="space-between">
+                {title && (
+                    <Grid item xs={titleWidth}>
+                        <Typography variant="h6">{title}</Typography>
+                    </Grid>
+                )}
+                <Grid
+                    container
+                    spacing={gridSpacing}
+                    item
+                    xs={dataInfo ? 10 : 12}
+                    justify="space-evenly"
+                >
+                    <GridFieldsDisplay
+                        fields={primaryFields}
+                        editMode={editMode}
+                        onEdit={OnEditData}
+                        position="left"
+                    />
+                    <GridFieldsDisplay
+                        fields={primaryFields}
+                        editMode={editMode}
+                        onEdit={OnEditData}
+                        position="right"
+                    />
+                </Grid>
+                {dataInfo && (
+                    <Grid item xs={2}>
                         <FormControlLabel
                             control={<Switch color="primary" checked={editMode} size="small" />}
                             label="Edit Mode"
@@ -394,37 +428,20 @@ export default function DetailSection({
                                 setEditMode(!editMode);
                             }}
                         />
-                    )}
-                    {editMode && (
-                        <IconButton
-                            className={classes.fab}
-                            color="secondary"
-                            onClick={() => {
-                                setEditMode(false);
-                                updateData();
-                            }}
-                        >
-                            <Check fontSize="large" />
-                        </IconButton>
-                    )}
-                </Box>
-                {title && (
-                    <Grid item xs={titleWidth}>
-                        <Typography variant="h6">{title}</Typography>
+                        {editMode && (
+                            <IconButton
+                                className={classes.fab}
+                                color="secondary"
+                                onClick={() => {
+                                    setEditMode(false);
+                                    updateData();
+                                }}
+                            >
+                                <Check fontSize="large" />
+                            </IconButton>
+                        )}
                     </Grid>
                 )}
-                <GridFieldsDisplay
-                    fields={primaryFields}
-                    editMode={editMode}
-                    onEdit={OnEditData}
-                    position="left"
-                />
-                <GridFieldsDisplay
-                    fields={primaryFields}
-                    editMode={editMode}
-                    onEdit={OnEditData}
-                    position="right"
-                />
             </Grid>
             {collapsibleFields && (
                 <>

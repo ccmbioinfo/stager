@@ -70,11 +70,18 @@ export default function ParticipantTable() {
                     participant={activeRow}
                     onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
                         setParticipants(
-                            participants.map(participant =>
-                                participant.participant_id === participant_id
-                                    ? { ...participant, ...newParticipant }
-                                    : participant
-                            )
+                            participants.map(participant => {
+                                if (participant.participant_id === participant_id) {
+                                    const updatedParticipant = {
+                                        ...participant,
+                                        ...newParticipant,
+                                    };
+                                    setActiveRow(updatedParticipant);
+                                    return updatedParticipant;
+                                } else {
+                                    return participant;
+                                }
+                            })
                         );
                     }}
                     onClose={() => {
