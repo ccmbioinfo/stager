@@ -92,11 +92,7 @@ export function DataEntryCell(props: {
     } else if (props.col.field === "input_hpf_path") {
         return (
             <FileLinkingCell
-                values={
-                    props.row[props.col.field] !== undefined
-                        ? (props.row[props.col.field] as string[])
-                        : []
-                }
+                values={props.row[props.col.field] || []}
                 options={props.getOptions(props.rowIndex, props.col)}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
