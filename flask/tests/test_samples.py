@@ -166,6 +166,7 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
         == 400
     )
 
+    # test that non-editable columns do not change tissue_sample
     unaffected = [{"particpant_id": 12}, {"datasets": []}]
     for body in unaffected:
         response = client.patch("/api/tissue_samples/2", json=body)
@@ -200,6 +201,7 @@ def test_update_tissue_sample_user(client, test_database, login_as):
     # No permission
     assert client.patch("/api/tissue_samples/3", json={"foo": "bar"}).status_code == 404
 
+    # test that patch request is implemented
     changes = [
         {"notes": "stop the count"},
         {"tissue_sample_type": "Saliva", "notes": "hello"},
