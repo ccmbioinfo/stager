@@ -283,9 +283,6 @@ class Dataset(db.Model):
         "polymorphic_on": discriminator,
     }
 
-    files = db.relationship(
-        "DatasetFile", backref="dataset", cascade="all, delete", passive_deletes=True
-    )
     analyses = db.relationship(
         "Analysis", secondary=datasets_analyses_table, backref="datasets"
     )
@@ -294,6 +291,15 @@ class Dataset(db.Model):
     )
     updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
+
+    files = db.relationship(
+        "DatasetFile", backref="dataset", cascade="all, delete", passive_deletes=True
+    )
+    linked_files: List[str]
+
+    @property
+    def linked_files(self) -> List[str]:
+        return [x.path for x in self.files]
 
 
 @dataclass
