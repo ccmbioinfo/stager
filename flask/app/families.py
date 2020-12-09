@@ -60,7 +60,15 @@ def list_families():
         )
 
     return jsonify(
-        [{**asdict(family), "participants": family.participants} for family in families]
+        [
+            {
+                **asdict(family),
+                "participants": family.participants,
+                "updated_by": family.updated_by_id and family.updated_by.username,
+                "created_by": family.created_by_id and family.created_by.username,
+            }
+            for family in families
+        ]
     )
 
 
@@ -114,13 +122,23 @@ def get_family(id: int):
         [
             {
                 **asdict(family),
+                "updated_by": family.updated_by_id and family.updated_by.username,
+                "created_by": family.created_by_id and family.created_by.username,
                 "participants": [
                     {
                         **asdict(participants),
+                        "updated_by": participants.updated_by_id
+                        and participants.updated_by.username,
+                        "created_by": participants.created_by_id
+                        and participants.created_by.username,
                         "tissue_samples": [
                             {
                                 **asdict(tissue_samples),
                                 "datasets": tissue_samples.datasets,
+                                "updated_by": tissue_samples.updated_by_id
+                                and tissue_samples.updated_by.username,
+                                "created_by": tissue_samples.created_by_id
+                                and tissue_samples.created_by.username,
                             }
                             for tissue_samples in participants.tissue_samples
                         ],
@@ -200,7 +218,15 @@ def update_family(id: int):
 
     try:
         db.session.commit()
-        return jsonify(family)
+        return jsonify(
+            [
+                {
+                    **asdict(family),
+                    "updated_by": family.updated_by_id and family.updated_by.username,
+                    "created_by": family.created_by_id and family.created_by.username,
+                }
+            ]
+        )
     except:
         db.session.rollback()
         return "Server error", 500
@@ -241,4 +267,18 @@ def create_family():
 
     location_header = "/api/families/{}".format(fam_objs.family_id)
 
-    return jsonify(fam_objs), 201, {"location": location_header}
+    return (
+        jsonify(
+            [
+                {
+                    **asdict(fam_objs),
+                    "updated_by": fam_objs.updated_by_id
+                    and fam_objs.updated_by.username,
+                    "created_by": fam_objs.created_by_id
+                    and fam_objs.created_by.username,
+                }
+            ]
+        ),
+        201,
+        {"location": location_header},
+    )
