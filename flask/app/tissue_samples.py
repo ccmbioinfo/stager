@@ -131,7 +131,6 @@ def create_tissue_sample():
 
 @app.route("/api/tissue_samples/<int:id>", methods=["PATCH"])
 @login_required
-@check_admin
 def update_tissue_sample(id: int):
     if not request.json:
         return "Request body must be JSON", 415
