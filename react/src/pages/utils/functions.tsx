@@ -292,7 +292,7 @@ export function rowDataToTable(columnDefs: any[], data: any[]) {
 export function exportCSV(columnDefs: any[], data: any[], filename: string) {
     downloadCSV(rowDataToTable(columnDefs, data), filename);
 }
-        
+
 export function createEmptyRows(amount?: number): DataEntryRow[] {
     if (!amount || amount < 1) amount = 1;
 
