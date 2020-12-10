@@ -59,26 +59,29 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
         }
     }
 
-    function sendFile(file: File | null) {
+    async function sendFile(file: File | null) {
         if (file !== null) {
             // Upload
-            fetch("/api/_bulk", {
+            const response = await fetch("/api/_bulk", {
                 method: "POST",
                 body: file,
                 headers: new Headers({
                     "Content-Type": "text/csv",
                 }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    enqueueSnackbar(`File ${file.name} uploaded successfully`, {
-                        variant: "success",
-                    });
-                })
-                .catch(error => {
-                    console.error(error);
-                    enqueueSnackbar(`Failed to upload file ${file.name}`, { variant: "error" });
+            });
+            if (response.ok) {
+                enqueueSnackbar(`File ${file.name} uploaded successfully`, {
+                    variant: "success",
                 });
+            } else {
+                console.error(
+                    `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
+                );
+                enqueueSnackbar(
+                    `Failed to upload file ${file.name}. Error: ${response.status} - ${response.statusText}`,
+                    { variant: "error" }
+                );
+            }
         }
     }
 
