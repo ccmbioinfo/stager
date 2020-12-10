@@ -124,6 +124,10 @@ def get_analysis(id: int):
                     "participant_type": dataset.tissue_sample.participant.participant_type,
                     "sex": dataset.tissue_sample.participant.sex,
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                    "updated_by": dataset.tissue_sample.updated_by_id
+                    and dataset.tissue_sample.updated_by.username,
+                    "created_by": dataset.tissue_sample.created_by_id
+                    and dataset.tissue_sample.created_by.username,
                 }
                 for dataset in analysis.datasets
             ],
@@ -191,7 +195,14 @@ def create_analysis():
 
     routes.transaction_or_abort(db.session.commit)
 
-    return jsonify(obj)
+    return jsonify(
+        {
+            **asdict(obj),
+            "assignee": obj.assignee_id and obj.assignee.username,
+            "requester": obj.requester_id and obj.requester.username,
+            "updated_by": obj.updated_by_id and obj.updated_by.username,
+        }
+    )
 
 
 @app.route("/api/analyses/<int:id>", methods=["DELETE"])
