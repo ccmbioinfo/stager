@@ -168,7 +168,7 @@ def update_participant(id: int):
         return enum_error, 400
 
     if user_id:
-        participant.updated_by = user_id
+        participant.updated_by_id = user_id
 
     routes.transaction_or_abort(db.session.commit)
 
@@ -183,11 +183,11 @@ def create_participant():
         return "Request body must be JSON", 415
 
     try:
-        updated_by = current_user.user_id
-        created_by = current_user.user_id
+        updated_by_id = current_user.user_id
+        created_by_id = current_user.user_id
     except:  # LOGIN_DISABLED
-        updated_by = 1
-        created_by = 1
+        updated_by_id = 1
+        created_by_id = 1
 
     # check if the participant exists under a given family
 
@@ -222,8 +222,8 @@ def create_participant():
         solved=request.json.get("solved"),
         participant_type=request.json.get("participant_type"),
         month_of_birth=request.json.get("month_of_birth"),
-        created_by=created_by,
-        updated_by=updated_by,
+        created_by_id=created_by_id,
+        updated_by_id=updated_by_id,
     )
 
     db.session.add(ptp_objs)
