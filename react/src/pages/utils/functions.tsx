@@ -10,7 +10,6 @@ import {
     DataEntryRowRNASeq,
     FieldDisplayValueType,
     Field,
-    StringTable,
     DataEntryRow,
 } from "./typings";
 
@@ -261,7 +260,7 @@ export function createFieldObj(
  * @param filename What to call the downloaded file
  * @see https://github.com/mholt/PapaParse/issues/175
  */
-export function downloadCSV(table: StringTable, filename: string) {
+export function downloadCSV(table: string[][], filename: string) {
     const rows = table.map(row => row.join(",")).join("\r\n");
     const blob = new Blob([rows], {
         type: "text/csv;charset=utf-8",

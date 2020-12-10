@@ -167,5 +167,3 @@ export interface Field {
     fieldName?: string;
     disableEdit?: boolean;
 }
-
-export type StringTable = Array<Array<string>>;
