@@ -211,6 +211,7 @@ def test_create_group(test_database, client, login_as, minioAdmin):
     )
     group = models.Group.query.filter(models.Group.group_code == "code").one_or_none()
     assert group is not None
+    assert len(group.users) == 0
     assert len(minioAdmin.list_policies()) == 6
     minioClient = Minio(
         TestConfig.MINIO_ENDPOINT,
@@ -239,6 +240,7 @@ def test_create_group(test_database, client, login_as, minioAdmin):
     )
     group = models.Group.query.filter(models.Group.group_code == "code2").one_or_none()
     assert group is not None
+    assert len(group.users) == 1
     assert len(minioAdmin.list_policies()) == 6
     assert len(minioAdmin.get_group("code2")["members"]) == 1
     minioClient = Minio(
