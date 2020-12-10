@@ -148,11 +148,6 @@ def test_update_group(test_database, client, login_as, minio_admin):
         client.patch("/api/groups/code", json={"group_name": "yes"}).status_code == 404
     )
 
-    # Test success and check db and minio
-    # ad = models.User.query.filter(models.User.username == "admin").one_or_none()
-    # ad.minio_access_key = "admin"
-    # user = models.User.query.filter(models.User.username == "user").one_or_none()
-    # user.minio_access_key = "user"
     assert (
         client.patch(
             "/api/groups/ach", json={"group_name": "Alberta2", "users": ["admin"]}
