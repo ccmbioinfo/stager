@@ -8,6 +8,7 @@ import {
     Grid,
     makeStyles,
 } from "@material-ui/core";
+import { useSnackbar } from "notistack";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -43,29 +44,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function sendFile(file: File | null) {
-    if (file !== null) {
-        // Upload
-        fetch("/api/_bulk", {
-            method: "POST",
-            body: file,
-            headers: new Headers({
-                "Content-Type": "text/csv",
-            }),
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
-}
-
 export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const classes = useStyles();
     const [file, setFile] = React.useState<File | null>(null);
+    const { enqueueSnackbar } = useSnackbar();
 
     // File reference gets set here
     function onFileAdd(files: FileList | null) {
@@ -74,6 +56,29 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
             console.log(files[0].name);
         } else {
             setFile(null);
+        }
+    }
+
+    function sendFile(file: File | null) {
+        if (file !== null) {
+            // Upload
+            fetch("/api/_bulk", {
+                method: "POST",
+                body: file,
+                headers: new Headers({
+                    "Content-Type": "text/csv",
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    enqueueSnackbar(`File ${file.name} uploaded successfully`, {
+                        variant: "success",
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                    enqueueSnackbar(`Failed to upload file ${file.name}`, { variant: "error" });
+                });
         }
     }
 
