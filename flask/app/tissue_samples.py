@@ -103,9 +103,9 @@ def create_tissue_sample():
         return enum_error, 400
 
     try:
-        created_by = updated_by = current_user.user_id
+        created_by_id = updated_by_id = current_user.user_id
     except:  # LOGIN DISABLED
-        created_by = updated_by = 1
+        created_by_id = updated_by_id = 1
 
     tissue_sample = models.TissueSample(
         **{
@@ -114,8 +114,8 @@ def create_tissue_sample():
             "tissue_sample_type": tissue_sample_type,
             "tissue_processing": request.json.get("tissue_processing"),
             "notes": request.json.get("notes"),
-            "created_by": created_by,
-            "updated_by": updated_by,
+            "created_by_id": created_by_id,
+            "updated_by_id": updated_by_id,
         }
     )
     try:
@@ -174,7 +174,7 @@ def update_tissue_sample(id: int):
         return enum_error, 400
 
     if user_id:
-        tissue_sample.updated_by = user_id
+        tissue_sample.updated_by_id = user_id
 
     transaction_or_abort(db.session.commit)
 

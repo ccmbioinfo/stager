@@ -134,8 +134,9 @@ def test_create_tissue_sample(test_database, client, login_as):
     assert sample is not None
     assert sample.participant_id == 1
     assert len(sample.datasets) == 0
-    assert sample.created_by == 1
-    assert sample.updated_by == 1
+    assert sample.created_by_id == 1
+    assert sample.updated_by_id == 1
+
 
 # PATCH /api/tissue_samples
 
@@ -209,6 +210,6 @@ def test_update_tissue_sample_user(client, test_database, login_as):
         response = client.patch("/api/tissue_samples/1", json=body)
         assert response.status_code == 200
         tissue_sample = response.get_json()
-        assert tissue_sample["updated_by"] == 2
+        assert tissue_sample["updated_by_id"] == 2
         for key, value in body.items():
             assert tissue_sample[key] == value
