@@ -41,5 +41,7 @@ def create_app(config):
         from . import datasets
         from . import participants
         from . import tissue_samples
+        from . import groups
+
 
         return app
