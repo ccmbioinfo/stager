@@ -64,7 +64,7 @@ def list_analyses():
                 "updated_by_id": analysis.updated_by_id
                 and analysis.updated_by.username,
                 "assignee": analysis.assignee_id and analysis.assignee.username,
-                "pipeline_name": f"{analysis.pipeline.pipeline_name} {analysis.pipeline.pipeline_version}",
+                "pipeline": analysis.pipeline,
             }
             for analysis in analyses
         ]
