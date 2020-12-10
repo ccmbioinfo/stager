@@ -289,7 +289,6 @@ def bulk_update():
         ],
         "dataset": [
             "dataset_type",
-            "input_hpf_path",
             "notes",
             "condition",
             "extraction_protocol",
@@ -447,6 +446,11 @@ def bulk_update():
                 sequencing_date=row.get("sequencing_date"),
                 batch_id=row.get("batch_id"),
             )
+            if request.content_type == "text/csv":
+                files = (row.get("linked_files") or "").split("|")
+            else:
+                files = row.get("linked_files")
+            dts_objs.files += [models.DatasetFile(path=path) for path in files if path]
             db.session.add(dts_objs)
             transaction_or_abort(db.session.flush)
 
