@@ -219,13 +219,11 @@ def update_family(id: int):
     try:
         db.session.commit()
         return jsonify(
-            [
-                {
-                    **asdict(family),
-                    "updated_by": family.updated_by_id and family.updated_by.username,
-                    "created_by": family.created_by_id and family.created_by.username,
-                }
-            ]
+            {
+                **asdict(family),
+                "updated_by": family.updated_by_id and family.updated_by.username,
+                "created_by": family.created_by_id and family.created_by.username,
+            }
         )
     except:
         db.session.rollback()
@@ -269,15 +267,11 @@ def create_family():
 
     return (
         jsonify(
-            [
-                {
-                    **asdict(fam_objs),
-                    "updated_by": fam_objs.updated_by_id
-                    and fam_objs.updated_by.username,
-                    "created_by": fam_objs.created_by_id
-                    and fam_objs.created_by.username,
-                }
-            ]
+            {
+                **asdict(fam_objs),
+                "updated_by": fam_objs.updated_by_id and fam_objs.updated_by.username,
+                "created_by": fam_objs.created_by_id and fam_objs.created_by.username,
+            }
         ),
         201,
         {"location": location_header},

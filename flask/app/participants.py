@@ -251,15 +251,11 @@ def create_participant():
 
     return (
         jsonify(
-            [
-                {
-                    **asdict(ptp_objs),
-                    "created_by": ptp_objs.created_by_id
-                    and ptp_objs.created_by.username,
-                    "updated_by": ptp_objs.updated_by_id
-                    and ptp_objs.updated_by.username,
-                }
-            ]
+            {
+                **asdict(ptp_objs),
+                "created_by": ptp_objs.created_by_id and ptp_objs.created_by.username,
+                "updated_by": ptp_objs.updated_by_id and ptp_objs.updated_by.username,
+            }
         ),
         201,
         {"location": location_header},
