@@ -86,7 +86,7 @@ def update_group(group_code):
                 return "Group name in use", 422
             group.group_name = request.json["group_name"]
 
-    minioAdmin = MinioAdmin(
+    minio_admin = MinioAdmin(
         endpoint=app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
@@ -103,18 +103,17 @@ def update_group(group_code):
 
         # Clear users from db and minio group
         if len(group.users) != 0:
-            group_info = minioAdmin.get_group(group_code)
-            for old_user in group_info["members"]:
-                minioAdmin.group_remove(group_code, old_user)
-            group.users[:] = []
+            group_info = minio_admin.get_group(group_code)
+            minio_admin.group_remove(group_code, *group_info["members"])
+            group.users = []
 
         for user in users:
             # Add to db groups
             group.users.append(user)
             # Update/add them to the minio groups
-            minioAdmin.group_add(group_code, user.minio_access_key)
+            minio_admin.group_add(group_code, user.minio_access_key)
         # Reset policy for group in case the group did not exist
-        minioAdmin.set_policy(group_code, group=group_code)
+        minio_admin.set_policy(group_code, group=group_code)
 
     try:
         db.session.commit()
@@ -129,7 +128,7 @@ def update_group(group_code):
 @check_admin
 def create_group():
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     group_name = request.json.get("group_name")
     group_code = request.json.get("group_code")
@@ -155,38 +154,37 @@ def create_group():
         # Make sure all users are valid
         if len(users) != len(request.json["users"]):
             return "Invalid username provided", 404
-        for user in users:
-            group_obj.users.append(user)
+        group_obj.users += users
 
-    minioClient = Minio(
+    minio_client = Minio(
         app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
         secure=False,
     )
 
-    minioAdmin = MinioAdmin(
+    minio_admin = MinioAdmin(
         endpoint=app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
     )
 
     # Create minio bucket via mc, 422 if it already exists
-    if minioClient.bucket_exists(group_code):
+    if minio_client.bucket_exists(group_code):
         return "Minio bucket already exists", 422
 
-    minioClient.make_bucket(group_code)
+    minio_client.make_bucket(group_code)
     # Make corresponding policy
     policy = readwrite_buckets_policy(group_code)
-    minioAdmin.add_policy(group_code, policy)
+    minio_admin.add_policy(group_code, policy)
 
     # Add users to minio group if applicable, creating group as well
     if request.json.get("users"):
         for user in users:
-            minioAdmin.group_add(group_code, user.minio_access_key)
+            minio_admin.group_add(group_code, user.minio_access_key)
 
         # Set group access policy to the bucket by the same name
-        minioAdmin.set_policy(group_code, group=group_code)
+        minio_admin.set_policy(group_code, group=group_code)
 
     db.session.add(group_obj)
     transaction_or_abort(db.session.commit)
@@ -203,7 +201,7 @@ def delete_group(group_code):
 
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
-    minioAdmin = MinioAdmin(
+    minio_admin = MinioAdmin(
         endpoint=app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
@@ -214,8 +212,8 @@ def delete_group(group_code):
         return "Group has users, cannot delete!", 422
 
     # Check group users in minio, in case it is somehow different from db
-    if group_code in minioAdmin.list_groups():
-        group_info = minioAdmin.get_group(group_code)
+    if group_code in minio_admin.list_groups():
+        group_info = minio_admin.get_group(group_code)
         if "members" in group_info:
             return "Group has users, cannot delete!", 422
 
@@ -223,7 +221,7 @@ def delete_group(group_code):
         # Try deleting minio group as well
         db.session.delete(group)
         db.session.commit()
-        minioAdmin.group_remove(group_code)
+        minio_admin.group_remove(group_code)
         return "Deletion successful", 204
     except:
         db.session.rollback()
