@@ -13,7 +13,7 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { formatDateString, jsonToAnalyses, isRowSelected } from "../utils/functions";
+import { formatDateString, jsonToAnalyses, isRowSelected, exportCSV } from "../utils/functions";
 import { Analysis, PipelineStatus } from "../utils/typings";
 import AnalysisInfoDialog from "../utils/components/AnalysisInfoDialog";
 import CancelAnalysisDialog from "./CancelAnalysisDialog";
@@ -372,6 +372,9 @@ export default function Analyses() {
                         search: false,
                         padding: "dense",
                         selection: true,
+                        exportAllData: true,
+                        exportButton: { csv: true, pdf: false },
+                        exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
                     }}
                     actions={[
                         {
