@@ -20,7 +20,7 @@ import {
 } from "@material-ui/core";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../utils/typings";
-import { Option, getOptions as _getOptions, getColumns } from "./utils";
+import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../utils/functions";
@@ -120,9 +120,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
-    type ParticipantColumn = "participant_type" | "sex" | "affected" | "solved";
-    const participantCols: ParticipantColumn[] = ["participant_type", "sex", "affected", "solved"];
-
     useEffect(() => {
         fetch("/api/families")
             .then(response => response.json())
@@ -168,7 +165,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 const participant = findParticipant(newValue as string, col.field, value, families);
                 if (participant) {
                     return setProp(
-                        participantCols.reduce(
+                        participantColumns.reduce(
                             (row, currCol) => setProp(row, currCol, participant[currCol]),
                             setProp({ ...value }, "participantColDisabled", true)
                         ),
@@ -291,7 +288,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         required
                                         disabled={
                                             row.participantColDisabled &&
-                                            !!participantCols.find(currCol => currCol === col.field)
+                                            !!participantColumns.find(
+                                                currCol => currCol === col.field
+                                            )
                                         }
                                     />
                                 ))}
@@ -307,7 +306,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 key={col.field}
                                                 disabled={
                                                     row.participantColDisabled &&
-                                                    !!participantCols.find(
+                                                    !!participantColumns.find(
                                                         currCol => currCol === col.field
                                                     )
                                                 }
