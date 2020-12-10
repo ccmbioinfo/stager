@@ -40,5 +40,6 @@ def create_app(config):
         from . import families
         from . import datasets
         from . import participants
+        from . import groups
 
         return app
