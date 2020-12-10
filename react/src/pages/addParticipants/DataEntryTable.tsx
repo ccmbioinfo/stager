@@ -119,8 +119,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [files, setFiles] = useState<string[]>([]);
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
-    // rows where participant associated columns are disabled
-    const [disabledRows, setDisabledRows] = useState<number[]>([]);
+
     type ParticipantColumn = "participant_type" | "sex" | "affected" | "solved";
     const participantCols: ParticipantColumn[] = ["participant_type", "sex", "affected", "solved"];
 
@@ -168,18 +167,20 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             if (autopopulate && index === rowIndex) {
                 const participant = findParticipant(newValue as string, col.field, value, families);
                 if (participant) {
-                    setDisabledRows([...disabledRows, rowIndex]);
                     return setProp(
                         participantCols.reduce(
                             (row, currCol) => setProp(row, currCol, participant[currCol]),
-                            { ...value }
+                            setProp({ ...value }, "participantColDisabled", true)
                         ),
                         col.field,
                         newValue
                     );
                 } else {
-                    setDisabledRows(disabledRows.filter(currRow => currRow !== rowIndex));
-                    return setProp({ ...value }, col.field, newValue);
+                    return setProp(
+                        setProp({ ...value }, "participantColDisabled", false),
+                        col.field,
+                        newValue
+                    );
                 }
             } else if (index === rowIndex) {
                 return setProp({ ...value }, col.field, newValue);
@@ -289,7 +290,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         key={col.field}
                                         required
                                         disabled={
-                                            !!disabledRows.find(currRow => currRow === rowIndex) &&
+                                            row.participantColDisabled &&
                                             !!participantCols.find(currCol => currCol === col.field)
                                         }
                                     />
@@ -305,9 +306,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 key={col.field}
                                                 disabled={
-                                                    !!disabledRows.find(
-                                                        currRow => currRow === rowIndex
-                                                    ) &&
+                                                    row.participantColDisabled &&
                                                     !!participantCols.find(
                                                         currCol => currCol === col.field
                                                     )
