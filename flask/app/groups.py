@@ -144,18 +144,6 @@ def create_group():
     ).value("group_id"):
         return "Group already exists", 422
 
-    group_obj = models.Group(group_code=group_code, group_name=group_name)
-
-    # Add users to the db if they were given
-    if request.json.get("users"):
-        users = models.User.query.filter(
-            models.User.username.in_(request.json["users"])
-        ).all()
-        # Make sure all users are valid
-        if len(users) != len(request.json["users"]):
-            return "Invalid username provided", 404
-        group_obj.users += users
-
     minio_client = Minio(
         app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
@@ -169,11 +157,26 @@ def create_group():
         secret_key=app.config["MINIO_SECRET_KEY"],
     )
 
-    # Create minio bucket via mc, 422 if it already exists
-    if minio_client.bucket_exists(group_code):
-        return "Minio bucket already exists", 422
+    try:
+        # Create minio bucket via mc, 422 if it already exists
+        if minio_client.bucket_exists(group_code):
+            return "Minio bucket already exists", 422
+        minio_client.make_bucket(group_code)
+    except:
+        return "Invalid bucket name", 422
 
-    minio_client.make_bucket(group_code)
+    group_obj = models.Group(group_code=group_code, group_name=group_name)
+
+    # Add users to the db if they were given
+    if request.json.get("users"):
+        users = models.User.query.filter(
+            models.User.username.in_(request.json["users"])
+        ).all()
+        # Make sure all users are valid
+        if len(users) != len(request.json["users"]):
+            return "Invalid username provided", 404
+        group_obj.users += users
+
     # Make corresponding policy
     policy = readwrite_buckets_policy(group_code)
     minio_admin.add_policy(group_code, policy)

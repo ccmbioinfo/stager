@@ -200,6 +200,14 @@ def test_create_group(test_database, client, login_as, minioAdmin):
         ).status_code
         == 422
     )
+    # Test invlaid bucket name
+    assert (
+        client.post(
+            "/api/groups",
+            json={"group_code": "sk", "group_name": "Invalid s3 bucket name"},
+        ).status_code
+        == 422
+    )
 
     # Test success with no users and check db and minio
     assert (
