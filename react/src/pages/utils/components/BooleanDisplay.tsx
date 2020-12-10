@@ -13,20 +13,11 @@ export default function BooleanDisplay(props: {
     const [value, setValue] = useState<string>("");
 
     useEffect(() => {
-        let switchValue: PseudoBoolean;
-
-        if (props.type === "row") {
-            switchValue = (props.value as any)[props.fieldName];
-        } else {
-            switchValue = props.value;
-        }
+        const switchValue: PseudoBoolean =
+            props.type === "row" ? (props.value as any)[props.fieldName] : props.value;
 
         setValue(PseudoBooleanReadableMap[switchValue]);
     }, [props.type, props.value, props.fieldName]);
 
-    return (
-        <>
-            <b>{value}</b>
-        </>
-    );
+    return <>{value}</>;
 }
