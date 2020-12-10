@@ -7,7 +7,7 @@ from minio import Minio
 
 
 @pytest.fixture
-def minioAdmin():
+def minio_admin():
     madmin = MinioAdmin(
         endpoint=TestConfig.MINIO_ENDPOINT,
         access_key=TestConfig.MINIO_ACCESS_KEY,
@@ -105,7 +105,7 @@ def test_get_group(test_database, client, login_as):
 # DELETE /api/groups/:id
 
 
-def test_delete_group(test_database, client, login_as, minioAdmin):
+def test_delete_group(test_database, client, login_as, minio_admin):
 
     # Test without permission
     login_as("user")
@@ -127,7 +127,7 @@ def test_delete_group(test_database, client, login_as, minioAdmin):
     group.users = []
 
     db.session.commit()
-    minioAdmin.remove_user("user")
+    minio_admin.remove_user("user")
 
     login_as("admin")
     assert client.delete("/api/groups/ach").status_code == 204
@@ -135,13 +135,13 @@ def test_delete_group(test_database, client, login_as, minioAdmin):
     # Make sure it's gone
     group = models.Group.query.filter_by(group_code="ach").one_or_none()
     assert group == None
-    assert len(minioAdmin.list_groups()) == 0
+    assert len(minio_admin.list_groups()) == 0
 
 
 # PATCH /api/groups/:id
 
 
-def test_update_group(test_database, client, login_as, minioAdmin):
+def test_update_group(test_database, client, login_as, minio_admin):
     login_as("admin")
     # Test existence
     assert (
@@ -149,10 +149,10 @@ def test_update_group(test_database, client, login_as, minioAdmin):
     )
 
     # Test success and check db and minio
-    ad = models.User.query.filter(models.User.username == "admin").one_or_none()
-    ad.minio_access_key = "admin"
-    user = models.User.query.filter(models.User.username == "user").one_or_none()
-    user.minio_access_key = "user"
+    # ad = models.User.query.filter(models.User.username == "admin").one_or_none()
+    # ad.minio_access_key = "admin"
+    # user = models.User.query.filter(models.User.username == "user").one_or_none()
+    # user.minio_access_key = "user"
     assert (
         client.patch(
             "/api/groups/ach", json={"group_name": "Alberta2", "users": ["admin"]}
@@ -179,7 +179,7 @@ def test_update_group(test_database, client, login_as, minioAdmin):
 # POST /api/groups
 
 
-def test_create_group(test_database, client, login_as, minioAdmin):
+def test_create_group(test_database, client, login_as, minio_admin):
     login_as("user")
     assert client.post("/api/groups").status_code == 401
 
@@ -200,7 +200,7 @@ def test_create_group(test_database, client, login_as, minioAdmin):
         ).status_code
         == 422
     )
-    # Test invlaid bucket name
+    # Test invalid bucket name
     assert (
         client.post(
             "/api/groups",
@@ -220,16 +220,16 @@ def test_create_group(test_database, client, login_as, minioAdmin):
     group = models.Group.query.filter(models.Group.group_code == "code").one_or_none()
     assert group is not None
     assert len(group.users) == 0
-    assert len(minioAdmin.list_policies()) == 6
-    minioClient = Minio(
+    assert len(minio_admin.list_policies()) == 6
+    minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
         access_key=TestConfig.MINIO_ACCESS_KEY,
         secret_key=TestConfig.MINIO_SECRET_KEY,
         secure=False,
     )
     # Clean up
-    minioClient.remove_bucket("code")
-    minioAdmin.remove_policy("code")
+    minio_client.remove_bucket("code")
+    minio_admin.remove_policy("code")
 
     # Test success with users and check db and minio
     user = models.User.query.filter(models.User.username == "user").one_or_none()
@@ -249,16 +249,16 @@ def test_create_group(test_database, client, login_as, minioAdmin):
     group = models.Group.query.filter(models.Group.group_code == "code2").one_or_none()
     assert group is not None
     assert len(group.users) == 1
-    assert len(minioAdmin.list_policies()) == 6
-    assert len(minioAdmin.get_group("code2")["members"]) == 1
-    minioClient = Minio(
+    assert len(minio_admin.list_policies()) == 6
+    assert len(minio_admin.get_group("code2")["members"]) == 1
+    minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
         access_key=TestConfig.MINIO_ACCESS_KEY,
         secret_key=TestConfig.MINIO_SECRET_KEY,
         secure=False,
     )
     # Clean up
-    minioClient.remove_bucket("code2")
-    minioAdmin.remove_policy("code2")
-    minioAdmin.remove_user("user")
-    minioAdmin.group_remove("code2")
+    minio_client.remove_bucket("code2")
+    minio_admin.remove_policy("code2")
+    minio_admin.remove_user("user")
+    minio_admin.group_remove("code2")

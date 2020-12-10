@@ -64,11 +64,13 @@ def test_database(client):
 
     admin = User(username="admin", email="noreply@sickkids.ca", is_admin=True)
     admin.set_password("admin")
+    admin.minio_access_key="admin"
     db.session.add(admin)
     db.session.flush()
 
     user = User(username="user", email="test@sickkids.ca")
     user.set_password("user")
+    user.minio_access_key="user"
     user.groups.append(group)
     db.session.add(user)
     db.session.flush()
