@@ -43,5 +43,4 @@ def create_app(config):
         from . import tissue_samples
         from . import groups
 
-
         return app
