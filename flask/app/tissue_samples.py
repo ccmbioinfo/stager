@@ -54,7 +54,18 @@ def get_tissue_sample(id: int):
     return jsonify(
         {
             **asdict(tissue_sample),
-            "datasets": tissue_sample.datasets,
+            "created_by": tissue_sample.created_by_id
+            and tissue_sample.created_by.username,
+            "updated_by": tissue_sample.updated_by_id
+            and tissue_sample.updated_by.username,
+            "datasets": [
+                {
+                    **asdict(dataset),
+                    "created_by": dataset.created_by_id and dataset.created_by.username,
+                    "updated_by": dataset.updated_by_id and dataset.updated_by.username,
+                }
+                for dataset in tissue_sample.datasets
+            ],
         }
     )
 
@@ -123,7 +134,19 @@ def create_tissue_sample():
         db.session.commit()
         ts_id = tissue_sample.tissue_sample_id
         location_header = "/api/tissue_samples/{}".format(ts_id)
-        return jsonify(tissue_sample), 201, {"location": location_header}
+        return (
+            jsonify(
+                {
+                    **asdict(tissue_sample),
+                    "created_by": tissue_sample.created_by_id
+                    and tissue_sample.created_by.username,
+                    "updated_by": tissue_sample.updated_by_id
+                    and tissue_sample.updated_by.username,
+                }
+            ),
+            201,
+            {"location": location_header},
+        )
     except:
         db.session.rollback()
         return "Server error", 500
@@ -178,4 +201,12 @@ def update_tissue_sample(id: int):
 
     transaction_or_abort(db.session.commit)
 
-    return jsonify(tissue_sample)
+    return jsonify(
+        {
+            **asdict(tissue_sample),
+            "created_by": tissue_sample.created_by_id
+            and tissue_sample.created_by.username,
+            "updated_by": tissue_sample.updated_by_id
+            and tissue_sample.updated_by.username,
+        }
+    )
