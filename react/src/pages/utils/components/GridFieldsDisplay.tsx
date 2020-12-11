@@ -42,14 +42,16 @@ export default function GridFieldsDisplay(props: {
     if (props.orderPriority === "left-right") {
         for (let i = 0; i < props.fields.length; i += numColumns) {
             for (let j = 0; j < numColumns; j++) {
-                if (i + j < props.fields.length) fieldColumns[j].push(props.fields[i + j]);
+                const index = i + j;
+                if (index < props.fields.length) fieldColumns[j].push(props.fields[index]);
             }
         }
     } else {
         const cap = Math.ceil(props.fields.length / numColumns);
         for (let i = 0; i < numColumns; i++) {
             for (let j = 0; j < cap; j++) {
-                if (i + j < props.fields.length) fieldColumns[i].push(props.fields[i + j]);
+                const index = j + cap * i;
+                if (index < props.fields.length) fieldColumns[i].push(props.fields[index]);
             }
         }
     }
