@@ -45,10 +45,7 @@ def get_unlinked_files():
             all_files.append(bucket + "/" + obj.object_name)
 
     # Get all linked files
-    linked_files = {}
-    for dataset in models.Dataset.query.all():
-        for path in dataset.linked_files:
-            linked_files[path] = ":)"
+    linked_files = {f.path: ":)" for f in models.DatasetFile.query.all()}
 
     # Put all unlinked files in new list
     unlinked_files = []

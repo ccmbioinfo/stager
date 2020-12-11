@@ -325,8 +325,8 @@ class RNASeqDataset(Dataset):
 
 @dataclass
 class DatasetFile(db.Model):
-    file_id: int = db.Column(db.Integer, primary_key=True)
-    dataset_id: int = db.Column(
+    file_id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(
         db.Integer,
         db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
         nullable=False,
