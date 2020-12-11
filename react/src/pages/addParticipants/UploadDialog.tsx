@@ -8,6 +8,7 @@ import {
     Grid,
     makeStyles,
 } from "@material-ui/core";
+import { useSnackbar } from "notistack";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -43,29 +44,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function sendFile(file: File | null) {
-    if (file !== null) {
-        // Upload
-        fetch("/api/_bulk", {
-            method: "POST",
-            body: file,
-            headers: new Headers({
-                "Content-Type": "text/csv",
-            }),
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
-}
-
 export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     const classes = useStyles();
     const [file, setFile] = React.useState<File | null>(null);
+    const { enqueueSnackbar } = useSnackbar();
 
     // File reference gets set here
     function onFileAdd(files: FileList | null) {
@@ -74,6 +56,32 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
             console.log(files[0].name);
         } else {
             setFile(null);
+        }
+    }
+
+    async function sendFile(file: File | null) {
+        if (file !== null) {
+            // Upload
+            const response = await fetch("/api/_bulk", {
+                method: "POST",
+                body: file,
+                headers: new Headers({
+                    "Content-Type": "text/csv",
+                }),
+            });
+            if (response.ok) {
+                enqueueSnackbar(`File ${file.name} uploaded successfully`, {
+                    variant: "success",
+                });
+            } else {
+                console.error(
+                    `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
+                );
+                enqueueSnackbar(
+                    `Failed to upload file ${file.name}. Error: ${response.status} - ${response.statusText}`,
+                    { variant: "error" }
+                );
+            }
         }
     }
 
