@@ -449,7 +449,7 @@ def bulk_update():
             if request.content_type == "text/csv":
                 files = row.get("linked_files", "").split("|")
             else:
-                files = row.get("linked_files", "")
+                files = row.get("linked_files", [])
             dts_objs.files += [models.DatasetFile(path=path) for path in files if path]
             db.session.add(dts_objs)
             transaction_or_abort(db.session.flush)

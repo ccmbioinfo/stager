@@ -253,7 +253,7 @@ def update_analysis(id: int):
         "analysis_state",
         "pipeline_id",
         "qsub_id",
-        "result_hpf_path",
+        "result_path",
         "requested",
         "started",
         "finished",

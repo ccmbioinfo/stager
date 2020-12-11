@@ -337,8 +337,8 @@ export default function Analyses() {
                             render: rowData => formatDateString(rowData.updated),
                         },
                         {
-                            title: "Result HPF Path",
-                            field: "result_hpf_path",
+                            title: "Path Prefix",
+                            field: "result_path",
                             type: "string",
                         },
                         {
@@ -529,7 +529,7 @@ export default function Analyses() {
                                 method: "PATCH",
                                 body: JSON.stringify({
                                     notes: newData.notes,
-                                    result_hpf_path: newData.result_hpf_path,
+                                    result_path: newData.result_path,
                                 }),
                                 headers: {
                                     "Content-Type": "application/json",

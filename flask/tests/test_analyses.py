@@ -99,12 +99,12 @@ def test_update_participant(test_database, client, login_as):
     login_as("user")
     # Test existence
     assert (
-        client.patch("/api/analyses/4", json={"result_hpf_path": "blank"}).status_code
+        client.patch("/api/analyses/4", json={"result_path": "blank"}).status_code
         == 404
     )
     # Test permission
     assert (
-        client.patch("/api/analyses/3", json={"result_hpf_path": "blank"}).status_code
+        client.patch("/api/analyses/3", json={"result_path": "blank"}).status_code
         == 404
     )
     # Test assignee does not exist

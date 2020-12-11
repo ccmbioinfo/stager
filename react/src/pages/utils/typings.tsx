@@ -80,7 +80,7 @@ export interface Dataset {
 export interface Analysis {
     analysis_id: string;
     pipeline_id: string;
-    result_hpf_path: string;
+    result_path: string;
     assignee: string;
     requester: string;
     analysis_state: PipelineStatus;
