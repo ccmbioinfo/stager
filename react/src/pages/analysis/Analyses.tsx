@@ -39,6 +39,14 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+function pipeName(row: Analysis) {
+    if (row.pipeline) {
+        return `${row.pipeline.pipeline_name} ${row.pipeline.pipeline_version}`;
+    } else {
+        return "";
+    }
+}
+
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
     let returnStr = "";
@@ -310,10 +318,13 @@ export default function Analyses() {
                         },
                         {
                             title: "Pipeline",
-                            field: "pipeline_id",
+                            field: "pipeline_name",
                             type: "string",
-                            editable: "never",
                             width: "8%",
+                            editable: "never",
+                            render: (row, type) => pipeName(row),
+                            customFilterAndSearch: (term: string, row) =>
+                                pipeName(row).toLowerCase().includes(term.toLowerCase()),
                         },
                         {
                             title: "Assignee",

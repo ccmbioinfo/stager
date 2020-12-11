@@ -92,6 +92,7 @@ export interface Analysis {
     started: string;
     finished: string;
     updated_by: number;
+    pipeline: Pipeline;
 }
 export interface Pipeline {
     pipeline_id: number;
