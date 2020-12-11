@@ -153,3 +153,71 @@ def test_post_bulk(test_database, client, login_as):
     assert random_participant is not None
     assert len(random_participant.tissue_samples) == 1
     assert len(random_participant.tissue_samples[0].datasets) == 1
+
+
+def test_bulk_multiple_csv(test_database, client, login_as):
+    login_as("admin")
+
+    assert (
+        client.post(
+            "/api/_bulk",
+            data="""
+family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,linked_files,notes
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,/path/foo|/path/bar||,
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,/path/yeet|/path/cross|/foo/bar,three
+""",
+            headers={"Content-Type": "text/csv"},
+        ).status_code
+        == 200
+    )
+
+    for dataset in models.Dataset.query.all():
+        print(dataset)
+    assert models.Dataset.query.count() == 6
+    assert models.DatasetFile.query.count() == 5
+    assert models.TissueSample.query.count() == 5
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+
+def test_bulk_multiple_json(test_database, client, login_as):
+    login_as("admin")
+
+    assert (
+        client.post(
+            "/api/_bulk",
+            json=[
+                {
+                    "family_codename": "HOOD",
+                    "participant_codename": "HERO",
+                    "participant_type": "Proband",
+                    "tissue_sample_type": "Saliva",
+                    "dataset_type": "WGS",
+                    "sex": "Female",
+                    "condition": "GermLine",
+                    "linked_files": ["/otonashi/yuzuru", "/tachibana/kanade"],
+                },
+                {
+                    "family_codename": "HOOD",
+                    "participant_codename": "HERO",
+                    "participant_type": "Proband",
+                    "tissue_sample_type": "Saliva",
+                    "dataset_type": "WES",
+                    "sex": "Female",
+                    "condition": "GermLine",
+                    "linked_files": [
+                        "",
+                        "/perfectly/balanced",
+                        "/as/all/things/should/be",
+                    ],
+                },
+            ],
+        ).status_code
+        == 200
+    )
+
+    assert models.Dataset.query.count() == 6
+    assert models.DatasetFile.query.count() == 4
+    assert models.TissueSample.query.count() == 5
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
