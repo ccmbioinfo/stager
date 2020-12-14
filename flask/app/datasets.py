@@ -121,10 +121,9 @@ def get_dataset(id: int):
             "analyses": [
                 {
                     **asdict(analysis),
-                    "requester": analysis.requester_user.username,
-                    "updated_by": analysis.updated_by_user.username,
-                    "assignee": analysis.assignee_user
-                    and analysis.assignee_user.username,
+                    "requester": analysis.requester.username,
+                    "updated_by_id": analysis.updated_by.username,
+                    "assignee": analysis.assignee_id and analysis.assignee.username,
                 }
                 for analysis in dataset.analyses
             ],
@@ -164,7 +163,7 @@ def update_dataset(id: int):
         return enum_error, 400
 
     if user_id:
-        dataset.updated_by = user_id
+        dataset.updated_by_id = user_id
 
     routes.transaction_or_abort(db.session.commit)
 
@@ -196,7 +195,7 @@ def delete_dataset(id: int):
 @login_required
 def create_dataset():
     if not request.json:
-        return "Request body must be JSON", 400
+        return "Request body must be JSON", 415
 
     dataset_type = request.json.get("dataset_type")
     if not dataset_type:
@@ -216,9 +215,9 @@ def create_dataset():
         return enum_error, 400
 
     try:
-        created_by = updated_by = current_user.user_id
+        created_by_id = updated_by_id = current_user.user_id
     except:  # LOGIN DISABLED
-        created_by = updated_by = 1
+        created_by_id = updated_by_id = 1
 
     dataset = models.Dataset(
         **{
@@ -237,8 +236,8 @@ def create_dataset():
             "sequencing_date": request.json.get("sequencing_date"),
             "sequencing_centre": request.json.get("sequencing_centre"),
             "batch_id": request.json.get("batch_id"),
-            "created_by": created_by,
-            "updated_by": updated_by,
+            "created_by_id": created_by_id,
+            "updated_by_id": updated_by_id,
             "discriminator": request.json.get("discriminator"),
         }
     )

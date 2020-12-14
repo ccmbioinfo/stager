@@ -13,7 +13,7 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { formatDateString, jsonToAnalyses, isRowSelected } from "../utils/functions";
+import { formatDateString, jsonToAnalyses, isRowSelected, exportCSV } from "../utils/functions";
 import { Analysis, PipelineStatus } from "../utils/typings";
 import AnalysisInfoDialog from "../utils/components/AnalysisInfoDialog";
 import CancelAnalysisDialog from "./CancelAnalysisDialog";
@@ -38,6 +38,14 @@ const useStyles = makeStyles(theme => ({
         colorPrimary: theme.palette.primary,
     },
 }));
+
+function pipeName(row: Analysis) {
+    if (row.pipeline) {
+        return `${row.pipeline.pipeline_name} ${row.pipeline.pipeline_version}`;
+    } else {
+        return "";
+    }
+}
 
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
@@ -87,13 +95,6 @@ function cancelFilter(row: Analysis) {
  */
 function runFilter(row: Analysis) {
     return row.analysis_state === PipelineStatus.PENDING;
-}
-
-interface ChangeStateReturnType {
-    newRows: Analysis[];
-    changed: number;
-    skipped: number;
-    failed: number;
 }
 
 /**
@@ -310,10 +311,13 @@ export default function Analyses() {
                         },
                         {
                             title: "Pipeline",
-                            field: "pipeline_id",
+                            field: "pipeline_name",
                             type: "string",
-                            editable: "never",
                             width: "8%",
+                            editable: "never",
+                            render: (row, type) => pipeName(row),
+                            customFilterAndSearch: (term: string, row) =>
+                                pipeName(row).toLowerCase().includes(term.toLowerCase()),
                         },
                         {
                             title: "Assignee",
@@ -372,6 +376,9 @@ export default function Analyses() {
                         search: false,
                         padding: "dense",
                         selection: true,
+                        exportAllData: true,
+                        exportButton: { csv: true, pdf: false },
+                        exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
                     }}
                     actions={[
                         {

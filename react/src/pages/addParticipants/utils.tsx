@@ -3,7 +3,12 @@ import { getDataEntryHeaders, snakeCaseToTitle } from "../utils/functions";
 
 export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
 export const dateColumns: Array<keyof DataEntryRow> = ["sequencing_date"];
-
+export const participantColumns: ("participant_type" | "sex" | "affected" | "solved")[] = [
+    "participant_type",
+    "sex",
+    "affected",
+    "solved",
+];
 // Columns whose values are predefined
 export const enumerableColumns: Array<keyof DataEntryRow> = [
     "input_hpf_path",

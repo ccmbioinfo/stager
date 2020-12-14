@@ -5,7 +5,7 @@ import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { toKeyValue, formatDateString, rowDiff } from "../utils/functions";
+import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../utils/functions";
 import { KeyValue, Dataset, Pipeline } from "../utils/typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
@@ -104,11 +104,15 @@ export default function DatasetTable() {
                     }}
                     onUpdate={(dataset_id: string, newDataset: { [key: string]: any }) => {
                         setDatasets(
-                            datasets.map(dataset =>
-                                dataset.dataset_id === dataset_id
-                                    ? { ...dataset, ...newDataset }
-                                    : dataset
-                            )
+                            datasets.map(dataset => {
+                                if (dataset.dataset_id === dataset_id) {
+                                    const updatedDataset = { ...dataset, ...newDataset };
+                                    setInfoDataset(updatedDataset);
+                                    return updatedDataset;
+                                } else {
+                                    return dataset;
+                                }
+                            })
                         );
                     }}
                 />
@@ -190,6 +194,9 @@ export default function DatasetTable() {
                     search: false,
                     padding: "dense",
                     grouping: true,
+                    exportAllData: true,
+                    exportButton: { csv: true, pdf: false },
+                    exportCsv: (columns, data) => exportCSV(columns, data, "Datasets"),
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {

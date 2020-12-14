@@ -4,7 +4,7 @@ import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../utils/functions";
+import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -76,11 +76,18 @@ export default function ParticipantTable() {
                         newParticipant.solved += "";
                         newParticipant.affected += "";
                         setParticipants(
-                            participants.map(participant =>
-                                participant.participant_id === participant_id
-                                    ? { ...participant, ...newParticipant }
-                                    : participant
-                            )
+                            participants.map(participant => {
+                                if (participant.participant_id === participant_id) {
+                                    const updatedParticipant = {
+                                        ...participant,
+                                        ...newParticipant,
+                                    };
+                                    setActiveRow(updatedParticipant);
+                                    return updatedParticipant;
+                                } else {
+                                    return participant;
+                                }
+                            })
                         );
                     }}
                     onClose={() => {
@@ -164,6 +171,9 @@ export default function ParticipantTable() {
                     search: false,
                     padding: "dense",
                     grouping: true,
+                    exportAllData: true,
+                    exportButton: { csv: true, pdf: false },
+                    exportCsv: (columns, data) => exportCSV(columns, data, "Participants"),
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {

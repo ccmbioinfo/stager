@@ -92,6 +92,7 @@ export interface Analysis {
     started: string;
     finished: string;
     updated_by: number;
+    pipeline: Pipeline;
 }
 export interface Pipeline {
     pipeline_id: number;
@@ -143,7 +144,9 @@ export class DataEntryRowRNASeq {
     spike_in?: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {}
+export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
+    participantColDisabled?: boolean;
+}
 
 export interface DataEntryHeader {
     title: string;
