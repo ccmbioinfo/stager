@@ -3,8 +3,8 @@ import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 
-import LoginForm from "./pages/Login";
-import Navigation from "./pages/Navigation";
+import LoginForm from "./Login";
+import Navigation from "./Navigation";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
