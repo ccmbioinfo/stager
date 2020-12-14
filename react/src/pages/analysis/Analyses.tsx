@@ -97,13 +97,6 @@ function runFilter(row: Analysis) {
     return row.analysis_state === PipelineStatus.PENDING;
 }
 
-interface ChangeStateReturnType {
-    newRows: Analysis[];
-    changed: number;
-    skipped: number;
-    failed: number;
-}
-
 /**
  * Sends a PATCH request to /api/analyses/:id to update the state of all selected rows.
  * Returns a new list of Analyses, as well as the number of rows that changed, were skipped, or failed to change.
