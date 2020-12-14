@@ -279,8 +279,6 @@ export function stringToBoolean(value: PseudoBoolean) {
             return false;
         case "null":
             return null;
-        case "undefined":
-            return undefined;
         default:
             return value;
     }

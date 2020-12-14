@@ -168,10 +168,9 @@ export interface Field {
     disableEdit?: boolean;
 }
 
-export type PseudoBoolean = "true" | "false" | "null" | "undefined";
+export type PseudoBoolean = "true" | "false" | "null";
 export const PseudoBooleanReadableMap: Record<PseudoBoolean, string> = {
     true: "Yes",
     false: "No",
     null: "Unknown",
-    undefined: "Not specified",
 };

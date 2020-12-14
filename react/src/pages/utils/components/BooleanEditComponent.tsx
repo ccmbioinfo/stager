@@ -10,9 +10,7 @@ export default function BooleanEditComponent<RowData extends object>(
     props: Pick<EditComponentProps<RowData>, "value" | "onChange"> &
         Partial<Exclude<EditComponentProps<RowData>, "value" | "onChange">>
 ) {
-    const options = Object.keys(PseudoBooleanReadableMap).filter(
-        key => key !== "undefined" // Can set null, but not undefined
-    ) as PseudoBoolean[];
+    const options = Object.keys(PseudoBooleanReadableMap) as PseudoBoolean[];
 
     return (
         <FormControl error={Boolean(props.error)}>
