@@ -80,13 +80,14 @@ export default function DatasetInfoDialog(props: DialogProp) {
     }, [props.dataset]);
 
     return (
-        <Dialog onClose={props.onClose} aria-labelledby={labeledBy} open={props.open} maxWidth="lg" fullWidth>
-            <DialogHeader
-                id={labeledBy}
-                onClose={
-                    props.onClose
-                }
-            >
+        <Dialog
+            onClose={props.onClose}
+            aria-labelledby={labeledBy}
+            open={props.open}
+            maxWidth="lg"
+            fullWidth
+        >
+            <DialogHeader id={labeledBy} onClose={props.onClose}>
                 Details of Dataset ID {props.dataset.dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>

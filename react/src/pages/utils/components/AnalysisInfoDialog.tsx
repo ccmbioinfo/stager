@@ -83,7 +83,10 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection fields={getAnalysisFields(props.analysis, pipeline)} enums={enums} />
+                    <DetailSection
+                        fields={getAnalysisFields(props.analysis, pipeline)}
+                        enums={enums}
+                    />
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
