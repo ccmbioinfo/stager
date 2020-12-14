@@ -48,12 +48,7 @@ interface DialogProp {
     onUpdate: (participant_id: string, newParticipant: { [key: string]: any }) => void;
 }
 
-export default function ParticipantInfoDialog({
-    participant,
-    open,
-    onClose,
-    onUpdate,
-}: DialogProp) {
+export default function ParticipantInfoDialog(props: DialogProp) {
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -75,7 +70,7 @@ export default function ParticipantInfoDialog({
 
     useEffect(() => {
         (async () => {
-            const datasets = participant.tissue_samples.flatMap(sample => sample.datasets);
+            const datasets = props.participant.tissue_samples.flatMap(sample => sample.datasets);
             let analysisList: Analysis[] = [];
             for (const dataset of datasets) {
                 const response = await fetch("/api/datasets/" + dataset.dataset_id);
@@ -97,37 +92,37 @@ export default function ParticipantInfoDialog({
                 console.error(error);
                 enqueueSnackbar(error.message, { variant: "error" });
             });
-    }, [participant, enqueueSnackbar]);
+    }, [props.participant, enqueueSnackbar]);
 
     return (
         <Dialog
-            onClose={onClose}
+            onClose={props.onClose}
             aria-labelledby={labeledBy}
-            open={open}
+            open={props.open}
             maxWidth="lg"
             fullWidth={true}
         >
-            <DialogHeader id={labeledBy} onClose={onClose}>
-                Details of Participant {participant.participant_codename}
+            <DialogHeader id={labeledBy} onClose={props.onClose}>
+                Details of Participant {props.participant.participant_codename}
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
                     <DetailSection
-                        fields={getParticipantFields(participant)}
+                        fields={getParticipantFields(props.participant)}
                         enums={enums}
                         dataInfo={{
                             type: "participant",
-                            ID: participant.participant_id,
-                            identifier: participant.participant_codename,
-                            onUpdate: onUpdate,
+                            ID: props.participant.participant_id,
+                            identifier: props.participant.participant_codename,
+                            onUpdate: props.onUpdate,
                         }}
                     />
                 </div>
-                {participant.tissue_samples.length > 0 && (
+                {props.participant.tissue_samples.length > 0 && (
                     <>
                         <Divider />
                         <div>
-                            <SampleTable samples={participant.tissue_samples} enums={enums} />
+                            <SampleTable samples={props.participant.tissue_samples} enums={enums} />
                         </div>
                     </>
                 )}

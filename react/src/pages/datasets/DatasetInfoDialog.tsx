@@ -45,7 +45,7 @@ interface DialogProp {
     onUpdate: (dataset_id: string, newDataset: { [key: string]: any }) => void;
 }
 
-export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: DialogProp) {
+export default function DatasetInfoDialog(props: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
 
@@ -68,7 +68,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
     }, []);
 
     useEffect(() => {
-        fetch("/api/datasets/" + dataset.dataset_id)
+        fetch("/api/datasets/" + props.dataset.dataset_id)
             .then(response => response.json())
             .then(data => {
                 setAnalyses(data.analyses as Analysis[]);
@@ -77,30 +77,30 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
             .catch(error => {
                 console.error(error);
             });
-    }, [dataset]);
+    }, [props.dataset]);
 
     return (
-        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
+        <Dialog onClose={props.onClose} aria-labelledby={labeledBy} open={props.open} maxWidth="lg" fullWidth>
             <DialogHeader
                 id={labeledBy}
-                onClose={() => {
-                    onClose();
-                }}
+                onClose={
+                    props.onClose
+                }
             >
-                Details of Dataset ID {dataset.dataset_id}
+                Details of Dataset ID {props.dataset.dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
-                    {dataset && (
+                    {props.dataset && (
                         <DetailSection
-                            fields={getDatasetFields(dataset)}
+                            fields={getDatasetFields(props.dataset)}
                             enums={enums}
-                            collapsibleFields={getSecDatasetFields(dataset)}
+                            collapsibleFields={getSecDatasetFields(props.dataset)}
                             dataInfo={{
                                 type: "dataset",
-                                ID: dataset.dataset_id,
-                                identifier: dataset.dataset_id,
-                                onUpdate: onUpdate,
+                                ID: props.dataset.dataset_id,
+                                identifier: props.dataset.dataset_id,
+                                onUpdate: props.onUpdate,
                             }}
                         />
                     )}

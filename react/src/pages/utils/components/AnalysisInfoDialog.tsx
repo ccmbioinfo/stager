@@ -21,12 +21,6 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface AlertInfoDialogProp {
-    open: boolean;
-    analysis: Analysis;
-    onClose: () => void;
-}
-
 function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
     return [
         createFieldObj("Assigned to", analysis.assignee),
@@ -40,7 +34,13 @@ function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
     ];
 }
 
-export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
+interface AlertInfoDialogProp {
+    open: boolean;
+    analysis: Analysis;
+    onClose: () => void;
+}
+
+export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const classes = useStyles();
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipeline, setPipeline] = useState<Pipeline>();
@@ -61,29 +61,29 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
     }, []);
 
     useEffect(() => {
-        fetch("/api/analyses/" + analysis.analysis_id)
+        fetch("/api/analyses/" + props.analysis.analysis_id)
             .then(response => response.json())
             .then(data => {
                 setDatasets(data.datasets);
                 setPipeline(data.pipeline);
             })
             .catch(error => {});
-    }, [analysis]);
+    }, [props.analysis]);
 
     return (
         <Dialog
-            onClose={onClose}
+            onClose={props.onClose}
             aria-labelledby={labeledBy}
-            open={open}
+            open={props.open}
             maxWidth="md"
             fullWidth={true}
         >
-            <DialogHeader id={labeledBy} onClose={onClose}>
-                Details of Analysis ID {analysis.analysis_id}
+            <DialogHeader id={labeledBy} onClose={props.onClose}>
+                Details of Analysis ID {props.analysis.analysis_id}
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection fields={getAnalysisFields(analysis, pipeline)} enums={enums} />
+                    <DetailSection fields={getAnalysisFields(props.analysis, pipeline)} enums={enums} />
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
