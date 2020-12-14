@@ -38,8 +38,8 @@ import Datasets from "./datasets/Datasets";
 import AddParticipants from "./addParticipants/AddParticipants";
 import Settings from "./settings/Settings";
 import Admin from "./admin/Admin";
-import ListItemRouterLink from "./ListItemRouterLink";
-import NotificationPopover from "./NotificationPopover";
+import ListItemRouterLink from "./components/ListItemRouterLink";
+import NotificationPopover from "./components/NotificationPopover";
 
 const drawerWidth = 200;
 

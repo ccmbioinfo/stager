@@ -17,7 +17,7 @@ import {
 } from "@material-ui/core";
 import { Link, Description, DoneAll } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { DataEntryHeader, DataEntryRow } from "../utils/typings";
+import { DataEntryHeader, DataEntryRow } from "../typings";
 import { Option, toOption, booleanColumns, dateColumns, enumerableColumns } from "./utils";
 
 const useCellStyles = makeStyles(theme => ({

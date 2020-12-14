@@ -8,12 +8,12 @@ import {
     getAnalysisInfoList,
     createFieldObj,
     stringToBoolean,
-} from "../utils/functions";
-import { Participant, Analysis, Field } from "../utils/typings";
-import { DialogHeader } from "../utils/components/components";
+} from "../functions";
+import { Participant, Analysis, Field } from "../typings";
+import { DialogHeader } from "../components/components";
 import SampleTable from "./SampleTable";
-import DetailSection from "../utils/components/DetailSection";
-import InfoList from "../utils/components/InfoList";
+import DetailSection from "../components/DetailSection";
+import InfoList from "../components/InfoList";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

@@ -19,11 +19,11 @@ import {
     Button,
 } from "@material-ui/core";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../utils/typings";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../typings";
 import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
-import { getDataEntryHeaders, createEmptyRows, setProp } from "../utils/functions";
+import { getDataEntryHeaders, createEmptyRows, setProp } from "../functions";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];

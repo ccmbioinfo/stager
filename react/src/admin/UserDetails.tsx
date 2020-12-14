@@ -13,11 +13,11 @@ import {
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User } from "../utils/typings";
-import SecretDisplay from "../utils/components/SecretDisplay";
-import NewPasswordForm, { ConfirmPasswordAction } from "../utils/components/NewPasswordForm";
-import ConfirmModal from "../utils/components/ConfirmModal";
-import ChipSelect from "../utils/components/ChipSelect";
+import { User } from "../typings";
+import SecretDisplay from "../components/SecretDisplay";
+import NewPasswordForm, { ConfirmPasswordAction } from "../components/NewPasswordForm";
+import ConfirmModal from "../components/ConfirmModal";
+import ChipSelect from "../components/ChipSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {

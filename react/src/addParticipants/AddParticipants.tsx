@@ -4,9 +4,9 @@ import { CloudUpload } from "@material-ui/icons";
 import { useHistory } from "react-router";
 import { useSnackbar } from "notistack";
 import DataEntryTable from "./DataEntryTable";
-import { DataEntryRow, DataEntryRowBase } from "../utils/typings";
-import ConfirmModal from "../utils/components/ConfirmModal";
-import { createEmptyRows, getDataEntryHeaders } from "../utils/functions";
+import { DataEntryRow, DataEntryRowBase } from "../typings";
+import ConfirmModal from "../components/ConfirmModal";
+import { createEmptyRows, getDataEntryHeaders } from "../functions";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

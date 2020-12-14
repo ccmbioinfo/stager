@@ -5,11 +5,11 @@ import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../utils/functions";
-import { KeyValue, Dataset, Pipeline } from "../utils/typings";
+import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../functions";
+import { KeyValue, Dataset, Pipeline } from "../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import Note from "../utils/components/Note";
+import Note from "../components/Note";
 
 const useStyles = makeStyles(theme => ({
     chip: {

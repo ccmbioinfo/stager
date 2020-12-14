@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, NewUser } from "../utils/typings";
+import { User, NewUser } from "../typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
 
