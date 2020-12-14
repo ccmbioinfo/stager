@@ -26,7 +26,11 @@ def get_tissue_sample(id: int):
     if user_id:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(contains_eager(models.TissueSample.datasets))
+            .options(
+                contains_eager(models.TissueSample.datasets),
+                contains_eager(models.TissueSample.created_by),
+                contains_eager(models.TissueSample.updated_by),
+            )
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -44,7 +48,11 @@ def get_tissue_sample(id: int):
     else:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(joinedload(models.TissueSample.datasets))
+            .options(
+                joinedload(models.TissueSample.datasets),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
+            )
             .one_or_none()
         )
 
@@ -54,15 +62,13 @@ def get_tissue_sample(id: int):
     return jsonify(
         {
             **asdict(tissue_sample),
-            "created_by": tissue_sample.created_by_id
-            and tissue_sample.created_by.username,
-            "updated_by": tissue_sample.updated_by_id
-            and tissue_sample.updated_by.username,
+            "created_by": tissue_sample.created_by.username,
+            "updated_by": tissue_sample.updated_by.username,
             "datasets": [
                 {
                     **asdict(dataset),
-                    "created_by": dataset.created_by_id and dataset.created_by.username,
-                    "updated_by": dataset.updated_by_id and dataset.updated_by.username,
+                    "created_by": dataset.created_by.username,
+                    "updated_by": dataset.updated_by.username,
                 }
                 for dataset in tissue_sample.datasets
             ],
@@ -76,7 +82,9 @@ def get_tissue_sample(id: int):
 def delete_tissue_sample(id: int):
     tissue_sample = (
         models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == id)
-        .options(joinedload(models.TissueSample.datasets))
+        .options(
+            joinedload(models.TissueSample.datasets),
+        )
         .first_or_404()
     )
     if not tissue_sample.datasets:
@@ -138,10 +146,8 @@ def create_tissue_sample():
             jsonify(
                 {
                     **asdict(tissue_sample),
-                    "created_by": tissue_sample.created_by_id
-                    and tissue_sample.created_by.username,
-                    "updated_by": tissue_sample.updated_by_id
-                    and tissue_sample.updated_by.username,
+                    "created_by": tissue_sample.created_by.username,
+                    "updated_by": tissue_sample.updated_by.username,
                 }
             ),
             201,
@@ -166,7 +172,11 @@ def update_tissue_sample(id: int):
     if user_id:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(contains_eager(models.TissueSample.datasets))
+            .options(
+                contains_eager(models.TissueSample.datasets),
+                # contains_eager(models.TissueSample.created_by),
+                # contains_eager(models.TissueSample.updated_by),
+            )
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -184,7 +194,11 @@ def update_tissue_sample(id: int):
     else:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(joinedload(models.TissueSample.datasets))
+            .options(
+                joinedload(models.TissueSample.datasets),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
+            )
             .one_or_none()
         )
 
@@ -204,9 +218,7 @@ def update_tissue_sample(id: int):
     return jsonify(
         {
             **asdict(tissue_sample),
-            "created_by": tissue_sample.created_by_id
-            and tissue_sample.created_by.username,
-            "updated_by": tissue_sample.updated_by_id
-            and tissue_sample.updated_by.username,
+            "created_by": tissue_sample.created_by.username,
+            "updated_by": tissue_sample.updated_by.username,
         }
     )
