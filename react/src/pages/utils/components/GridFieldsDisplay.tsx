@@ -1,10 +1,10 @@
 import React from "react";
-import { Grid } from "@material-ui/core";
+import { Grid, GridProps } from "@material-ui/core";
 import { Field } from "../typings";
 import FieldDisplayEditable from "./FieldDisplayEditable";
 
-// Grids are very picky about their sizings
-type Width = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+// Grids are very picky about what sizes are allowed
+type Width = Exclude<GridProps["xs"], boolean | "auto" | undefined>;
 
 /**
  * Display a collection of editable fields. Number of columns can be specified.

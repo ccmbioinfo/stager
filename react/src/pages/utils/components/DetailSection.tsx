@@ -63,6 +63,9 @@ export default function DetailSection(props: DetailSectionProps) {
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
     const [editMode, setEditMode] = useState<boolean>(false);
+
+    // These keep track of state when editing
+    // When edit is finalized, send to backend to update props
     const [primaryFields, setPrimaryFields] = useState<Field[]>([]);
     const [secondaryFields, setSecondaryFields] = useState<Field[]>(
         props.collapsibleFields ? props.collapsibleFields : []
@@ -78,6 +81,7 @@ export default function DetailSection(props: DetailSectionProps) {
         setSecondaryFields(props.collapsibleFields ? props.collapsibleFields : []);
     }, [props.collapsibleFields]);
 
+    // Update field of name fieldName with new value
     function OnEditData(fieldName: string | undefined, value: any) {
         if (fieldName) {
             let idx = primaryFields.findIndex(element => element.fieldName === fieldName);
