@@ -46,6 +46,7 @@ export interface Option {
     inputValue: string;
     origin?: string;
     disabled?: boolean;
+    selected?: boolean;
 }
 
 // Convert the provided value into an Option
@@ -55,6 +56,7 @@ export function toOption(
     disabled?: boolean
 ): Option {
     let inputValue = str;
+
     switch (typeof str) {
         case "string":
             inputValue = str;
@@ -94,7 +96,9 @@ export function getOptions(
     const row = rows[rowIndex];
     const rowOptions = rows
         .filter((val, index) => index !== rowIndex) // not this row
-        .map(val => toOption(val[col.field], "Previous rows"));
+        .map(val =>
+            toOption(col.field === "input_hpf_path" ? undefined : val[col.field], "Previous rows")
+        );
 
     const familyCodenames: string[] = families.map(value => value.family_codename);
     const booleans = ["true", "false"];

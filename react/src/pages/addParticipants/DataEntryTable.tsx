@@ -146,7 +146,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }, []);
 
     function onEdit(
-        newValue: string | boolean,
+        newValue: string | boolean | string[],
         rowIndex: number,
         col: DataEntryHeader,
         autopopulate?: boolean
@@ -154,11 +154,19 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         } else if (col.field === "input_hpf_path") {
-            // Remove the new value from the list of unlinked files to prevent reuse
-            // Readd the previous value if there was one since it is available again
-            const oldValue = props.data[rowIndex].input_hpf_path;
-            const removeNewValue = files.filter(file => file !== newValue);
-            setFiles(oldValue ? [oldValue, ...removeNewValue].sort() : removeNewValue);
+            // Remove the new values from the list of unlinked files to prevent reuse
+            // Readd the previous values that are not selected if there was one since it is available again
+            const notReselectedOldValue = props.data[rowIndex].input_hpf_path?.filter(
+                oldValue => (newValue as string[]).find(value => oldValue === value) === undefined
+            );
+            const removeNewValue = files.filter(
+                file => (newValue as string[]).find(value => file === value) === undefined
+            );
+            setFiles(
+                notReselectedOldValue
+                    ? [...notReselectedOldValue, ...removeNewValue].sort()
+                    : removeNewValue
+            );
         }
         const newRows = props.data.map((value, index) => {
             if (autopopulate && index === rowIndex) {
@@ -268,7 +276,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         props.onChange(
                                             props.data.flatMap((value, index) =>
                                                 index === rowIndex
-                                                    ? [value, { ...value } as DataEntryRow]
+                                                    ? [
+                                                          value,
+                                                          {
+                                                              ...value,
+                                                              input_hpf_path: undefined,
+                                                          },
+                                                      ]
                                                     : value
                                             )
                                         )

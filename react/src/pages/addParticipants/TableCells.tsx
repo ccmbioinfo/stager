@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import {
     Checkbox,
     IconButton,
@@ -7,14 +7,52 @@ import {
     TableCellProps,
     TextField,
     Tooltip,
+    Popover,
+    Badge,
+    FormControlLabel,
+    Typography,
+    Box,
+    List,
+    Grid,
 } from "@material-ui/core";
+import { Link, Description, DoneAll } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { DataEntryHeader, DataEntryRow } from "../utils/typings";
 import { Option, toOption, booleanColumns, dateColumns, enumerableColumns } from "./utils";
 
-const useDateCellStyles = makeStyles(theme => ({
+const useCellStyles = makeStyles(theme => ({
     textField: {
         width: "125px",
+    },
+    popoverBox: {
+        padding: theme.spacing(2),
+        maxWidth: "60vw",
+        maxHeight: "50vh",
+    },
+    popoverBoxHeader: {
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+    },
+    popoverTitle: {
+        width: "150px",
+    },
+    fileName: {
+        wordBreak: "break-all",
+        padding: 0,
+    },
+    autocomplete: {
+        flexGrow: 1,
+    },
+    selectAllIcon: {
+        marginRight: theme.spacing(1),
+    },
+    selectAllOption: {
+        wordBreak: "break-all",
+        fontWeight: "bold",
+    },
+    breakAll: {
+        wordBreak: "break-all",
     },
 }));
 
@@ -31,7 +69,7 @@ export function DataEntryCell(props: {
     rowIndex: number;
     col: DataEntryHeader;
     getOptions: (rowIndex: number, col: DataEntryHeader) => Option[];
-    onEdit: (newValue: string | boolean) => void;
+    onEdit: (newValue: string | boolean | string[]) => void;
     disabled?: boolean;
     required?: boolean;
 }) {
@@ -47,6 +85,15 @@ export function DataEntryCell(props: {
         return (
             <DateCell
                 value={props.row[props.col.field]?.toString()}
+                onEdit={props.onEdit}
+                disabled={props.disabled}
+            />
+        );
+    } else if (props.col.field === "input_hpf_path") {
+        return (
+            <FileLinkingCell
+                values={props.row[props.col.field] || []}
+                options={props.getOptions(props.rowIndex, props.col)}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
@@ -171,7 +218,7 @@ export function DateCell(props: {
     onEdit: (newValue: string) => void;
     disabled?: boolean;
 }) {
-    const classes = useDateCellStyles();
+    const classes = useCellStyles();
     return (
         <TableCell>
             <TextField
@@ -183,6 +230,252 @@ export function DateCell(props: {
                 disabled={props.disabled}
                 onChange={e => props.onEdit(e.target.value)}
             />
+        </TableCell>
+    );
+}
+
+const compareOption = (a: Option, b: Option) => {
+    if (a.selected && b.selected) {
+        return 0;
+    } else if (a.selected) {
+        return -1;
+    } else if (b.selected) {
+        return 1;
+    } else {
+        return 0;
+    }
+};
+/* A cell for linking files to a dataset. */
+export function FileLinkingCell(props: {
+    values: string[];
+    options: Option[];
+    onEdit: (newValue: string[]) => void;
+    disabled?: boolean;
+}) {
+    const classes = useCellStyles();
+    const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+    const [options, setOptions] = React.useState<Option[]>(
+        [
+            ...props.values.map(value => ({ title: value, inputValue: value, selected: true })),
+            ...props.options.map(option => ({ ...option, selected: false })),
+        ].sort(compareOption)
+    );
+    let filteredOptions: Option[] = [];
+    const filter = createFilterOptions<Option>();
+    const open = Boolean(anchorEl);
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+        props.onEdit(
+            options.reduce<string[]>((fileList, option) => {
+                if (option.selected) fileList.push(option.title);
+                return fileList;
+            }, [])
+        );
+    };
+    const getUnselectedOptions = () => {
+        const result: Option[] = [];
+        options.reduce<Option[]>((optionList, option) => {
+            if (!option.selected) optionList.push(option);
+            return optionList;
+        }, result);
+        return result;
+    };
+
+    useEffect(() => {
+        setOptions(
+            [
+                ...props.values.map(value => ({ title: value, inputValue: value, selected: true })),
+                ...props.options.map(option => ({ ...option, selected: false })),
+            ].sort(compareOption)
+        );
+    }, [props.options, props.values]);
+
+    return (
+        <TableCell padding="none" align="center">
+            <Tooltip
+                placement="left"
+                interactive
+                title={
+                    props.values.length === 0 ? (
+                        <Typography variant="body2">No files selected</Typography>
+                    ) : (
+                        <List>
+                            {props.values.map(value => {
+                                return (
+                                    <Grid container wrap="nowrap" spacing={1} alignItems="center">
+                                        <Grid item>
+                                            <Description />
+                                        </Grid>
+                                        <Grid item xs>
+                                            <Typography
+                                                variant="body2"
+                                                className={classes.fileName}
+                                            >
+                                                {value}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+                                );
+                            })}
+                        </List>
+                    )
+                }
+            >
+                <IconButton
+                    aria-label="select files"
+                    color="default"
+                    onClick={handleClick}
+                    disabled={props.disabled}
+                >
+                    <Badge badgeContent={props.values.length} color="primary">
+                        <Link fontSize="large" />
+                    </Badge>
+                </IconButton>
+            </Tooltip>
+            <Popover
+                open={open}
+                anchorEl={anchorEl}
+                onClose={handleClose}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "center",
+                }}
+                transformOrigin={{
+                    vertical: "top",
+                    horizontal: "center",
+                }}
+            >
+                <Box className={classes.popoverBox}>
+                    <div className={classes.popoverBoxHeader}>
+                        {props.options.length === 0 && props.values.length === 0 ? (
+                            <Typography variant="h6" className={classes.popoverTitle}>
+                                No files available
+                            </Typography>
+                        ) : (
+                            <>
+                                <Typography variant="h6" className={classes.popoverTitle}>
+                                    Available files:
+                                </Typography>
+                                <div className={classes.autocomplete}>
+                                    <Autocomplete
+                                        disableCloseOnSelect
+                                        onChange={(e, newValue) => {
+                                            if (newValue?.title === "Select all") {
+                                                const filteredOptionTitles = filteredOptions.map(
+                                                    filteredOption => filteredOption.title
+                                                );
+                                                setOptions(
+                                                    options
+                                                        .map(option => {
+                                                            if (
+                                                                filteredOptionTitles.find(
+                                                                    o => o === option.title
+                                                                )
+                                                            ) {
+                                                                return {
+                                                                    ...option,
+                                                                    selected: true,
+                                                                };
+                                                            } else {
+                                                                return { ...option };
+                                                            }
+                                                        })
+                                                        .sort(compareOption)
+                                                );
+                                            } else if (newValue) {
+                                                const result = [...options];
+                                                result[
+                                                    result.findIndex(
+                                                        option => option.title === newValue.title
+                                                    )
+                                                ].selected = true;
+                                                setOptions(result.sort(compareOption));
+                                            }
+                                        }}
+                                        filterOptions={(options, params): Option[] => {
+                                            const filtered = filter(options, params);
+                                            filtered.length === 0
+                                                ? (filteredOptions = [])
+                                                : (filteredOptions = [
+                                                      {
+                                                          title: "Select all",
+                                                          inputValue: "Select all",
+                                                      },
+                                                      ...filtered,
+                                                  ]);
+                                            return filteredOptions;
+                                        }}
+                                        renderOption={option =>
+                                            option.title === "Select all" ? (
+                                                <>
+                                                    <DoneAll
+                                                        className={classes.selectAllIcon}
+                                                        color="primary"
+                                                    />
+                                                    <Typography
+                                                        variant="body1"
+                                                        color="primary"
+                                                        className={classes.selectAllOption}
+                                                    >
+                                                        SELECT ALL
+                                                    </Typography>
+                                                </>
+                                            ) : (
+                                                <Typography
+                                                    variant="body1"
+                                                    className={classes.breakAll}
+                                                >
+                                                    {option.title}
+                                                </Typography>
+                                            )
+                                        }
+                                        options={getUnselectedOptions()}
+                                        getOptionLabel={option => option.title}
+                                        renderInput={params => (
+                                            <TextField
+                                                {...params}
+                                                label="Search"
+                                                variant="outlined"
+                                            />
+                                        )}
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    {options.map((option, index) => (
+                        <Box key={index}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        color="primary"
+                                        checked={option.selected}
+                                        onChange={() => {
+                                            setOptions(
+                                                options
+                                                    .map(currOption =>
+                                                        currOption.title === option.title
+                                                            ? {
+                                                                  ...currOption,
+                                                                  selected: !currOption.selected,
+                                                              }
+                                                            : { ...currOption }
+                                                    )
+                                                    .sort(compareOption)
+                                            );
+                                        }}
+                                    />
+                                }
+                                label={option.title}
+                            />
+                        </Box>
+                    ))}
+                </Box>
+            </Popover>
         </TableCell>
     );
 }
