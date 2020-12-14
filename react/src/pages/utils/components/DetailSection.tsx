@@ -15,7 +15,7 @@ import {
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { FieldDisplayValueType, Field } from "../typings";
+import { FieldDisplayValueType, Field, PseudoBooleanReadableMap, PseudoBoolean } from "../typings";
 
 const gridSpacing = 2;
 const titleWidth = 12;
@@ -71,11 +71,13 @@ const capitalizeFirstLetter = (s: string | undefined) => {
     if (s) return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-const formatValue = (value: FieldDisplayValueType) => {
+const formatValue = (value: FieldDisplayValueType, nullUnknown: boolean = false) => {
     let val = value;
     if (Array.isArray(value)) val = value.join(", ");
-    else if (value === null || value === undefined) val = "";
-    else if (typeof value === "boolean") val = value ? "Yes" : "No";
+    else if (value === null || value === undefined)
+        nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
+    else if (typeof value === "boolean")
+        val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
     return val;
 };
 
@@ -83,12 +85,13 @@ interface FieldDisplayProps {
     title: string;
     value?: FieldDisplayValueType;
     className?: string;
+    bool?: boolean;
 }
 /* Simple Typography component to display "title: value" */
-function FieldDisplay({ title, value, className }: FieldDisplayProps) {
+function FieldDisplay({ title, value, className, bool }: FieldDisplayProps) {
     return (
         <Typography variant="body1" gutterBottom>
-            <b>{title}:</b> <span className={className}>{formatValue(value)}</span>
+            <b>{title}:</b> <span className={className}>{formatValue(value, bool)}</span>
         </Typography>
     );
 }
@@ -152,12 +155,13 @@ function TextField({
             </MuiTextField>
         );
     } else if (booleanFields.includes(field.fieldName)) {
+        // Need to clean this up when refactoring this section
         return (
             <MuiTextField
                 className={classes.textField}
                 margin="dense"
                 label={field.title}
-                value={formatValue(field.value)}
+                value={formatValue(field.value, true)}
                 required={nonNullableFields.includes(field.fieldName)}
                 disabled={field.disableEdit}
                 select
@@ -169,12 +173,11 @@ function TextField({
                     onEdit(field.fieldName, val);
                 }}
             >
-                {["Yes", "No"].map((option: string) => (
+                {["Yes", "No", "Unknown"].map((option: string) => (
                     <MenuItem key={option} value={option}>
                         {option}
                     </MenuItem>
                 ))}
-                {!nonNullableFields.includes(field.fieldName) && nullOption}
             </MuiTextField>
         );
     } else if (multilineFields.includes(field.fieldName)) {
@@ -265,7 +268,14 @@ function GridFieldsDisplay({
                             </Fade>
                             <Fade in={!editMode}>
                                 <Box className={classes.box} hidden={editMode}>
-                                    <FieldDisplay title={field.title} value={field.value} />
+                                    <FieldDisplay
+                                        title={field.title}
+                                        value={field.value}
+                                        bool={
+                                            !!field.fieldName &&
+                                            !!booleanFields.includes(field.fieldName)
+                                        }
+                                    />
                                 </Box>
                             </Fade>
                         </>

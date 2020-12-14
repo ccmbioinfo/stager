@@ -4,11 +4,14 @@ import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, exportCSV, toKeyValue } from "../utils/functions";
+import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../utils/functions";
 import { KeyValue, Participant } from "../utils/typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import Note from "../utils/components/Note";
+import BooleanDisplay from "../utils/components/BooleanDisplay";
+import BooleanEditComponent from "../utils/components/BooleanEditComponent";
+import BooleanFilter from "../utils/components/BooleanFilter";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -47,12 +50,13 @@ export default function ParticipantTable() {
                 const participants = await response.json();
                 // Collect all dataset type labels from all tissue samples
                 // for each participant in the dataset_types array
-                participants.forEach(
-                    (participant: Participant) =>
-                        (participant.dataset_types = participant.tissue_samples
-                            .map(({ datasets }) => datasets.map(dataset => dataset.dataset_type))
-                            .flat())
-                );
+                participants.forEach((participant: Participant) => {
+                    participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
+                        datasets.map(dataset => dataset.dataset_type)
+                    );
+                    participant.affected += "";
+                    participant.solved += "";
+                });
                 setParticipants(participants as Participant[]);
             } else {
                 console.error(
@@ -69,6 +73,8 @@ export default function ParticipantTable() {
                     open={detail}
                     participant={activeRow}
                     onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
+                        newParticipant.solved += "";
+                        newParticipant.affected += "";
                         setParticipants(
                             participants.map(participant => {
                                 if (participant.participant_id === participant_id) {
@@ -106,8 +112,24 @@ export default function ParticipantTable() {
                         field: "participant_type",
                         lookup: participantTypes,
                     },
-                    { title: "Affected", field: "affected", type: "boolean" },
-                    { title: "Solved", field: "solved", type: "boolean" },
+                    {
+                        title: "Affected",
+                        field: "affected",
+                        render: (rowData, type) => (
+                            <BooleanDisplay value={rowData} fieldName={"affected"} type={type} />
+                        ),
+                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
+                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
+                    },
+                    {
+                        title: "Solved",
+                        field: "solved",
+                        render: (rowData, type) => (
+                            <BooleanDisplay value={rowData} fieldName={"solved"} type={type} />
+                        ),
+                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
+                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
+                    },
                     {
                         title: "Sex",
                         field: "sex",
@@ -155,12 +177,21 @@ export default function ParticipantTable() {
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {
+                        const diffParticipant = rowDiff<Participant>(
+                            newParticipant,
+                            oldParticipant
+                        );
+
                         const response = await fetch(
                             `/api/participants/${newParticipant.participant_id}`,
                             {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(newParticipant),
+                                body: JSON.stringify({
+                                    ...diffParticipant,
+                                    affected: stringToBoolean(newParticipant.affected),
+                                    solved: stringToBoolean(newParticipant.solved),
+                                }),
                             }
                         );
                         if (response.ok) {

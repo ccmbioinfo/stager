@@ -2,13 +2,18 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { formatDateString, getAnalysisInfoList, createFieldObj } from "../utils/functions";
+import { useSnackbar } from "notistack";
+import {
+    formatDateString,
+    getAnalysisInfoList,
+    createFieldObj,
+    stringToBoolean,
+} from "../utils/functions";
 import { Participant, Analysis, Field } from "../utils/typings";
 import { DialogHeader } from "../utils/components/components";
 import SampleTable from "./SampleTable";
 import DetailSection from "../utils/components/DetailSection";
 import InfoList from "../utils/components/InfoList";
-import { useSnackbar } from "notistack";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -25,8 +30,8 @@ function getParticipantFields(participant: Participant): Field[] {
         createFieldObj("Family Codename", participant.family_codename, "family_codename", true),
         createFieldObj("Participant Type", participant.participant_type, "participant_type"),
         createFieldObj("Sex", participant.sex, "sex"),
-        createFieldObj("Affected", participant.affected, "affected"),
-        createFieldObj("Solved", participant.solved, "solved"),
+        createFieldObj("Affected", stringToBoolean(participant.affected), "affected"),
+        createFieldObj("Solved", stringToBoolean(participant.solved), "solved"),
         createFieldObj("Dataset Types", participant.dataset_types, "dataset_types", true),
         createFieldObj("Notes", participant.notes, "notes"),
         createFieldObj("Time of Creation", formatDateString(participant.created), "created", true),

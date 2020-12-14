@@ -5,7 +5,7 @@ import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { toKeyValue, formatDateString, exportCSV } from "../utils/functions";
+import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../utils/functions";
 import { KeyValue, Dataset, Pipeline } from "../utils/typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
@@ -200,10 +200,11 @@ export default function DatasetTable() {
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
+                        const diffDataset = rowDiff<Dataset>(newDataset, oldDataset);
                         const response = await fetch(`/api/datasets/${newDataset.dataset_id}`, {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(newDataset),
+                            body: JSON.stringify(diffDataset),
                         });
                         if (response.ok) {
                             const updatedDataset = await response.json();

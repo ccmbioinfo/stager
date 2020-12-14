@@ -11,6 +11,7 @@ import {
     FieldDisplayValueType,
     Field,
     DataEntryRow,
+    PseudoBoolean,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -307,4 +308,39 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
         });
     }
     return arr;
+}
+
+export function stringToBoolean(value: PseudoBoolean) {
+    switch (value) {
+        case "true":
+            return true;
+        case "false":
+            return false;
+        case "null":
+            return null;
+        default:
+            return value;
+    }
+}
+
+/**
+ * Return an object containing the key-value pairs that differ between
+ * oldRow and newRow, with the values from newRow.
+ *
+ * @param newRow
+ * @param oldRow
+ */
+export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
+    if (!oldRow) {
+        return { ...newRow };
+    } else {
+        let diffRow: any = {};
+        let k: keyof T;
+        for (k in oldRow) {
+            if (newRow[k] !== oldRow[k]) {
+                diffRow[k] = newRow[k];
+            }
+        }
+        return { ...diffRow };
+    }
 }
