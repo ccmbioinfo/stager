@@ -53,7 +53,11 @@ def list_families():
         )
     else:
         families = (
-            models.Family.query.options(joinedload(models.Family.participants))
+            models.Family.query.options(
+                joinedload(models.Family.participants),
+                joinedload(models.Family.created_by),
+                joinedload(models.Family.updated_by),
+            )
             .filter(models.Family.family_codename.like(starts_with))
             .order_by(column)
             .limit(max_rows)
@@ -64,8 +68,8 @@ def list_families():
             {
                 **asdict(family),
                 "participants": family.participants,
-                "updated_by": family.updated_by_id and family.updated_by.username,
-                "created_by": family.created_by_id and family.created_by.username,
+                "updated_by": family.updated_by.username,
+                "created_by": family.created_by.username,
             }
             for family in families
         ]
@@ -110,7 +114,9 @@ def get_family(id: int):
             .options(
                 joinedload(models.Family.participants)
                 .joinedload(models.Participant.tissue_samples)
-                .joinedload(models.TissueSample.datasets)
+                .joinedload(models.TissueSample.datasets),
+                joinedload(models.Family.created_by),
+                joinedload(models.Family.updated_by),
             )
             .one_or_none()
         )
@@ -122,23 +128,19 @@ def get_family(id: int):
         [
             {
                 **asdict(family),
-                "updated_by": family.updated_by_id and family.updated_by.username,
-                "created_by": family.created_by_id and family.created_by.username,
+                "updated_by": family.updated_by.username,
+                "created_by": family.created_by.username,
                 "participants": [
                     {
                         **asdict(participants),
-                        "updated_by": participants.updated_by_id
-                        and participants.updated_by.username,
-                        "created_by": participants.created_by_id
-                        and participants.created_by.username,
+                        "updated_by": participants.updated_by.username,
+                        "created_by": participants.created_by.username,
                         "tissue_samples": [
                             {
                                 **asdict(tissue_samples),
                                 "datasets": tissue_samples.datasets,
-                                "updated_by": tissue_samples.updated_by_id
-                                and tissue_samples.updated_by.username,
-                                "created_by": tissue_samples.created_by_id
-                                and tissue_samples.created_by.username,
+                                "updated_by": tissue_samples.updated_by.username,
+                                "created_by": tissue_samples.created_by.username,
                             }
                             for tissue_samples in participants.tissue_samples
                         ],
@@ -221,8 +223,8 @@ def update_family(id: int):
         return jsonify(
             {
                 **asdict(family),
-                "updated_by": family.updated_by_id and family.updated_by.username,
-                "created_by": family.created_by_id and family.created_by.username,
+                "updated_by": family.updated_by.username,
+                "created_by": family.created_by.username,
             }
         )
     except:
@@ -269,8 +271,8 @@ def create_family():
         jsonify(
             {
                 **asdict(fam_objs),
-                "updated_by": fam_objs.updated_by_id and fam_objs.updated_by.username,
-                "created_by": fam_objs.created_by_id and fam_objs.created_by.username,
+                "updated_by": fam_objs.updated_by.username,
+                "created_by": fam_objs.created_by.username,
             }
         ),
         201,

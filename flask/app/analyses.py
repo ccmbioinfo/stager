@@ -124,10 +124,8 @@ def get_analysis(id: int):
                     "participant_type": dataset.tissue_sample.participant.participant_type,
                     "sex": dataset.tissue_sample.participant.sex,
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                    "updated_by": dataset.tissue_sample.updated_by_id
-                    and dataset.tissue_sample.updated_by.username,
-                    "created_by": dataset.tissue_sample.created_by_id
-                    and dataset.tissue_sample.created_by.username,
+                    "updated_by": dataset.tissue_sample.updated_by.username,
+                    "created_by": dataset.tissue_sample.created_by.username,
                 }
                 for dataset in analysis.datasets
             ],

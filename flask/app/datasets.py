@@ -66,10 +66,8 @@ def list_datasets():
                 "participant_type": dataset.tissue_sample.participant.participant_type,
                 "sex": dataset.tissue_sample.participant.sex,
                 "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                "created_by": dataset.tissue_sample.created_by_id
-                and dataset.tissue_sample.created_by.username,
-                "updated_by": dataset.tissue_sample.updated_by_id
-                and dataset.tissue_sample.updated_by.username,
+                "created_by": dataset.tissue_sample.created_by.username,
+                "updated_by": dataset.tissue_sample.updated_by.username,
             }
             for dataset in datasets
         ]
@@ -89,6 +87,8 @@ def get_dataset(id: int):
             models.Dataset.query.filter_by(dataset_id=id)
             .options(
                 joinedload(models.Dataset.analyses),
+                joinedload(models.Dataset.created_by),
+                joinedload(models.Dataset.updated_by),
                 joinedload(models.Dataset.tissue_sample)
                 .joinedload(models.TissueSample.participant)
                 .joinedload(models.Participant.family),
@@ -107,6 +107,8 @@ def get_dataset(id: int):
             models.Dataset.query.filter_by(dataset_id=id)
             .options(
                 joinedload(models.Dataset.analyses),
+                joinedload(models.Dataset.created_by),
+                joinedload(models.Dataset.updated_by),
                 joinedload(models.Dataset.tissue_sample)
                 .joinedload(models.TissueSample.participant)
                 .joinedload(models.Participant.family),
@@ -122,16 +124,14 @@ def get_dataset(id: int):
             "participant_type": dataset.tissue_sample.participant.participant_type,
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
-            "created_by": dataset.tissue_sample.participant.created_by_id
-            and dataset.tissue_sample.participant.created_by.username,
-            "updated_by": dataset.tissue_sample.updated_by_id
-            and dataset.tissue_sample.updated_by.username,
+            "created_by": dataset.tissue_sample.participant.created_by.username,
+            "updated_by": dataset.tissue_sample.participant.updated_by.username,
             "analyses": [
                 {
                     **asdict(analysis),
                     "requester": analysis.requester.username,
                     "updated_by": analysis.updated_by.username,
-                    "assignee": analysis.assignee_id and analysis.assignee.username,
+                    "assignee": analysis.assignee.username,
                 }
                 for analysis in dataset.analyses
             ],
@@ -178,8 +178,8 @@ def update_dataset(id: int):
     return jsonify(
         {
             **asdict(dataset),
-            "updated_by": dataset.updated_by_id and dataset.updated_by.username,
-            "created_by": dataset.created_by_id and dataset.created_by.username,
+            "updated_by": dataset.updated_by.username,
+            "created_by": dataset.created_by.username,
         }
     )
 
@@ -264,8 +264,8 @@ def create_dataset():
         jsonify(
             {
                 **asdict(dataset),
-                "updated_by": dataset.updated_by_id and dataset.updated_by.username,
-                "created_by": dataset.created_by_id and dataset.created_by.username,
+                "updated_by": dataset.updated_by.username,
+                "created_by": dataset.created_by.username,
             }
         ),
         201,
