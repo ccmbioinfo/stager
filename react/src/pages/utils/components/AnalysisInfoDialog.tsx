@@ -42,10 +42,23 @@ function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
 
 export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInfoDialogProp) {
     const classes = useStyles();
-
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipeline, setPipeline] = useState<Pipeline>();
     const labeledBy = "analysis-info-dialog-slide-title";
+    const [enums, setEnums] = useState<any>();
+
+    useEffect(() => {
+        fetch("/api/enums").then(async response => {
+            if (response.ok) {
+                const enums = await response.json();
+                setEnums(enums);
+            } else {
+                console.error(
+                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
+                );
+            }
+        });
+    }, []);
 
     useEffect(() => {
         fetch("/api/analyses/" + analysis.analysis_id)
@@ -70,7 +83,7 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection fields={getAnalysisFields(analysis, pipeline)} />
+                    <DetailSection fields={getAnalysisFields(analysis, pipeline)} enums={enums} />
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
@@ -78,6 +91,7 @@ export default function AnalysisInfoDialog({ analysis, open, onClose }: AlertInf
                         <InfoList
                             infoList={getDatasetInfoList(datasets)}
                             title="Associated Datasets"
+                            enums={enums}
                             icon={<Dns />}
                             linkPath="/datasets"
                         />

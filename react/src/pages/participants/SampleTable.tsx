@@ -36,7 +36,7 @@ function getFields(dataset: Dataset) {
     ];
 }
 
-export default function SampleTable({ samples }: { samples: Sample[] }) {
+export default function SampleTable(props: { samples: Sample[]; enums: any }) {
     const classes = useStyles();
 
     return (
@@ -64,7 +64,7 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 },
                 { title: "Updated By", field: "updated_by" },
             ]}
-            data={samples}
+            data={props.samples}
             title="Tissue Samples"
             detailPanel={rowData => {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
@@ -75,7 +75,12 @@ export default function SampleTable({ samples }: { samples: Sample[] }) {
                 });
                 return (
                     <div className={classes.datasetList}>
-                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets" />
+                        <InfoList
+                            infoList={infoList}
+                            icon={<Dns />}
+                            linkPath="/datasets"
+                            enums={props.enums}
+                        />
                     </div>
                 );
             }}

@@ -34,6 +34,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function InfoList(props: {
     infoList: Info[];
+    enums: any;
     title?: string;
     icon: JSX.Element;
     linkPath?: string;
@@ -72,6 +73,7 @@ export default function InfoList(props: {
                             <Box className={classes.box}>
                                 <DetailSection
                                     fields={info.fields}
+                                    enums={props.enums}
                                     collapsibleFields={info.collapsibleFields}
                                 />
                                 {props.linkPath && info.identifier && (

@@ -52,6 +52,21 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
+    const [enums, setEnums] = useState<any>();
+
+    useEffect(() => {
+        fetch("/api/enums").then(async response => {
+            if (response.ok) {
+                const enums = await response.json();
+                setEnums(enums);
+            } else {
+                console.error(
+                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
+                );
+            }
+        });
+    }, []);
+
     useEffect(() => {
         fetch("/api/datasets/" + dataset.dataset_id)
             .then(response => response.json())
@@ -79,6 +94,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
                     {dataset && (
                         <DetailSection
                             fields={getDatasetFields(dataset)}
+                            enums={enums}
                             collapsibleFields={getSecDatasetFields(dataset)}
                             dataInfo={{
                                 type: "dataset",
@@ -94,6 +110,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
                     {sample && (
                         <DetailSection
                             fields={getSamplesFields(sample)}
+                            enums={enums}
                             title="Associated Tissue Sample"
                         />
                     )}
@@ -104,6 +121,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
                         <InfoList
                             infoList={getAnalysisInfoList(analyses)}
                             title="Analyses which use this dataset"
+                            enums={enums}
                             icon={<ShowChart />}
                             linkPath="/analysis"
                         />

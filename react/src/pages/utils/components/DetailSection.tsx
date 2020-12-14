@@ -52,35 +52,31 @@ interface DataInfo {
 
 interface DetailSectionProps {
     fields: Field[];
+    enums: any;
     collapsibleFields?: Field[];
     title?: string;
     dataInfo?: DataInfo; // dataInfo indicates data is editable
     linkPath?: string;
 }
 
-export default function DetailSection({
-    fields,
-    collapsibleFields,
-    title,
-    dataInfo,
-}: DetailSectionProps) {
+export default function DetailSection(props: DetailSectionProps) {
     const classes = useStyles();
     const [moreDetails, setMoreDetails] = useState(false);
     const [editMode, setEditMode] = useState<boolean>(false);
     const [primaryFields, setPrimaryFields] = useState<Field[]>([]);
     const [secondaryFields, setSecondaryFields] = useState<Field[]>(
-        collapsibleFields ? collapsibleFields : []
+        props.collapsibleFields ? props.collapsibleFields : []
     );
     const { enqueueSnackbar } = useSnackbar();
 
     // Props are the main source of truth about the state of the fields
     useEffect(() => {
-        setPrimaryFields(fields);
-    }, [fields]);
+        setPrimaryFields(props.fields);
+    }, [props.fields]);
 
     useEffect(() => {
-        setSecondaryFields(collapsibleFields ? collapsibleFields : []);
-    }, [collapsibleFields]);
+        setSecondaryFields(props.collapsibleFields ? props.collapsibleFields : []);
+    }, [props.collapsibleFields]);
 
     function OnEditData(fieldName: string | undefined, value: any) {
         if (fieldName) {
@@ -107,10 +103,10 @@ export default function DetailSection({
 
     async function updateData() {
         let url;
-        if (dataInfo?.type === "participant") {
-            url = `/api/participants/${dataInfo?.ID}`;
+        if (props.dataInfo?.type === "participant") {
+            url = `/api/participants/${props.dataInfo?.ID}`;
         } else {
-            url = `/api/datasets/${dataInfo?.ID}`;
+            url = `/api/datasets/${props.dataInfo?.ID}`;
         }
         const newData: { [key: string]: any } = {};
         primaryFields.concat(secondaryFields).forEach(field => {
@@ -126,25 +122,25 @@ export default function DetailSection({
         if (response.ok) {
             const data = await response.json();
             console.log(data);
-            if (dataInfo?.onUpdate) dataInfo!.onUpdate(dataInfo.ID, data);
+            if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
             enqueueSnackbar(
-                `${dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
-                    dataInfo?.identifier
+                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
+                    props.dataInfo?.identifier
                 } updated successfully`,
                 {
                     variant: "success",
                 }
             );
         } else {
-            setPrimaryFields(fields);
-            if (collapsibleFields) {
-                setSecondaryFields(collapsibleFields);
+            setPrimaryFields(props.fields);
+            if (props.collapsibleFields) {
+                setSecondaryFields(props.collapsibleFields);
             }
             console.error(
-                `PATCH /api/${dataInfo?.type}s/${dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
+                `PATCH /api/${props.dataInfo?.type}s/${props.dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
             );
             enqueueSnackbar(
-                `Failed to edit ${dataInfo?.type} ${dataInfo?.identifier} - ${response.status} ${response.statusText}`,
+                `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier} - ${response.status} ${response.statusText}`,
                 { variant: "error" }
             );
         }
@@ -153,25 +149,26 @@ export default function DetailSection({
     return (
         <>
             <Grid container spacing={gridSpacing} justify="space-between">
-                {title && (
+                {props.title && (
                     <Grid item xs={titleWidth}>
-                        <Typography variant="h6">{title}</Typography>
+                        <Typography variant="h6">{props.title}</Typography>
                     </Grid>
                 )}
                 <Grid
                     container
                     spacing={gridSpacing}
                     item
-                    xs={dataInfo ? 10 : 12}
+                    xs={props.dataInfo ? 10 : 12}
                     justify="space-evenly"
                 >
                     <GridFieldsDisplay
                         fields={primaryFields}
                         editMode={editMode}
                         onEdit={OnEditData}
+                        enums={props.enums}
                     />
                 </Grid>
-                {dataInfo && (
+                {props.dataInfo && (
                     <Grid item xs={2}>
                         <FormControlLabel
                             control={<Switch color="primary" checked={editMode} size="small" />}
@@ -181,9 +178,9 @@ export default function DetailSection({
                             className={classes.switch}
                             onChange={() => {
                                 if (editMode) {
-                                    setPrimaryFields(fields);
-                                    if (collapsibleFields) {
-                                        setSecondaryFields(collapsibleFields);
+                                    setPrimaryFields(props.fields);
+                                    if (props.collapsibleFields) {
+                                        setSecondaryFields(props.collapsibleFields);
                                     }
                                 }
                                 setEditMode(!editMode);
@@ -204,7 +201,7 @@ export default function DetailSection({
                     </Grid>
                 )}
             </Grid>
-            {collapsibleFields && (
+            {props.collapsibleFields && (
                 <>
                     <Collapse in={moreDetails}>
                         <Grid container spacing={gridSpacing} justify="space-evenly">
@@ -212,6 +209,7 @@ export default function DetailSection({
                                 fields={secondaryFields}
                                 editMode={editMode}
                                 onEdit={OnEditData}
+                                enums={props.enums}
                             />
                         </Grid>
                     </Collapse>

@@ -57,8 +57,21 @@ export default function ParticipantInfoDialog({
     const classes = useStyles();
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
-
     const { enqueueSnackbar } = useSnackbar();
+    const [enums, setEnums] = useState<any>();
+
+    useEffect(() => {
+        fetch("/api/enums").then(async response => {
+            if (response.ok) {
+                const enums = await response.json();
+                setEnums(enums);
+            } else {
+                console.error(
+                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
+                );
+            }
+        });
+    }, []);
 
     useEffect(() => {
         (async () => {
@@ -101,6 +114,7 @@ export default function ParticipantInfoDialog({
                 <div className={classes.infoSection}>
                     <DetailSection
                         fields={getParticipantFields(participant)}
+                        enums={enums}
                         dataInfo={{
                             type: "participant",
                             ID: participant.participant_id,
@@ -113,7 +127,7 @@ export default function ParticipantInfoDialog({
                     <>
                         <Divider />
                         <div>
-                            <SampleTable samples={participant.tissue_samples} />
+                            <SampleTable samples={participant.tissue_samples} enums={enums} />
                         </div>
                     </>
                 )}
@@ -124,6 +138,7 @@ export default function ParticipantInfoDialog({
                             <InfoList
                                 infoList={getAnalysisInfoList(analyses)}
                                 title="Analyses"
+                                enums={enums}
                                 icon={<ShowChart />}
                                 linkPath="/analysis"
                             />

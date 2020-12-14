@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Grid } from "@material-ui/core";
 import { Field } from "../typings";
 import FieldDisplayEditable from "./FieldDisplayEditable";
 
-// Yes, really
+// Grids are very picky about their sizings
 type Width = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 /**
@@ -16,24 +16,10 @@ export default function GridFieldsDisplay(props: {
     fields: Field[];
     editMode: boolean;
     onEdit: (fieldName: string | undefined, value: any) => void;
+    enums: any;
     orderPriority?: "left-right" | "top-down";
     columnWidth?: Width;
 }) {
-    const [enums, setEnums] = useState(undefined);
-
-    useEffect(() => {
-        fetch("/api/enums").then(async response => {
-            if (response.ok) {
-                const enums = await response.json();
-                setEnums(enums);
-            } else {
-                console.error(
-                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-    }, []);
-
     const infoWidth = props.columnWidth || 6;
     const numColumns = Math.floor(12 / infoWidth);
 
@@ -64,7 +50,7 @@ export default function GridFieldsDisplay(props: {
                         <FieldDisplayEditable
                             field={field}
                             editMode={props.editMode}
-                            enums={enums}
+                            enums={props.enums}
                             onEdit={props.onEdit}
                         />
                     ))}
@@ -72,29 +58,4 @@ export default function GridFieldsDisplay(props: {
             ))}
         </>
     );
-
-    // return (
-    //     <>
-    //         <Grid item xs={infoWidth}>
-    //             {leftFields.map(field => (
-    //                 <FieldDisplayEditable
-    //                     field={field}
-    //                     editMode={props.editMode}
-    //                     enums={enums}
-    //                     onEdit={props.onEdit}
-    //                 />
-    //             ))}
-    //         </Grid>
-    //         <Grid item xs={infoWidth}>
-    //             {rightFields.map(field => (
-    //                 <FieldDisplayEditable
-    //                     field={field}
-    //                     editMode={props.editMode}
-    //                     enums={enums}
-    //                     onEdit={props.onEdit}
-    //                 />
-    //             ))}
-    //         </Grid>
-    //     </>
-    // );
 }
