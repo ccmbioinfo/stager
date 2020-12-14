@@ -119,14 +119,14 @@ export function AutocompleteCell(
     props: {
         value: Option;
         options: Option[];
-        onEdit: (newValue: string) => void;
+        onEdit: (newValue: string, autocomplete?: boolean) => void;
         disabled?: boolean;
         column: DataEntryHeader;
         required?: boolean;
     } & TableCellProps
 ) {
-    const onEdit = (newValue: Option) => {
-        props.onEdit(newValue.inputValue);
+    const onEdit = (newValue: Option, autopopulate?: boolean) => {
+        props.onEdit(newValue.inputValue, autopopulate);
     };
 
     // Remove 'this' input value from the list of options
@@ -148,10 +148,13 @@ export function AutocompleteCell(
                 handleHomeEndKeys
                 autoHighlight
                 onChange={(event, newValue) => {
+                    const autocomplete =
+                        props.column.field === "participant_codename" ||
+                        props.column.field === "family_codename";
                     if (newValue) {
-                        onEdit(toOption(newValue));
+                        onEdit(toOption(newValue), autocomplete);
                     } else {
-                        onEdit(toOption(""));
+                        onEdit(toOption(""), autocomplete);
                     }
                 }}
                 options={options}
@@ -253,10 +256,8 @@ export function FileLinkingCell(props: {
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
     const [options, setOptions] = React.useState<Option[]>(
         [
-            ...props.values.map(
-                value => ({ title: value, inputValue: value, selected: true } as Option)
-            ),
-            ...props.options.map(option => ({ ...option, selected: false } as Option)),
+            ...props.values.map(value => ({ title: value, inputValue: value, selected: true })),
+            ...props.options.map(option => ({ ...option, selected: false })),
         ].sort(compareOption)
     );
     let filteredOptions: Option[] = [];

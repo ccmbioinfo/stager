@@ -20,7 +20,7 @@ import {
 } from "@material-ui/core";
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../utils/typings";
-import { Option, getOptions as _getOptions, getColumns } from "./utils";
+import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../utils/functions";
@@ -80,6 +80,24 @@ function getDefaultColumns(fallbackColumns: string[]) {
     return tempCols;
 }
 
+function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
+    let participantCodename: string;
+    let familyCodename: string;
+    if (column === "participant_codename" && row.family_codename !== "") {
+        familyCodename = row.family_codename;
+        participantCodename = newValue;
+    } else if (column === "family_codename" && row.participant_codename !== "") {
+        familyCodename = newValue;
+        participantCodename = row.participant_codename;
+    }
+    const family = families.find(fam => fam.family_codename === familyCodename);
+    return family
+        ? family.participants.find(
+              currParticipant => currParticipant.participant_codename === participantCodename
+          )
+        : undefined;
+}
+
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
 
@@ -127,7 +145,12 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .catch(console.error);
     }, []);
 
-    function onEdit(newValue: string | boolean | string[], rowIndex: number, col: DataEntryHeader) {
+    function onEdit(
+        newValue: string | boolean | string[],
+        rowIndex: number,
+        col: DataEntryHeader,
+        autopopulate?: boolean
+    ) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         } else if (col.field === "input_hpf_path") {
@@ -146,7 +169,25 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             );
         }
         const newRows = props.data.map((value, index) => {
-            if (index === rowIndex) {
+            if (autopopulate && index === rowIndex) {
+                const participant = findParticipant(newValue as string, col.field, value, families);
+                if (participant) {
+                    return setProp(
+                        participantColumns.reduce(
+                            (row, currCol) => setProp(row, currCol, participant[currCol]),
+                            setProp({ ...value }, "participantColDisabled", true)
+                        ),
+                        col.field,
+                        newValue
+                    );
+                } else {
+                    return setProp(
+                        setProp({ ...value }, "participantColDisabled", false),
+                        col.field,
+                        newValue
+                    );
+                }
+            } else if (index === rowIndex) {
                 return setProp({ ...value }, col.field, newValue);
             } else {
                 return value;
@@ -240,7 +281,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                           {
                                                               ...value,
                                                               input_hpf_path: undefined,
-                                                          } as DataEntryRow,
+                                                          },
                                                       ]
                                                     : value
                                             )
@@ -254,9 +295,17 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                         rowIndex={rowIndex}
                                         col={col}
                                         getOptions={getOptions}
-                                        onEdit={newValue => onEdit(newValue, rowIndex, col)}
+                                        onEdit={(newValue, autocomplete?: boolean) =>
+                                            onEdit(newValue, rowIndex, col, autocomplete)
+                                        }
                                         key={col.field}
                                         required
+                                        disabled={
+                                            row.participantColDisabled &&
+                                            !!participantColumns.find(
+                                                currCol => currCol === col.field
+                                            )
+                                        }
                                     />
                                 ))}
                                 {optionals.map(
@@ -269,6 +318,12 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                 getOptions={getOptions}
                                                 onEdit={newValue => onEdit(newValue, rowIndex, col)}
                                                 key={col.field}
+                                                disabled={
+                                                    row.participantColDisabled &&
+                                                    !!participantColumns.find(
+                                                        currCol => currCol === col.field
+                                                    )
+                                                }
                                             />
                                         )
                                 )}

@@ -11,6 +11,7 @@ import {
     FieldDisplayValueType,
     Field,
     DataEntryRow,
+    PseudoBoolean,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -253,6 +254,45 @@ export function createFieldObj(
     };
 }
 
+/**
+ * Convert given table to CSV and downloads it to user.
+ *
+ * @param table A 2D array of strings to convert to CSV. Inner arrays are rows. table[0] is the header row.
+ * @param filename What to call the downloaded file
+ * @see https://github.com/mholt/PapaParse/issues/175
+ */
+export function downloadCSV(table: string[][], filename: string) {
+    const rows = table.map(row => row.join(",")).join("\r\n");
+    const blob = new Blob([rows], {
+        type: "text/csv;charset=utf-8",
+    });
+    var a = window.document.createElement("a");
+    a.href = window.URL.createObjectURL(blob);
+    a.setAttribute("download", filename + ".csv");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+/**
+ * Used for material-table exportCSV.
+ */
+export function rowDataToTable(columnDefs: any[], data: any[]) {
+    const headers = columnDefs.map(columnDef => `"${columnDef.field}"`);
+    const dataRows = data.map(rowData =>
+        columnDefs.map(columnDef => `"${rowData[columnDef.field]}"`)
+    );
+    return [headers].concat(dataRows) as string[][];
+}
+
+/**
+ * Alias for the above two functions together. Generates a table given the columnDefs and
+ * rowData, and downloads as CSV.
+ */
+export function exportCSV(columnDefs: any[], data: any[], filename: string) {
+    downloadCSV(rowDataToTable(columnDefs, data), filename);
+}
+
 export function createEmptyRows(amount?: number): DataEntryRow[] {
     if (!amount || amount < 1) amount = 1;
 
@@ -268,4 +308,39 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
         });
     }
     return arr;
+}
+
+export function stringToBoolean(value: PseudoBoolean) {
+    switch (value) {
+        case "true":
+            return true;
+        case "false":
+            return false;
+        case "null":
+            return null;
+        default:
+            return value;
+    }
+}
+
+/**
+ * Return an object containing the key-value pairs that differ between
+ * oldRow and newRow, with the values from newRow.
+ *
+ * @param newRow
+ * @param oldRow
+ */
+export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
+    if (!oldRow) {
+        return { ...newRow };
+    } else {
+        let diffRow: any = {};
+        let k: keyof T;
+        for (k in oldRow) {
+            if (newRow[k] !== oldRow[k]) {
+                diffRow[k] = newRow[k];
+            }
+        }
+        return { ...diffRow };
+    }
 }

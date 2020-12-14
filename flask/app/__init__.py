@@ -40,5 +40,7 @@ def create_app(config):
         from . import families
         from . import datasets
         from . import participants
+        from . import tissue_samples
+        from . import groups
 
         return app
