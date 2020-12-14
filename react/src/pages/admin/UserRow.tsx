@@ -19,7 +19,7 @@ import UserDetails from "./UserDetails";
 import LastLoginDisplay from "../utils/components/LastLoginDisplay";
 import ChipGroup from "../utils/components/ChipGroup";
 
-const useRowStyles = makeStyles<Theme, boolean>(theme => ({
+const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
         marginLeft: theme.spacing(1),
     },
