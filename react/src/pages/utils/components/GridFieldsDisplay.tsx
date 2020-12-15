@@ -23,7 +23,7 @@ export default function GridFieldsDisplay(props: {
     const infoWidth = props.columnWidth || 6;
     const numColumns = Math.floor(12 / infoWidth);
 
-    let fieldColumns: { field: Field; key: string }[][] = Array(numColumns).map(() => []);
+    let fieldColumns: { field: Field; key: string }[][] = [...Array(numColumns)].map(() => []);
 
     if (props.orderPriority === "left-right") {
         for (let i = 0; i < props.fields.length; i += numColumns) {
@@ -46,8 +46,8 @@ export default function GridFieldsDisplay(props: {
 
     return (
         <>
-            {fieldColumns.map(column => (
-                <Grid item xs={infoWidth} key={`column-${column[0].key}`}>
+            {fieldColumns.map((column, colIndex) => (
+                <Grid item xs={infoWidth} key={`column-${colIndex}`}>
                     {column.map(value => (
                         <FieldDisplayEditable
                             field={value.field}
