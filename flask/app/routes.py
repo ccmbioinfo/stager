@@ -124,18 +124,6 @@ def validate_user(request_user: dict):
     return False
 
 
-@app.route("/api/users", methods=["GET"])
-@login_required
-@check_admin
-def user_list():
-    db_users = db.session.query(models.User).all()
-    users = [
-        {"username": user.username, "email": user.email, "isAdmin": True}
-        for user in db_users
-    ]
-    return json.dumps(users)
-
-
 @app.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
