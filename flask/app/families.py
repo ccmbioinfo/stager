@@ -130,12 +130,12 @@ def get_family(id: int):
                 **asdict(family),
                 "updated_by": family.updated_by.username,
                 "created_by": family.created_by.username,
-                "participants": [
+                "participant": [
                     {
                         **asdict(participants),
                         "updated_by": participants.updated_by.username,
                         "created_by": participants.created_by.username,
-                        "tissue_samples": [
+                        "tissue_sample": [
                             {
                                 **asdict(tissue_samples),
                                 "datasets": tissue_samples.datasets,
