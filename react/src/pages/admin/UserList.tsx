@@ -67,7 +67,7 @@ function reducer(state: User[], action: UserAction) {
                 username: newUser.username,
                 email: newUser.username,
                 is_admin: newUser.isAdmin,
-                last_login: "",
+                last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
                 deactivated: false,
                 groups: [],
             });
