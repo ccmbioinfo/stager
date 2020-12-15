@@ -4,12 +4,12 @@ import { Field } from "../typings";
 import FieldDisplayEditable from "./FieldDisplayEditable";
 
 // Grids are very picky about what sizes are allowed
-type Width = Exclude<GridProps["xs"], boolean | "auto" | undefined>;
+type Width = Exclude<GridProps["xs"], boolean | "auto">;
 
 /**
- * Display a collection of editable fields. Number of columns can be specified.
+ * Display a collection of editable fields. Column width can be specified.
  *
- * @param orderPriority How to display the fields (left-right first or top-down first)
+ * @param orderPriority How to display the fields (default to top-down first)
  * @param columnWidth The width of each column (out of 12, must be an integer)
  */
 export default function GridFieldsDisplay(props: {
@@ -23,13 +23,14 @@ export default function GridFieldsDisplay(props: {
     const infoWidth = props.columnWidth || 6;
     const numColumns = Math.floor(12 / infoWidth);
 
-    let fieldColumns: Field[][] = [...Array(numColumns)].map(() => []);
+    let fieldColumns: { field: Field; key: string }[][] = Array(numColumns).map(() => []);
 
     if (props.orderPriority === "left-right") {
         for (let i = 0; i < props.fields.length; i += numColumns) {
             for (let j = 0; j < numColumns; j++) {
                 const index = i + j;
-                if (index < props.fields.length) fieldColumns[j].push(props.fields[index]);
+                if (index < props.fields.length)
+                    fieldColumns[j].push({ field: props.fields[index], key: `field-${index}` });
             }
         }
     } else {
@@ -37,7 +38,8 @@ export default function GridFieldsDisplay(props: {
         for (let i = 0; i < numColumns; i++) {
             for (let j = 0; j < cap; j++) {
                 const index = j + cap * i;
-                if (index < props.fields.length) fieldColumns[i].push(props.fields[index]);
+                if (index < props.fields.length)
+                    fieldColumns[i].push({ field: props.fields[index], key: `field-${index}` });
             }
         }
     }
@@ -45,13 +47,14 @@ export default function GridFieldsDisplay(props: {
     return (
         <>
             {fieldColumns.map(column => (
-                <Grid item xs={infoWidth}>
-                    {column.map(field => (
+                <Grid item xs={infoWidth} key={`column-${column[0].key}`}>
+                    {column.map(value => (
                         <FieldDisplayEditable
-                            field={field}
+                            field={value.field}
                             editMode={props.editMode}
                             enums={props.enums}
                             onEdit={props.onEdit}
+                            key={value.key}
                         />
                     ))}
                 </Grid>

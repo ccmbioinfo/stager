@@ -59,15 +59,17 @@ function EnhancedTextField({
 }: {
     field: Field;
     enums: any;
-    onEdit: (fieldName: string | undefined, value: any) => void;
+    onEdit: (fieldName: string | undefined, value: boolean | string | null) => void;
 }) {
     const classes = useTextStyles();
     const nullOption = (
-        <MenuItem value={""}>
+        <MenuItem value={""} key="">
             <em>None</em>
         </MenuItem>
     );
     if (!field.fieldName || !enums) return <></>;
+
+    let children: React.ReactNode = [];
 
     // Props common to all variants
     const textFieldProps: TextFieldProps = {
@@ -87,7 +89,7 @@ function EnhancedTextField({
         textFieldProps.onChange = (e: TextFieldEvent) => {
             onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
         };
-        textFieldProps.children = [
+        children = [
             ...enums[getFieldInEnums(field.fieldName)].map((option: string) => (
                 <MenuItem key={option} value={option}>
                     {option}
@@ -116,7 +118,7 @@ function EnhancedTextField({
         textFieldProps.value = formatFieldValue(field.value, true);
 
         const options = Object.values(PseudoBooleanReadableMap);
-        textFieldProps.children = [
+        children = [
             ...options.map((option: string) => (
                 <MenuItem key={option} value={option}>
                     {option}
@@ -137,7 +139,7 @@ function EnhancedTextField({
             onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
     }
 
-    return <TextField {...textFieldProps} />;
+    return <TextField {...textFieldProps}>{children}</TextField>;
 }
 
 const useStyles = makeStyles(theme => ({
