@@ -82,6 +82,8 @@ def list_participants():
                 joinedload(models.Participant.tissue_samples).joinedload(
                     models.TissueSample.datasets
                 ),
+                joinedload(models.Participant.created_by),
+                joinedload(models.Participant.updated_by),
             )
             .filter(models.Participant.participant_codename.like(starts_with))
             .order_by(column)
@@ -93,11 +95,10 @@ def list_participants():
             {
                 **asdict(participant),
                 "family_codename": participant.family.family_codename,
+                "updated_by": participant.updated_by.username,
+                "created_by": participant.created_by.username,
                 "tissue_samples": [
-                    {
-                        **asdict(tissue_sample),
-                        "datasets": tissue_sample.datasets,
-                    }
+                    {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
                     for tissue_sample in participant.tissue_samples
                 ],
             }
@@ -172,7 +173,15 @@ def update_participant(id: int):
 
     routes.transaction_or_abort(db.session.commit)
 
-    return jsonify(participant)
+    return jsonify(
+        [
+            {
+                **asdict(participant),
+                "created_by": participant.created_by.username,
+                "updated_by": participant.updated_by.username,
+            }
+        ]
+    )
 
 
 @app.route("/api/participants", methods=["POST"])
@@ -231,4 +240,14 @@ def create_participant():
 
     location_header = "/api/participants/{}".format(ptp_objs.participant_id)
 
-    return jsonify(ptp_objs), 201, {"location": location_header}
+    return (
+        jsonify(
+            {
+                **asdict(ptp_objs),
+                "created_by": ptp_objs.created_by.username,
+                "updated_by": ptp_objs.updated_by.username,
+            }
+        ),
+        201,
+        {"location": location_header},
+    )
