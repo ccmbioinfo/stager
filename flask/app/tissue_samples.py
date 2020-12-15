@@ -28,8 +28,8 @@ def get_tissue_sample(id: int):
             models.TissueSample.query.filter_by(tissue_sample_id=id)
             .options(
                 contains_eager(models.TissueSample.datasets),
-                contains_eager(models.TissueSample.created_by),
-                contains_eager(models.TissueSample.updated_by),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
             )
             .join(models.Dataset)
             .join(
@@ -67,8 +67,6 @@ def get_tissue_sample(id: int):
             "datasets": [
                 {
                     **asdict(dataset),
-                    "created_by": dataset.created_by.username,
-                    "updated_by": dataset.updated_by.username,
                 }
                 for dataset in tissue_sample.datasets
             ],

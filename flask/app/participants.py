@@ -98,12 +98,7 @@ def list_participants():
                 "updated_by": participant.updated_by.username,
                 "created_by": participant.created_by.username,
                 "tissue_samples": [
-                    {
-                        **asdict(tissue_sample),
-                        "datasets": tissue_sample.datasets,
-                        "updated_by": tissue_sample.updated_by.username,
-                        "created_by": tissue_sample.created_by.username,
-                    }
+                    {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
                     for tissue_sample in participant.tissue_samples
                 ],
             }
