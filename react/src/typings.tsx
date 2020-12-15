@@ -186,3 +186,12 @@ export const PseudoBooleanReadableMap: Record<PseudoBoolean, string> = {
     false: "No",
     null: "Unknown",
 };
+export interface ConfirmPasswordState {
+    password: string;
+    confirmPassword: string;
+}
+
+export interface ConfirmPasswordAction {
+    type: "password" | "confirm";
+    payload: string;
+}

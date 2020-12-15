@@ -9,7 +9,7 @@ import {
     DialogTitle,
     TextField,
 } from "@material-ui/core";
-import { Analysis } from "../typings";
+import { Analysis } from "../../typings";
 
 interface SetAssigneeDialogProps {
     affectedRows: Analysis[];

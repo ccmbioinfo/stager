@@ -15,11 +15,10 @@ import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { formatDateString, jsonToAnalyses, isRowSelected, exportCSV } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
-import AnalysisInfoDialog from "../components/AnalysisInfoDialog";
-import CancelAnalysisDialog from "./CancelAnalysisDialog";
-import AddAnalysisAlert from "./AddAnalysisAlert";
-import SetAssigneeDialog from "./SetAssigneeDialog";
-import Note from "../components/Note";
+import { AnalysisInfoDialog, Note } from "../components";
+import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
+import AddAnalysisAlert from "./components/AddAnalysisAlert";
+import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

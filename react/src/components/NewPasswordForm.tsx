@@ -1,16 +1,7 @@
 import React, { useState } from "react";
 import { IconButton, TextField, Typography } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
-
-export interface ConfirmPasswordState {
-    password: string;
-    confirmPassword: string;
-}
-
-export interface ConfirmPasswordAction {
-    type: "password" | "confirm";
-    payload: string;
-}
+import { ConfirmPasswordState, ConfirmPasswordAction } from "../typings";
 
 /**
  * A form element for creating a new password.

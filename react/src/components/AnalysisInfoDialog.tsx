@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Dns } from "@material-ui/icons";
 import { formatDateString, getDatasetInfoList, createFieldObj } from "../functions";
 import { Analysis, Dataset, Pipeline } from "../typings";
-import { DialogHeader } from "./components";
+import DialogHeader from "./DialogHeader";
 import DetailSection from "./DetailSection";
 import InfoList from "./InfoList";
 

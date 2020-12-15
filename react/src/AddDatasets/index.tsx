@@ -3,9 +3,9 @@ import { makeStyles, Container, Button, Tooltip } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import { useHistory } from "react-router";
 import { useSnackbar } from "notistack";
-import DataEntryTable from "./DataEntryTable";
+import DataEntryTable from "./components/DataEntryTable";
 import { DataEntryRow, DataEntryRowBase } from "../typings";
-import ConfirmModal from "../components/ConfirmModal";
+import { ConfirmModal } from "../components";
 import { createEmptyRows, getDataEntryHeaders } from "../functions";
 
 const useStyles = makeStyles(theme => ({

@@ -4,14 +4,11 @@ import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
-import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../functions";
-import { KeyValue, Participant } from "../typings";
+import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
+import { KeyValue, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
-import Note from "../components/Note";
-import BooleanDisplay from "../components/BooleanDisplay";
-import BooleanEditComponent from "../components/BooleanEditComponent";
-import BooleanFilter from "../components/BooleanFilter";
+import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);

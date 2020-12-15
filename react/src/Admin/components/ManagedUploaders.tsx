@@ -1,11 +1,8 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Chip from "@material-ui/core/Chip";
+import { makeStyles, Chip, Grid, Paper } from "@material-ui/core";
 import MaterialTable, { MTableToolbar } from "material-table";
 import HidableTextButton from "./HidableTextButton";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import Card from "../components/Card";
+import Card from "../../components/Card";
 
 const useStyles = makeStyles(theme => ({
     chip: {

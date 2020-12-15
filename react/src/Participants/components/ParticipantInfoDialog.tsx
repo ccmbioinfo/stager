@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { Dialog, DialogContent, Divider } from "@material-ui/core";
+import { makeStyles, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import {
@@ -8,12 +7,10 @@ import {
     getAnalysisInfoList,
     createFieldObj,
     stringToBoolean,
-} from "../functions";
-import { Participant, Analysis, Field } from "../typings";
-import { DialogHeader } from "../components/components";
+} from "../../functions";
+import { Participant, Analysis, Field } from "../../typings";
+import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
-import DetailSection from "../components/DetailSection";
-import InfoList from "../components/InfoList";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

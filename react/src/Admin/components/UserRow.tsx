@@ -14,10 +14,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
-import { User } from "../typings";
+import { User } from "../../typings";
 import UserDetails from "./UserDetails";
-import LastLoginDisplay from "../components/LastLoginDisplay";
-import ChipGroup from "../components/ChipGroup";
+import { LastLoginDisplay, ChipGroup } from "../../components";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {

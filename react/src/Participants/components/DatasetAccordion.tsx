@@ -8,7 +8,7 @@ import {
     Grid,
 } from "@material-ui/core";
 import { ExpandMore } from "@material-ui/icons";
-import { Dataset } from "../typings";
+import { Dataset } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     root: {

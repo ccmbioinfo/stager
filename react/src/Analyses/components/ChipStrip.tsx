@@ -1,6 +1,5 @@
 import React from "react";
-import { createStyles, Theme, makeStyles } from "@material-ui/core/styles";
-import Chip from "@material-ui/core/Chip";
+import { createStyles, Theme, makeStyles, Chip } from "@material-ui/core";
 
 export interface ChipStripProps {
     labels: string[];

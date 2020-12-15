@@ -2,17 +2,15 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { DialogHeader } from "../components/components";
-import { Dataset, Analysis, Sample } from "../typings";
+import { DialogHeader, DetailSection, InfoList } from "../../components";
+import { Dataset, Analysis, Sample } from "../../typings";
 import {
     formatDateString,
     getAnalysisInfoList,
     getDatasetFields,
     getSecDatasetFields,
     createFieldObj,
-} from "../functions";
-import DetailSection from "../components/DetailSection";
-import InfoList from "../components/InfoList";
+} from "../../functions";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {

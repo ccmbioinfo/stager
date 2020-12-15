@@ -13,11 +13,8 @@ import {
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User } from "../typings";
-import SecretDisplay from "../components/SecretDisplay";
-import NewPasswordForm, { ConfirmPasswordAction } from "../components/NewPasswordForm";
-import ConfirmModal from "../components/ConfirmModal";
-import ChipSelect from "../components/ChipSelect";
+import { User, ConfirmPasswordAction } from "../../typings";
+import { SecretDisplay, NewPasswordForm, ConfirmModal, ChipSelect } from "../../components";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {

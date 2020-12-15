@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { makeStyles, Container, Grid } from "@material-ui/core";
-import ParticipantTable from "./ParticipantTable";
+import ParticipantTable from "./components/ParticipantTable";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

@@ -1,12 +1,7 @@
 import React from "react";
-import { makeStyles, Theme } from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
-import UserList from "./UserList";
-import ManagedUploaders from "./ManagedUploaders";
+import { makeStyles, Theme, AppBar, Tabs, Tab, Typography, Box } from "@material-ui/core";
+import UserList from "./components/UserList";
+import ManagedUploaders from "./components/ManagedUploaders";
 
 interface TabPanelProps {
     children?: React.ReactNode;

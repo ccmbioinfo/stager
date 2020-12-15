@@ -32,14 +32,13 @@ import {
     AddBox as AddBoxIcon,
 } from "@material-ui/icons";
 
-import Participants from "./participants/Participants";
-import Analyses from "./analysis/Analyses";
-import Datasets from "./datasets/Datasets";
-import AddParticipants from "./addParticipants/AddParticipants";
-import Settings from "./settings/Settings";
-import Admin from "./admin/Admin";
-import ListItemRouterLink from "./components/ListItemRouterLink";
-import NotificationPopover from "./components/NotificationPopover";
+import Participants from "./Participants";
+import Analyses from "./Analyses";
+import Datasets from "./Datasets";
+import AddDatasets from "./AddDatasets";
+import Settings from "./Settings";
+import Admin from "./Admin";
+import { ListItemRouterLink, NotificationPopover } from "./components";
 
 const drawerWidth = 200;
 
@@ -140,9 +139,9 @@ const routes: RouteItem[] = [
         exact: true,
     },
     {
-        pageName: "Add Participants",
-        path: "/addParticipants",
-        main: AddParticipants,
+        pageName: "Add Datasets",
+        path: "/addDatasets",
+        main: AddDatasets,
         icon: <AddBoxIcon />,
     },
     {
