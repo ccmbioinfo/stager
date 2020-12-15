@@ -31,7 +31,7 @@ interface SelectableChip {
 
 export default function ChipSelect(props: {
     labels: string[];
-    selected?: string[];
+    selected: string[];
     onSelectionChange?: (selectedLabels: string[]) => void;
 }) {
     const classes = useStyles();
@@ -42,15 +42,13 @@ export default function ChipSelect(props: {
     const [disableAdd, setDisableAdd] = useState(false);
 
     useEffect(() => {
-        if (Array.isArray(props.selected)) {
-            setChips(chips =>
-                chips.map(chip => ({
-                    ...chip,
-                    selected: !!props.selected!.find(label => label === chip.label),
-                }))
-            );
-            setDisableAdd(props.selected.length === 0);
-        }
+        setChips(chips =>
+            chips.map(chip => ({
+                ...chip,
+                selected: !!props.selected.find(label => label === chip.label),
+            }))
+        );
+        setDisableAdd(props.selected.length === 0);
     }, [props.selected]);
 
     function handleClick(clickedChip: SelectableChip) {

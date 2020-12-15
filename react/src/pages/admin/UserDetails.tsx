@@ -78,8 +78,7 @@ export default function UserDetails(props: {
         ...props.user,
         password: "",
         confirmPassword: "",
-        groupMemberships: ["FOO", "BAR"],
-    } as User;
+    };
     const [newState, dispatch] = useReducer(reducer, oldState);
 
     const [confirmDelete, setConfirmDelete] = useState(false);
@@ -123,14 +122,14 @@ export default function UserDetails(props: {
                                 label={<b>Admin</b>}
                                 control={
                                     <Checkbox
-                                        checked={newState.isAdmin}
+                                        checked={newState.is_admin}
                                         color="primary"
                                         onChange={e =>
                                             dispatch({
                                                 type: "set",
                                                 payload: {
                                                     ...newState,
-                                                    isAdmin: e.target.checked,
+                                                    is_admin: e.target.checked,
                                                 },
                                             })
                                         }
@@ -168,7 +167,7 @@ export default function UserDetails(props: {
                         </Typography>
                         <ChipSelect
                             labels={temporaryMagicGlobalGroupList}
-                            selected={newState.groupMemberships}
+                            selected={newState.groups}
                             onSelectionChange={selection =>
                                 dispatch({ type: "group", payload: selection })
                             }

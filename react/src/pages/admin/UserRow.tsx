@@ -42,7 +42,7 @@ export default function UserRow(props: {
     onDelete: (deleteUser: User) => void;
 }) {
     const classes = useRowStyles(!props.user.deactivated);
-    const [date, time] = new Date().toISOString().split(/[T|.]/);
+    const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
 
     const gridProps: GridProps = {
@@ -69,7 +69,7 @@ export default function UserRow(props: {
                                 <Grid item>
                                     <Typography variant="h6" className={classes.title}>
                                         {props.user.username}{" "}
-                                        {props.user.isAdmin && <Security fontSize="inherit" />}
+                                        {props.user.is_admin && <Security fontSize="inherit" />}
                                     </Typography>
                                 </Grid>
                                 <Grid item>
@@ -85,7 +85,7 @@ export default function UserRow(props: {
                                     </Typography>
                                 </Grid>
                                 <Grid item>
-                                    <ChipGroup names={["CHEO", "SK"]} size="small" />
+                                    <ChipGroup names={props.user.groups} size="small" />
                                 </Grid>
                             </Grid>
                         }

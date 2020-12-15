@@ -154,14 +154,23 @@ export interface DataEntryHeader {
     hidden?: boolean;
 }
 
-export interface User {
+export interface NewUser {
     username: string;
     email: string;
     isAdmin: boolean;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface User {
+    username: string;
+    email: string;
+    is_admin: boolean;
+    last_login: string;
+    deactivated: boolean;
+    groups: string[];
     password?: string;
     confirmPassword?: string;
-    groupMemberships?: string[];
-    deactivated?: boolean;
 }
 
 export interface Field {
