@@ -130,22 +130,22 @@ def get_family(id: int):
                 **asdict(family),
                 "updated_by": family.updated_by.username,
                 "created_by": family.created_by.username,
-                "participant": [
+                "participants": [
                     {
-                        **asdict(participants),
-                        "updated_by": participants.updated_by.username,
-                        "created_by": participants.created_by.username,
-                        "tissue_sample": [
+                        **asdict(participant),
+                        "updated_by": participant.updated_by.username,
+                        "created_by": participant.created_by.username,
+                        "tissue_samples": [
                             {
-                                **asdict(tissue_samples),
-                                "datasets": tissue_samples.datasets,
-                                "updated_by": tissue_samples.updated_by.username,
-                                "created_by": tissue_samples.created_by.username,
+                                **asdict(tissue_sample),
+                                "datasets": tissue_sample.datasets,
+                                "updated_by": tissue_sample.updated_by.username,
+                                "created_by": tissue_sample.created_by.username,
                             }
-                            for tissue_samples in participants.tissue_samples
+                            for tissue_sample in participant.tissue_samples
                         ],
                     }
-                    for participants in family.participants
+                    for participant in family.participants
                 ],
             }
         ]
