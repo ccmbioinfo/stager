@@ -68,18 +68,18 @@ def test_get_family(test_database, client, login_as):
     response = client.get("/api/families/1")
     assert response.status_code == 200
     # Check number of participants in response
-    assert len(response.get_json()[0]["participants"]) == 2
+    assert len(response.get_json()[0]["participant"]) == 2
     # Check number of tissue samples in response
     assert (
-        len(response.get_json()[0]["participants"][0]["tissue_samples"]) == 1
-        and len(response.get_json()[0]["participants"][1]["tissue_samples"]) == 1
+        len(response.get_json()[0]["participant"][0]["tissue_sample"]) == 1
+        and len(response.get_json()[0]["participant"][1]["tissue_sample"]) == 1
     )
     # Check number of datasets in response
     assert (
-        len(response.get_json()[0]["participants"][0]["tissue_samples"][0]["datasets"])
+        len(response.get_json()[0]["participant"][0]["tissue_sample"][0]["datasets"])
         == 1
         and len(
-            response.get_json()[0]["participants"][1]["tissue_samples"][0]["datasets"]
+            response.get_json()[0]["participant"][1]["tissue_sample"][0]["datasets"]
         )
         == 1
     )
