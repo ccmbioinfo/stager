@@ -9,6 +9,7 @@ import {
     DialogTitle,
     FormControlLabel,
     TextField,
+    makeStyles,
 } from "@material-ui/core";
 import { NewUser } from "../../typings";
 
@@ -19,59 +20,81 @@ export interface CreateUserModalProps {
     onSuccess: (state: NewUser) => void;
 }
 
+const useStyles = makeStyles(theme => ({
+    submitting: {
+        cursor: "wait",
+    },
+}));
+
+function ErrorText(props: { id: string; errorCode: number }) {
+    switch (props.errorCode) {
+        case 0:
+            return <></>;
+        case 404:
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Some requested permission groups do not exist.
+                </DialogContentText>
+            );
+        case 422:
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Username or email already in use.
+                </DialogContentText>
+            );
+        default:
+            // 500 and the 400s and 415s that shouldn't happen
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Something went wrong. Please try again later.
+                </DialogContentText>
+            );
+    }
+}
+// TODO: add group picker
 export default function CreateUserModal(props: CreateUserModalProps) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [isAdmin, setAdmin] = useState(false);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    // The following two are mutually exclusive
-    const [errorNoMatch, setErrorNoMatch] = useState(false);
-    const [errorIntegrity, setErrorIntegrity] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [errorCode, setErrorCode] = useState(0);
 
     async function submit(e: React.FormEvent) {
+        setSubmitting(true);
         e.preventDefault();
-        const state = { username, email, isAdmin, password, confirmPassword };
         const response = await fetch("/api/users", {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(state),
+            body: JSON.stringify({
+                username,
+                email,
+                is_admin: isAdmin,
+                password,
+            }),
         });
         if (response.ok) {
-            props.onSuccess(state);
+            props.onSuccess(await response.json());
             // Reset to default
             setUsername("");
             setEmail("");
             setAdmin(false);
             setPassword("");
             setConfirmPassword("");
-            setErrorNoMatch(false);
-            setErrorIntegrity(false);
+            setErrorCode(0);
         } else {
-            setErrorNoMatch(response.status === 400);
-            setErrorIntegrity(response.status !== 400);
+            setErrorCode(response.status);
         }
-    }
-
-    let errorFragment = <></>;
-    if (errorNoMatch) {
-        errorFragment = (
-            <DialogContentText id={`${props.id}-description`} color="secondary">
-                Passwords do not match or length requirement not satisfied.
-            </DialogContentText>
-        );
-    } else if (errorIntegrity) {
-        errorFragment = (
-            <DialogContentText id={`${props.id}-description`} color="secondary">
-                User or email already exists.
-            </DialogContentText>
-        );
+        setSubmitting(false);
     }
 
     const passwordsDiffer = password !== confirmPassword;
     const passwordErrorText = passwordsDiffer && "Passwords do not match.";
-    const submittable = username && email && password && !passwordsDiffer;
+    const submittable = !submitting && username && email && password && !passwordsDiffer;
+
+    const classes = useStyles();
 
     return (
         <Dialog
@@ -80,10 +103,11 @@ export default function CreateUserModal(props: CreateUserModalProps) {
             aria-labelledby={`${props.id}-title`}
             aria-describedby={`${props.id}-description`}
             PaperProps={{ component: "form" }}
+            className={submitting ? classes.submitting : ""}
         >
             <DialogTitle id={`${props.id}-title`}>New user</DialogTitle>
             <DialogContent>
-                {errorFragment}
+                <ErrorText id={`${props.id}-description`} errorCode={errorCode} />
                 <TextField
                     required
                     autoFocus
