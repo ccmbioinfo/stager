@@ -141,6 +141,9 @@ def create_user():
     user = models.User.query.filter_by(username=request.json["username"]).first()
     if user is not None:
         return "User already exists", 422, {"location": f"/api/users/{user.username}"}
+    user = models.User.query.filter_by(email=request.json["email"]).first()
+    if user is not None:
+        return "Email already used", 422, {"location": f"/api/users/{user.username}"}
 
     user = models.User(
         username=request.json["username"],
@@ -160,9 +163,5 @@ def create_user():
 
     reset_minio_credentials(user)
     db.session.add(user)
-    try:
-        db.session.commit()
-        return jsonify_user(user), 201, {"location": f"/api/users/{user.username}"}
-    except:
-        db.session.rollback()
-        return "Server error", 500
+    transaction_or_abort(db.session.commit)
+    return jsonify_user(user), 201, {"location": f"/api/users/{user.username}"}
