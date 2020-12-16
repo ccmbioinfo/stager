@@ -118,7 +118,7 @@ export function getAnalysisFields(analysis: Analysis) {
         createFieldObj("State", analysis.analysis_state),
         createFieldObj("Pipeline ID", analysis.pipeline_id),
         createFieldObj("Assigned to", analysis.assignee),
-        createFieldObj("HPF Path", analysis.result_hpf_path),
+        createFieldObj("Path Prefix", analysis.result_path),
         createFieldObj("qSub ID", analysis.qsubID),
         createFieldObj("Notes", analysis.notes),
         createFieldObj("Requested", formatDateString(analysis.requested)),
