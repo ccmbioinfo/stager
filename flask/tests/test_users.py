@@ -202,3 +202,26 @@ def test_create_admin(test_database, minio_policy, client, login_as):
         login_as,
     )
     assert client.get("/api/users").status_code == 200
+
+
+def test_create_blank_user(test_database, client, login_as):
+    login_as("admin")
+    # Some defensive checks
+    assert (
+        client.post(
+            "/api/users", json={"username": "", "email": "", "password": ""}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            "/api/users", json={"username": "blank", "email": "blank", "password": ""}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            "/api/users", json={"username": "", "email": "blank", "password": "blank"}
+        ).status_code
+        == 400
+    )

@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict
 
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
@@ -118,6 +119,15 @@ def reset_minio_user(username: str):
     )
 
 
+def valid_strings(body: Dict[str, Any], *keys: str) -> bool:
+    return all(
+        map(
+            lambda key: key in body and isinstance(body[key], str) and len(body[key]),
+            keys,
+        )
+    )
+
+
 @app.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
@@ -125,11 +135,7 @@ def create_user():
     if not request.json:
         return "Request body must be JSON", 415
 
-    if (
-        "username" not in request.json
-        or "password" not in request.json
-        or "email" not in request.json
-    ):
+    if not valid_strings(request.json, "username", "email", "password"):
         return "Missing fields", 400
 
     user = models.User.query.filter_by(username=request.json["username"]).first()

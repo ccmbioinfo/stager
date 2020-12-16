@@ -69,6 +69,10 @@ export default function CreateUserModal(props: CreateUserModalProps) {
         );
     }
 
+    const passwordsDiffer = password !== confirmPassword;
+    const passwordErrorText = passwordsDiffer && "Passwords do not match.";
+    const submittable = username && email && password && !passwordsDiffer;
+
     return (
         <Dialog
             open={props.open}
@@ -87,7 +91,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     fullWidth
                     margin="dense"
                     variant="filled"
-                    label="Username (minimum 4 characters)"
+                    label="Username"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                 />
@@ -118,10 +122,12 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     fullWidth
                     margin="dense"
                     variant="filled"
-                    label="Password (minimum 4 characters)"
+                    label="Password"
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
+                    error={passwordsDiffer}
+                    helperText={passwordErrorText}
                 />
                 <TextField
                     required
@@ -133,13 +139,21 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
+                    error={passwordsDiffer}
+                    helperText={passwordErrorText}
                 />
             </DialogContent>
             <DialogActions>
                 <Button onClick={props.onClose} color="default" variant="outlined">
                     Cancel
                 </Button>
-                <Button type="submit" onClick={submit} color="primary" variant="contained">
+                <Button
+                    type="submit"
+                    onClick={submit}
+                    disabled={!submittable}
+                    color="primary"
+                    variant="contained"
+                >
                     Create
                 </Button>
             </DialogActions>
