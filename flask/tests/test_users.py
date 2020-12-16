@@ -1,6 +1,6 @@
 import pytest
-from conftest import TestConfig
 from app.madmin import MinioAdmin, readwrite_buckets_policy
+from conftest import TestConfig
 
 # Common response values between list and individual get endpoints
 expected_admin_common = {
@@ -141,3 +141,64 @@ def test_reset_minio_user(test_database, minio_policy, client, login_as):
     assert client.post("/api/users/admin").status_code == 401
 
     assert_reset("user", client)
+
+
+def assert_new_user(body, client, login_as):
+    response = client.post("/api/users", json=body)
+    assert response.status_code == 201
+    user = response.get_json()
+    assert response.location.endswith(f"/api/users/{user['username']}")
+    assert user["username"] == body["username"]
+    assert user["email"] == body["email"]
+    assert "password" not in user
+    assert user["is_admin"] == body.get("is_admin", False)
+    assert user["groups"] == body.get("groups", [])
+    assert isinstance(user["minio_access_key"], str)
+    assert isinstance(user["minio_secret_key"], str)
+    login_as(body["username"], body["password"])
+
+
+def test_create_user(test_database, client, login_as):
+    assert client.post("/api/users").status_code == 401
+    login_as("user")
+    assert client.post("/api/users").status_code == 401
+    assert client.post("/api/users", json={"xml": "bad"}).status_code == 401
+
+    login_as("admin")
+    assert client.post("/api/users").status_code == 415
+    assert client.post("/api/users", json={"xml": "bad"}).status_code == 400
+    assert client.post("/api/users", json={"username": "dormammu"}).status_code == 400
+    assert (
+        client.post(
+            "/api/users",
+            json={"username": "dormammu", "password": "I've come to bargain"},
+        ).status_code
+        == 400
+    )
+
+    assert_new_user(
+        {
+            "username": "dormammu",
+            "password": "I've come to bargain",
+            "email": "stephen.strange@agamotto.org",
+        },
+        client,
+        login_as,
+    )
+    assert client.get("/api/users").status_code == 401
+
+
+def test_create_admin(test_database, minio_policy, client, login_as):
+    login_as("admin")
+    assert_new_user(
+        {
+            "username": "vaccine",
+            "password": "covid-19",
+            "email": "mrna@example.org",
+            "is_admin": True,
+            "groups": ["ach"],
+        },
+        client,
+        login_as,
+    )
+    assert client.get("/api/users").status_code == 200

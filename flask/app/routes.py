@@ -1,20 +1,23 @@
+import inspect
+import json
+from dataclasses import asdict
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-import json
-from typing import Any, Callable, Dict, List, Union
-from dataclasses import asdict
-import inspect
 from io import StringIO
+from typing import Any, Callable, Dict, List, Union
+
+import pandas as pd
+from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import exc
+from sqlalchemy.orm import aliased, contains_eager, joinedload
+from werkzeug.exceptions import HTTPException
+
+from flask import Response, abort
+from flask import current_app as app
+from flask import jsonify, request
 
 from . import db, login, models
-
-from flask import abort, jsonify, request, Response, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc
-from sqlalchemy.orm import aliased, joinedload, contains_eager
-from werkzeug.exceptions import HTTPException
-import pandas as pd
 
 
 def mixin(
@@ -122,32 +125,6 @@ def validate_user(request_user: dict):
             )
         return True
     return False
-
-
-@app.route("/api/users", methods=["POST"])
-@login_required
-@check_admin
-def create_user():
-    rq_user = request.get_json()
-    if not validate_user(rq_user):
-        return "Bad request", 400
-
-    db_user = models.User.query.filter_by(username=rq_user["username"]).first()
-    if db_user is not None:
-        return "User already exists", 403
-
-    if "password" not in rq_user or "email" not in rq_user:
-        return "Bad request", 400
-
-    user = models.User(username=rq_user["username"], email=rq_user["email"])
-    user.set_password(rq_user["password"])
-    db.session.add(user)
-    try:
-        db.session.commit()
-        return "Created", 201
-    except:
-        db.session.rollback()
-        return "Server error", 500
 
 
 @app.route("/api/users", methods=["PUT"])
