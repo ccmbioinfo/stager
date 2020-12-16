@@ -138,12 +138,12 @@ def create_user():
     if not valid_strings(request.json, "username", "email", "password"):
         return "Missing fields", 400
 
-    user = models.User.query.filter_by(username=request.json["username"]).first()
+    user = models.User.query.filter(
+        (models.User.username == request.json["username"])
+        | (models.User.email == request.json["email"])
+    ).first()
     if user is not None:
         return "User already exists", 422, {"location": f"/api/users/{user.username}"}
-    user = models.User.query.filter_by(email=request.json["email"]).first()
-    if user is not None:
-        return "Email already used", 422, {"location": f"/api/users/{user.username}"}
 
     user = models.User(
         username=request.json["username"],

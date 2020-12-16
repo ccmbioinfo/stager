@@ -34,6 +34,11 @@ def minio_policy():
         madmin.remove_policy("ach")
     except:
         pass
+    for user in madmin.list_users():
+        try:
+            madmin.remove_user(user["accessKey"])
+        except:
+            pass
 
 
 def test_list_users(test_database, client, login_as):
