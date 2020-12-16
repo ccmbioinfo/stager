@@ -8,13 +8,13 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import TextField from "@material-ui/core/TextField";
-import { User } from "../utils/typings";
+import { NewUser } from "../utils/typings";
 
 export interface CreateUserModalProps {
     id: string;
     open: boolean;
     onClose: () => void;
-    onSuccess: (state: User) => void;
+    onSuccess: (state: NewUser) => void;
 }
 
 export default function CreateUserModal(props: CreateUserModalProps) {

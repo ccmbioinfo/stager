@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User } from "../utils/typings";
+import { User, NewUser } from "../utils/typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
 
@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
 
 interface UserAction {
     type: "set" | "update" | "add" | "delete";
-    payload: User | User[];
+    payload: User | User[] | NewUser;
 }
 
 // Use a reducer for state management to handle update, add, delete
@@ -54,15 +54,23 @@ function reducer(state: User[], action: UserAction) {
         case "set":
             // Sets the state; only to be used when fetching data
             if (Array.isArray(action.payload)) return action.payload;
-            return [action.payload];
+            return [action.payload as User];
         case "update":
             // Update the user with this username.
-            const newUser = action.payload as User;
+            const updatedUser = action.payload as User;
             return state.map(user =>
-                user.username === newUser.username ? { ...user, ...newUser } : user
+                user.username === updatedUser.username ? { ...user, ...updatedUser } : user
             );
         case "add":
-            return state.concat(action.payload);
+            const newUser = action.payload as NewUser;
+            return state.concat({
+                username: newUser.username,
+                email: newUser.username,
+                is_admin: newUser.isAdmin,
+                last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
+                deactivated: false,
+                groups: [],
+            });
         case "delete":
             return state.filter(user => user.username !== (action.payload as User).username);
         default:
