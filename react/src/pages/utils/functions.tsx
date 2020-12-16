@@ -12,6 +12,7 @@ import {
     Field,
     DataEntryRow,
     PseudoBoolean,
+    PseudoBooleanReadableMap,
 } from "./typings";
 
 export function countArray(items: string[]) {
@@ -343,4 +344,17 @@ export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
         }
         return { ...diffRow };
     }
+}
+
+/**
+ * Formats the provided FieldDisplay value as a user-readable string.
+ */
+export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: boolean = false) {
+    let val = value;
+    if (Array.isArray(value)) val = value.join(", ");
+    else if (value === null || value === undefined)
+        nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
+    else if (typeof value === "boolean")
+        val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
+    return val;
 }

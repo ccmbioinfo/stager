@@ -45,15 +45,30 @@ interface DialogProp {
     onUpdate: (dataset_id: string, newDataset: { [key: string]: any }) => void;
 }
 
-export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: DialogProp) {
+export default function DatasetInfoDialog(props: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
 
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
+    const [enums, setEnums] = useState<any>();
+
     useEffect(() => {
-        fetch("/api/datasets/" + dataset.dataset_id)
+        fetch("/api/enums").then(async response => {
+            if (response.ok) {
+                const enums = await response.json();
+                setEnums(enums);
+            } else {
+                console.error(
+                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
+                );
+            }
+        });
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/datasets/" + props.dataset.dataset_id)
             .then(response => response.json())
             .then(data => {
                 setAnalyses(data.analyses as Analysis[]);
@@ -62,29 +77,31 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
             .catch(error => {
                 console.error(error);
             });
-    }, [dataset]);
+    }, [props.dataset]);
 
     return (
-        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
-            <DialogHeader
-                id={labeledBy}
-                onClose={() => {
-                    onClose();
-                }}
-            >
-                Details of Dataset ID {dataset.dataset_id}
+        <Dialog
+            onClose={props.onClose}
+            aria-labelledby={labeledBy}
+            open={props.open}
+            maxWidth="lg"
+            fullWidth
+        >
+            <DialogHeader id={labeledBy} onClose={props.onClose}>
+                Details of Dataset ID {props.dataset.dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
-                    {dataset && (
+                    {props.dataset && (
                         <DetailSection
-                            fields={getDatasetFields(dataset)}
-                            collapsibleFields={getSecDatasetFields(dataset)}
+                            fields={getDatasetFields(props.dataset)}
+                            enums={enums}
+                            collapsibleFields={getSecDatasetFields(props.dataset)}
                             dataInfo={{
                                 type: "dataset",
-                                ID: dataset.dataset_id,
-                                identifier: dataset.dataset_id,
-                                onUpdate: onUpdate,
+                                ID: props.dataset.dataset_id,
+                                identifier: props.dataset.dataset_id,
+                                onUpdate: props.onUpdate,
                             }}
                         />
                     )}
@@ -94,6 +111,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
                     {sample && (
                         <DetailSection
                             fields={getSamplesFields(sample)}
+                            enums={enums}
                             title="Associated Tissue Sample"
                         />
                     )}
@@ -104,6 +122,7 @@ export default function DatasetInfoDialog({ dataset, open, onClose, onUpdate }: 
                         <InfoList
                             infoList={getAnalysisInfoList(analyses)}
                             title="Analyses which use this dataset"
+                            enums={enums}
                             icon={<ShowChart />}
                             linkPath="/analysis"
                         />
