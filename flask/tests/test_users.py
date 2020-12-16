@@ -225,3 +225,15 @@ def test_create_blank_user(test_database, client, login_as):
         ).status_code
         == 400
     )
+
+
+def test_create_conflicting_user(test_database, client, login_as):
+    login_as("admin")
+    users = [
+        {"username": "admin", "email": "notchecked", "password": "fail"},
+        {"username": "user", "email": "notchecked", "password": "fail"},
+        {"username": "adamant", "email": "noreply@sickkids.ca", "password": "fail"},
+        {"username": "sapphire", "email": "test@sickkids.ca", "password": "fail"},
+    ]
+    for user in users:
+        assert client.post("/api/users", json=user).status_code == 422

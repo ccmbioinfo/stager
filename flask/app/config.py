@@ -23,4 +23,3 @@ class Config(object):
     )
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
     TESTING = False
-    LOGIN_DISABLED = True
