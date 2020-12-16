@@ -516,7 +516,6 @@ export function DataEntryActionCell(props: {
     );
 }
 
-
 /* A header cell in the DataEntryTable. */
 export function HeaderCell(props: { header: string }) {
     const classes = useCellStyles();
