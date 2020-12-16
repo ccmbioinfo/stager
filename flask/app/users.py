@@ -128,6 +128,17 @@ def valid_strings(body: Dict[str, Any], *keys: str) -> bool:
     )
 
 
+# Really the only way to verify an email is to test it because the RFC for what
+# is a valid email address is hideously complex. There are at least two PyPI packages
+# that properly test this but they already start checking the domains. The app isn't
+# planning to use the emails so this check is vastly simplified.
+def verify_email(email: str) -> bool:
+    space = email.find(" ")
+    at = email.find("@")
+    dot = email.find(".", at)
+    return space == -1 and at > 0 and dot > at + 1
+
+
 @app.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
@@ -137,6 +148,13 @@ def create_user():
 
     if not valid_strings(request.json, "username", "email", "password"):
         return "Missing fields", 400
+    if (
+        len(request.json["username"]) > models.User.username.type.length
+        or len(request.json["email"]) >= models.User.email.type.length
+    ):
+        return "Username or email too long", 400
+    if not verify_email(request.json["email"]):
+        return "Bad email", 400
 
     user = models.User.query.filter(
         (models.User.username == request.json["username"])

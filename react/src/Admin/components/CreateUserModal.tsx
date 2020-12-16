@@ -30,6 +30,12 @@ function ErrorText(props: { id: string; errorCode: number }) {
     switch (props.errorCode) {
         case 0:
             return <></>;
+        case 400:
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Username or email too long, bad email, or other invalid input.
+                </DialogContentText>
+            );
         case 404:
             return (
                 <DialogContentText id={props.id} color="secondary">
@@ -43,7 +49,7 @@ function ErrorText(props: { id: string; errorCode: number }) {
                 </DialogContentText>
             );
         default:
-            // 500 and the 400s and 415s that shouldn't happen
+            // 500 and the 415s that shouldn't happen
             return (
                 <DialogContentText id={props.id} color="secondary">
                     Something went wrong. Please try again later.

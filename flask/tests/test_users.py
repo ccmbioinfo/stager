@@ -211,32 +211,24 @@ def test_create_admin(test_database, minio_policy, client, login_as):
 
 def test_create_blank_user(test_database, client, login_as):
     login_as("admin")
-    # Some defensive checks
-    assert (
-        client.post(
-            "/api/users", json={"username": "", "email": "", "password": ""}
-        ).status_code
-        == 400
-    )
-    assert (
-        client.post(
-            "/api/users", json={"username": "blank", "email": "blank", "password": ""}
-        ).status_code
-        == 400
-    )
-    assert (
-        client.post(
-            "/api/users", json={"username": "", "email": "blank", "password": "blank"}
-        ).status_code
-        == 400
-    )
+    # Some defensive length checks
+    users = [
+        {"username": "", "email": "", "password": ""},
+        {"username": "blank", "email": "blank@example.ca", "password": ""},
+        {"username": "", "email": "blank@example.ca", "password": "blank"},
+        {"username": "a" * 31, "email": "blank@example.ca", "password": "toolong"},
+        {"username": "aaaaa", "email": "a" * 200 + "@f.ff", "password": "toolong"},
+        {"username": "aaaaa", "email": "localhost", "password": "notanemail"},
+    ]
+    for user in users:
+        assert client.post("/api/users", json=user).status_code == 400
 
 
 def test_create_conflicting_user(test_database, client, login_as):
     login_as("admin")
     users = [
-        {"username": "admin", "email": "notchecked", "password": "fail"},
-        {"username": "user", "email": "notchecked", "password": "fail"},
+        {"username": "admin", "email": "unused@example.ca", "password": "fail"},
+        {"username": "user", "email": "unused@example.ca", "password": "fail"},
         {"username": "adamant", "email": "noreply@sickkids.ca", "password": "fail"},
         {"username": "sapphire", "email": "test@sickkids.ca", "password": "fail"},
     ]
