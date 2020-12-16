@@ -55,6 +55,16 @@ const useCellStyles = makeStyles(theme => ({
     breakAll: {
         wordBreak: "break-all",
     },
+    resizableHeader: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRight: `dotted 2px ${theme.palette.text.disabled}`,
+        marginBottom: "5px",
+    },
+    removePadding: {
+        padding: 0,
+    },
 }));
 
 const filter = createFilterOptions<Option>({
@@ -506,24 +516,12 @@ export function DataEntryActionCell(props: {
     );
 }
 
-const useHeaderCellStyles = makeStyles(theme => ({
-    resizableHeader: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRight: `dotted 2px ${theme.palette.text.disabled}`,
-        marginBottom: "5px",
-    },
-    cell: {
-        padding: 0,
-    },
-}));
 
 /* A header cell in the DataEntryTable. */
 export function HeaderCell(props: { header: string }) {
-    const classes = useHeaderCellStyles();
+    const classes = useCellStyles();
     return (
-        <TableCell className={classes.cell}>
+        <TableCell className={classes.removePadding}>
             <Resizable
                 className={classes.resizableHeader}
                 defaultSize={{
