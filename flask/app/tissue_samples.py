@@ -26,7 +26,11 @@ def get_tissue_sample(id: int):
     if user_id:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(contains_eager(models.TissueSample.datasets))
+            .options(
+                contains_eager(models.TissueSample.datasets),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
+            )
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -44,7 +48,11 @@ def get_tissue_sample(id: int):
     else:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(joinedload(models.TissueSample.datasets))
+            .options(
+                joinedload(models.TissueSample.datasets),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
+            )
             .one_or_none()
         )
 
@@ -54,7 +62,14 @@ def get_tissue_sample(id: int):
     return jsonify(
         {
             **asdict(tissue_sample),
-            "datasets": tissue_sample.datasets,
+            "created_by": tissue_sample.created_by.username,
+            "updated_by": tissue_sample.updated_by.username,
+            "datasets": [
+                {
+                    **asdict(dataset),
+                }
+                for dataset in tissue_sample.datasets
+            ],
         }
     )
 
@@ -65,7 +80,9 @@ def get_tissue_sample(id: int):
 def delete_tissue_sample(id: int):
     tissue_sample = (
         models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == id)
-        .options(joinedload(models.TissueSample.datasets))
+        .options(
+            joinedload(models.TissueSample.datasets),
+        )
         .first_or_404()
     )
     if not tissue_sample.datasets:
@@ -123,7 +140,17 @@ def create_tissue_sample():
         db.session.commit()
         ts_id = tissue_sample.tissue_sample_id
         location_header = "/api/tissue_samples/{}".format(ts_id)
-        return jsonify(tissue_sample), 201, {"location": location_header}
+        return (
+            jsonify(
+                {
+                    **asdict(tissue_sample),
+                    "created_by": tissue_sample.created_by.username,
+                    "updated_by": tissue_sample.updated_by.username,
+                }
+            ),
+            201,
+            {"location": location_header},
+        )
     except:
         db.session.rollback()
         return "Server error", 500
@@ -143,7 +170,11 @@ def update_tissue_sample(id: int):
     if user_id:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(contains_eager(models.TissueSample.datasets))
+            .options(
+                contains_eager(models.TissueSample.datasets),
+                # contains_eager(models.TissueSample.created_by),
+                # contains_eager(models.TissueSample.updated_by),
+            )
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -161,7 +192,11 @@ def update_tissue_sample(id: int):
     else:
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(joinedload(models.TissueSample.datasets))
+            .options(
+                joinedload(models.TissueSample.datasets),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
+            )
             .one_or_none()
         )
 
@@ -178,4 +213,10 @@ def update_tissue_sample(id: int):
 
     transaction_or_abort(db.session.commit)
 
-    return jsonify(tissue_sample)
+    return jsonify(
+        {
+            **asdict(tissue_sample),
+            "created_by": tissue_sample.created_by.username,
+            "updated_by": tissue_sample.updated_by.username,
+        }
+    )

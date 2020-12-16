@@ -124,18 +124,6 @@ def validate_user(request_user: dict):
     return False
 
 
-@app.route("/api/users", methods=["GET"])
-@login_required
-@check_admin
-def user_list():
-    db_users = db.session.query(models.User).all()
-    users = [
-        {"username": user.username, "email": user.email, "isAdmin": True}
-        for user in db_users
-    ]
-    return json.dumps(users)
-
-
 @app.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
@@ -289,7 +277,6 @@ def bulk_update():
         ],
         "dataset": [
             "dataset_type",
-            "input_hpf_path",
             "notes",
             "condition",
             "extraction_protocol",
@@ -341,116 +328,99 @@ def bulk_update():
         created_by_id = 1
 
     for i, row in enumerate(dat):
-
-        # family logic
-
-        fam_query = models.Family.query.filter(
+        # Find the family by codename or create it if it doesn't exist
+        family_id = models.Family.query.filter(
             models.Family.family_codename == row.get("family_codename")
-        )
-
-        if not fam_query.value("family_id"):
-
-            fam_objs = models.Family(
+        ).value("family_id")
+        if not family_id:
+            family = models.Family(
                 family_codename=row.get("family_codename"),
                 created_by_id=created_by_id,
                 updated_by_id=updated_by_id,
             )
-            db.session.add(fam_objs)
-
+            db.session.add(family)
             transaction_or_abort(db.session.flush)
+            family_id = family.family_id
 
-        # participant logic
-
-        # query both participant codename and family id else we will get the participant ID for the first member
-        # of the family and no subsequent entities will be updated
-        ptp_query = models.Participant.query.filter(
-            models.Participant.family_id == fam_query.value("family_id"),
-            models.Participant.participant_codename == row.get("participant_codename"),
-        )
-
+        # Fail if we have any invalid values
         enum_error = enum_validate(
             models.Participant, row, editable_dict["participant"]
         )
-
         if enum_error:
             db.session.rollback()
             return f"Error on line {str(i + 1)} - " + enum_error, 400
 
-        ptp_objs = models.Participant(
-            family_id=fam_query.value("family_id"),
-            participant_codename=row.get("participant_codename"),
-            sex=row.get("sex"),
+        # Find the participant by codename or create it if it doesn't exist
+        participant_id = models.Participant.query.filter(
+            models.Participant.family_id == family_id,
+            models.Participant.participant_codename == row.get("participant_codename"),
+        ).value("participant_id")
+        if not participant_id:
+            participant = models.Participant(
+                family_id=family_id,
+                participant_codename=row.get("participant_codename"),
+                sex=row.get("sex"),
+                notes=row.get("notes"),
+                affected=row.get("affected"),
+                solved=row.get("solved"),
+                participant_type=row.get("participant_type"),
+                month_of_birth=row.get("month_of_birth"),
+                created_by_id=created_by_id,
+                updated_by_id=updated_by_id,
+            )
+            db.session.add(participant)
+            transaction_or_abort(db.session.flush)
+            participant_id = participant.participant_id
+
+        # Fail if we have any invalid values
+        enum_error = enum_validate(
+            models.TissueSample, row, editable_dict["tissue_sample"]
+        )
+        if enum_error:
+            db.session.rollback()
+            return f"Error on line {str(i + 1)}: " + enum_error, 400
+
+        # Create a new tissue sample under this participant
+        tissue_sample = models.TissueSample(
+            participant_id=participant_id,
+            tissue_sample_type=row.get("tissue_sample_type"),
             notes=row.get("notes"),
-            affected=row.get("affected"),
-            solved=row.get("solved"),
-            participant_type=row.get("participant_type"),
-            month_of_birth=row.get("month_of_birth"),
             created_by_id=created_by_id,
             updated_by_id=updated_by_id,
         )
-
-        db.session.add(ptp_objs)
+        db.session.add(tissue_sample)
         transaction_or_abort(db.session.flush)
 
-        # tissue logic
+        # Fail if we have any invalid values
+        enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
+        if enum_error:
+            db.session.rollback()
+            return f"Error on line {str(i + 1)} - " + enum_error, 400
 
-        tis_query = models.TissueSample.query.filter(
-            models.TissueSample.participant_id == ptp_query.value("participant_id")
+        # Create a new dataset under the new tissue sample
+        dataset = models.Dataset(
+            tissue_sample_id=tissue_sample.tissue_sample_id,
+            dataset_type=row.get("dataset_type"),
+            created_by_id=created_by_id,
+            updated_by_id=updated_by_id,
+            condition=row.get("condition"),
+            extraction_protocol=row.get("extraction_protocol"),
+            capture_kit=row.get("capture_kit"),
+            library_prep_method=row.get("library_prep_method"),
+            read_length=row.get("read_length"),
+            read_type=row.get("read_type"),
+            sequencing_centre=row.get("sequencing_centre"),
+            sequencing_date=row.get("sequencing_date"),
+            batch_id=row.get("batch_id"),
         )
-
-        if not tis_query.value("tissue_sample_id"):
-
-            enum_error = enum_validate(
-                models.TissueSample, row, editable_dict["tissue_sample"]
-            )
-
-            if enum_error:
-                db.session.rollback()
-                return f"Error on line {str(i + 1)}: " + enum_error, 400
-
-            tis_objs = models.TissueSample(
-                participant_id=ptp_query.value("participant_id"),
-                tissue_sample_type=row.get("tissue_sample_type"),
-                notes=row.get("notes"),
-                created_by_id=created_by_id,
-                updated_by_id=updated_by_id,
-            )
-            db.session.add(tis_objs)
-            transaction_or_abort(db.session.flush)
-
-        # dataset logic
-
-        dts_query = models.Dataset.query.filter(
-            models.Dataset.tissue_sample_id == tis_query.value("tissue_sample_id")
-        )
-
-        if not dts_query.value("dataset_id"):
-
-            enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
-
-            if enum_error:
-                db.session.rollback()
-                return f"Error on line {str(i + 1)} - " + enum_error, 400
-
-            dts_objs = models.Dataset(
-                tissue_sample_id=tis_query.value("tissue_sample_id"),
-                dataset_type=row.get("dataset_type"),
-                created_by_id=created_by_id,
-                updated_by_id=updated_by_id,
-                condition=row.get("condition"),
-                extraction_protocol=row.get("extraction_protocol"),
-                capture_kit=row.get("capture_kit"),
-                library_prep_method=row.get("library_prep_method"),
-                read_length=row.get("read_length"),
-                read_type=row.get("read_type"),
-                sequencing_centre=row.get("sequencing_centre"),
-                sequencing_date=row.get("sequencing_date"),
-                batch_id=row.get("batch_id"),
-            )
-            db.session.add(dts_objs)
-            transaction_or_abort(db.session.flush)
-
-        dataset_ids.append(dts_query.value("dataset_id"))
+        if request.content_type == "text/csv":
+            files = row.get("linked_files", "").split("|")
+        else:
+            files = row.get("linked_files", [])
+        dataset.files += [models.DatasetFile(path=path) for path in files if path]
+        db.session.add(dataset)
+        transaction_or_abort(db.session.flush)
+        dataset_ids.append(dataset.dataset_id)
 
     transaction_or_abort(db.session.commit)
 

@@ -210,6 +210,6 @@ def test_update_tissue_sample_user(client, test_database, login_as):
         response = client.patch("/api/tissue_samples/1", json=body)
         assert response.status_code == 200
         tissue_sample = response.get_json()
-        assert tissue_sample["updated_by_id"] == 2
+        assert tissue_sample["updated_by"] == "user"
         for key, value in body.items():
             assert tissue_sample[key] == value

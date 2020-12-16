@@ -64,13 +64,13 @@ class Family(db.Model):
     # Family.FamilyID
     family_codename: str = db.Column(db.String(50), nullable=False, unique=True)
     created: str = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    created_by_id: int = db.Column(
+    created_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     updated: str = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    updated_by_id: int = db.Column(
+    updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     participants = db.relationship("Participant", backref="family")
@@ -110,13 +110,13 @@ class Participant(db.Model):
     solved: bool = db.Column(db.Boolean)  # TODO uncomment and rebuild
     notes: str = db.Column(db.Text)
     created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    created_by_id: int = db.Column(
+    created_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     updated: datetime = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    updated_by_id: int = db.Column(
+    updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     tissue_samples = db.relationship("TissueSample", backref="participant")
@@ -157,13 +157,13 @@ class TissueSample(db.Model):
     tissue_processing: TissueProcessing = db.Column(db.Enum(TissueProcessing))
     notes: str = db.Column(db.Text)
     created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    created_by_id: int = db.Column(
+    created_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     updated: datetime = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.now
     )
-    updated_by_id: int = db.Column(
+    updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     datasets = db.relationship("Dataset", backref="tissue_sample")
@@ -245,8 +245,6 @@ class Dataset(db.Model):
     dataset_type: str = db.Column(
         db.String(50), db.ForeignKey("dataset_type.dataset_type"), nullable=False
     )
-    # Dataset.HPFPath
-    input_hpf_path: str = db.Column(db.String(500))
     # Dataset.Notes
     notes: str = db.Column(db.Text)
     # RNASeqDataset.Condition (name TBD)
@@ -267,7 +265,7 @@ class Dataset(db.Model):
     sequencing_centre: str = db.Column(db.String(100))
     batch_id: str = db.Column(db.String(50))
     created: datetime = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by_id: int = db.Column(
+    created_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     # Dataset.NotesLastUpdatedDate
@@ -275,7 +273,7 @@ class Dataset(db.Model):
         db.DateTime, nullable=False, onupdate=datetime.now, default=datetime.utcnow
     )
     # Dataset.NotesLastUpdatedBy
-    updated_by_id: int = db.Column(
+    updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
 
@@ -288,12 +286,20 @@ class Dataset(db.Model):
     analyses = db.relationship(
         "Analysis", secondary=datasets_analyses_table, backref="datasets"
     )
-
     groups = db.relationship(
         "Group", secondary=groups_datasets_table, backref="datasets"
     )
     updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
+
+    files = db.relationship(
+        "DatasetFile", backref="dataset", cascade="all, delete", passive_deletes=True
+    )
+    linked_files: List[str]
+
+    @property
+    def linked_files(self) -> List[str]:
+        return [x.path for x in self.files]
 
 
 @dataclass
@@ -315,6 +321,18 @@ class RNASeqDataset(Dataset):
     spike_in: str = db.Column(db.String(50))
 
     __mapper_args__ = {"polymorphic_identity": "rnaseq_dataset"}
+
+
+@dataclass
+class DatasetFile(db.Model):
+    file_id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
+        nullable=False,
+    )
+    # Dataset.HPFPath
+    path: str = db.Column(db.String(500), nullable=False, unique=True)
 
 
 class AnalysisState(str, Enum):
@@ -340,7 +358,7 @@ class Analysis(db.Model):
     # Dataset.RunID
     qsub_id: int = db.Column(db.Integer)
     # Analysis.ResultsDirectory
-    result_hpf_path: str = db.Column(db.String(500))
+    result_path: str = db.Column(db.String(500))
     assignee_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade")
     )

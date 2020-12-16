@@ -53,14 +53,26 @@ def list_families():
         )
     else:
         families = (
-            models.Family.query.options(joinedload(models.Family.participants))
+            models.Family.query.options(
+                joinedload(models.Family.participants),
+                joinedload(models.Family.created_by),
+                joinedload(models.Family.updated_by),
+            )
             .filter(models.Family.family_codename.like(starts_with))
             .order_by(column)
             .limit(max_rows)
         )
 
     return jsonify(
-        [{**asdict(family), "participants": family.participants} for family in families]
+        [
+            {
+                **asdict(family),
+                "participants": family.participants,
+                "updated_by": family.updated_by.username,
+                "created_by": family.created_by.username,
+            }
+            for family in families
+        ]
     )
 
 
@@ -102,7 +114,9 @@ def get_family(id: int):
             .options(
                 joinedload(models.Family.participants)
                 .joinedload(models.Participant.tissue_samples)
-                .joinedload(models.TissueSample.datasets)
+                .joinedload(models.TissueSample.datasets),
+                joinedload(models.Family.created_by),
+                joinedload(models.Family.updated_by),
             )
             .one_or_none()
         )
@@ -114,18 +128,24 @@ def get_family(id: int):
         [
             {
                 **asdict(family),
+                "updated_by": family.updated_by.username,
+                "created_by": family.created_by.username,
                 "participants": [
                     {
-                        **asdict(participants),
+                        **asdict(participant),
+                        "updated_by": participant.updated_by.username,
+                        "created_by": participant.created_by.username,
                         "tissue_samples": [
                             {
-                                **asdict(tissue_samples),
-                                "datasets": tissue_samples.datasets,
+                                **asdict(tissue_sample),
+                                "datasets": tissue_sample.datasets,
+                                "updated_by": tissue_sample.updated_by.username,
+                                "created_by": tissue_sample.created_by.username,
                             }
-                            for tissue_samples in participants.tissue_samples
+                            for tissue_sample in participant.tissue_samples
                         ],
                     }
-                    for participants in family.participants
+                    for participant in family.participants
                 ],
             }
         ]
@@ -200,7 +220,13 @@ def update_family(id: int):
 
     try:
         db.session.commit()
-        return jsonify(family)
+        return jsonify(
+            {
+                **asdict(family),
+                "updated_by": family.updated_by.username,
+                "created_by": family.created_by.username,
+            }
+        )
     except:
         db.session.rollback()
         return "Server error", 500
@@ -241,4 +267,14 @@ def create_family():
 
     location_header = "/api/families/{}".format(fam_objs.family_id)
 
-    return jsonify(fam_objs), 201, {"location": location_header}
+    return (
+        jsonify(
+            {
+                **asdict(fam_objs),
+                "updated_by": fam_objs.updated_by.username,
+                "created_by": fam_objs.created_by.username,
+            }
+        ),
+        201,
+        {"location": location_header},
+    )

@@ -42,5 +42,6 @@ def create_app(config):
         from . import participants
         from . import tissue_samples
         from . import groups
+        from . import users
 
         return app

@@ -13,7 +13,6 @@ from werkzeug.exceptions import HTTPException
 
 editable_columns = [
     "dataset_type",
-    "input_hpf_path",
     "notes",
     "condition",
     "extraction_protocol",
@@ -66,6 +65,8 @@ def list_datasets():
                 "participant_type": dataset.tissue_sample.participant.participant_type,
                 "sex": dataset.tissue_sample.participant.sex,
                 "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                "created_by": dataset.tissue_sample.created_by.username,
+                "updated_by": dataset.tissue_sample.updated_by.username,
             }
             for dataset in datasets
         ]
@@ -85,6 +86,8 @@ def get_dataset(id: int):
             models.Dataset.query.filter_by(dataset_id=id)
             .options(
                 joinedload(models.Dataset.analyses),
+                joinedload(models.Dataset.created_by),
+                joinedload(models.Dataset.updated_by),
                 joinedload(models.Dataset.tissue_sample)
                 .joinedload(models.TissueSample.participant)
                 .joinedload(models.Participant.family),
@@ -103,6 +106,8 @@ def get_dataset(id: int):
             models.Dataset.query.filter_by(dataset_id=id)
             .options(
                 joinedload(models.Dataset.analyses),
+                joinedload(models.Dataset.created_by),
+                joinedload(models.Dataset.updated_by),
                 joinedload(models.Dataset.tissue_sample)
                 .joinedload(models.TissueSample.participant)
                 .joinedload(models.Participant.family),
@@ -118,12 +123,14 @@ def get_dataset(id: int):
             "participant_type": dataset.tissue_sample.participant.participant_type,
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
+            "created_by": dataset.tissue_sample.participant.created_by.username,
+            "updated_by": dataset.tissue_sample.participant.updated_by.username,
             "analyses": [
                 {
                     **asdict(analysis),
                     "requester": analysis.requester.username,
-                    "updated_by_id": analysis.updated_by.username,
-                    "assignee": analysis.assignee_id and analysis.assignee.username,
+                    "updated_by": analysis.updated_by.username,
+                    "assignee": analysis.assignee.username,
                 }
                 for analysis in dataset.analyses
             ],
@@ -162,12 +169,26 @@ def update_dataset(id: int):
     if enum_error:
         return enum_error, 400
 
+    if "linked_files" in request.json:
+        for existing in dataset.files:
+            if existing.path not in request.json["linked_files"]:
+                db.session.delete(existing)
+        for path in request.json["linked_files"]:
+            if path not in dataset.linked_files:
+                dataset.files.append(models.DatasetFile(path=path))
+
     if user_id:
         dataset.updated_by_id = user_id
 
     routes.transaction_or_abort(db.session.commit)
 
-    return jsonify(dataset)
+    return jsonify(
+        {
+            **asdict(dataset),
+            "updated_by": dataset.updated_by.username,
+            "created_by": dataset.created_by.username,
+        }
+    )
 
 
 @app.route("/api/datasets/<int:id>", methods=["DELETE"])
@@ -223,7 +244,6 @@ def create_dataset():
         **{
             "tissue_sample_id": tissue_sample_id,
             "dataset_type": dataset_type,
-            "input_hpf_path": request.json.get("input_hpf_path"),
             "notes": request.json.get("notes"),
             "condition": request.json.get("condition"),
             "extraction_protocol": request.json.get("extraction_protocol"),
@@ -241,9 +261,23 @@ def create_dataset():
             "discriminator": request.json.get("discriminator"),
         }
     )
+    # TODO: add stricter checks?
+    if request.json.get("linked_files"):
+        for path in request.json["linked_files"]:
+            dataset.files.append(models.DatasetFile(path=path))
     db.session.add(dataset)
     routes.transaction_or_abort(db.session.commit)
     ds_id = dataset.dataset_id
     location_header = "/api/datasets/{}".format(ds_id)
 
-    return jsonify(dataset), 201, {"location": location_header}
+    return (
+        jsonify(
+            {
+                **asdict(dataset),
+                "updated_by": dataset.updated_by.username,
+                "created_by": dataset.created_by.username,
+            }
+        ),
+        201,
+        {"location": location_header},
+    )

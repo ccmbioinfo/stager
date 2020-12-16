@@ -222,24 +222,21 @@ def add_dummy_data():
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
                 "created_by_id": 1,
-                "condition": "Germline",
-                "input_hpf_path": "",
+                "condition": "GermLine",
             },
             {
                 "tissue_sample_id": 3,
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
                 "created_by_id": 1,
-                "condition": "Germline",
-                "input_hpf_path": "",
+                "condition": "GermLine",
             },
             {
                 "tissue_sample_id": 3,
                 "dataset_type": "RGS",
                 "entered": "2020-02-03",
                 "created_by_id": 1,
-                "condition": "Germline",
-                "input_hpf_path": "",
+                "condition": "GermLine",
             },
         ]
         for d in default_datasets:

@@ -1,12 +1,9 @@
-from flask import request, json, jsonify, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
+from flask import jsonify, current_app as app
+from flask_login import current_user, login_required
 from minio import Minio
-from minio.error import ResponseError
+from sqlalchemy.orm import joinedload
 
-
-from . import db, login, models, routes
-from sqlalchemy import exc
-from sqlalchemy.orm import aliased, joinedload
+from . import models
 
 minioClient = Minio(
     app.config.get("MINIO_ENDPOINT"),
@@ -25,8 +22,7 @@ def get_unlinked_files():
 
     # Remove buckets the current user does not have access to assuming group_code.lower() == bucket name
     user = (
-        db.session.query(models.User)
-        .filter_by(user_id=current_user.user_id)
+        models.User.query.filter_by(user_id=current_user.user_id)
         .options(joinedload(models.User.groups))
         .first()
     )
@@ -45,10 +41,7 @@ def get_unlinked_files():
             all_files.append(bucket + "/" + obj.object_name)
 
     # Get all linked files
-    linked_files = {}
-    for dataset in models.Dataset.query.all():
-        if dataset.input_hpf_path is not None:
-            linked_files[dataset.input_hpf_path] = ":)"
+    linked_files = {f.path: ":)" for f in models.DatasetFile.query.all()}
 
     # Put all unlinked files in new list
     unlinked_files = []
