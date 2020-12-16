@@ -514,17 +514,16 @@ const useHeaderCellStyles = makeStyles(theme => ({
         borderRight: `dotted 2px ${theme.palette.text.disabled}`,
         marginBottom: "5px",
     },
+    cell: {
+        padding: 0,
+    },
 }));
 
 /* A header cell in the DataEntryTable. */
 export function HeaderCell(props: { header: string }) {
     const classes = useHeaderCellStyles();
     return (
-        <TableCell
-            style={{
-                padding: 0,
-            }}
-        >
+        <TableCell className={classes.cell}>
             <Resizable
                 className={classes.resizableHeader}
                 defaultSize={{

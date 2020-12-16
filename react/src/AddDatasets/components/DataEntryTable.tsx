@@ -224,7 +224,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         <TableRow>
                             <TableCell padding="checkbox" aria-hidden={true} />
                             <TableCell padding="checkbox" aria-hidden={true} />
-                            {columns.map((cell, index) => (
+                            {columns.map(cell => (
                                 <HeaderCell key={cell.field} header={cell.title + "*"} />
                             ))}
 
