@@ -328,6 +328,10 @@ def bulk_update():
         created_by_id = 1
 
     for i, row in enumerate(dat):
+        sequencing_date = row.get("sequencing_date")
+        if not sequencing_date:
+            return "A sequencing date must be provided", 400
+
         # Find the family by codename or create it if it doesn't exist
         family_id = models.Family.query.filter(
             models.Family.family_codename == row.get("family_codename")

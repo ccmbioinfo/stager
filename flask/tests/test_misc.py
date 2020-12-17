@@ -92,6 +92,7 @@ def test_post_bulk(test_database, client, login_as):
                     "tissue_sample_type": "Blood",
                     "dataset_type": "WGS",
                     "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
                 },
                 {
                     "family_codename": "1001",
@@ -100,6 +101,7 @@ def test_post_bulk(test_database, client, login_as):
                     "tissue_sample_type": "Blood",
                     "dataset_type": "WES",
                     "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
                 },
             ],
         ).status_code
@@ -114,6 +116,32 @@ def test_post_bulk(test_database, client, login_as):
             headers={"Content-Type": "text/csv"},
         ).status_code
         == 200
+    )
+
+    # Test sequencing_date is provided
+    assert (
+        client.post(
+            "/api/_bulk",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                },
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "3420",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WES",
+                    "condition": "GermLine",
+                },
+            ],
+        ).status_code
+        == 400
     )
 
     # Check db for both csv result and json array result
@@ -162,9 +190,9 @@ def test_bulk_multiple_csv(test_database, client, login_as):
         client.post(
             "/api/_bulk",
             data="""
-family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,linked_files,notes
-HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,/path/foo|/path/bar||,
-HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,/path/yeet|/path/cross|/foo/bar,three
+family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/foo/bar,three
 """,
             headers={"Content-Type": "text/csv"},
         ).status_code
@@ -195,6 +223,7 @@ def test_bulk_multiple_json(test_database, client, login_as):
                     "dataset_type": "WGS",
                     "sex": "Female",
                     "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
                     "linked_files": ["/otonashi/yuzuru", "/tachibana/kanade"],
                 },
                 {
@@ -205,6 +234,7 @@ def test_bulk_multiple_json(test_database, client, login_as):
                     "dataset_type": "WES",
                     "sex": "Female",
                     "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
                     "linked_files": [
                         "",
                         "/perfectly/balanced",
