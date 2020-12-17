@@ -39,7 +39,7 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const fallbackColumns = ["notes", "sex", "input_hpf_path"];
+const fallbackColumns = ["notes", "sex", "input_hpf_path", "sequencing_date"];
 
 function getEnvColumns(): Array<keyof DataEntryRowOptional> {
     const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;

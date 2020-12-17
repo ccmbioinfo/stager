@@ -226,21 +226,43 @@ def test_create_dataset(client, test_database, login_as):
     # Nonexistent tissue sample
     assert (
         client.post(
-            "/api/datasets", json={"dataset_type": "foo", "tissue_sample_id": "foo"}
+            "/api/datasets",
+            json={
+                "dataset_type": "foo",
+                "sequencing_date": "2020-12-04",
+                "tissue_sample_id": "foo",
+            },
         ).status_code
         == 404
     )
     assert (
         client.post(
-            "/api/datasets", json={"dataset_type": "foo", "tissue_sample_id": 400}
+            "/api/datasets",
+            json={
+                "dataset_type": "foo",
+                "sequencing_date": "2020-12-04",
+                "tissue_sample_id": 400,
+            },
         ).status_code
         == 404
+    )
+    # No sequencing date
+    assert (
+        client.post(
+            "/api/datasets", json={"dataset_type": "WGS", "tissue_sample_id": 1}
+        ).status_code
+        == 400
     )
 
     # Successful minimal create
     response = client.post(
         "/api/datasets",
-        json={"dataset_type": "WGS", "tissue_sample_id": 1, "condition": "Somatic"},
+        json={
+            "dataset_type": "WGS",
+            "tissue_sample_id": 1,
+            "condition": "Somatic",
+            "sequencing_date": "2020-12-04",
+        },
     )
     assert response.status_code == 201
     dataset = response.get_json()

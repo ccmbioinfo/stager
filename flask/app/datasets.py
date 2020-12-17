@@ -226,6 +226,10 @@ def create_dataset():
     if not tissue_sample_id:
         return "A tissue sample id must be provided", 400
 
+    sequencing_date = request.json.get("sequencing_date")
+    if not sequencing_date:
+        return "A sequencing date must be provided", 400
+
     models.TissueSample.query.filter_by(
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
