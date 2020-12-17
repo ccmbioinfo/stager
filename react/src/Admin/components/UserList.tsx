@@ -43,26 +43,33 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface UserAction {
-    type: "set" | "update" | "add" | "delete";
-    payload: User | User[] | NewUser;
+interface AddUserAction {
+    type: "add";
+    payload: NewUser;
 }
-
+interface ChangeUserAction {
+    type: "update" | "delete";
+    payload: User;
+}
+interface SetUserAction {
+    type: "set";
+    payload: User | User[];
+}
 // Use a reducer for state management to handle update, add, delete
-function reducer(state: User[], action: UserAction) {
+function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUserAction) {
     switch (action.type) {
         case "set":
             // Sets the state; only to be used when fetching data
             if (Array.isArray(action.payload)) return action.payload;
-            return [action.payload as User];
+            return [action.payload];
         case "update":
             // Update the user with this username.
-            const updatedUser = action.payload as User;
+            const updatedUser = action.payload;
             return state.map(user =>
                 user.username === updatedUser.username ? { ...user, ...updatedUser } : user
             );
         case "add":
-            const newUser = action.payload as NewUser;
+            const newUser = action.payload;
             return state.concat({
                 username: newUser.username,
                 email: newUser.username,
@@ -72,7 +79,7 @@ function reducer(state: User[], action: UserAction) {
                 groups: [],
             });
         case "delete":
-            return state.filter(user => user.username !== (action.payload as User).username);
+            return state.filter(user => user.username !== action.payload.username);
         default:
             console.error(`Invalid action: ${action}`);
             return state;
