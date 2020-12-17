@@ -1,5 +1,4 @@
 import React, { useReducer, useState } from "react";
-import { createHash } from "crypto";
 import {
     Box,
     Button,
@@ -91,6 +90,7 @@ export default function UserDetails(props: {
     groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
+    loading: boolean;
 }) {
     const classes = useDetailStyles();
     // Local changes saved in newState, and are "committed" when user saves changes
@@ -163,15 +163,15 @@ export default function UserDetails(props: {
                         <Grid item xs={12}>
                             <SecretDisplay
                                 title="MinIO Access Key"
-                                // TODO: Replace this with the actual secret
-                                secret={createHash("md5").update(props.user.username).digest("hex")}
+                                secret={props.user.minio_access_key}
+                                loading={props.loading}
                             />
                         </Grid>
                         <Grid item xs={12}>
                             <SecretDisplay
                                 title="MinIO Secret Key"
-                                // TODO: Replace this with the actual secret
-                                secret={createHash("md5").update(props.user.email).digest("hex")}
+                                secret={props.user.minio_secret_key}
+                                loading={props.loading}
                             />
                         </Grid>
                         <Grid item xs={12}>

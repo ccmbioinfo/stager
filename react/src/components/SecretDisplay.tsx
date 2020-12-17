@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, IconButton, Tooltip, Typography } from "@material-ui/core";
+import { Box, IconButton, LinearProgress, Tooltip, Typography } from "@material-ui/core";
 import { FileCopy, Visibility, VisibilityOff } from "@material-ui/icons";
 import { Skeleton } from "@material-ui/lab";
 import { useSnackbar } from "notistack";
@@ -8,7 +8,11 @@ import { useSnackbar } from "notistack";
  * A UI element for displaying a secret. Provides a show/hide button and
  * a copy-to-clipboard button.
  */
-export default function SecretDisplay(props: { title: string; secret: string }) {
+export default function SecretDisplay(props: {
+    title: string;
+    secret?: string;
+    loading?: boolean;
+}) {
     const [open, isOpen] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -17,28 +21,43 @@ export default function SecretDisplay(props: { title: string; secret: string }) 
             <Typography>
                 <b>{props.title}</b>
                 <Tooltip title={`${open ? "Hide" : "Show"} key`}>
-                    <IconButton onClick={() => isOpen(!open)}>
+                    <IconButton onClick={() => isOpen(!open)} disabled={!props.secret}>
                         {open ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Copy to clipboard">
                     <IconButton
+                        disabled={!props.secret}
                         onClick={() => {
-                            navigator.clipboard.writeText(props.secret).then(() => {
-                                enqueueSnackbar(`${props.title} copied to clipboard.`);
-                            });
+                            if (props.secret !== undefined) {
+                                navigator.clipboard.writeText(props.secret).then(() => {
+                                    enqueueSnackbar(`${props.title} copied to clipboard.`);
+                                });
+                            }
                         }}
                     >
                         <FileCopy />
                     </IconButton>
                 </Tooltip>
             </Typography>
-            {open ? (
-                <Typography>{props.secret}</Typography>
+            {props.loading ? (
+                <LinearProgress variant="query" />
             ) : (
-                <Skeleton animation={false} variant="text">
-                    <Typography>{props.secret}</Typography>
-                </Skeleton>
+                <>
+                    {open ? (
+                        <Typography>{props.secret}</Typography>
+                    ) : (
+                        <>
+                            {props.secret ? (
+                                <Skeleton animation={false} variant="text">
+                                    <Typography>{props.secret}</Typography>
+                                </Skeleton>
+                            ) : (
+                                <Typography>{`${props.title} does not exist.`}</Typography>
+                            )}
+                        </>
+                    )}
+                </>
             )}
         </Box>
     );

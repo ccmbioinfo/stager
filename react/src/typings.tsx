@@ -171,6 +171,8 @@ export interface User {
     groups: string[]; // Group.group_code
     password?: string;
     confirmPassword?: string;
+    minio_access_key?: string;
+    minio_secret_key?: string;
 }
 
 export interface Group {

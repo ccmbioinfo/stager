@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Collapse,
     Divider,
@@ -42,8 +42,27 @@ export default function UserRow(props: {
     onDelete: (deleteUser: User) => void;
 }) {
     const classes = useRowStyles(!props.user.deactivated);
+    const [user, setUser] = useState<User>(props.user);
     const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // MinIO keys do not get fetched until UserDetails dropdown is opened for first time
+    useEffect(() => {
+        if (open && !(user.minio_access_key && user.minio_secret_key)) {
+            setLoading(true);
+            fetch(`/api/users/${user.username}`)
+                .then(response => response.json())
+                .then(data => {
+                    setUser(oldUser => ({
+                        ...oldUser,
+                        minio_access_key: data.minio_access_key,
+                        minio_secret_key: data.minio_secret_key,
+                    }));
+                    setLoading(false);
+                });
+        }
+    }, [open, user.minio_access_key, user.minio_secret_key, user.username]);
 
     const gridProps: GridProps = {
         justify: "space-between",
@@ -104,6 +123,7 @@ export default function UserRow(props: {
                         groups={props.groups}
                         onSave={props.onSave}
                         onDelete={props.onDelete}
+                        loading={loading}
                     />
                 </Collapse>
             </Paper>
