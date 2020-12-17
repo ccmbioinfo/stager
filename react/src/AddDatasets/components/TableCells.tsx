@@ -17,6 +17,7 @@ import {
 } from "@material-ui/core";
 import { Link, Description, DoneAll } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
+import { Resizable } from "re-resizable";
 import { DataEntryHeader, DataEntryRow } from "../../typings";
 import { Option, toOption, booleanColumns, dateColumns, enumerableColumns } from "./utils";
 
@@ -53,6 +54,16 @@ const useCellStyles = makeStyles(theme => ({
     },
     breakAll: {
         wordBreak: "break-all",
+    },
+    resizableHeader: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRight: `dotted 2px ${theme.palette.text.disabled}`,
+        marginBottom: "5px",
+    },
+    removePadding: {
+        padding: 0,
     },
 }));
 
@@ -501,6 +512,36 @@ export function DataEntryActionCell(props: {
                     {props.icon}
                 </IconButton>
             </Tooltip>
+        </TableCell>
+    );
+}
+
+/* A header cell in the DataEntryTable. */
+export function HeaderCell(props: { header: string }) {
+    const classes = useCellStyles();
+    return (
+        <TableCell className={classes.removePadding}>
+            <Resizable
+                className={classes.resizableHeader}
+                defaultSize={{
+                    width: 170,
+                    height: 30,
+                }}
+                minWidth={130}
+                maxWidth={1000}
+                enable={{
+                    top: false,
+                    right: true,
+                    bottom: false,
+                    left: false,
+                    topRight: false,
+                    bottomRight: false,
+                    bottomLeft: false,
+                    topLeft: false,
+                }}
+            >
+                {props.header}
+            </Resizable>
         </TableCell>
     );
 }

@@ -21,7 +21,7 @@ import {
 import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../../typings";
 import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
-import { DataEntryActionCell, DataEntryCell } from "./TableCells";
+import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
 
@@ -31,12 +31,6 @@ export interface DataEntryTableProps {
 }
 
 const useTableStyles = makeStyles(theme => ({
-    requiredCell: {
-        minWidth: "16em",
-    },
-    optionalCell: {
-        minWidth: "8em",
-    },
     buttonCell: {
         padding: 0,
     },
@@ -231,28 +225,19 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                             <TableCell padding="checkbox" aria-hidden={true} />
                             <TableCell padding="checkbox" aria-hidden={true} />
                             {columns.map(cell => (
-                                <TableCell className={classes.requiredCell} key={cell.field}>
-                                    {cell.title + "*"}
-                                </TableCell>
+                                <HeaderCell key={cell.field} header={cell.title + "*"} />
                             ))}
 
                             {optionals.map(
                                 cell =>
                                     !cell.hidden && (
-                                        <TableCell
-                                            className={classes.optionalCell}
-                                            key={cell.field}
-                                        >
-                                            {cell.title}
-                                        </TableCell>
+                                        <HeaderCell key={cell.field} header={cell.title} />
                                     )
                             )}
 
                             {showRNA &&
                                 RNASeqCols.map(cell => (
-                                    <TableCell className={classes.optionalCell} key={cell.field}>
-                                        {cell.title + "**"}
-                                    </TableCell>
+                                    <HeaderCell key={cell.field} header={cell.title + "**"} />
                                 ))}
                         </TableRow>
                     </TableHead>
