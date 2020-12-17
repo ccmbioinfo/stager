@@ -14,7 +14,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
-import { User } from "../../typings";
+import { Group, User } from "../../typings";
 import UserDetails from "./UserDetails";
 import { LastLoginDisplay, ChipGroup } from "../../components";
 
@@ -37,6 +37,7 @@ const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
  */
 export default function UserRow(props: {
     user: User;
+    groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
 }) {
@@ -84,7 +85,10 @@ export default function UserRow(props: {
                                     </Typography>
                                 </Grid>
                                 <Grid item>
-                                    <ChipGroup names={props.user.groups} size="small" />
+                                    <ChipGroup
+                                        names={props.user.groups.map(group => group.toUpperCase())}
+                                        size="small"
+                                    />
                                 </Grid>
                             </Grid>
                         }
@@ -97,6 +101,7 @@ export default function UserRow(props: {
                     <Divider />
                     <UserDetails
                         user={props.user}
+                        groups={props.groups}
                         onSave={props.onSave}
                         onDelete={props.onDelete}
                     />

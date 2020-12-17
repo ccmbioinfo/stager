@@ -13,7 +13,7 @@ import {
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, ConfirmPasswordAction } from "../../typings";
+import { Group, User, ConfirmPasswordAction } from "../../typings";
 import { SecretDisplay, NewPasswordForm, ConfirmModal, ChipSelect } from "../../components";
 
 const useDetailStyles = makeStyles(theme => ({
@@ -51,14 +51,36 @@ function reducer(state: User, action: ConfirmPasswordAction | UserAction | Group
         case "set":
             return { ...action.payload };
         case "group":
-            return { ...state, groupMemberships: action.payload };
+            return { ...state, groups: action.payload };
         default:
             return state;
     }
 }
 
-// TODO: replace this with group list pulled from backend
-const temporaryMagicGlobalGroupList = ["FOO", "BAR", "BAZ"];
+/**
+ * ChipSelect wrapper for groups. Displays capitalized group codes which are
+ * nicer to read.
+ */
+function GroupSelect(props: {
+    groups: Group[];
+    selected: string[];
+    onSelectionChange: (selectedGroups: string[]) => void;
+}) {
+    const labels = props.groups.map(group => group.group_code.toUpperCase());
+    const selected = props.selected.map(value => value.toUpperCase());
+
+    function onChange(label: string, newValue: boolean) {
+        if (newValue) {
+            // Selected, so add new label
+            props.onSelectionChange(props.selected.concat(label.toLowerCase()));
+        } else {
+            // Removed, so filter out
+            props.onSelectionChange(props.selected.filter(value => value !== label.toLowerCase()));
+        }
+    }
+
+    return <ChipSelect labels={labels} selected={selected} onClick={onChange} />;
+}
 
 /**
  * The collapsible part of a user row. A form for viewing
@@ -66,6 +88,7 @@ const temporaryMagicGlobalGroupList = ["FOO", "BAR", "BAZ"];
  */
 export default function UserDetails(props: {
     user: User;
+    groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
 }) {
@@ -76,7 +99,7 @@ export default function UserDetails(props: {
         password: "",
         confirmPassword: "",
     };
-    const [newState, dispatch] = useReducer(reducer, oldState);
+    const [newState, dispatch] = useReducer(reducer, null, () => oldState);
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
@@ -89,7 +112,10 @@ export default function UserDetails(props: {
                 id="confirm-modal-update"
                 open={confirmSave}
                 onClose={() => setConfirmSave(false)}
-                onConfirm={() => props.onSave(newState)}
+                onConfirm={() => {
+                    props.onSave(newState);
+                    setConfirmSave(false);
+                }}
                 title="Confirm updating user"
             >
                 Are you sure you want to save changes to user {oldState.username}?
@@ -162,8 +188,8 @@ export default function UserDetails(props: {
                         <Typography>
                             <b>Permission Groups</b>
                         </Typography>
-                        <ChipSelect
-                            labels={temporaryMagicGlobalGroupList}
+                        <GroupSelect
+                            groups={props.groups}
                             selected={newState.groups}
                             onSelectionChange={selection =>
                                 dispatch({ type: "group", payload: selection })

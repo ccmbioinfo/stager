@@ -168,9 +168,15 @@ export interface User {
     is_admin: boolean;
     last_login: string;
     deactivated: boolean;
-    groups: string[];
+    groups: string[]; // Group.group_code
     password?: string;
     confirmPassword?: string;
+}
+
+export interface Group {
+    group_code: string;
+    group_name: string;
+    users?: string[]; // User.username
 }
 
 export interface Field {
