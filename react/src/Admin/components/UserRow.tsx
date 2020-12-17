@@ -47,9 +47,9 @@ export default function UserRow(props: {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // MinIO keys do not get fetched until UserDetails dropdown is opened for first time
+    // MinIO keys get fetched once when the user opens the dropdown, or if they reset credentials
     useEffect(() => {
-        if (open && !(user.minio_access_key && user.minio_secret_key)) {
+        if (open && (!user.minio_access_key || !user.minio_secret_key)) {
             setLoading(true);
             fetch(`/api/users/${user.username}`)
                 .then(response => response.json())
@@ -63,6 +63,10 @@ export default function UserRow(props: {
                 });
         }
     }, [open, user.minio_access_key, user.minio_secret_key, user.username]);
+
+    function handleMinioReset(newKeys: Pick<User, "minio_access_key" | "minio_secret_key">) {
+        setUser(oldUser => ({ ...oldUser, ...newKeys }));
+    }
 
     const gridProps: GridProps = {
         justify: "space-between",
@@ -119,11 +123,12 @@ export default function UserRow(props: {
                 <Collapse in={open}>
                     <Divider />
                     <UserDetails
-                        user={props.user}
+                        user={user}
                         groups={props.groups}
                         onSave={props.onSave}
                         onDelete={props.onDelete}
                         loading={loading}
+                        onMinioReset={handleMinioReset}
                     />
                 </Collapse>
             </Paper>

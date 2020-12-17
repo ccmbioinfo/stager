@@ -41,7 +41,9 @@ interface GroupAction {
     payload: string[];
 }
 
-function reducer(state: User, action: ConfirmPasswordAction | UserAction | GroupAction) {
+type CombinedActions = ConfirmPasswordAction | UserAction | GroupAction;
+
+function reducer(state: User, action: CombinedActions) {
     switch (action.type) {
         case "password":
             return { ...state, password: action.payload };
@@ -91,6 +93,7 @@ export default function UserDetails(props: {
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
     loading: boolean;
+    onMinioReset: (newKeys: Pick<User, "minio_access_key" | "minio_secret_key">) => void;
 }) {
     const classes = useDetailStyles();
     // Local changes saved in newState, and are "committed" when user saves changes
@@ -103,8 +106,30 @@ export default function UserDetails(props: {
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
+    const [confirmReset, setConfirmReset] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
+
+    function onCancelChanges() {
+        dispatch({ type: "set", payload: oldState });
+        enqueueSnackbar("User changes reverted to original state");
+    }
+
+    function onSave() {
+        props.onSave(newState);
+    }
+
+    function onMinioReset() {
+        fetch(`/api/users/${props.user.username}`, {
+            method: "POST",
+            body: JSON.stringify(props.user),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then(response => response.json())
+            .then(data => props.onMinioReset(data));
+    }
 
     return (
         <>
@@ -113,7 +138,7 @@ export default function UserDetails(props: {
                 open={confirmSave}
                 onClose={() => setConfirmSave(false)}
                 onConfirm={() => {
-                    props.onSave(newState);
+                    onSave();
                     setConfirmSave(false);
                 }}
                 title="Confirm updating user"
@@ -129,6 +154,19 @@ export default function UserDetails(props: {
                 colors={{ cancel: "secondary" }}
             >
                 Are you sure you want to delete user {oldState.username}?
+            </ConfirmModal>
+            <ConfirmModal
+                id="confirm-modal-reset-minio-credentials"
+                open={confirmReset}
+                onClose={() => setConfirmReset(false)}
+                onConfirm={() => {
+                    onMinioReset();
+                    setConfirmReset(false);
+                }}
+                title="Reset MinIO Credentials"
+                colors={{ cancel: "secondary" }}
+            >
+                Are you sure you want to reset your MinIO credentials? This action cannot be undone.
             </ConfirmModal>
             <Box className={classes.root}>
                 <Grid container spacing={1}>
@@ -202,7 +240,7 @@ export default function UserDetails(props: {
                         color="secondary"
                         variant="contained"
                         className={classes.button}
-                        disabled // TODO: Re-enable when resetting MinIO Creds is ready
+                        onClick={() => setConfirmReset(true)}
                     >
                         Reset MinIO Credentials
                     </Button>
@@ -217,13 +255,7 @@ export default function UserDetails(props: {
                     </Button>
                     <div className={classes.grow} />
                     <ButtonGroup>
-                        <Button
-                            variant="contained"
-                            onClick={() => {
-                                dispatch({ type: "set", payload: oldState });
-                                enqueueSnackbar("User changes reverted to original state");
-                            }}
-                        >
+                        <Button variant="contained" onClick={onCancelChanges}>
                             Cancel
                         </Button>
                         <Button
