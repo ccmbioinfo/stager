@@ -113,7 +113,9 @@ export default function UserList() {
                 onSuccess={user => {
                     dispatch({ type: "add", payload: user });
                     setOpenNewUser(false);
-                    enqueueSnackbar(`New user ${user.username} created successfully`);
+                    enqueueSnackbar(`New user "${user.username}" created successfully`, {
+                        variant: "success",
+                    });
                 }}
             />
             <Toolbar component={Paper} className={classes.toolbar}>

@@ -1,4 +1,6 @@
-import os, pytest
+import os
+
+import pytest
 from app import create_app, db
 from app.config import Config
 from app.models import *
@@ -223,12 +225,13 @@ def test_database(client):
 
 @pytest.fixture
 def login_as(client):
-    def login(identity: str) -> None:
+    def login(username: str, password: str = None) -> None:
+        password = password or username
         client.post("/api/logout", json={"useless": "why"})
         assert (
             client.post(
                 "/api/login",
-                json={"username": identity, "password": identity},
+                json={"username": username, "password": password},
                 follow_redirects=True,
             ).status_code
             == 200

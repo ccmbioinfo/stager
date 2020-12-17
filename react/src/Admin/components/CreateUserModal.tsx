@@ -9,6 +9,7 @@ import {
     DialogTitle,
     FormControlLabel,
     TextField,
+    makeStyles,
 } from "@material-ui/core";
 import { NewUser } from "../../typings";
 
@@ -19,55 +20,99 @@ export interface CreateUserModalProps {
     onSuccess: (state: NewUser) => void;
 }
 
+const useStyles = makeStyles(theme => ({
+    submitting: {
+        cursor: "wait",
+    },
+}));
+
+interface ErrorTextProps {
+    id: string;
+    errorCode: number;
+    details: { error: string; message: string };
+}
+
+function ErrorText(props: ErrorTextProps) {
+    switch (props.errorCode) {
+        case 0:
+            return <></>;
+        case 400:
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Username or email too long, bad email, or other invalid input.
+                </DialogContentText>
+            );
+        case 404:
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Some requested permission groups do not exist.
+                </DialogContentText>
+            );
+        case 422:
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    {props.details.message}
+                </DialogContentText>
+            );
+        default:
+            // 500 and the 415s that shouldn't happen
+            return (
+                <DialogContentText id={props.id} color="secondary">
+                    Something went wrong. Please try again later.
+                </DialogContentText>
+            );
+    }
+}
+// TODO: add group picker
 export default function CreateUserModal(props: CreateUserModalProps) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [isAdmin, setAdmin] = useState(false);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    // The following two are mutually exclusive
-    const [errorNoMatch, setErrorNoMatch] = useState(false);
-    const [errorIntegrity, setErrorIntegrity] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [errorCode, setErrorCode] = useState(0);
+    const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
 
     async function submit(e: React.FormEvent) {
+        setSubmitting(true);
         e.preventDefault();
-        const state = { username, email, isAdmin, password, confirmPassword };
         const response = await fetch("/api/users", {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(state),
+            body: JSON.stringify({
+                username,
+                email,
+                is_admin: isAdmin,
+                password,
+            }),
         });
         if (response.ok) {
-            props.onSuccess(state);
+            props.onSuccess(await response.json());
             // Reset to default
             setUsername("");
             setEmail("");
             setAdmin(false);
             setPassword("");
             setConfirmPassword("");
-            setErrorNoMatch(false);
-            setErrorIntegrity(false);
+            setErrorCode(0);
         } else {
-            setErrorNoMatch(response.status === 400);
-            setErrorIntegrity(response.status !== 400);
+            setErrorCode(response.status);
         }
+        if (response.status === 422) {
+            setErrorDetails(await response.json());
+        } else {
+            setErrorDetails({ error: "", message: "" });
+        }
+        setSubmitting(false);
     }
 
-    let errorFragment = <></>;
-    if (errorNoMatch) {
-        errorFragment = (
-            <DialogContentText id={`${props.id}-description`} color="secondary">
-                Passwords do not match or length requirement not satisfied.
-            </DialogContentText>
-        );
-    } else if (errorIntegrity) {
-        errorFragment = (
-            <DialogContentText id={`${props.id}-description`} color="secondary">
-                User or email already exists.
-            </DialogContentText>
-        );
-    }
+    const passwordsDiffer = password !== confirmPassword;
+    const passwordErrorText = passwordsDiffer && "Passwords do not match.";
+    const submittable = !submitting && username && email && password && !passwordsDiffer;
+
+    const classes = useStyles();
 
     return (
         <Dialog
@@ -76,10 +121,15 @@ export default function CreateUserModal(props: CreateUserModalProps) {
             aria-labelledby={`${props.id}-title`}
             aria-describedby={`${props.id}-description`}
             PaperProps={{ component: "form" }}
+            className={submitting ? classes.submitting : ""}
         >
             <DialogTitle id={`${props.id}-title`}>New user</DialogTitle>
             <DialogContent>
-                {errorFragment}
+                <ErrorText
+                    id={`${props.id}-description`}
+                    errorCode={errorCode}
+                    details={errorDetails}
+                />
                 <TextField
                     required
                     autoFocus
@@ -87,7 +137,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     fullWidth
                     margin="dense"
                     variant="filled"
-                    label="Username (minimum 4 characters)"
+                    label="Username"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                 />
@@ -118,10 +168,12 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     fullWidth
                     margin="dense"
                     variant="filled"
-                    label="Password (minimum 4 characters)"
+                    label="Password"
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
+                    error={passwordsDiffer}
+                    helperText={passwordErrorText}
                 />
                 <TextField
                     required
@@ -133,13 +185,21 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
+                    error={passwordsDiffer}
+                    helperText={passwordErrorText}
                 />
             </DialogContent>
             <DialogActions>
                 <Button onClick={props.onClose} color="default" variant="outlined">
                     Cancel
                 </Button>
-                <Button type="submit" onClick={submit} color="primary" variant="contained">
+                <Button
+                    type="submit"
+                    onClick={submit}
+                    disabled={!submittable}
+                    color="primary"
+                    variant="contained"
+                >
                     Create
                 </Button>
             </DialogActions>
