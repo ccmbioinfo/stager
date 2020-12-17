@@ -1,13 +1,18 @@
 from dataclasses import asdict
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort
 
+family_blueprint = Blueprint(
+    "families",
+    __name__,
+)
 
-@app.route("/api/families", methods=["GET"])
+
+@family_blueprint.route("/api/families", methods=["GET"])
 @login_required
 def list_families():
     starts_with = request.args.get("starts_with", default="", type=str)
@@ -76,7 +81,7 @@ def list_families():
     )
 
 
-@app.route("/api/families/<int:id>", methods=["GET"])
+@family_blueprint.route("/api/families/<int:id>", methods=["GET"])
 @login_required
 def get_family(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -152,7 +157,7 @@ def get_family(id: int):
     )
 
 
-@app.route("/api/families/<int:id>", methods=["DELETE"])
+@family_blueprint.route("/api/families/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
 def delete_family(id: int):
@@ -174,7 +179,7 @@ def delete_family(id: int):
         return "Family has participants, cannot delete!", 422
 
 
-@app.route("/api/families/<int:id>", methods=["PATCH"])
+@family_blueprint.route("/api/families/<int:id>", methods=["PATCH"])
 @login_required
 def update_family(id: int):
 
@@ -232,7 +237,7 @@ def update_family(id: int):
         return "Server error", 500
 
 
-@app.route("/api/families", methods=["POST"])
+@family_blueprint.route("/api/families", methods=["POST"])
 @login_required
 @check_admin
 def create_family():

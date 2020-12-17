@@ -5,7 +5,7 @@ from dataclasses import asdict
 
 from . import db, login, models, routes
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
@@ -28,8 +28,13 @@ editable_columns = [
     "discriminator",
 ]
 
+datasets_blueprint = Blueprint(
+    "datasets",
+    __name__,
+)
 
-@app.route("/api/datasets", methods=["GET"])
+
+@datasets_blueprint.route("/api/datasets", methods=["GET"])
 @login_required
 def list_datasets():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -73,7 +78,7 @@ def list_datasets():
     )
 
 
-@app.route("/api/datasets/<int:id>", methods=["GET"])
+@datasets_blueprint.route("/api/datasets/<int:id>", methods=["GET"])
 @login_required
 def get_dataset(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -138,7 +143,7 @@ def get_dataset(id: int):
     )
 
 
-@app.route("/api/datasets/<int:id>", methods=["PATCH"])
+@datasets_blueprint.route("/api/datasets/<int:id>", methods=["PATCH"])
 @login_required
 def update_dataset(id: int):
     if not request.json:
@@ -191,7 +196,7 @@ def update_dataset(id: int):
     )
 
 
-@app.route("/api/datasets/<int:id>", methods=["DELETE"])
+@datasets_blueprint.route("/api/datasets/<int:id>", methods=["DELETE"])
 @login_required
 @routes.check_admin
 def delete_dataset(id: int):
@@ -212,7 +217,7 @@ def delete_dataset(id: int):
         return "Dataset has analyses, cannot delete", 422
 
 
-@app.route("/api/datasets", methods=["POST"])
+@datasets_blueprint.route("/api/datasets", methods=["POST"])
 @login_required
 def create_dataset():
     if not request.json:

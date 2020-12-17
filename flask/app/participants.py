@@ -5,7 +5,7 @@ from dataclasses import asdict
 
 from . import db, login, models, routes
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
@@ -23,7 +23,13 @@ editable_columns = [
 ]
 
 
-@app.route("/api/participants", methods=["GET"])
+participants_blueprint = Blueprint(
+    "participants",
+    __name__,
+)
+
+
+@participants_blueprint.route("/api/participants", methods=["GET"])
 @login_required
 def list_participants():
 
@@ -107,7 +113,7 @@ def list_participants():
     )
 
 
-@app.route("/api/participants/<int:id>", methods=["DELETE"])
+@participants_blueprint.route("/api/participants/<int:id>", methods=["DELETE"])
 @login_required
 @routes.check_admin
 def delete_participant(id: int):
@@ -128,7 +134,7 @@ def delete_participant(id: int):
         return "Participant has tissue samples, cannot delete", 422
 
 
-@app.route("/api/participants/<int:id>", methods=["PATCH"])
+@participants_blueprint.route("/api/participants/<int:id>", methods=["PATCH"])
 @login_required
 def update_participant(id: int):
 
@@ -184,7 +190,7 @@ def update_participant(id: int):
     )
 
 
-@app.route("/api/participants", methods=["POST"])
+@participants_blueprint.route("/api/participants", methods=["POST"])
 @login_required
 @routes.check_admin
 def create_participant():

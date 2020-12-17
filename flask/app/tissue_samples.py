@@ -1,10 +1,16 @@
 from dataclasses import asdict
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
 from .routes import check_admin, transaction_or_abort, mixin, enum_validate
+
+
+tissue_blueprint = Blueprint(
+    "tissue",
+    __name__,
+)
 
 
 editable_columns = [
@@ -15,7 +21,7 @@ editable_columns = [
 ]
 
 
-@app.route("/api/tissue_samples/<int:id>", methods=["GET"])
+@tissue_blueprint.route("/api/tissue_samples/<int:id>", methods=["GET"])
 @login_required
 def get_tissue_sample(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -74,7 +80,7 @@ def get_tissue_sample(id: int):
     )
 
 
-@app.route("/api/tissue_samples/<int:id>", methods=["DELETE"])
+@tissue_blueprint.route("/api/tissue_samples/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
 def delete_tissue_sample(id: int):
@@ -97,7 +103,7 @@ def delete_tissue_sample(id: int):
         return "Tissue has dataset(s), cannot delete", 422
 
 
-@app.route("/api/tissue_samples", methods=["POST"])
+@tissue_blueprint.route("/api/tissue_samples", methods=["POST"])
 @login_required
 @check_admin
 def create_tissue_sample():
@@ -156,7 +162,7 @@ def create_tissue_sample():
         return "Server error", 500
 
 
-@app.route("/api/tissue_samples/<int:id>", methods=["PATCH"])
+@tissue_blueprint.route("/api/tissue_samples/<int:id>", methods=["PATCH"])
 @login_required
 def update_tissue_sample(id: int):
     if not request.json:

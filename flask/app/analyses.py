@@ -5,14 +5,20 @@ from dataclasses import asdict
 
 from . import db, login, models, routes
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import contains_eager, aliased, joinedload
 from werkzeug.exceptions import HTTPException
 
 
-@app.route("/api/analyses", methods=["GET"], endpoint="analyses_list")
+analyses_blueprint = Blueprint(
+    "analyses",
+    __name__,
+)
+
+
+@analyses_blueprint.route("/api/analyses", methods=["GET"], endpoint="analyses_list")
 @login_required
 def list_analyses():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -71,7 +77,7 @@ def list_analyses():
     )
 
 
-@app.route("/api/analyses/<int:id>", methods=["GET"])
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -138,7 +144,7 @@ def get_analysis(id: int):
     )
 
 
-@app.route("/api/analyses", methods=["POST"])
+@analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 def create_analysis():
     if not request.json:
@@ -208,7 +214,7 @@ def create_analysis():
     )
 
 
-@app.route("/api/analyses/<int:id>", methods=["DELETE"])
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["DELETE"])
 @login_required
 @routes.check_admin
 def delete_analysis(id: int):
@@ -225,7 +231,7 @@ def delete_analysis(id: int):
         return "Server error", 500
 
 
-@app.route("/api/analyses/<int:id>", methods=["PATCH"])
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["PATCH"])
 @login_required
 def update_analysis(id: int):
     if not request.json:

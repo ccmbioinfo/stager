@@ -4,15 +4,20 @@ from typing import Any, Dict
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
-from flask import current_app as app
+from flask import Blueprint, current_app as app, current_app as app
 from flask import jsonify, request
 
 from . import db, models
 from .madmin import MinioAdmin
 from .routes import check_admin, transaction_or_abort
 
+users_blueprint = Blueprint(
+    "users",
+    __name__,
+)
 
-@app.route("/api/users", methods=["GET"])
+
+@users_blueprint.route("/api/users", methods=["GET"])
 @login_required
 @check_admin
 def list_users():
@@ -47,7 +52,7 @@ def jsonify_user(user: models.User):
     )
 
 
-@app.route("/api/users/<string:username>", methods=["GET"])
+@users_blueprint.route("/api/users/<string:username>", methods=["GET"])
 @login_required
 def get_user(username: str):
     if (
@@ -92,7 +97,7 @@ def reset_minio_credentials(user: models.User) -> None:
     user.minio_secret_key = secret_key
 
 
-@app.route("/api/users/<string:username>", methods=["POST"])
+@users_blueprint.route("/api/users/<string:username>", methods=["POST"])
 @login_required
 def reset_minio_user(username: str):
     if (
@@ -139,7 +144,7 @@ def verify_email(email: str) -> bool:
     return space == -1 and at > 0 and dot > at + 1
 
 
-@app.route("/api/users", methods=["POST"])
+@users_blueprint.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
 def create_user():
