@@ -26,7 +26,13 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function ErrorText(props: { id: string; errorCode: number }) {
+interface ErrorTextProps {
+    id: string;
+    errorCode: number;
+    details: { error: string; message: string };
+}
+
+function ErrorText(props: ErrorTextProps) {
     switch (props.errorCode) {
         case 0:
             return <></>;
@@ -45,7 +51,7 @@ function ErrorText(props: { id: string; errorCode: number }) {
         case 422:
             return (
                 <DialogContentText id={props.id} color="secondary">
-                    Username or email already in use.
+                    {props.details.message}
                 </DialogContentText>
             );
         default:
@@ -66,6 +72,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [errorCode, setErrorCode] = useState(0);
+    const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
 
     async function submit(e: React.FormEvent) {
         setSubmitting(true);
@@ -93,6 +100,11 @@ export default function CreateUserModal(props: CreateUserModalProps) {
         } else {
             setErrorCode(response.status);
         }
+        if (response.status === 422) {
+            setErrorDetails(await response.json());
+        } else {
+            setErrorDetails({ error: "", message: "" });
+        }
         setSubmitting(false);
     }
 
@@ -113,7 +125,11 @@ export default function CreateUserModal(props: CreateUserModalProps) {
         >
             <DialogTitle id={`${props.id}-title`}>New user</DialogTitle>
             <DialogContent>
-                <ErrorText id={`${props.id}-description`} errorCode={errorCode} />
+                <ErrorText
+                    id={`${props.id}-description`}
+                    errorCode={errorCode}
+                    details={errorDetails}
+                />
                 <TextField
                     required
                     autoFocus

@@ -161,7 +161,12 @@ def create_user():
         | (models.User.email == request.json["email"])
     ).first()
     if user is not None:
-        return "User already exists", 422, {"location": f"/api/users/{user.username}"}
+        # TODO: integrate with #219
+        if user.username == request.json["username"]:
+            error = {"error": "existingUser", "message": "User already exists."}
+        else:
+            error = {"error": "existingEmail", "message": "Email already in use."}
+        return jsonify(error), 422, {"location": f"/api/users/{user.username}"}
 
     user = models.User(
         username=request.json["username"],

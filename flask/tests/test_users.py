@@ -233,4 +233,7 @@ def test_create_conflicting_user(test_database, client, login_as):
         {"username": "sapphire", "email": "test@sickkids.ca", "password": "fail"},
     ]
     for user in users:
-        assert client.post("/api/users", json=user).status_code == 422
+        response = client.post("/api/users", json=user)
+        assert response.status_code == 422
+        error = response.get_json()
+        assert "error" in error and "message" in error
