@@ -23,7 +23,11 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function DatasetTable() {
+interface DatasetTableProps {
+    isAdmin: boolean;
+}
+
+export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const classes = useStyles();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
@@ -271,6 +275,7 @@ export default function DatasetTable() {
                     {
                         tooltip: "Delete selected datasets",
                         icon: Delete,
+                        hidden: !isAdmin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
                             const sampleString = (data as Dataset[])
@@ -302,7 +307,8 @@ export default function DatasetTable() {
                             setShowInfo(true);
                         },
                     },
-                ]}
+                ]
+                }
                 localization={{
                     header: {
                         actions: "", //remove action buttons' header
