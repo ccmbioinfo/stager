@@ -178,6 +178,7 @@ export interface NavigationProps {
     lastLoginTime: string;
     darkMode: boolean;
     toggleDarkMode: () => void;
+    isAdmin: boolean;
 }
 
 export default function Navigation({
@@ -186,6 +187,7 @@ export default function Navigation({
     lastLoginTime,
     darkMode,
     toggleDarkMode,
+    isAdmin,
 }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
@@ -265,12 +267,13 @@ export default function Navigation({
                     <Divider />
                     <List>
                         {routes.map((route, index) => (
-                            <ListItemRouterLink
+                            route.path !== "/admin" || isAdmin ? <ListItemRouterLink
                                 key={index}
                                 to={route.linkTo ? route.linkTo : "" + route.path}
                                 primary={route.pageName}
                                 children={route.icon}
                             />
+                                : <></>
                         ))}
                     </List>
                     <Divider />
