@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import clsx from "clsx";
-import { BrowserRouter, Switch, Route, RouteProps } from "react-router-dom";
+import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
 import {
     makeStyles,
     CssBaseline,
@@ -120,6 +120,7 @@ interface RouteItem extends RouteProps {
     linkTo?: string; // Used as path for links
     main: (props: any) => JSX.Element; // The page itself
     icon?: React.ReactElement; // Icon for menu links
+    requiresAdmin?: boolean; // If the route requires admin
 }
 
 /**
@@ -169,6 +170,7 @@ const routes: RouteItem[] = [
         path: "/admin",
         main: Admin,
         icon: <VerifiedUserIcon />,
+        requiresAdmin: true,
     },
 ];
 
@@ -267,7 +269,7 @@ export default function Navigation({
                     <Divider />
                     <List>
                         {routes.map((route, index) => (
-                            route.path !== "/admin" || isAdmin ? <ListItemRouterLink
+                            !route.requiresAdmin || isAdmin ? <ListItemRouterLink
                                 key={index}
                                 to={route.linkTo ? route.linkTo : "" + route.path}
                                 primary={route.pageName}
@@ -290,7 +292,7 @@ export default function Navigation({
                 </Drawer>
                 <Switch>
                     {routes.map((route, index) => (
-                        <Route
+                        !route.requiresAdmin || isAdmin ? <Route
                             key={index}
                             path={route.path}
                             exact={route.exact}
@@ -303,6 +305,9 @@ export default function Navigation({
                                 }
                             }}
                         />
+                            : <Redirect
+                                to={`/participants`}
+                            />
                     ))}
                 </Switch>
             </BrowserRouter>
