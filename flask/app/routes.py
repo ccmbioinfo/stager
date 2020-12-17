@@ -49,7 +49,13 @@ def login():
                 "Failed to updated last_login for %s", current_user.username
             )
 
-        return jsonify({"username": current_user.username, "last_login": last_login})
+        return jsonify(
+            {
+                "username": current_user.username,
+                "last_login": last_login,
+                "is_admin": current_user.is_admin,
+            }
+        )
 
     body = request.json
     if not body or "username" not in body or "password" not in body:
@@ -68,7 +74,13 @@ def login():
         app.logger.warning("Failed to updated last_login for %s", user.username)
 
     login_user(user)
-    return jsonify({"username": user.username, "last_login": last_login})
+    return jsonify(
+        {
+            "username": user.username,
+            "last_login": last_login,
+            "is_admin": current_user.is_admin,
+        }
+    )
 
 
 @app.route("/api/logout", methods=["POST"])
