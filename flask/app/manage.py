@@ -64,6 +64,36 @@ def add_dummy_data():
             )
         )
 
+    # add institutions
+    if len(db.session.query(models.Institution).all()) == 0:
+        institutions = [
+            "Alberta Children's Hospital",
+            "BC Children's Hospital",
+            "Children's Hospital of Eastern Ontario",
+            "CHU Ste-Justine",
+            "Credit Valley Hospital",
+            "Hamilton Health Sciences Centre",
+            "Health Sciences North",
+            "International",
+            "IWK Health Centre",
+            "Kingston Health Sciences Centre",
+            "London Health Sciences Centre",
+            "Montreal Children's Hospital",
+            "Mount Sinai Hospital",
+            "North York General Hospital",
+            "Saskatoon Health Region",
+            "Stollery Children's Hospital",
+            "The Hospital for Sick Children",
+            "The Ottawa Hospital",
+            "University Health Network",
+            "Winnipeg Regional Health",
+            "Unknown"
+        ]
+        for i in institutions:
+            db.session.add(models.Institution(institution=i))
+
+        db.session.commit()
+
     # add participants
     if len(db.session.query(models.Participant).all()) == 0:
         # codename is key, sex, type
@@ -75,6 +105,7 @@ def add_dummy_data():
                 "type": "Proband",
                 "affected": True,
                 "month_of_birth": "2000-01-01",
+                "institution": "Children's Hospital of Eastern Ontario",
                 "notes": "Extra info about sample here",
                 "created_by_id": 1,
                 "updated_by_id": 1,
@@ -86,6 +117,7 @@ def add_dummy_data():
                 "type": "Parent",
                 "affected": False,
                 "month_of_birth": "1970-01-01",
+                "institution": "Children's Hospital of Eastern Ontario",
                 "notes": "",
                 "created_by_id": 1,
                 "updated_by_id": 1,
@@ -97,6 +129,7 @@ def add_dummy_data():
                 "type": "Parent",
                 "affected": False,
                 "month_of_birth": "1970-02-01",
+                "institution": "Children's Hospital of Eastern Ontario",
                 "notes": "",
                 "created_by_id": 1,
                 "updated_by_id": 1,
@@ -108,6 +141,7 @@ def add_dummy_data():
                 "type": "Parent",
                 "affected": False,
                 "month_of_birth": "1970-03-01",
+                "institution": "Children's Hospital of Eastern Ontario",
                 "notes": "",
                 "created_by_id": 1,
                 "updated_by_id": 1,
@@ -121,6 +155,7 @@ def add_dummy_data():
                 participant_type=p["type"],
                 affected=p["affected"],
                 month_of_birth=p["month_of_birth"],
+                institution=p["institution"],
                 notes=p["notes"],
                 created_by_id=p["created_by_id"],
                 updated_by_id=p["updated_by_id"],
