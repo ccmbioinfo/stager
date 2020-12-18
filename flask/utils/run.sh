@@ -16,6 +16,10 @@ elif [[ "$1" == "prod" ]]; then
     $COMMAND db upgrade
     gunicorn wsgi:app "$@"
 else
+    if [ ! -d "migrations" ]; then
+        $COMMAND db init
+        $COMMAND db migrate -m "Initial migration."
+    fi
     $COMMAND db upgrade
     $COMMAND add-default-admin
     $COMMAND add-dummy-data
