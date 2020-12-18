@@ -301,7 +301,7 @@ export default function Navigation({
                                     case "/settings":
                                         return <route.main username={username} />;
                                     case "/datasets/:id?":
-                                            return <route.main isAdmin={isAdmin} />;
+                                        return <route.main isAdmin={isAdmin} />;
                                     default:
                                         return <route.main />;
                                 }
