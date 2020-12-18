@@ -98,7 +98,7 @@ function ErrorText(props: ErrorTextProps) {
             );
     }
 }
-// TODO: add group picker
+
 export default function CreateUserModal(props: CreateUserModalProps) {
     const [state, dispatch] = useReducer(reducer, initState);
     const [submitting, setSubmitting] = useState(false);
