@@ -12,7 +12,13 @@ import {
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { Group, User, ConfirmPasswordAction } from "../../typings";
-import { SecretDisplay, NewPasswordForm, ConfirmModal } from "../../components";
+import {
+    NewPasswordForm,
+    ConfirmModal,
+    MinioResetButton,
+    MinioKeyDisplay,
+    MinioKeys,
+} from "../../components";
 import GroupSelect from "./GroupSelect";
 
 const useDetailStyles = makeStyles(theme => ({
@@ -68,7 +74,7 @@ export default function UserDetails(props: {
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
     loading: boolean;
-    onMinioReset: (newKeys: Pick<User, "minio_access_key" | "minio_secret_key">) => void;
+    onMinioReset: (loading: boolean, newKeys: MinioKeys) => void;
 }) {
     const classes = useDetailStyles();
     // Local changes saved in newState, and are "committed" when user saves changes
@@ -81,7 +87,6 @@ export default function UserDetails(props: {
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
-    const [confirmReset, setConfirmReset] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -92,18 +97,6 @@ export default function UserDetails(props: {
 
     function onSave() {
         props.onSave(newState);
-    }
-
-    function onMinioReset() {
-        fetch(`/api/users/${props.user.username}`, {
-            method: "POST",
-            body: JSON.stringify(props.user),
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-            .then(response => response.json())
-            .then(data => props.onMinioReset(data));
     }
 
     return (
@@ -129,19 +122,6 @@ export default function UserDetails(props: {
                 colors={{ cancel: "secondary" }}
             >
                 Are you sure you want to delete user {oldState.username}?
-            </ConfirmModal>
-            <ConfirmModal
-                id="confirm-modal-reset-minio-credentials"
-                open={confirmReset}
-                onClose={() => setConfirmReset(false)}
-                onConfirm={() => {
-                    onMinioReset();
-                    setConfirmReset(false);
-                }}
-                title="Reset MinIO Credentials"
-                colors={{ cancel: "secondary" }}
-            >
-                Are you sure you want to reset your MinIO credentials? This action cannot be undone.
             </ConfirmModal>
             <Box className={classes.root}>
                 <Grid container spacing={1}>
@@ -174,17 +154,10 @@ export default function UserDetails(props: {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <SecretDisplay
-                                title="MinIO Access Key"
-                                secret={props.user.minio_access_key}
+                            <MinioKeyDisplay
                                 loading={props.loading}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <SecretDisplay
-                                title="MinIO Secret Key"
-                                secret={props.user.minio_secret_key}
-                                loading={props.loading}
+                                minio_access_key={props.user.minio_access_key}
+                                minio_secret_key={props.user.minio_secret_key}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -208,14 +181,11 @@ export default function UserDetails(props: {
                     </Grid>
                 </Grid>
                 <Toolbar className={classes.toolbar}>
-                    <Button
-                        color="secondary"
-                        variant="contained"
+                    <MinioResetButton
+                        username={props.user.username}
+                        onUpdate={props.onMinioReset}
                         className={classes.button}
-                        onClick={() => setConfirmReset(true)}
-                    >
-                        Reset MinIO Credentials
-                    </Button>
+                    />
                     <Button
                         color="secondary"
                         variant="contained"

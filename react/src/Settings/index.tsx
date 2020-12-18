@@ -10,7 +10,7 @@ import {
     TextField,
     Typography,
 } from "@material-ui/core";
-import { ConfirmModal, SecretDisplay } from "../components";
+import { MinioKeyDisplay, MinioResetButton, MinioKeys } from "../components";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -45,11 +45,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface KeyState {
-    minio_access_key: string | undefined;
-    minio_secret_key: string | undefined;
-    loading: boolean;
-}
+type KeyState = { loading: boolean } & MinioKeys;
 
 const initState = {
     loading: false,
@@ -86,7 +82,6 @@ export default function Settings({ username }: { username: string }) {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [confirmReset, setConfirmReset] = useState(false);
     const [keyState, dispatch] = useReducer(keyReducer, initState);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -111,27 +106,12 @@ export default function Settings({ username }: { username: string }) {
         }
     }
 
-    function onMinioReset() {
-        dispatch({
-            type: "fetch_start",
-        });
-        fetch(`/api/users/${username}`, {
-            method: "POST",
-            body: JSON.stringify({
-                username: username,
-            }),
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                dispatch({
-                    type: "fetch_end",
-                    minio_access_key: data.minio_access_key as string,
-                    minio_secret_key: data.minio_secret_key as string,
-                });
-            });
+    function onMinioReset(loading: boolean, newKeys: MinioKeys) {
+        if (loading) {
+            dispatch({ type: "fetch_start" });
+        } else {
+            dispatch({ type: "fetch_end", ...newKeys });
+        }
     }
 
     useEffect(() => {
@@ -152,19 +132,6 @@ export default function Settings({ username }: { username: string }) {
 
     return (
         <main className={classes.content}>
-            <ConfirmModal
-                id="confirm-modal-reset-minio-credentials"
-                open={confirmReset}
-                onClose={() => setConfirmReset(false)}
-                onConfirm={() => {
-                    onMinioReset();
-                    setConfirmReset(false);
-                }}
-                title="Reset MinIO Credentials"
-                colors={{ confirm: "secondary" }}
-            >
-                Are you sure you want to reset your MinIO credentials? This action cannot be undone.
-            </ConfirmModal>
             <div className={classes.appBarSpacer} />
             <Container maxWidth={false} className={classes.container}>
                 <Paper className={classes.paper} component="form">
@@ -212,16 +179,7 @@ export default function Settings({ username }: { username: string }) {
                             />
                         </Grid>
                         <Grid item md={6} xs={12}>
-                            <SecretDisplay
-                                title="MinIO Access Key"
-                                secret={keyState.minio_access_key}
-                                loading={keyState.loading}
-                            />
-                            <SecretDisplay
-                                title="MinIO Secret Key"
-                                secret={keyState.minio_secret_key}
-                                loading={keyState.loading}
-                            />
+                            <MinioKeyDisplay {...keyState} />
                         </Grid>
                     </Grid>
                     <div className={classes.submitButton}>
@@ -234,13 +192,7 @@ export default function Settings({ username }: { username: string }) {
                             Update password
                         </Button>
                         <div className={classes.grow} />
-                        <Button
-                            variant="contained"
-                            color="secondary"
-                            onClick={() => setConfirmReset(true)}
-                        >
-                            Reset MinIO Credentials
-                        </Button>
+                        <MinioResetButton username={username} onUpdate={onMinioReset} />
                     </div>
                 </Paper>
             </Container>

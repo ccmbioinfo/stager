@@ -16,7 +16,7 @@ import {
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
 import { Group, User } from "../../typings";
 import UserDetails from "./UserDetails";
-import { LastLoginDisplay, ChipGroup } from "../../components";
+import { LastLoginDisplay, ChipGroup, MinioKeys } from "../../components";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
@@ -47,9 +47,9 @@ export default function UserRow(props: {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // MinIO keys get fetched once when the user opens the dropdown, or if they reset credentials
+    // MinIO keys get fetched once when the user opens the dropdown
     useEffect(() => {
-        if (open && (!user.minio_access_key || !user.minio_secret_key)) {
+        if (open) {
             setLoading(true);
             fetch(`/api/users/${user.username}`)
                 .then(response => response.json())
@@ -62,10 +62,12 @@ export default function UserRow(props: {
                     setLoading(false);
                 });
         }
-    }, [open, user.minio_access_key, user.minio_secret_key, user.username]);
+    }, [open, user.username]);
 
-    function handleMinioReset(newKeys: Pick<User, "minio_access_key" | "minio_secret_key">) {
-        setUser(oldUser => ({ ...oldUser, ...newKeys }));
+    function handleMinioReset(loading: boolean, newKeys: MinioKeys) {
+        // Handles updating the keys if they're reset
+        setLoading(loading);
+        if (newKeys !== null) setUser(oldUser => ({ ...oldUser, ...newKeys }));
     }
 
     const gridProps: GridProps = {
