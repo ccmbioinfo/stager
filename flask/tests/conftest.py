@@ -87,6 +87,12 @@ def test_database(client):
     db.session.add(pipeline_1)
     db.session.flush()
 
+    institution_1 = Institution(institution="Test Institution A")
+    institution_2 = Institution(institution="Test Institution B")
+    db.session.add(institution_1)
+    db.session.add(institution_2)
+    db.session.flush()
+
     family_a = Family(
         family_codename="A", created_by_id=admin.user_id, updated_by_id=admin.user_id
     )
@@ -95,6 +101,7 @@ def test_database(client):
         participant_codename="001",
         sex=Sex.Female,
         participant_type=ParticipantType.Proband,
+        institution_id=institution_1.institution_id,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
@@ -128,6 +135,7 @@ def test_database(client):
         participant_codename="002",
         sex=Sex.Female,
         participant_type=ParticipantType.Parent,
+        institution_id=institution_1.institution_id,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
@@ -186,6 +194,7 @@ def test_database(client):
         participant_codename="003",
         sex=Sex.Male,
         participant_type=ParticipantType.Proband,
+        institution_id=institution_2.institution_id,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
