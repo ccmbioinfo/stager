@@ -268,15 +268,18 @@ export default function Navigation({
                     </div>
                     <Divider />
                     <List>
-                        {routes.map((route, index) => (
-                            !route.requiresAdmin || isAdmin ? <ListItemRouterLink
-                                key={index}
-                                to={route.linkTo ? route.linkTo : "" + route.path}
-                                primary={route.pageName}
-                                children={route.icon}
-                            />
-                                : <></>
-                        ))}
+                        {routes.map((route, index) =>
+                            !route.requiresAdmin || isAdmin ? (
+                                <ListItemRouterLink
+                                    key={index}
+                                    to={route.linkTo ? route.linkTo : "" + route.path}
+                                    primary={route.pageName}
+                                    children={route.icon}
+                                />
+                            ) : (
+                                <></>
+                            )
+                        )}
                     </List>
                     <Divider />
                     <div className={classes.bottomItems}>
@@ -291,26 +294,27 @@ export default function Navigation({
                     </div>
                 </Drawer>
                 <Switch>
-                    {routes.map((route, index) => (
-                        !route.requiresAdmin || isAdmin ? <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            render={() => {
-                                switch (route.path) {
-                                    case "/settings":
-                                        return <route.main username={username} />;
-                                    case "/datasets/:id?":
-                                        return <route.main isAdmin={isAdmin} />;
-                                    default:
-                                        return <route.main />;
-                                }
-                            }}
-                        />
-                            : <Redirect
-                                to={`/participants`}
+                    {routes.map((route, index) =>
+                        !route.requiresAdmin || isAdmin ? (
+                            <Route
+                                key={index}
+                                path={route.path}
+                                exact={route.exact}
+                                render={() => {
+                                    switch (route.path) {
+                                        case "/settings":
+                                            return <route.main username={username} />;
+                                        case "/datasets/:id?":
+                                            return <route.main isAdmin={isAdmin} />;
+                                        default:
+                                            return <route.main />;
+                                    }
+                                }}
                             />
-                    ))}
+                        ) : (
+                            <Redirect to={`/participants`} />
+                        )
+                    )}
                 </Switch>
             </BrowserRouter>
         </div>

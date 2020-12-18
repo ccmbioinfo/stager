@@ -35,7 +35,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 const loginInfo = await result.json();
                 setUsername(loginInfo.username);
                 setLastLoginTime(loginInfo.last_login);
-                setIsAdmin(loginInfo.is_admin)
+                setIsAdmin(loginInfo.is_admin);
             }
             setAuthenticated(result.ok);
         })();

@@ -307,8 +307,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                             setShowInfo(true);
                         },
                     },
-                ]
-                }
+                ]}
                 localization={{
                     header: {
                         actions: "", //remove action buttons' header
