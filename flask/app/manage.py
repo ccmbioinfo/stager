@@ -87,7 +87,7 @@ def add_dummy_data():
             "The Ottawa Hospital",
             "University Health Network",
             "Winnipeg Regional Health",
-            "Unknown"
+            "Unknown",
         ]
         for i in institutions:
             db.session.add(models.Institution(institution=i))

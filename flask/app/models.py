@@ -61,7 +61,6 @@ class Group(db.Model):
 @dataclass
 class Family(db.Model):
     family_id: int = db.Column(db.Integer, primary_key=True)
-    # Family.FamilyID
     family_codename: str = db.Column(db.String(50), nullable=False, unique=True)
     created: str = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by_id = db.Column(
@@ -96,19 +95,16 @@ class ParticipantType(str, Enum):
 class Participant(db.Model):
     participant_id: int = db.Column(db.Integer, primary_key=True)
     family_id = db.Column(db.Integer, db.ForeignKey("family.family_id"), nullable=False)
-    # Sample.SampleName
     participant_codename: str = db.Column(db.String(50), nullable=False, unique=True)
-    # Sample.Gender
     sex: Sex = db.Column(db.Enum(Sex))
-    # Sample.SampleType
     participant_type: ParticipantType = db.Column(db.Enum(ParticipantType))
     month_of_birth: date = db.Column(
         db.Date, CheckConstraint("DAY(month_of_birth) = 1")
     )
-    institution_id = db.Column(db.Integer, db.ForeignKey("institution.institution_id", onupdate="cascade"))
-    # Sample.AffectedStatus
+    institution_id = db.Column(
+        db.Integer, db.ForeignKey("institution.institution_id", onupdate="cascade")
+    )
     affected: bool = db.Column(db.Boolean)
-    # Dataset.SolvedStatus
     solved: bool = db.Column(db.Boolean)  # TODO uncomment and rebuild
     notes: str = db.Column(db.Text)
     created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -125,6 +121,7 @@ class Participant(db.Model):
     institution = db.relationship("Institution", foreign_keys=[institution_id])
     updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
+
 
 @dataclass
 class Institution(db.Model):
@@ -157,11 +154,9 @@ class TissueSample(db.Model):
         db.Integer, db.ForeignKey("participant.participant_id"), nullable=False
     )
     extraction_date: datetime = db.Column(db.Date)
-    # Sample.TissueType
     tissue_sample_type: TissueSampleType = db.Column(
         db.Enum(TissueSampleType), nullable=False
     )
-    # RNASeqDataset.TissueProcessing
     tissue_processing: TissueProcessing = db.Column(db.Enum(TissueProcessing))
     notes: str = db.Column(db.Text)
     created: datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -247,40 +242,31 @@ class Dataset(db.Model):
     tissue_sample_id: int = db.Column(
         db.Integer, db.ForeignKey("tissue_sample.tissue_sample_id"), nullable=False
     )
-    # Dataset.DatasetID
     dataset_id: int = db.Column(db.Integer, primary_key=True)
-    # Dataset.DatasetType
     dataset_type: str = db.Column(
         db.String(50), db.ForeignKey("dataset_type.dataset_type"), nullable=False
     )
-    # Dataset.Notes
     notes: str = db.Column(db.Text)
-    # RNASeqDataset.Condition (name TBD)
     condition: DatasetCondition = db.Column(db.Enum(DatasetCondition), nullable=False)
     extraction_protocol: DatasetExtractionProtocol = db.Column(
         db.Enum(DatasetExtractionProtocol)
     )
-    # RNASeqDataset.ExtractionMethod (guided dropdown or enum)
     capture_kit: str = db.Column(db.String(50))
-    # RNASeq.LibraryPrepMethod (guided dropdown or enum)
     library_prep_method: str = db.Column(db.String(50))
     library_prep_date: datetime = db.Column(db.Date)
     read_length: int = db.Column(db.Integer)
     read_type: DatasetReadType = db.Column(db.Enum(DatasetReadType))
     sequencing_id: str = db.Column(db.String(50))
     sequencing_date: datetime = db.Column(db.Date)
-    # Uploaders.UploadCenter
     sequencing_centre: str = db.Column(db.String(100))
     batch_id: str = db.Column(db.String(50))
     created: datetime = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    # Dataset.NotesLastUpdatedDate
     updated: datetime = db.Column(
         db.DateTime, nullable=False, onupdate=datetime.now, default=datetime.utcnow
     )
-    # Dataset.NotesLastUpdatedBy
     updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
@@ -318,13 +304,9 @@ class RNASeqDataset(Dataset):
         db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
         primary_key=True,
     )
-    # RNASeqDataset.RIN
     RIN: float = db.Column(db.Float)
-    # RNASeqDataset.DV200
     DV200: int = db.Column(db.Integer)
-    # RNASeqDataset.QubitRNAConcentration
     concentration: float = db.Column(db.Float)
-    # RNASeqDataset.Sequencer (guided dropdown or enum)
     sequencer: str = db.Column(db.String(50))
     spike_in: str = db.Column(db.String(50))
 
@@ -339,7 +321,6 @@ class DatasetFile(db.Model):
         db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
         nullable=False,
     )
-    # Dataset.HPFPath
     path: str = db.Column(db.String(500), nullable=False, unique=True)
 
 
@@ -353,9 +334,7 @@ class AnalysisState(str, Enum):
 
 @dataclass
 class Analysis(db.Model):
-    # Analysis.AnalysisID
     analysis_id: int = db.Column(db.Integer, primary_key=True)
-    # AnalysisStatus.AnalysisStep
     analysis_state: AnalysisState = db.Column(db.Enum(AnalysisState), nullable=False)
     pipeline = db.relationship("Pipeline")
     pipeline_id: int = db.Column(
@@ -363,9 +342,7 @@ class Analysis(db.Model):
         db.ForeignKey("pipeline.pipeline_id", onupdate="cascade", ondelete="restrict"),
         nullable=False,
     )
-    # Dataset.RunID
     qsub_id: int = db.Column(db.Integer)
-    # Analysis.ResultsDirectory
     result_path: str = db.Column(db.String(500))
     assignee_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade")
@@ -375,14 +352,11 @@ class Analysis(db.Model):
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
 
-    # Analysis.RequestedDate
     requested: datetime = db.Column(db.DateTime, nullable=False)
     started: datetime = db.Column(db.DateTime)
     finished: datetime = db.Column(db.DateTime)
     notes: str = db.Column(db.Text)
-    # AnalysisStatus.UpdateDate
     updated: datetime = db.Column(db.DateTime, nullable=False, onupdate=datetime.now)
-    # AnalysisStatus.UpdateUser
     updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
