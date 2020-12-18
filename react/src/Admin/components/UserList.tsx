@@ -76,7 +76,7 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
                 is_admin: newUser.isAdmin,
                 last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
                 deactivated: false,
-                groups: [],
+                groups: newUser.groups,
             });
         case "delete":
             return state.filter(user => user.username !== action.payload.username);

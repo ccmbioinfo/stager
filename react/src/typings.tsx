@@ -160,6 +160,7 @@ export interface NewUser {
     isAdmin: boolean;
     password: string;
     confirmPassword: string;
+    groups: string[]; // Group.group_code
 }
 
 export interface User {
