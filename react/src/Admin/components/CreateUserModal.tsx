@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import {
     Button,
     Checkbox,
@@ -11,13 +11,48 @@ import {
     TextField,
     makeStyles,
 } from "@material-ui/core";
-import { NewUser } from "../../typings";
+import { Group, NewUser } from "../../typings";
+import GroupSelect from "./GroupSelect";
+
+interface CreateUserState {
+    username: string;
+    email: string;
+    is_admin: boolean;
+    password: string;
+    confirmPassword: string;
+    groups: string[];
+}
+
+const initState = {
+    username: "",
+    email: "",
+    is_admin: false,
+    password: "",
+    confirmPassword: "",
+    groups: [],
+};
+
+type SetAction = { type: "set" } & Partial<CreateUserState>;
+type ResetAction = { type: "reset" };
+
+function reducer(state: CreateUserState, action: SetAction | ResetAction): CreateUserState {
+    switch (action.type) {
+        case "set":
+            const { type, ...payload } = action;
+            return { ...state, ...payload };
+        case "reset":
+            return initState;
+        default:
+            return state;
+    }
+}
 
 export interface CreateUserModalProps {
     id: string;
     open: boolean;
     onClose: () => void;
     onSuccess: (state: NewUser) => void;
+    groups: Group[];
 }
 
 const useStyles = makeStyles(theme => ({
@@ -65,38 +100,29 @@ function ErrorText(props: ErrorTextProps) {
 }
 // TODO: add group picker
 export default function CreateUserModal(props: CreateUserModalProps) {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [isAdmin, setAdmin] = useState(false);
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const [state, dispatch] = useReducer(reducer, initState);
     const [submitting, setSubmitting] = useState(false);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
 
+    // Reset on open/close as side effect
+    useEffect(() => {
+        dispatch({ type: "reset" });
+        setErrorCode(0);
+    }, [props.open]);
+
     async function submit(e: React.FormEvent) {
         setSubmitting(true);
         e.preventDefault();
+        const { confirmPassword, ...user } = state;
         const response = await fetch("/api/users", {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username,
-                email,
-                is_admin: isAdmin,
-                password,
-            }),
+            body: JSON.stringify(user),
         });
         if (response.ok) {
             props.onSuccess(await response.json());
-            // Reset to default
-            setUsername("");
-            setEmail("");
-            setAdmin(false);
-            setPassword("");
-            setConfirmPassword("");
-            setErrorCode(0);
         } else {
             setErrorCode(response.status);
         }
@@ -108,9 +134,10 @@ export default function CreateUserModal(props: CreateUserModalProps) {
         setSubmitting(false);
     }
 
-    const passwordsDiffer = password !== confirmPassword;
+    const passwordsDiffer = state.password !== state.confirmPassword;
     const passwordErrorText = passwordsDiffer && "Passwords do not match.";
-    const submittable = !submitting && username && email && password && !passwordsDiffer;
+    const submittable =
+        !submitting && state.username && state.email && state.password && !passwordsDiffer;
 
     const classes = useStyles();
 
@@ -138,8 +165,8 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     margin="dense"
                     variant="filled"
                     label="Username"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    value={state.username}
+                    onChange={e => dispatch({ type: "set", username: e.target.value })}
                 />
                 <TextField
                     required
@@ -149,15 +176,15 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     variant="filled"
                     label="Email"
                     type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    value={state.email}
+                    onChange={e => dispatch({ type: "set", email: e.target.value })}
                 />
                 <FormControlLabel
                     label="Admin?"
                     control={
                         <Checkbox
-                            checked={isAdmin}
-                            onChange={e => setAdmin(e.target.checked)}
+                            checked={state.is_admin}
+                            onChange={e => dispatch({ type: "set", is_admin: e.target.checked })}
                             color="primary"
                         />
                     }
@@ -170,8 +197,8 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     variant="filled"
                     label="Password"
                     type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    value={state.password}
+                    onChange={e => dispatch({ type: "set", password: e.target.value })}
                     error={passwordsDiffer}
                     helperText={passwordErrorText}
                 />
@@ -183,10 +210,17 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     variant="filled"
                     label="Confirm password"
                     type="password"
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    value={state.confirmPassword}
+                    onChange={e => dispatch({ type: "set", confirmPassword: e.target.value })}
                     error={passwordsDiffer}
                     helperText={passwordErrorText}
+                />
+                <GroupSelect
+                    groups={props.groups}
+                    selected={state.groups}
+                    onSelectionChange={selectedGroups =>
+                        dispatch({ type: "set", groups: selectedGroups })
+                    }
                 />
             </DialogContent>
             <DialogActions>

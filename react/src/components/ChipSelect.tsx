@@ -6,6 +6,7 @@ const useStyles = makeStyles(theme => ({
     root: {
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
     },
     grow: {
         flexGrow: 1,
@@ -21,6 +22,10 @@ const useStyles = makeStyles(theme => ({
     chip: {
         margin: theme.spacing(0.5),
     },
+    emptyHelperText: {
+        color: theme.palette.text.disabled,
+        padding: theme.spacing(0, 2),
+    },
 }));
 
 /**
@@ -30,6 +35,7 @@ export default function ChipSelect(props: {
     labels: string[];
     selected: string[];
     onClick: (label: string, newSelectState: boolean) => void;
+    emptyHelperText?: string;
 }) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -44,6 +50,11 @@ export default function ChipSelect(props: {
     return (
         <>
             <Paper className={classes.root}>
+                {props.selected.length === 0 && (
+                    <div className={classes.emptyHelperText}>
+                        {props.emptyHelperText || "None selected."}
+                    </div>
+                )}
                 <ul className={classes.chipList}>
                     {props.selected.map(label => (
                         <li key={`chip-${label}`}>

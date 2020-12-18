@@ -121,6 +121,7 @@ export default function UserList() {
                         variant: "success",
                     });
                 }}
+                groups={groups}
             />
             <Toolbar component={Paper} className={classes.toolbar}>
                 <Typography variant="h6">Users</Typography>

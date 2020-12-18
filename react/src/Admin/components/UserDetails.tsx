@@ -8,12 +8,12 @@ import {
     Grid,
     makeStyles,
     Toolbar,
-    Typography,
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { Group, User, ConfirmPasswordAction } from "../../typings";
-import { SecretDisplay, NewPasswordForm, ConfirmModal, ChipSelect } from "../../components";
+import { SecretDisplay, NewPasswordForm, ConfirmModal } from "../../components";
+import GroupSelect from "./GroupSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -56,31 +56,6 @@ function reducer(state: User, action: CombinedActions) {
         default:
             return state;
     }
-}
-
-/**
- * ChipSelect wrapper for groups. Displays capitalized group codes which are
- * nicer to read.
- */
-function GroupSelect(props: {
-    groups: Group[];
-    selected: string[];
-    onSelectionChange: (selectedGroups: string[]) => void;
-}) {
-    const labels = props.groups.map(group => group.group_code.toUpperCase());
-    const selected = props.selected.map(value => value.toUpperCase());
-
-    function onChange(label: string, newValue: boolean) {
-        if (newValue) {
-            // Selected, so add new label
-            props.onSelectionChange(props.selected.concat(label.toLowerCase()));
-        } else {
-            // Removed, so filter out
-            props.onSelectionChange(props.selected.filter(value => value !== label.toLowerCase()));
-        }
-    }
-
-    return <ChipSelect labels={labels} selected={selected} onClick={onChange} />;
 }
 
 /**
@@ -223,9 +198,6 @@ export default function UserDetails(props: {
                         </Grid>
                     </Grid>
                     <Grid item md={12} lg={6}>
-                        <Typography>
-                            <b>Permission Groups</b>
-                        </Typography>
                         <GroupSelect
                             groups={props.groups}
                             selected={newState.groups}
