@@ -4,7 +4,7 @@ from flask import abort, jsonify, request, Response, Blueprint, current_app as a
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db, login, models
 from sqlalchemy.orm import contains_eager, joinedload
-from .routes import check_admin, transaction_or_abort, mixin, enum_validate
+from .utils import check_admin, transaction_or_abort, mixin, enum_validate
 
 
 tissue_blueprint = Blueprint(

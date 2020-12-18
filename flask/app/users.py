@@ -9,7 +9,7 @@ from flask import jsonify, request
 
 from . import db, models
 from .madmin import MinioAdmin
-from .routes import check_admin, transaction_or_abort
+from .utils import check_admin, transaction_or_abort
 
 users_blueprint = Blueprint(
     "users",

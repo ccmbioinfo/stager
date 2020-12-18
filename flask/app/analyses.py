@@ -291,7 +291,7 @@ def update_analysis(id: int):
             else:
                 return "assignee not found", 400
 
-    enum_error = routes.mixin(analysis, request.json, editable_columns)
+    enum_error = utils.mixin(analysis, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400

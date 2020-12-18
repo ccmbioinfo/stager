@@ -9,6 +9,19 @@ login = LoginManager()
 migrate = Migrate()
 
 
+from app import (
+    buckets,
+    routes,
+    families,
+    datasets,
+    participants,
+    tissue_samples,
+    analyses,
+    groups,
+    users,
+)
+
+
 def create_app(config):
     """
     The application factory. Returns an instance of the app.
@@ -31,17 +44,25 @@ def create_app(config):
     login.init_app(app)
     migrate.init_app(app, db)
 
+    register_blueprints(app)
+
     with app.app_context():
         # Import here so that other modules have access to the app context
         from . import manage
-        from . import routes
-        from . import buckets
-        from . import analyses
-        from . import families
-        from . import datasets
-        from . import participants
-        from . import tissue_samples
-        from . import groups
-        from . import users
 
         return app
+
+
+def register_blueprints(app):
+
+    app.register_blueprint(routes.routes)
+
+    app.register_blueprint(families.family_blueprint)
+    app.register_blueprint(datasets.datasets_blueprint)
+    app.register_blueprint(participants.participants_blueprint)
+    app.register_blueprint(tissue_samples.tissue_blueprint)
+    app.register_blueprint(analyses.analyses_blueprint)
+
+    app.register_blueprint(buckets.bucket_blueprint)
+    app.register_blueprint(groups.groups_blueprint)
+    app.register_blueprint(users.users_blueprint)
