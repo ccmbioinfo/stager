@@ -105,7 +105,7 @@ class Participant(db.Model):
     month_of_birth: date = db.Column(
         db.Date, CheckConstraint("DAY(month_of_birth) = 1")
     )
-    institution: str = db.Column(db.String(100), db.ForeignKey("institution.institution"), nullable=False)
+    institution_id = db.Column(db.Integer, db.ForeignKey("institution.institution_id", onupdate="cascade"))
     # Sample.AffectedStatus
     affected: bool = db.Column(db.Boolean)
     # Dataset.SolvedStatus
@@ -122,8 +122,14 @@ class Participant(db.Model):
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
     tissue_samples = db.relationship("TissueSample", backref="participant")
+    institution = db.relationship("Institution", foreign_keys=[institution_id])
     updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
+
+@dataclass
+class Institution(db.Model):
+    institution_id: int = db.Column(db.Integer, primary_key=True)
+    institution: str = db.Column(db.String(100))
 
 
 class TissueSampleType(str, Enum):
@@ -171,12 +177,6 @@ class TissueSample(db.Model):
     datasets = db.relationship("Dataset", backref="tissue_sample")
     updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
-
-
-@dataclass
-class Institution(db.Model):
-    __tablename__ = "institution"
-    institution: str = db.Column(db.String(100), primary_key=True)
 
 
 @dataclass

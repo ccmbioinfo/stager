@@ -1,8 +1,8 @@
-"""empty message
+"""Initial migration.
 
-Revision ID: d5245b1d7070
+Revision ID: 9887e04b19e8
 Revises: 
-Create Date: 2020-12-17 23:48:11.806259
+Create Date: 2020-12-18 19:33:36.724242
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd5245b1d7070'
+revision = '9887e04b19e8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,8 +31,9 @@ def upgrade():
     sa.UniqueConstraint('group_name')
     )
     op.create_table('institution',
-    sa.Column('institution', sa.String(length=100), nullable=False),
-    sa.PrimaryKeyConstraint('institution')
+    sa.Column('institution_id', sa.Integer(), nullable=False),
+    sa.Column('institution', sa.String(length=100), nullable=True),
+    sa.PrimaryKeyConstraint('institution_id')
     )
     op.create_table('metadataset_type',
     sa.Column('metadataset_type', sa.String(length=50), nullable=False),
@@ -119,7 +120,7 @@ def upgrade():
     sa.Column('sex', sa.Enum('Male', 'Female', 'Other', name='sex'), nullable=True),
     sa.Column('participant_type', sa.Enum('Proband', 'Parent', 'Sibling', 'Other', name='participanttype'), nullable=True),
     sa.Column('month_of_birth', sa.Date(), nullable=True),
-    sa.Column('institution', sa.String(length=100), nullable=False),
+    sa.Column('institution_id', sa.Integer(), nullable=True),
     sa.Column('affected', sa.Boolean(), nullable=True),
     sa.Column('solved', sa.Boolean(), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
@@ -129,7 +130,7 @@ def upgrade():
     sa.Column('updated_by_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], onupdate='cascade'),
     sa.ForeignKeyConstraint(['family_id'], ['family.family_id'], ),
-    sa.ForeignKeyConstraint(['institution'], ['institution.institution'], ),
+    sa.ForeignKeyConstraint(['institution_id'], ['institution.institution_id'], onupdate='cascade'),
     sa.ForeignKeyConstraint(['updated_by_id'], ['user.user_id'], onupdate='cascade'),
     sa.PrimaryKeyConstraint('participant_id'),
     sa.UniqueConstraint('participant_codename')
