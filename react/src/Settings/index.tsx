@@ -10,7 +10,7 @@ import {
     TextField,
     Typography,
 } from "@material-ui/core";
-import { MinioKeyDisplay, MinioResetButton, MinioKeys } from "../components";
+import { MinioKeyDisplay, MinioResetButton, MinioKeys, ChipGroup } from "../components";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -40,8 +40,15 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(1),
         display: "flex",
     },
+    headerContainer: {
+        display: "flex",
+        alignItems: "center",
+    },
     grow: {
         flexGrow: 1,
+    },
+    disabled: {
+        color: theme.palette.text.disabled,
     },
 }));
 
@@ -83,6 +90,7 @@ export default function Settings({ username }: { username: string }) {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [keyState, dispatch] = useReducer(keyReducer, initState);
+    const [groups, setGroups] = useState<string[]>([]);
     const { enqueueSnackbar } = useSnackbar();
 
     async function changePassword(e: React.MouseEvent) {
@@ -127,6 +135,7 @@ export default function Settings({ username }: { username: string }) {
                     minio_access_key: data.minio_access_key as string,
                     minio_secret_key: data.minio_secret_key as string,
                 });
+                setGroups((data.groups as string[]).map(code => code.toUpperCase()));
             });
     }, [username]);
 
@@ -135,9 +144,19 @@ export default function Settings({ username }: { username: string }) {
             <div className={classes.appBarSpacer} />
             <Container maxWidth={false} className={classes.container}>
                 <Paper className={classes.paper} component="form">
-                    <Typography variant="h4" component="h2">
-                        Hello {username}!
-                    </Typography>
+                    <div className={classes.headerContainer}>
+                        <Typography variant="h4" component="h2">
+                            Hello {username}!
+                        </Typography>
+                        <div style={{ flexGrow: 1 }} />
+                        {groups.length > 0 ? (
+                            <ChipGroup names={groups} size="medium" />
+                        ) : (
+                            <div className={classes.disabled}>
+                                You are not in any permission groups.
+                            </div>
+                        )}
+                    </div>
                     <Divider className={classes.dividingSpacer} />
                     <Grid container spacing={2}>
                         <Grid item md={6} xs={12}>
