@@ -52,7 +52,7 @@ export default function LoginForm({
             const data = await result.json();
             setGlobalUsername(data["username"]);
             setLastLoginTime(data["last_login"]);
-            setIsAdmin(data["is_admin"])
+            setIsAdmin(data["is_admin"]);
             setError("");
         } else {
             setError(await result.text());
