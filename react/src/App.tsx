@@ -73,6 +73,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setAuthenticated={setAuthenticated}
                 setLastLoginTime={setLastLoginTime}
                 setGlobalUsername={setUsername}
+                setIsAdmin={setIsAdmin}
             />
         );
     }
