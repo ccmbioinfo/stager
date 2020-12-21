@@ -12,6 +12,7 @@ export default function SecretDisplay(props: {
     title: string;
     secret?: string;
     loading?: boolean;
+    visible?: boolean; // undefined means uncontrolled
 }) {
     const [open, isOpen] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
@@ -49,9 +50,7 @@ export default function SecretDisplay(props: {
                     ) : (
                         <>
                             {props.secret ? (
-                                <Skeleton animation={false} variant="text">
-                                    <Typography>{props.secret}</Typography>
-                                </Skeleton>
+                                <Skeleton animation={false} variant="text" />
                             ) : (
                                 <Typography>{`${props.title} does not exist.`}</Typography>
                             )}
