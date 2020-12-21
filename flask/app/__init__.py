@@ -25,10 +25,10 @@ def create_app(config):
     app = Flask(__name__)
     app.config.from_object(config)
 
+    config_logger(app)
     register_extensions(app)
     register_commands(app)
     register_blueprints(app)
-    config_logger(app)
 
     return app
 
