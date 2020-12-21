@@ -3,13 +3,17 @@ import json
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 
-from . import db, login, models, routes
+from .extensions import db, login
+from . import models
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, joinedload
 from werkzeug.exceptions import HTTPException
+
+from .utils import mixin, transaction_or_abort, check_admin, enum_validate
+
 
 editable_columns = [
     "dataset_type",
@@ -28,8 +32,13 @@ editable_columns = [
     "discriminator",
 ]
 
+datasets_blueprint = Blueprint(
+    "datasets",
+    __name__,
+)
 
-@app.route("/api/datasets", methods=["GET"])
+
+@datasets_blueprint.route("/api/datasets", methods=["GET"])
 @login_required
 def list_datasets():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -73,7 +82,7 @@ def list_datasets():
     )
 
 
-@app.route("/api/datasets/<int:id>", methods=["GET"])
+@datasets_blueprint.route("/api/datasets/<int:id>", methods=["GET"])
 @login_required
 def get_dataset(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -138,7 +147,7 @@ def get_dataset(id: int):
     )
 
 
-@app.route("/api/datasets/<int:id>", methods=["PATCH"])
+@datasets_blueprint.route("/api/datasets/<int:id>", methods=["PATCH"])
 @login_required
 def update_dataset(id: int):
     if not request.json:
@@ -164,7 +173,7 @@ def update_dataset(id: int):
     else:
         dataset = models.Dataset.query.filter_by(dataset_id=id).first_or_404()
 
-    enum_error = routes.mixin(dataset, request.json, editable_columns)
+    enum_error = mixin(dataset, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
@@ -180,7 +189,7 @@ def update_dataset(id: int):
     if user_id:
         dataset.updated_by_id = user_id
 
-    routes.transaction_or_abort(db.session.commit)
+    transaction_or_abort(db.session.commit)
 
     return jsonify(
         {
@@ -191,9 +200,9 @@ def update_dataset(id: int):
     )
 
 
-@app.route("/api/datasets/<int:id>", methods=["DELETE"])
+@datasets_blueprint.route("/api/datasets/<int:id>", methods=["DELETE"])
 @login_required
-@routes.check_admin
+@check_admin
 def delete_dataset(id: int):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
@@ -212,7 +221,7 @@ def delete_dataset(id: int):
         return "Dataset has analyses, cannot delete", 422
 
 
-@app.route("/api/datasets", methods=["POST"])
+@datasets_blueprint.route("/api/datasets", methods=["POST"])
 @login_required
 def create_dataset():
     if not request.json:
@@ -234,7 +243,7 @@ def create_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    enum_error = routes.enum_validate(models.Dataset, request.json, editable_columns)
+    enum_error = enum_validate(models.Dataset, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
@@ -270,7 +279,7 @@ def create_dataset():
         for path in request.json["linked_files"]:
             dataset.files.append(models.DatasetFile(path=path))
     db.session.add(dataset)
-    routes.transaction_or_abort(db.session.commit)
+    transaction_or_abort(db.session.commit)
     ds_id = dataset.dataset_id
     location_header = "/api/datasets/{}".format(ds_id)
 

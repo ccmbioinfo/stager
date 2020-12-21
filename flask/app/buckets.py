@@ -1,21 +1,29 @@
-from flask import jsonify, current_app as app
+from flask import jsonify, Blueprint, current_app as app
 from flask_login import current_user, login_required
 from minio import Minio
 from sqlalchemy.orm import joinedload
 
 from . import models
 
-minioClient = Minio(
-    app.config.get("MINIO_ENDPOINT"),
-    access_key=app.config.get("MINIO_ACCESS_KEY"),
-    secret_key=app.config.get("MINIO_SECRET_KEY"),
-    secure=False,
+
+bucket_blueprint = Blueprint(
+    "buckets",
+    __name__,
 )
 
 
-@app.route("/api/unlinked", methods=["GET"])
+@bucket_blueprint.route("/api/unlinked", methods=["GET"])
 @login_required
 def get_unlinked_files():
+
+    # temporary solution since Minio can't access the app without context
+    with app.app_context():
+        minioClient = Minio(
+            app.config.get("MINIO_ENDPOINT"),
+            access_key=app.config.get("MINIO_ACCESS_KEY"),
+            secret_key=app.config.get("MINIO_SECRET_KEY"),
+            secure=False,
+        )
 
     # Get all minio bucket names
     all_bucket_names = [bucket.name for bucket in minioClient.list_buckets()]

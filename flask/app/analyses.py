@@ -3,16 +3,25 @@ import json
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 
-from . import db, login, models, routes
+from .extensions import db, login
+from . import models
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import contains_eager, aliased, joinedload
 from werkzeug.exceptions import HTTPException
 
 
-@app.route("/api/analyses", methods=["GET"], endpoint="analyses_list")
+from .utils import mixin, check_admin, transaction_or_abort
+
+analyses_blueprint = Blueprint(
+    "analyses",
+    __name__,
+)
+
+
+@analyses_blueprint.route("/api/analyses", methods=["GET"], endpoint="analyses_list")
 @login_required
 def list_analyses():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -71,7 +80,7 @@ def list_analyses():
     )
 
 
-@app.route("/api/analyses/<int:id>", methods=["GET"])
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -138,7 +147,7 @@ def get_analysis(id: int):
     )
 
 
-@app.route("/api/analyses", methods=["POST"])
+@analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 def create_analysis():
     if not request.json:
@@ -182,7 +191,7 @@ def create_analysis():
     )
 
     db.session.add(obj)
-    routes.transaction_or_abort(db.session.flush)
+    transaction_or_abort(db.session.flush)
 
     # update the dataset_analyses table
     dataset_analyses_obj = [
@@ -196,7 +205,7 @@ def create_analysis():
         db.session.rollback()
         return "Server error", 500
 
-    routes.transaction_or_abort(db.session.commit)
+    transaction_or_abort(db.session.commit)
 
     return jsonify(
         {
@@ -208,9 +217,9 @@ def create_analysis():
     )
 
 
-@app.route("/api/analyses/<int:id>", methods=["DELETE"])
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["DELETE"])
 @login_required
-@routes.check_admin
+@check_admin
 def delete_analysis(id: int):
     analysis = models.Analysis.query.filter(
         models.Analysis.analysis_id == id
@@ -225,7 +234,7 @@ def delete_analysis(id: int):
         return "Server error", 500
 
 
-@app.route("/api/analyses/<int:id>", methods=["PATCH"])
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["PATCH"])
 @login_required
 def update_analysis(id: int):
     if not request.json:
@@ -285,7 +294,7 @@ def update_analysis(id: int):
             else:
                 return "assignee not found", 400
 
-    enum_error = routes.mixin(analysis, request.json, editable_columns)
+    enum_error = mixin(analysis, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
@@ -293,7 +302,7 @@ def update_analysis(id: int):
     if user_id:
         analysis.updated_by_id = user_id
 
-    routes.transaction_or_abort(db.session.commit)
+    transaction_or_abort(db.session.commit)
 
     return jsonify(
         {

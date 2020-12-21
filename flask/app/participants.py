@@ -3,13 +3,16 @@ import json
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 
-from . import db, login, models, routes
+from .extensions import db, login
+from . import models
 
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy import exc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
+
+from .utils import check_admin, transaction_or_abort, mixin, enum_validate
 
 
 editable_columns = [
@@ -23,7 +26,13 @@ editable_columns = [
 ]
 
 
-@app.route("/api/participants", methods=["GET"])
+participants_blueprint = Blueprint(
+    "participants",
+    __name__,
+)
+
+
+@participants_blueprint.route("/api/participants", methods=["GET"])
 @login_required
 def list_participants():
 
@@ -107,9 +116,9 @@ def list_participants():
     )
 
 
-@app.route("/api/participants/<int:id>", methods=["DELETE"])
+@participants_blueprint.route("/api/participants/<int:id>", methods=["DELETE"])
 @login_required
-@routes.check_admin
+@check_admin
 def delete_participant(id: int):
     participant = (
         models.Participant.query.filter(models.Participant.participant_id == id)
@@ -128,7 +137,7 @@ def delete_participant(id: int):
         return "Participant has tissue samples, cannot delete", 422
 
 
-@app.route("/api/participants/<int:id>", methods=["PATCH"])
+@participants_blueprint.route("/api/participants/<int:id>", methods=["PATCH"])
 @login_required
 def update_participant(id: int):
 
@@ -163,7 +172,7 @@ def update_participant(id: int):
             models.Participant.participant_id == id
         ).first_or_404()
 
-    enum_error = routes.mixin(participant, request.json, editable_columns)
+    enum_error = mixin(participant, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
@@ -171,7 +180,7 @@ def update_participant(id: int):
     if user_id:
         participant.updated_by_id = user_id
 
-    routes.transaction_or_abort(db.session.commit)
+    transaction_or_abort(db.session.commit)
 
     return jsonify(
         [
@@ -184,9 +193,9 @@ def update_participant(id: int):
     )
 
 
-@app.route("/api/participants", methods=["POST"])
+@participants_blueprint.route("/api/participants", methods=["POST"])
 @login_required
-@routes.check_admin
+@check_admin
 def create_participant():
     if not request.json:
         return "Request body must be JSON", 415
@@ -215,9 +224,7 @@ def create_participant():
     ).first_or_404()
 
     # validate enums
-    enum_error = routes.enum_validate(
-        models.Participant, request.json, editable_columns
-    )
+    enum_error = enum_validate(models.Participant, request.json, editable_columns)
 
     if enum_error:
         return enum_error, 400
@@ -236,7 +243,7 @@ def create_participant():
     )
 
     db.session.add(ptp_objs)
-    routes.transaction_or_abort(db.session.commit)
+    transaction_or_abort(db.session.commit)
 
     location_header = "/api/participants/{}".format(ptp_objs.participant_id)
 

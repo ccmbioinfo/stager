@@ -1,13 +1,21 @@
-from flask import abort, jsonify, request, Response, current_app as app
+from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
-from app import db, login, models
+from .extensions import db, login
+from . import models
 from sqlalchemy.orm import contains_eager, joinedload
-from .routes import check_admin, transaction_or_abort, mixin
+from .utils import check_admin, transaction_or_abort, mixin
+
 from minio import Minio
 from .madmin import MinioAdmin, readwrite_buckets_policy
 
 
-@app.route("/api/groups", methods=["GET"])
+groups_blueprint = Blueprint(
+    "groups",
+    __name__,
+)
+
+
+@groups_blueprint.route("/api/groups", methods=["GET"])
 @login_required
 def list_groups():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -32,7 +40,7 @@ def list_groups():
     )
 
 
-@app.route("/api/groups/<string:group_code>", methods=["GET"])
+@groups_blueprint.route("/api/groups/<string:group_code>", methods=["GET"])
 @login_required
 def get_group(group_code):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -66,7 +74,7 @@ def get_group(group_code):
     )
 
 
-@app.route("/api/groups/<string:group_code>", methods=["PATCH"])
+@groups_blueprint.route("/api/groups/<string:group_code>", methods=["PATCH"])
 @login_required
 @check_admin
 def update_group(group_code):
@@ -123,7 +131,7 @@ def update_group(group_code):
         return "Server error", 500
 
 
-@app.route("/api/groups", methods=["POST"])
+@groups_blueprint.route("/api/groups", methods=["POST"])
 @login_required
 @check_admin
 def create_group():
@@ -197,7 +205,7 @@ def create_group():
     return request.json, 201, {"location": location_header}
 
 
-@app.route("/api/groups/<string:group_code>", methods=["DELETE"])
+@groups_blueprint.route("/api/groups/<string:group_code>", methods=["DELETE"])
 @login_required
 @check_admin
 def delete_group(group_code):

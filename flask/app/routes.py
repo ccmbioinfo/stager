@@ -2,32 +2,20 @@ import inspect
 from dataclasses import asdict
 from datetime import datetime
 from enum import Enum
-from functools import wraps
 from io import StringIO
-from typing import Any, Callable, Dict, List, Union
 
 import pandas as pd
-from flask import abort, current_app as app, jsonify, Response, request
+from flask import current_app as app, jsonify, Response, request, Blueprint
 from flask_login import current_user, login_required, login_user, logout_user
-from sqlalchemy import exc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
-from . import db, login, models
+from .extensions import db, login
+from . import models
 
+from .utils import check_admin, transaction_or_abort, enum_validate
 
-def mixin(
-    entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
-) -> Union[None, str]:
-    for field in columns:
-        if field in json_mixin:
-            column = getattr(entity, field)
-            value = json_mixin[field]
-            if isinstance(column, Enum):
-                if not hasattr(type(column), str(value)):
-                    allowed = [e.value for e in type(column)]
-                    return f'"{field}" must be one of {allowed}'
-            setattr(entity, field, value)
+routes = Blueprint("routes", __name__)
 
 
 @login.user_loader
@@ -35,7 +23,7 @@ def load_user(uid: int):
     return models.User.query.get(uid)
 
 
-@app.route("/api/login", methods=["POST"])
+@routes.route("/api/login", methods=["POST"])
 def login():
     last_login = None
     if current_user.is_authenticated:
@@ -83,7 +71,7 @@ def login():
     )
 
 
-@app.route("/api/logout", methods=["POST"])
+@routes.route("/api/logout", methods=["POST"])
 @login_required
 def logout():
     if not request.json:
@@ -92,31 +80,7 @@ def logout():
     return "", 204
 
 
-def check_admin(handler):
-    @wraps(handler)
-    def decorated_handler(*args, **kwargs):
-        if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-            return handler(*args, **kwargs)
-        return "Unauthorized", 401
-
-    return decorated_handler
-
-
-def transaction_or_abort(callback: Callable) -> None:
-    try:
-        callback()
-    except exc.DataError as err:
-        db.session.rollback()
-        abort(400, description=err.orig.args[1])
-    except exc.StatementError as err:
-        db.session.rollback()
-        abort(400, description=str(err.orig))
-    except Exception as err:
-        db.session.rollback()
-        raise err
-
-
-@app.errorhandler(HTTPException)
+@routes.errorhandler(HTTPException)
 def on_http_exception(error: HTTPException) -> Response:
     response = error.get_response()
     response.content_type = "text/plain"
@@ -135,7 +99,7 @@ def validate_user(request_user: dict):
     return False
 
 
-@app.route("/api/users", methods=["PUT"])
+@routes.route("/api/users", methods=["PUT"])
 @login_required
 @check_admin
 def update_user():
@@ -157,7 +121,7 @@ def update_user():
         return "Server error", 500
 
 
-@app.route("/api/users", methods=["DELETE"])
+@routes.route("/api/users", methods=["DELETE"])
 @login_required
 @check_admin
 def delete_user():
@@ -175,7 +139,7 @@ def delete_user():
         return "Server error", 500
 
 
-@app.route("/api/password", methods=["POST"])
+@routes.route("/api/password", methods=["POST"])
 @login_required
 def change_password():
     params = request.get_json()
@@ -197,7 +161,7 @@ def change_password():
         return "Server error", 500
 
 
-@app.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
+@routes.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
 @login_required
 def pipelines_list():
     db_pipelines = (
@@ -209,7 +173,7 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
-@app.route("/api/enums", methods=["GET"])
+@routes.route("/api/enums", methods=["GET"])
 @login_required
 def get_enums():
     enums = {}
@@ -230,21 +194,7 @@ def get_enums():
     return jsonify(enums)
 
 
-def enum_validate(
-    entity: db.Model, json_mixin: Dict[str, any], columns: List[str]
-) -> Union[None, str]:
-
-    for field in columns:
-        if field in json_mixin:
-            column = getattr(entity, field)  # the column type from the entities
-            value = json_mixin[field]
-            if hasattr(column.type, "enums"):  # check if enum
-                if value not in column.type.enums and value is not None:
-                    allowed = column.type.enums
-                    return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
-
-
-@app.route("/api/_bulk", methods=["POST"])
+@routes.route("/api/_bulk", methods=["POST"])
 @login_required
 def bulk_update():
 
