@@ -1,5 +1,4 @@
 import React, { useReducer, useState } from "react";
-import { createHash } from "crypto";
 import {
     Box,
     Button,
@@ -9,12 +8,18 @@ import {
     Grid,
     makeStyles,
     Toolbar,
-    Typography,
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, ConfirmPasswordAction } from "../../typings";
-import { SecretDisplay, NewPasswordForm, ConfirmModal, ChipSelect } from "../../components";
+import { Group, User, ConfirmPasswordAction } from "../../typings";
+import {
+    NewPasswordForm,
+    ConfirmModal,
+    MinioResetButton,
+    MinioKeyDisplay,
+    MinioKeys,
+} from "../../components";
+import GroupSelect from "./GroupSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -42,7 +47,9 @@ interface GroupAction {
     payload: string[];
 }
 
-function reducer(state: User, action: ConfirmPasswordAction | UserAction | GroupAction) {
+type CombinedActions = ConfirmPasswordAction | UserAction | GroupAction;
+
+function reducer(state: User, action: CombinedActions) {
     switch (action.type) {
         case "password":
             return { ...state, password: action.payload };
@@ -51,14 +58,11 @@ function reducer(state: User, action: ConfirmPasswordAction | UserAction | Group
         case "set":
             return { ...action.payload };
         case "group":
-            return { ...state, groupMemberships: action.payload };
+            return { ...state, groups: action.payload };
         default:
             return state;
     }
 }
-
-// TODO: replace this with group list pulled from backend
-const temporaryMagicGlobalGroupList = ["FOO", "BAR", "BAZ"];
 
 /**
  * The collapsible part of a user row. A form for viewing
@@ -66,8 +70,11 @@ const temporaryMagicGlobalGroupList = ["FOO", "BAR", "BAZ"];
  */
 export default function UserDetails(props: {
     user: User;
+    groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
+    loading: boolean;
+    onMinioReset: (loading: boolean, newKeys: MinioKeys) => void;
 }) {
     const classes = useDetailStyles();
     // Local changes saved in newState, and are "committed" when user saves changes
@@ -76,12 +83,21 @@ export default function UserDetails(props: {
         password: "",
         confirmPassword: "",
     };
-    const [newState, dispatch] = useReducer(reducer, oldState);
+    const [newState, dispatch] = useReducer(reducer, null, () => oldState);
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [confirmSave, setConfirmSave] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
+
+    function onCancelChanges() {
+        dispatch({ type: "set", payload: oldState });
+        enqueueSnackbar("User changes reverted to original state");
+    }
+
+    function onSave() {
+        props.onSave(newState);
+    }
 
     return (
         <>
@@ -89,7 +105,10 @@ export default function UserDetails(props: {
                 id="confirm-modal-update"
                 open={confirmSave}
                 onClose={() => setConfirmSave(false)}
-                onConfirm={() => props.onSave(newState)}
+                onConfirm={() => {
+                    onSave();
+                    setConfirmSave(false);
+                }}
                 title="Confirm updating user"
             >
                 Are you sure you want to save changes to user {oldState.username}?
@@ -135,17 +154,10 @@ export default function UserDetails(props: {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <SecretDisplay
-                                title="MinIO Access Key"
-                                // TODO: Replace this with the actual secret
-                                secret={createHash("md5").update(props.user.username).digest("hex")}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <SecretDisplay
-                                title="MinIO Secret Key"
-                                // TODO: Replace this with the actual secret
-                                secret={createHash("md5").update(props.user.email).digest("hex")}
+                            <MinioKeyDisplay
+                                loading={props.loading}
+                                minio_access_key={props.user.minio_access_key}
+                                minio_secret_key={props.user.minio_secret_key}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -159,11 +171,8 @@ export default function UserDetails(props: {
                         </Grid>
                     </Grid>
                     <Grid item md={12} lg={6}>
-                        <Typography>
-                            <b>Permission Groups</b>
-                        </Typography>
-                        <ChipSelect
-                            labels={temporaryMagicGlobalGroupList}
+                        <GroupSelect
+                            groups={props.groups}
                             selected={newState.groups}
                             onSelectionChange={selection =>
                                 dispatch({ type: "group", payload: selection })
@@ -172,14 +181,11 @@ export default function UserDetails(props: {
                     </Grid>
                 </Grid>
                 <Toolbar className={classes.toolbar}>
-                    <Button
-                        color="secondary"
-                        variant="contained"
+                    <MinioResetButton
+                        username={props.user.username}
+                        onUpdate={props.onMinioReset}
                         className={classes.button}
-                        disabled // TODO: Re-enable when resetting MinIO Creds is ready
-                    >
-                        Reset MinIO Credentials
-                    </Button>
+                    />
                     <Button
                         color="secondary"
                         variant="contained"
@@ -191,13 +197,7 @@ export default function UserDetails(props: {
                     </Button>
                     <div className={classes.grow} />
                     <ButtonGroup>
-                        <Button
-                            variant="contained"
-                            onClick={() => {
-                                dispatch({ type: "set", payload: oldState });
-                                enqueueSnackbar("User changes reverted to original state");
-                            }}
-                        >
+                        <Button variant="contained" onClick={onCancelChanges}>
                             Cancel
                         </Button>
                         <Button

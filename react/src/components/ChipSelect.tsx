@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Chip, IconButton, makeStyles, Menu, MenuItem, Paper } from "@material-ui/core";
 import { AddCircle } from "@material-ui/icons";
 
@@ -6,6 +6,7 @@ const useStyles = makeStyles(theme => ({
     root: {
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
     },
     grow: {
         flexGrow: 1,
@@ -21,65 +22,54 @@ const useStyles = makeStyles(theme => ({
     chip: {
         margin: theme.spacing(0.5),
     },
+    emptyHelperText: {
+        color: theme.palette.text.disabled,
+        padding: theme.spacing(0, 2),
+    },
 }));
 
-interface SelectableChip {
-    label: string;
-    key: string;
-    selected?: boolean;
-}
-
+/**
+ * A controlled component for selecting unique names from a list.
+ */
 export default function ChipSelect(props: {
     labels: string[];
     selected: string[];
-    onSelectionChange?: (selectedLabels: string[]) => void;
+    onClick: (label: string, newSelectState: boolean) => void;
+    emptyHelperText?: string;
 }) {
     const classes = useStyles();
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const [chips, setChips] = useState<SelectableChip[]>(
-        props.labels.sort().map(label => ({ label: label, key: label, selected: false }))
-    );
-    const [disableAdd, setDisableAdd] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const disableAdd = props.labels.length === props.selected.length;
 
-    useEffect(() => {
-        setChips(chips =>
-            chips.map(chip => ({
-                ...chip,
-                selected: !!props.selected.find(label => label === chip.label),
-            }))
-        );
-        setDisableAdd(props.selected.length === 0);
-    }, [props.selected]);
+    const chips = new Map(props.labels.map(label => [label, props.selected.includes(label)]));
 
-    function handleClick(clickedChip: SelectableChip) {
-        const newChips = chips.map(chip =>
-            chip.key === clickedChip.key ? { ...chip, selected: !chip.selected } : chip
-        );
-        setChips(newChips);
-        setDisableAdd(newChips.filter(chip => !chip.selected).length === 0);
+    function handleClick(label: string) {
+        props.onClick(label, !chips.get(label));
     }
 
     return (
         <>
             <Paper className={classes.root}>
+                {props.selected.length === 0 && (
+                    <div className={classes.emptyHelperText}>
+                        {props.emptyHelperText || "None selected."}
+                    </div>
+                )}
                 <ul className={classes.chipList}>
-                    {chips
-                        .filter(chip => !!chip.selected)
-                        .map(chip => (
-                            <li key={chip.key}>
-                                <Chip
-                                    label={chip.label}
-                                    onDelete={() => handleClick(chip)}
-                                    className={classes.chip}
-                                />
-                            </li>
-                        ))}
+                    {props.selected.map(label => (
+                        <li key={`chip-${label}`}>
+                            <Chip
+                                label={label}
+                                onDelete={() => handleClick(label)}
+                                className={classes.chip}
+                            />
+                        </li>
+                    ))}
                 </ul>
                 <div className={classes.grow} />
                 <IconButton
                     onClick={e => {
-                        if (chips.filter(chip => !chip.selected).length > 0)
-                            setAnchorEl(e.currentTarget);
+                        setAnchorEl(e.currentTarget);
                     }}
                     disabled={disableAdd}
                 >
@@ -87,17 +77,17 @@ export default function ChipSelect(props: {
                 </IconButton>
             </Paper>
             <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
-                {chips
-                    .filter(chip => !chip.selected)
-                    .map(chip => (
+                {props.labels
+                    .filter(label => !chips.get(label))
+                    .map(label => (
                         <MenuItem
-                            key={chip.key}
+                            key={`menu-${label}`}
                             onClick={() => {
                                 setAnchorEl(null);
-                                handleClick(chip);
+                                handleClick(label);
                             }}
                         >
-                            {chip.label}
+                            {label}
                         </MenuItem>
                     ))}
             </Menu>

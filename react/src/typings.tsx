@@ -160,6 +160,7 @@ export interface NewUser {
     isAdmin: boolean;
     password: string;
     confirmPassword: string;
+    groups: string[]; // Group.group_code
 }
 
 export interface User {
@@ -168,9 +169,17 @@ export interface User {
     is_admin: boolean;
     last_login: string;
     deactivated: boolean;
-    groups: string[];
+    groups: string[]; // Group.group_code
     password?: string;
     confirmPassword?: string;
+    minio_access_key?: string;
+    minio_secret_key?: string;
+}
+
+export interface Group {
+    group_code: string;
+    group_name: string;
+    users?: string[]; // User.username
 }
 
 export interface Field {

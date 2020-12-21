@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Collapse,
     Divider,
@@ -14,9 +14,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
-import { User } from "../../typings";
+import { Group, User } from "../../typings";
 import UserDetails from "./UserDetails";
-import { LastLoginDisplay, ChipGroup } from "../../components";
+import { LastLoginDisplay, ChipGroup, MinioKeys } from "../../components";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
@@ -37,12 +37,38 @@ const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
  */
 export default function UserRow(props: {
     user: User;
+    groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
 }) {
     const classes = useRowStyles(!props.user.deactivated);
+    const [user, setUser] = useState<User>(props.user);
     const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // MinIO keys get fetched once when the user opens the dropdown
+    useEffect(() => {
+        if (open) {
+            setLoading(true);
+            fetch(`/api/users/${user.username}`)
+                .then(response => response.json())
+                .then(data => {
+                    setUser(oldUser => ({
+                        ...oldUser,
+                        minio_access_key: data.minio_access_key,
+                        minio_secret_key: data.minio_secret_key,
+                    }));
+                    setLoading(false);
+                });
+        }
+    }, [open, user.username]);
+
+    function handleMinioReset(loading: boolean, newKeys: MinioKeys) {
+        // Handles updating the keys if they're reset
+        setLoading(loading);
+        if (newKeys !== null) setUser(oldUser => ({ ...oldUser, ...newKeys }));
+    }
 
     const gridProps: GridProps = {
         justify: "space-between",
@@ -84,7 +110,10 @@ export default function UserRow(props: {
                                     </Typography>
                                 </Grid>
                                 <Grid item>
-                                    <ChipGroup names={props.user.groups} size="small" />
+                                    <ChipGroup
+                                        names={props.user.groups.map(group => group.toUpperCase())}
+                                        size="small"
+                                    />
                                 </Grid>
                             </Grid>
                         }
@@ -96,9 +125,12 @@ export default function UserRow(props: {
                 <Collapse in={open}>
                     <Divider />
                     <UserDetails
-                        user={props.user}
+                        user={user}
+                        groups={props.groups}
                         onSave={props.onSave}
                         onDelete={props.onDelete}
+                        loading={loading}
+                        onMinioReset={handleMinioReset}
                     />
                 </Collapse>
             </Paper>
