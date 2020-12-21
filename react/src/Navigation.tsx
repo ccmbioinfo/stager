@@ -277,7 +277,7 @@ export default function Navigation({
                                     children={route.icon}
                                 />
                             ) : (
-                                <></>
+                                <React.Fragment key={index} />
                             )
                         )}
                     </List>
@@ -312,7 +312,7 @@ export default function Navigation({
                                 }}
                             />
                         ) : (
-                            <Redirect to={`/participants`} />
+                            <Redirect key={index} to={`/participants`} />
                         )
                     )}
                 </Switch>
