@@ -32,6 +32,7 @@ export default function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setLastLoginTime = (lastLogin: string) => {},
     setGlobalUsername = (username: string) => {},
+    setIsAdmin = (isAdmin: boolean) => {},
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -51,6 +52,7 @@ export default function LoginForm({
             const data = await result.json();
             setGlobalUsername(data["username"]);
             setLastLoginTime(data["last_login"]);
+            setIsAdmin(data["is_admin"]);
             setError("");
         } else {
             setError(await result.text());

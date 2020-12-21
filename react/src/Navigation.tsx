@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import clsx from "clsx";
-import { BrowserRouter, Switch, Route, RouteProps } from "react-router-dom";
+import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
 import {
     makeStyles,
     CssBaseline,
@@ -120,6 +120,7 @@ interface RouteItem extends RouteProps {
     linkTo?: string; // Used as path for links
     main: (props: any) => JSX.Element; // The page itself
     icon?: React.ReactElement; // Icon for menu links
+    requiresAdmin?: boolean; // If the route requires admin
 }
 
 /**
@@ -169,6 +170,7 @@ const routes: RouteItem[] = [
         path: "/admin",
         main: Admin,
         icon: <VerifiedUserIcon />,
+        requiresAdmin: true,
     },
 ];
 
@@ -178,6 +180,7 @@ export interface NavigationProps {
     lastLoginTime: string;
     darkMode: boolean;
     toggleDarkMode: () => void;
+    isAdmin: boolean;
 }
 
 export default function Navigation({
@@ -186,6 +189,7 @@ export default function Navigation({
     lastLoginTime,
     darkMode,
     toggleDarkMode,
+    isAdmin,
 }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
@@ -264,14 +268,18 @@ export default function Navigation({
                     </div>
                     <Divider />
                     <List>
-                        {routes.map((route, index) => (
-                            <ListItemRouterLink
-                                key={index}
-                                to={route.linkTo ? route.linkTo : "" + route.path}
-                                primary={route.pageName}
-                                children={route.icon}
-                            />
-                        ))}
+                        {routes.map((route, index) =>
+                            !route.requiresAdmin || isAdmin ? (
+                                <ListItemRouterLink
+                                    key={index}
+                                    to={route.linkTo ? route.linkTo : "" + route.path}
+                                    primary={route.pageName}
+                                    children={route.icon}
+                                />
+                            ) : (
+                                <React.Fragment key={index} />
+                            )
+                        )}
                     </List>
                     <Divider />
                     <div className={classes.bottomItems}>
@@ -286,21 +294,27 @@ export default function Navigation({
                     </div>
                 </Drawer>
                 <Switch>
-                    {routes.map((route, index) => (
-                        <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            render={() => {
-                                switch (route.path) {
-                                    case "/settings":
-                                        return <route.main username={username} />;
-                                    default:
-                                        return <route.main />;
-                                }
-                            }}
-                        />
-                    ))}
+                    {routes.map((route, index) =>
+                        !route.requiresAdmin || isAdmin ? (
+                            <Route
+                                key={index}
+                                path={route.path}
+                                exact={route.exact}
+                                render={() => {
+                                    switch (route.path) {
+                                        case "/settings":
+                                            return <route.main username={username} />;
+                                        case "/datasets/:id?":
+                                            return <route.main isAdmin={isAdmin} />;
+                                        default:
+                                            return <route.main />;
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <Redirect key={index} to={`/participants`} />
+                        )
+                    )}
                 </Switch>
             </BrowserRouter>
         </div>
