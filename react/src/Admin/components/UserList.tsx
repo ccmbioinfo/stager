@@ -26,11 +26,9 @@ async function updateUser(user: User) {
 }
 
 async function deleteUser(user: User) {
-    return fetch("/api/users", {
+    return fetch(`/api/users/${user.username}`, {
         method: "DELETE",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
     });
 }
 
