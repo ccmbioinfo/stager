@@ -10,7 +10,8 @@ from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
-from . import db, login, models
+from .extensions import db, login
+from . import models
 
 from .utils import check_admin, transaction_or_abort, enum_validate
 

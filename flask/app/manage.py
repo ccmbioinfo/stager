@@ -1,9 +1,15 @@
-from flask import current_app as app
-from . import db, models
 from datetime import datetime
 
+from flask import current_app as app
+import click
+from flask.cli import with_appcontext
 
-@app.cli.command("add-default-admin")
+from .extensions import db
+from . import models
+
+
+@click.command("add-default-admin")
+@with_appcontext
 def add_default_admin():
     if len(db.session.query(models.User).all()) == 0:
         default_admin = models.User(
@@ -23,7 +29,8 @@ def add_default_admin():
         )
 
 
-@app.cli.command("add-dummy-data")
+@click.command("add-dummy-data")
+@with_appcontext
 def add_dummy_data():
     # add groups
     if len(db.session.query(models.Group).all()) == 0:

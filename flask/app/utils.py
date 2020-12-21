@@ -8,7 +8,7 @@ from sqlalchemy import exc
 
 
 from flask import current_app as app
-from app import db  # from extensions
+from .extensions import db
 
 
 def mixin(

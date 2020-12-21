@@ -3,7 +3,8 @@ import json
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 
-from . import db, login, models
+from .extensions import db, login
+from . import models
 
 from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required

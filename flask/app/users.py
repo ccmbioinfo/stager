@@ -7,7 +7,9 @@ from sqlalchemy.orm import joinedload
 from flask import Blueprint, current_app as app, current_app as app
 from flask import jsonify, request
 
-from . import db, models
+from .extensions import db
+from . import models
+
 from .madmin import MinioAdmin
 from .utils import check_admin, transaction_or_abort
 
