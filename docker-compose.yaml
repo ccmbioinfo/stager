@@ -27,7 +27,6 @@ services:
   app:
     build: flask
     image: ccmbio/st2020
-    restart: on-failure
     environment:
       FLASK_ENV: development
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
