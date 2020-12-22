@@ -400,7 +400,7 @@ function DataEntryToolbar(props: {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Go to MinIO">
-                    <Link href={process.env.REACT_APP_MINIO_PORT} target="_blank">
+                    <Link href={process.env.REACT_APP_MINIO_URL} target="_blank">
                         <IconButton>
                             <OpenInNew />
                         </IconButton>

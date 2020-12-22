@@ -220,7 +220,7 @@ export default function Settings({ username }: { username: string }) {
                         </Button>
                         <div className={classes.grow} />
                         <Link
-                            href={process.env.REACT_APP_MINIO_PORT}
+                            href={process.env.REACT_APP_MINIO_URL}
                             target="_blank"
                             className={classes.link}
                         >
