@@ -10,6 +10,7 @@ import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { Note } from "../../components";
+import useEnums from "../../contexts/useEnums";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -35,9 +36,17 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
 
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipelines, setPipelines] = useState<Pipeline[]>([]);
-    const [tissueSampleTypes, setTissueSampleTypes] = useState<KeyValue>({});
-    const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
-    const [conditions, setConditions] = useState<KeyValue>({});
+
+    const enums = useEnums();
+    let tissueSampleTypes: KeyValue = {};
+    let datasetTypes: KeyValue = {};
+    let conditions: KeyValue = {};
+    if (enums) {
+        tissueSampleTypes = toKeyValue(enums.TissueSampleType as string[]);
+        datasetTypes = toKeyValue(enums.DatasetType as string[]);
+        conditions = toKeyValue(enums.DatasetCondition as string[]);
+    }
+
     const [files, setFiles] = useState<string[]>([]);
 
     const [showInfo, setShowInfo] = useState(false);
@@ -49,18 +58,6 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
-        fetch("/api/enums").then(async response => {
-            if (response.ok) {
-                const enums = await response.json();
-                setTissueSampleTypes(toKeyValue(enums.TissueSampleType));
-                setDatasetTypes(toKeyValue(enums.DatasetType));
-                setConditions(toKeyValue(enums.DatasetCondition));
-            } else {
-                console.error(
-                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
         fetch("/api/datasets").then(async response => {
             if (response.ok) {
                 const data = (await response.json()) as any[];

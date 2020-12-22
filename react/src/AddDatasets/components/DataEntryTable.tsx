@@ -24,6 +24,7 @@ import { Option, getOptions as _getOptions, getColumns, participantColumns } fro
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
+import useEnums from "../../contexts/useEnums";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -109,8 +110,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
     const [families, setFamilies] = useState<Family[]>([]);
-    const [enums, setEnums] = useState<any>();
     const [files, setFiles] = useState<string[]>([]);
+    const enums = useEnums();
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
@@ -119,15 +120,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             .then(response => response.json())
             .then(data => {
                 setFamilies(data as Family[]);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
-        fetch("/api/enums")
-            .then(response => response.json())
-            .then(data => {
-                setEnums(data);
             })
             .catch(error => {
                 console.error(error);

@@ -11,6 +11,7 @@ import {
 import { Participant, Analysis, Field } from "../../typings";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
+import useEnums from "../../contexts/useEnums";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -50,20 +51,7 @@ export default function ParticipantInfoDialog(props: DialogProp) {
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const { enqueueSnackbar } = useSnackbar();
-    const [enums, setEnums] = useState<any>();
-
-    useEffect(() => {
-        fetch("/api/enums").then(async response => {
-            if (response.ok) {
-                const enums = await response.json();
-                setEnums(enums);
-            } else {
-                console.error(
-                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-    }, []);
+    const enums = useEnums();
 
     useEffect(() => {
         (async () => {
