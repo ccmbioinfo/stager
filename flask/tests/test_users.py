@@ -273,3 +273,4 @@ def test_delete_user(test_database, minio_policy, client, login_as):
     error = json.loads(exc.value.args[0])
     assert error["error"]["message"] == "Unable to get user info"
     assert error["error"]["cause"]["error"]["Code"] == "XMinioAdminNoSuchUser"
+    assert User.query.filter_by(username="user").first() is None
