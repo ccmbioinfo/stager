@@ -11,7 +11,7 @@ import {
 import { Participant, Analysis, Field } from "../../typings";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
-import useEnums from "../../contexts/useEnums";
+import { useEnums } from "../../contexts/enums";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

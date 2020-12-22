@@ -24,7 +24,7 @@ import { Option, getOptions as _getOptions, getColumns, participantColumns } fro
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
-import useEnums from "../../contexts/useEnums";
+import { useEnums } from "../../contexts/enums";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];

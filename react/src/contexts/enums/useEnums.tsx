@@ -1,4 +1,5 @@
 import { useContext } from "react";
 import EnumContext from "./EnumContext";
 
-export default () => useContext(EnumContext);
+const useEnums = () => useContext(EnumContext);
+export default useEnums;

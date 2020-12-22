@@ -7,7 +7,7 @@ import { Analysis, Dataset, Pipeline } from "../typings";
 import DialogHeader from "./DialogHeader";
 import DetailSection from "./DetailSection";
 import InfoList from "./InfoList";
-import useEnums from "../contexts/useEnums";
+import { useEnums } from "../contexts/enums";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

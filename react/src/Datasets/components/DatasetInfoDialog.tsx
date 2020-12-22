@@ -11,7 +11,7 @@ import {
     getSecDatasetFields,
     createFieldObj,
 } from "../../functions";
-import useEnums from "../../contexts/useEnums";
+import { useEnums } from "../../contexts/enums";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {

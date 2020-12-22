@@ -10,7 +10,7 @@ import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { Note } from "../../components";
-import useEnums from "../../contexts/useEnums";
+import { useEnums } from "../../contexts/enums";
 
 const useStyles = makeStyles(theme => ({
     chip: {

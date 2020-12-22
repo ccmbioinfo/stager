@@ -5,7 +5,7 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
-import { EnumProvider } from "./contexts/EnumProvider";
+import { EnumProvider } from "./contexts/enums";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
