@@ -17,8 +17,17 @@ import {
     Tooltip,
     Typography,
     Button,
+    Link,
 } from "@material-ui/core";
-import { CloudUpload, Delete, LibraryAdd, ViewColumn, Add, Restore } from "@material-ui/icons";
+import {
+    CloudUpload,
+    Delete,
+    LibraryAdd,
+    ViewColumn,
+    Add,
+    Restore,
+    OpenInNew,
+} from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../../typings";
 import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
@@ -389,6 +398,13 @@ function DataEntryToolbar(props: {
                     <IconButton onClick={props.handleResetAction}>
                         <Restore />
                     </IconButton>
+                </Tooltip>
+                <Tooltip title="Go to MinIO">
+                    <Link href={process.env.REACT_APP_MINIO_PORT} target="_blank">
+                        <IconButton>
+                            <OpenInNew />
+                        </IconButton>
+                    </Link>
                 </Tooltip>
             </Toolbar>
             <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
