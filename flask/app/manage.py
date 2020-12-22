@@ -1,11 +1,14 @@
 from datetime import datetime
 
-from flask import current_app as app
 import click
-from flask.cli import with_appcontext
 
-from .extensions import db
+from flask import current_app as app
+from flask.cli import with_appcontext
+from minio import Minio
+
 from . import models
+from .extensions import db
+from .madmin import MinioAdmin, readwrite_buckets_policy
 
 
 @click.command("add-default-admin")
@@ -34,6 +37,17 @@ def add_default_admin():
 def add_dummy_data():
     # add groups
     if len(db.session.query(models.Group).all()) == 0:
+        minio_client = Minio(
+            app.config["MINIO_ENDPOINT"],
+            access_key=app.config["MINIO_ACCESS_KEY"],
+            secret_key=app.config["MINIO_SECRET_KEY"],
+            secure=False,
+        )
+        minio_admin = MinioAdmin(
+            endpoint=app.config["MINIO_ENDPOINT"],
+            access_key=app.config["MINIO_ACCESS_KEY"],
+            secret_key=app.config["MINIO_SECRET_KEY"],
+        )
         # group code/name pairs
         default_groups = {
             "c4r": "Care4Rare",
@@ -44,6 +58,12 @@ def add_dummy_data():
         }
 
         for default_code, default_name in default_groups.items():
+            policy = readwrite_buckets_policy(default_code)
+            minio_admin.add_policy(default_code, policy)
+            try:
+                minio_client.make_bucket(default_code)
+            except:
+                print(f"MinIO bucket `{default_code}` already exists.")
             group = models.Group(group_code=default_code, group_name=default_name)
             db.session.add(group)
 

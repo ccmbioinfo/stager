@@ -25,6 +25,7 @@ services:
       context: flask
       dockerfile: ../Dockerfile
     image: ccmbio/st2020:edge
+    restart: on-failure
     environment:
       FLASK_ENV: production
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
@@ -36,6 +37,7 @@ services:
       - minio
   nginx:
     image: nginx:alpine
+    restart: on-failure
     ports:
       - "80:80"
       - "443:443"
