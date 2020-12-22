@@ -1,5 +1,9 @@
+import json
+
 import pytest
+from app import db
 from app.madmin import MinioAdmin, readwrite_buckets_policy
+from app.models import User
 from conftest import TestConfig
 
 # Common response values between list and individual get endpoints
@@ -237,3 +241,36 @@ def test_create_conflicting_user(test_database, client, login_as):
         assert response.status_code == 422
         error = response.get_json()
         assert "error" in error and "message" in error
+
+
+def test_delete_unauthorized(test_database, client, login_as):
+    users = ["admin", "user", "doesnotexist"]
+    for user in users:
+        assert client.delete(f"/api/users/{user}").status_code == 401
+
+    login_as("user")
+    for user in users:
+        assert client.delete(f"/api/users/{user}").status_code == 401
+
+
+def test_delete_user_with_datasets(test_database, client, login_as):
+    login_as("admin")
+    assert client.delete(f"/api/users/admin").status_code == 422
+
+
+def test_delete_user(test_database, minio_policy, client, login_as):
+    minio_admin = minio_policy
+    minio_admin.add_user("user", "BatmanDiesInEndgame")
+    user = User.query.filter_by(username="user").first()
+    user.minio_access_key = "user"
+    user.minio_secret_key = "BatmanDiesInEndgame"
+    db.session.commit()
+
+    login_as("admin")
+    assert client.delete(f"/api/users/user").status_code == 204
+    with pytest.raises(RuntimeError) as exc:
+        deleted = minio_admin.get_user("user")
+    error = json.loads(exc.value.args[0])
+    assert error["error"]["message"] == "Unable to get user info"
+    assert error["error"]["cause"]["error"]["Code"] == "XMinioAdminNoSuchUser"
+    assert User.query.filter_by(username="user").first() is None

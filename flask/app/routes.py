@@ -121,24 +121,6 @@ def update_user():
         return "Server error", 500
 
 
-@routes.route("/api/users", methods=["DELETE"])
-@login_required
-@check_admin
-def delete_user():
-    rq_user = request.get_json()
-    if not validate_user(rq_user):
-        return "Bad request", 400
-
-    db_user = models.User.query.filter_by(username=rq_user["username"]).first_or_404()
-    try:
-        db.session.delete(db_user)
-        db.session.commit()
-        return "Updated", 204
-    except:
-        db.session.rollback()
-        return "Server error", 500
-
-
 @routes.route("/api/password", methods=["POST"])
 @login_required
 def change_password():

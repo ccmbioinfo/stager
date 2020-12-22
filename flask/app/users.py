@@ -1,15 +1,12 @@
 import os
 from typing import Any, Dict
 
+from flask import Blueprint, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
-from flask import Blueprint, current_app as app, current_app as app
-from flask import jsonify, request
-
-from .extensions import db
 from . import models
-
+from .extensions import db
 from .madmin import MinioAdmin
 from .utils import check_admin, transaction_or_abort
 
@@ -195,3 +192,30 @@ def create_user():
     db.session.add(user)
     transaction_or_abort(db.session.commit)
     return jsonify_user(user), 201, {"location": f"/api/users/{user.username}"}
+
+
+@users_blueprint.route("/api/users/<string:username>", methods=["DELETE"])
+@login_required
+@check_admin
+def delete_user(username: str):
+    user = models.User.query.filter_by(username=username).first_or_404()
+    try:
+        db.session.delete(user)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        # Assume user foreign key required elsewhere and not other error
+        return "This user can only be deactivated", 422
+
+    if user.minio_access_key:
+        minio_admin = MinioAdmin(
+            endpoint=app.config["MINIO_ENDPOINT"],
+            access_key=app.config["MINIO_ACCESS_KEY"],
+            secret_key=app.config["MINIO_SECRET_KEY"],
+        )
+        try:
+            minio_admin.remove_user(user.minio_access_key)
+        except RuntimeError as err:
+            app.logger.warning(err.args[0])
+
+    return "Deleted", 204
