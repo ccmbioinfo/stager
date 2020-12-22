@@ -1,3 +1,4 @@
 import { createContext } from "react";
+import { Enums } from "../../typings";
 
-export default createContext<any>(undefined);
+export default createContext<Enums>(undefined);

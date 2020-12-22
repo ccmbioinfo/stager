@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { Enums } from "../../typings";
 import EnumContext from "./EnumContext";
 
 /**
  * Allows child components to call the 'useEnums' hook.
  */
 export default function EnumProvider(props: { children: React.ReactNode }) {
-    const [enums, setEnums] = useState<any>();
+    const [enums, setEnums] = useState<Enums>();
 
     useEffect(() => {
         const enumStored = sessionStorage.getItem("enums");
