@@ -62,6 +62,7 @@ class Group(db.Model):
 class Family(db.Model):
     family_id: int = db.Column(db.Integer, primary_key=True)
     family_codename: str = db.Column(db.String(50), nullable=False, unique=True)
+    family_aliases: str = db.Column(db.String(100))
     created: str = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
@@ -81,6 +82,7 @@ class Family(db.Model):
 class Sex(str, Enum):
     Male = "Male"
     Female = "Female"
+    Unknown = "Unknown"
     Other = "Other"
 
 
@@ -96,6 +98,7 @@ class Participant(db.Model):
     participant_id: int = db.Column(db.Integer, primary_key=True)
     family_id = db.Column(db.Integer, db.ForeignKey("family.family_id"), nullable=False)
     participant_codename: str = db.Column(db.String(50), nullable=False, unique=True)
+    participant_aliases: str = db.Column(db.String(100))
     sex: Sex = db.Column(db.Enum(Sex))
     participant_type: ParticipantType = db.Column(db.Enum(ParticipantType))
     month_of_birth: date = db.Column(
