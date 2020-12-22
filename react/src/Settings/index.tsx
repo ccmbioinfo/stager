@@ -9,6 +9,7 @@ import {
     Paper,
     TextField,
     Typography,
+    Link,
 } from "@material-ui/core";
 import { MinioKeyDisplay, MinioResetButton, MinioKeys, ChipGroup } from "../components";
 
@@ -49,6 +50,13 @@ const useStyles = makeStyles(theme => ({
     },
     disabled: {
         color: theme.palette.text.disabled,
+    },
+    link: {
+        "&:focus, &:hover, &:visited, &:link, &:active": {
+            textDecoration: "none",
+        },
+        marginRight: theme.spacing(2),
+        marginLeft: theme.spacing(2),
     },
 }));
 
@@ -211,6 +219,15 @@ export default function Settings({ username }: { username: string }) {
                             Update password
                         </Button>
                         <div className={classes.grow} />
+                        <Link
+                            href={process.env.REACT_APP_MINIO_PORT}
+                            target="_blank"
+                            className={classes.link}
+                        >
+                            <Button variant="contained" color="primary">
+                                Go to MinIO
+                            </Button>
+                        </Link>
                         <MinioResetButton username={username} onUpdate={onMinioReset} />
                     </div>
                 </Paper>
