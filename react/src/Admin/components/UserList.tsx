@@ -15,6 +15,7 @@ import { useSnackbar } from "notistack";
 import { User, NewUser, Group } from "../../typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 async function updateUser(user: User) {
     return fetch("/api/users", {
@@ -87,7 +88,7 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
 export default function UserList() {
     const classes = useStyles();
     const [users, dispatch] = useReducer(reducer, []);
-    const [groups, setGroups] = useState<Group[]>([]);
+    const groups = useFetchCache("/api/groups") as Group[];
     const [openNewUser, setOpenNewUser] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -101,9 +102,6 @@ export default function UserList() {
                     payload: data,
                 })
             ); // No safety check on JSON structure
-        fetch("/api/groups")
-            .then(response => response.json())
-            .then(data => setGroups(data as Group[]));
     }, []);
 
     return (
