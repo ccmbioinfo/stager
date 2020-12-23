@@ -11,7 +11,7 @@ import {
     getSecDatasetFields,
     createFieldObj,
 } from "../../functions";
-import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {

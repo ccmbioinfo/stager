@@ -33,7 +33,7 @@ import { Option, getOptions as _getOptions, getColumns, participantColumns } fro
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
-import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];

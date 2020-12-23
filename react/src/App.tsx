@@ -5,7 +5,7 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
-import FetchCacheProvider from "./contexts/fetchCache/FetchCacheProvider";
+import { FetchCacheProvider } from "./contexts/fetchCache";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {

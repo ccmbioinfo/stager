@@ -10,7 +10,7 @@ import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { Note } from "../../components";
-import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 const useStyles = makeStyles(theme => ({
     chip: {

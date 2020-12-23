@@ -9,7 +9,7 @@ import { KeyValue, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
-import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);

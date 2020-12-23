@@ -11,7 +11,7 @@ import {
 import { Participant, Analysis, Field } from "../../typings";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
-import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
