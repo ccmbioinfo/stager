@@ -33,7 +33,7 @@ import { Option, getOptions as _getOptions, getColumns, participantColumns } fro
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
-import { useEnums } from "../../contexts/enums";
+import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -120,7 +120,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const [families, setFamilies] = useState<Family[]>([]);
     const [files, setFiles] = useState<string[]>([]);
-    const enums = useEnums();
+    const enums = useFetchCache("/api/enums");
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
 

@@ -11,7 +11,7 @@ import {
 import { Participant, Analysis, Field } from "../../typings";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
-import { useEnums } from "../../contexts/enums";
+import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -51,7 +51,7 @@ export default function ParticipantInfoDialog(props: DialogProp) {
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const { enqueueSnackbar } = useSnackbar();
-    const enums = useEnums();
+    const enums = useFetchCache("/api/enums");
 
     useEffect(() => {
         (async () => {

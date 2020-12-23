@@ -9,13 +9,13 @@ import { KeyValue, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
-import { useEnums } from "../../contexts/enums";
+import { useFetchCache } from "../../contexts/fetchCache/FetchCacheProvider";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const enums = useEnums();
+    const enums = useFetchCache("/api/enums");
     let sexTypes: KeyValue = {};
     let datasetTypes: KeyValue = {};
     let participantTypes: KeyValue = {};
