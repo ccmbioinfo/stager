@@ -1,4 +1,5 @@
 from datetime import datetime
+import random
 
 import click
 
@@ -34,7 +35,6 @@ def add_default_admin():
 
 @with_appcontext
 def add_groups():
-    # execute if groups table is empty
     if len(db.session.query(models.Group).all()) != 0:
         return
     minio_client = Minio(
@@ -48,7 +48,7 @@ def add_groups():
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
     )
-    # group code/name pairs
+    # group code/name pairs 
     default_groups = {
         "c4r": "Care4Rare",
         "cheo": "Children's Hospital of Eastern Ontario",
@@ -72,27 +72,24 @@ def add_groups():
 
 
 @with_appcontext
-def add_families():
-    if len(db.session.query(models.Family).all()) != 0:
+def add_default_users():
+    if len(db.session.query(models.User).all()) != 1: # existing default admin 
         return
-    default_families = [
-        {"family_codename": "1000", "created_by_id": 1, "updated_by_id": 1},
-        {"family_codename": "1001", "created_by_id": 1, "updated_by_id": 1},
-    ]
-    for f in default_families:
-        family = models.Family(
-            family_codename=f["family_codename"],
-            created_by_id=f["created_by_id"],
-            updated_by_id=f["updated_by_id"],
+    for group in db.session.query(models.Group).all():
+        default_user = models.User(
+            username=f"{group.group_code}-user",
+            email=f"user@test.{group.group_code}",
+            last_login=datetime.now(),
+            is_admin=False,
+            deactivated=False
         )
-        db.session.add(family)
+        default_user.set_password(app.config.get("DEFAULT_PASSWORD"))
+        default_user.minio_access_key = default_user.username
+        default_user.groups.append(group)
+        db.session.add(default_user)
+        print(f'Created default user {default_user.username} in group {group.group_code}')
 
     db.session.commit()
-    print(
-        "Created default families: {}".format(
-            ", ".join([a["family_codename"] for a in default_families])
-        )
-    )
 
 
 @with_appcontext
@@ -127,138 +124,6 @@ def add_institutions():
 
     db.session.commit()
 
-
-@with_appcontext
-def add_participants():
-    if len(db.session.query(models.Participant).all()) != 0:
-        return
-    # codename is key, sex, type
-    default_participants = [
-        {
-            "family_id": 1,
-            "codename": "AA001",
-            "sex": "Female",
-            "type": "Proband",
-            "affected": True,
-            "month_of_birth": "2000-01-01",
-            "institution_id": 3,
-            "notes": "Extra info about sample here",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-        {
-            "family_id": 1,
-            "codename": "AA002",
-            "sex": "Male",
-            "type": "Parent",
-            "affected": False,
-            "month_of_birth": "1970-01-01",
-            "institution_id": 3,
-            "notes": "",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-        {
-            "family_id": 1,
-            "codename": "AA003",
-            "sex": "Female",
-            "type": "Parent",
-            "affected": False,
-            "month_of_birth": "1970-02-01",
-            "institution_id": 1,
-            "notes": "",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-        {
-            "family_id": 1,
-            "codename": "AA004",
-            "sex": "Female",
-            "type": "Parent",
-            "affected": False,
-            "month_of_birth": "1970-03-01",
-            "institution_id": 1,
-            "notes": "",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-    ]
-    for p in default_participants:
-        participant = models.Participant(
-            family_id=p["family_id"],
-            participant_codename=p["codename"],
-            sex=p["sex"],
-            participant_type=p["type"],
-            affected=p["affected"],
-            month_of_birth=p["month_of_birth"],
-            institution_id=p["institution_id"],
-            notes=p["notes"],
-            created_by_id=p["created_by_id"],
-            updated_by_id=p["updated_by_id"],
-        )
-        db.session.add(participant)
-
-    db.session.commit()
-    print(
-        "Created default participants: {}".format(
-            ", ".join([a["codename"] for a in default_participants])
-        )
-    )
-
-
-@with_appcontext
-def add_tissue_samples():
-    # add tissue samples
-    if len(db.session.query(models.TissueSample).all()) != 0:
-        return
-    default_tissues = [
-        {
-            "participant_id": 1,
-            "extraction_date": "2020-01-04",
-            "tissue_sample_type": "Blood",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-        {
-            "participant_id": 2,
-            "extraction_date": "2020-01-04",
-            "tissue_sample_type": "Blood",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-        {
-            "participant_id": 3,
-            "extraction_date": "2020-01-04",
-            "tissue_sample_type": "Blood",
-            "created_by_id": 1,
-            "updated_by_id": 1,
-        },
-    ]
-    for t in default_tissues:
-        tissue = models.TissueSample(
-            participant_id=t["participant_id"],
-            extraction_date=t["extraction_date"],
-            tissue_sample_type=t["tissue_sample_type"],
-            created_by_id=t["created_by_id"],
-            updated_by_id=t["updated_by_id"],
-        )
-        db.session.add(tissue)
-
-    db.session.commit()
-    print(
-        "Created default tissue samples: {}".format(
-            ", ".join(
-                [
-                    t["tissue_sample_type"]
-                    + " for Participant "
-                    + str(t["participant_id"])
-                    for t in default_tissues
-                ]
-            )
-        )
-    )
-
-
 @with_appcontext
 def add_dataset_types():
     if len(db.session.query(models.DatasetType).all()) == 0:
@@ -290,60 +155,6 @@ def add_dataset_types():
             db.session.add(models.MetaDatasetType(metadataset_type=m))
 
         db.session.commit()
-
-
-@with_appcontext
-def add_datasets():
-    if len(db.session.query(models.Dataset).all()) != 0:
-        return
-    default_datasets = [
-        {
-            "tissue_sample_id": 1,
-            "dataset_type": "RGS",
-            "entered": "2020-02-03",
-            "created_by_id": 1,
-            "condition": "GermLine",
-        },
-        {
-            "tissue_sample_id": 3,
-            "dataset_type": "RGS",
-            "entered": "2020-02-03",
-            "created_by_id": 1,
-            "condition": "GermLine",
-        },
-        {
-            "tissue_sample_id": 3,
-            "dataset_type": "RGS",
-            "entered": "2020-02-03",
-            "created_by_id": 1,
-            "condition": "GermLine",
-        },
-    ]
-    for d in default_datasets:
-        dataset = models.Dataset(
-            tissue_sample_id=d["tissue_sample_id"],
-            dataset_type=d["dataset_type"],
-            condition=d["condition"],
-            created_by_id=d["created_by_id"],
-            updated_by_id=d["created_by_id"],
-            created=d["entered"],
-            sequencing_centre="CHEO",  # TODO: remove
-            extraction_protocol="Something",  # TODO: remove
-        )
-        db.session.add(dataset)
-
-    db.session.commit()
-    print(
-        "Created default datasets: {}".format(
-            ", ".join(
-                [
-                    d["dataset_type"] + " for TissueSample" + str(d["tissue_sample_id"])
-                    for d in default_datasets
-                ]
-            )
-        )
-    )
-
 
 @with_appcontext
 def add_pipelines():
@@ -409,89 +220,65 @@ def add_metadataset():
     print("Added metadataset_dataset information")
 
 
+
 @with_appcontext
-def add_analyses():
-    if len(db.session.query(models.Analysis).all()) != 0:
+def add_data_hierarchies():
+     if len(db.session.query(models.Family).all()) != 0:
         return
-    default_analyses = [
-        {
-            "analysis_state": "Running",
-            "pipeline_id": 1,
-            "assignee_id": 1,
-            "requester_id": 1,
-            "requested": "2020-07-28",
-            "started": "2020-08-04",
-            "updated": "2020-08-04",
-            "updated_by_id": 1,
-        },
-        {
-            "analysis_state": "Requested",
-            "pipeline_id": 2,
-            "assignee_id": 1,
-            "requester_id": 1,
-            "requested": "2020-08-10",
-            "started": None,
-            "updated": "2020-08-10",
-            "updated_by_id": 1,
-        },
-    ]
-    for a in default_analyses:
-        analysis = models.Analysis(
-            analysis_state=a["analysis_state"],
-            pipeline_id=a["pipeline_id"],
-            assignee_id=a["assignee_id"],
-            requester_id=a["requester_id"],
-            requested=a["requested"],
-            started=a["started"],
-            updated=a["updated"],
-            updated_by_id=a["updated_by_id"],
+    family_code_iter = 2000
+    participant_code_iter = 1
+    for group in db.session.query(models.Group).all():
+        institution = db.session.query(models.Institution.filter_by(institution=group.group_name).one_or_none())
+        # create family per group
+        default_family = models.Family(
+            family_codename=str(family_code_iter),
+            created_by_id=1,
+            updated_by_id=1
         )
-        db.session.add(analysis)
+        # build trio
+        for sex in ["-", "Female", "Male"]:
+            participant = Participant(
+                participant_codename=f'{upper(group.group_code)}{participant_code_iter:04}',
+                institution_id=institution.institution_id,
+                affected=True if sex == "-" else False,
+                participant_type=ParticipantType.Proband if sex == "-" else ParticipantType.Parent,
+                sex=getattr(Sex, random.choice(['Female','Male'])) if sex == "-" else getattr(Sex,sex),
+                created_by_id=1,
+                updated_by_id=1
+            )
+            default_family.participants.append(participant)
+            participant_code_iter+=1
+            tissue_sample = TissueSample(
+                tissue_sample_type=TissueSampleType.Blood,
+                created_by_id=1,
+                updated_by_id=1
+            )
+            participant.tissue.append(tissue_sample)
+            dataset = Dataset(
+                dataset_type="RGS",
+                entered=datetime.today().strftime('%Y-%m-%d'),
+                condition="GermLine"
+                updated_by_id=1,
+                created_by_id=1,
+            )
+            dataset.groups.append(group)
+            tissue_sample.datasets.append(dataset)
 
-    db.session.commit()
-    print(
-        "Created default analysis with states: {}".format(
-            ", ".join([a["analysis_state"] for a in default_analyses])
-        )
-    )
+            #TODO: add analyses here
+
+        db.session.add(default_family)
+        db.session.flush()
+        family_code_iter+=1
 
 
+@click.command("add-default-data")
 @with_appcontext
-def add_dataset_analyses():
-    if len(db.session.query(models.datasets_analyses_table).all()) != 0:
-        return
-    default_dataset_analyses = [
-        {"dataset_id": 1, "analysis_id": 1},
-        {"dataset_id": 1, "analysis_id": 2},
-        {"dataset_id": 2, "analysis_id": 2},
-        {"dataset_id": 3, "analysis_id": 2},
-    ]
-    for d in default_dataset_analyses:
-        # note different syntax because joining table doesn't inherit model
-        insert_statement = models.datasets_analyses_table.insert().values(
-            dataset_id=d["dataset_id"],
-            analysis_id=d["analysis_id"],
-        )
-        db.session.execute(insert_statement)
-        db.session.commit()
-    print("Joined datasets to analyses")
-
-
-@click.command("add-dummy-data")
-@with_appcontext
-def add_dummy_data():
-
+def add_default_data():
     add_groups()
-    add_families()
+    add_default_users()
     add_institutions()
-    add_participants()
-    add_tissue_samples()
     add_dataset_types()
-    add_datasets()
     add_pipelines()
     add_supported_datasets()
     add_metadataset()
-    add_analyses()
-    add_dataset_analyses()
-
-    # TODO: add to the users_groups and groups_datasets tables for permissions testing
+    add_data_hierarchies()
