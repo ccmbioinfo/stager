@@ -5,11 +5,15 @@ type ClientContextType = (url: string) => void;
 const ClientContext = createContext<ClientContextType>(() => {});
 const ResultContext = createContext<any>({});
 
+/**
+ * Provider for useFetchCache hook.
+ */
 export default function FetchCacheProvider(props: { children: React.ReactNode }) {
     const [url, setURL] = useState("");
     const [cachedResult, setCachedResult] = useState<any>();
 
     useEffect(() => {
+        // use url as cache key
         const stored = sessionStorage.getItem(url);
         if (stored) {
             // hit, no fetch
@@ -30,6 +34,8 @@ export default function FetchCacheProvider(props: { children: React.ReactNode })
         }
     }, [url]);
 
+    // Nested providers so that we can pass in URL via ClientContext,
+    // and retrieve result via ResultContext
     return (
         <ClientContext.Provider value={setURL}>
             <ResultContext.Provider value={cachedResult}>{props.children}</ResultContext.Provider>
@@ -37,6 +43,10 @@ export default function FetchCacheProvider(props: { children: React.ReactNode })
     );
 }
 
+/**
+ * Given an API url, caches and returns the result of
+ * that API call. Cached result expires when the session ends.
+ */
 export function useFetchCache(url: string) {
     useContext(ClientContext)(url);
     return useContext(ResultContext);
