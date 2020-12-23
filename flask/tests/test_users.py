@@ -274,3 +274,41 @@ def test_delete_user(test_database, minio_policy, client, login_as):
     assert error["error"]["message"] == "Unable to get user info"
     assert error["error"]["cause"]["error"]["Code"] == "XMinioAdminNoSuchUser"
     assert User.query.filter_by(username="user").first() is None
+
+
+def test_change_password_unauthorized(test_database, client, login_as):
+    users = ["admin", "user", "doesnotexist"]
+    for user in users:
+        assert client.patch(f"/api/users/{user}").status_code == 401
+
+    users = ["admin", "doesnotexist"]
+    login_as("user")
+    for user in users:
+        assert client.patch(f"/api/users/{user}").status_code == 415
+        assert (
+            client.patch(f"/api/users/{user}", json={"password": "hunter2"}).status_code
+            == 403
+        )
+
+
+def test_change_password(test_database, client, login_as):
+    login_as("user")
+
+    assert (
+        client.patch(f"/api/users/user", json={"password": "hunter2"}).status_code
+        == 400
+    )
+    assert (
+        client.patch(
+            f"/api/users/user", json={"current": "hunter2", "password": "hunter2"}
+        ).status_code
+        == 401
+    )
+    assert (
+        client.patch(
+            f"/api/users/user", json={"current": "user", "password": "hunter2"}
+        ).status_code
+        == 204
+    )
+
+    login_as("user", "hunter2")
