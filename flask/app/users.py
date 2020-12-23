@@ -70,17 +70,29 @@ def get_user(username: str):
     return jsonify_user(user)
 
 
-def reset_minio_credentials(user: models.User) -> None:
-    minio_admin = MinioAdmin(
+def get_minio_admin() -> MinioAdmin:
+    return MinioAdmin(
         endpoint=app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
     )
+
+
+def safe_remove(user: models.User, minio_admin: MinioAdmin = None) -> None:
+    """
+    Remove the corresponding MinIO identity for this user from MinIO if it exists.
+    """
     if user.minio_access_key:
+        minio_admin = minio_admin or get_minio_admin()
         try:
             minio_admin.remove_user(user.minio_access_key)
         except RuntimeError as err:
             app.logger.warning(err.args[0])
+
+
+def reset_minio_credentials(user: models.User) -> None:
+    minio_admin = get_minio_admin()
+    safe_remove(user, minio_admin)
     # Generate cryptographically random pair
     access_key = os.urandom(8).hex()  # 16 ASCII characters
     secret_key = os.urandom(16).hex()  # 32 ASCII characters
@@ -207,15 +219,56 @@ def delete_user(username: str):
         # Assume user foreign key required elsewhere and not other error
         return "This user can only be deactivated", 422
 
-    if user.minio_access_key:
-        minio_admin = MinioAdmin(
-            endpoint=app.config["MINIO_ENDPOINT"],
-            access_key=app.config["MINIO_ACCESS_KEY"],
-            secret_key=app.config["MINIO_SECRET_KEY"],
-        )
-        try:
-            minio_admin.remove_user(user.minio_access_key)
-        except RuntimeError as err:
-            app.logger.warning(err.args[0])
+    safe_remove(user)
 
     return "Deleted", 204
+
+
+@users_blueprint.route("/api/users/<string:username>", methods=["PATCH"])
+@login_required
+def update_user(username: str):
+    if not request.json:
+        return "Request body must be JSON", 415
+
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user = models.User.query.filter_by(username=username).first_or_404()
+        old_username = user.username
+        if valid_strings(request.json, "username"):
+            user.username = request.json["username"]
+        if valid_strings(request.json["email"]) and verify_email(request.json["email"]):
+            user.email = request.json["email"]
+        if "is_admin" in request.json and isinstance(request.json["is_admin"], bool):
+            user.is_admin = request.json["is_admin"]
+        if "deactivated" in request.json and isinstance(
+            request.json["deactivated"], bool
+        ):
+            user.deactivated = request.json["deactivated"]
+            if user.deactivated and user.minio_access_key:
+                safe_remove(user)
+                user.minio_access_key = None
+                user.minio_secret_key = None
+        if valid_strings(request.json["password"]):
+            user.set_password(request.json["password"])
+
+        transaction_or_abort(db.session.commit)
+        if old_username != user.username:
+            return jsonify_user(user), {"location": f"/api/users/{user.username}"}
+        else:
+            return jsonify_user(user)
+
+    # Update the current user's password given the existing password
+    elif username == current_user.username:
+        if "current" not in request.json or "password" not in request.json:
+            return "Bad request", 400
+        if not current_user.check_password(request.json["current"]):
+            return "Incorrect password", 401
+        current_user.set_password(request.json["password"])
+        try:
+            db.session.commit()
+            return "Updated", 204
+        except:
+            db.session.rollback()
+            return "Server error", 500
+
+    else:
+        return "Unauthorized", 403
