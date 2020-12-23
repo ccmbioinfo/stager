@@ -11,6 +11,7 @@ import {
     getSecDatasetFields,
     createFieldObj,
 } from "../../functions";
+import { useEnums } from "../../contexts/enums";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -50,20 +51,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
-    const [enums, setEnums] = useState<any>();
-
-    useEffect(() => {
-        fetch("/api/enums").then(async response => {
-            if (response.ok) {
-                const enums = await response.json();
-                setEnums(enums);
-            } else {
-                console.error(
-                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-    }, []);
+    const enums = useEnums();
 
     useEffect(() => {
         fetch("/api/datasets/" + props.dataset.dataset_id)
