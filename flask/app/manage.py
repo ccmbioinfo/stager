@@ -48,7 +48,7 @@ def add_groups():
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
     )
-    # group code/name pairs 
+    # group code/name pairs
     default_groups = {
         "c4r": "Care4Rare",
         "cheo": "Children's Hospital of Eastern Ontario",
@@ -73,7 +73,7 @@ def add_groups():
 
 @with_appcontext
 def add_default_users():
-    if len(db.session.query(User).all()) != 1: # existing default admin 
+    if len(db.session.query(User).all()) != 1:  # existing default admin
         return
     for group in db.session.query(Group).all():
         default_user = User(
@@ -81,13 +81,15 @@ def add_default_users():
             email=f"user@test.{group.group_code}",
             last_login=datetime.now(),
             is_admin=False,
-            deactivated=False
+            deactivated=False,
         )
         default_user.set_password(app.config.get("DEFAULT_PASSWORD"))
         default_user.minio_access_key = default_user.username
         default_user.groups.append(group)
         db.session.add(default_user)
-        print(f'Created default user {default_user.username} in group {group.group_code}')
+        print(
+            f"Created default user {default_user.username} in group {group.group_code}"
+        )
 
     db.session.commit()
 
@@ -124,6 +126,7 @@ def add_institutions():
 
     db.session.commit()
 
+
 @with_appcontext
 def add_dataset_types():
     if len(db.session.query(DatasetType).all()) == 0:
@@ -156,6 +159,7 @@ def add_dataset_types():
 
         db.session.commit()
 
+
 @with_appcontext
 def add_pipelines():
     if len(db.session.query(Pipeline).all()) != 0:
@@ -183,13 +187,9 @@ def add_supported_datasets():
     if len(db.session.query(PipelineDatasets).all()) != 0:
         return
     # genomic datasets map to pipeline_id 1 (CRG)
-    db.session.add(
-        PipelineDatasets(pipeline_id=1, supported_metadataset_type="Genome")
-    )
+    db.session.add(PipelineDatasets(pipeline_id=1, supported_metadataset_type="Genome"))
     # exomic datasets map to pipeline_id 2 (CRE)
-    db.session.add(
-        PipelineDatasets(pipeline_id=2, supported_metadataset_type="Exome")
-    )
+    db.session.add(PipelineDatasets(pipeline_id=2, supported_metadataset_type="Exome"))
     db.session.commit()
     print("Added dataset support info for pipelines")
 
@@ -204,9 +204,7 @@ def add_metadataset():
         )
     for g in ["RGS", "CGS", "WGS"]:
         db.session.add(
-            MetaDatasetType_DatasetType(
-                metadataset_type="Genome", dataset_type=g
-            )
+            MetaDatasetType_DatasetType(metadataset_type="Genome", dataset_type=g)
         )
     for o in ["RLM", "RMM", "RTA"]:
         db.session.add(
@@ -220,7 +218,6 @@ def add_metadataset():
     print("Added metadataset_dataset information")
 
 
-
 @with_appcontext
 def add_data_hierarchies():
     if len(db.session.query(Family).all()) != 0:
@@ -228,8 +225,10 @@ def add_data_hierarchies():
     family_code_iter = 2000
     participant_code_iter = 1
     # db.session.query(Group).all()
-    for group in Group.query.filter(Group.group_code != 'c4r').all():
-        institution = Institution.query.filter_by(institution=group.group_name).one_or_none()
+    for group in Group.query.filter(Group.group_code != "c4r").all():
+        institution = Institution.query.filter_by(
+            institution=group.group_name
+        ).one_or_none()
         # default to CHEO for unknown
         if not institution:
             cheo = "Children's Hospital of Eastern Ontario"
@@ -237,32 +236,34 @@ def add_data_hierarchies():
 
         # create family per group
         default_family = Family(
-            family_codename=str(family_code_iter),
-            created_by_id=1,
-            updated_by_id=1
+            family_codename=str(family_code_iter), created_by_id=1, updated_by_id=1
         )
         # build trio
         for sex in ["-", "Female", "Male"]:
             participant = Participant(
-                participant_codename=f'{group.group_code.upper()}{participant_code_iter:04}',
+                participant_codename=f"{group.group_code.upper()}{participant_code_iter:04}",
                 institution_id=institution.institution_id,
                 affected=True if sex == "-" else False,
-                participant_type=ParticipantType.Proband if sex == "-" else ParticipantType.Parent,
-                sex=getattr(Sex, random.choice(['Female','Male'])) if sex == "-" else getattr(Sex,sex),
+                participant_type=ParticipantType.Proband
+                if sex == "-"
+                else ParticipantType.Parent,
+                sex=getattr(Sex, random.choice(["Female", "Male"]))
+                if sex == "-"
+                else getattr(Sex, sex),
                 created_by_id=1,
-                updated_by_id=1
+                updated_by_id=1,
             )
             default_family.participants.append(participant)
-            participant_code_iter+=1
+            participant_code_iter += 1
             tissue_sample = TissueSample(
                 tissue_sample_type=TissueSampleType.Blood,
                 created_by_id=1,
-                updated_by_id=1
+                updated_by_id=1,
             )
             participant.tissue_samples.append(tissue_sample)
             dataset = Dataset(
                 dataset_type="RGS",
-                created=datetime.today().strftime('%Y-%m-%d'),
+                created=datetime.today().strftime("%Y-%m-%d"),
                 condition="GermLine",
                 updated_by_id=1,
                 created_by_id=1,
@@ -273,18 +274,18 @@ def add_data_hierarchies():
             # one analysis per trio
             analysis = Analysis(
                 analysis_state=AnalysisState.Requested,
-                pipeline_id=1, # CRG
+                pipeline_id=1,  # CRG
                 assignee_id=1,
                 requester_id=1,
-                requested=datetime.today().strftime('%Y-%m-%d'),
-                updated=datetime.today().strftime('%Y-%m-%d'),
-                updated_by_id=1
+                requested=datetime.today().strftime("%Y-%m-%d"),
+                updated=datetime.today().strftime("%Y-%m-%d"),
+                updated_by_id=1,
             )
             dataset.analyses.append(analysis)
 
         db.session.add(default_family)
         db.session.commit()
-        family_code_iter+=1
+        family_code_iter += 1
 
 
 @click.command("add-default-data")
