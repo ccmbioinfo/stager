@@ -244,27 +244,38 @@ def bulk_update():
         updated_by_id = 1
         created_by_id = 1
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-
     # get all group codes present in db
     all_groups = models.Group.query.all()
     all_codes = [g.group_code for g in all_groups]
 
     # get user's group(s)
     group_query = request.args.get("group")
-    user_group = (
-        models.Group.query.join(models.Group.users)
-        .filter(models.User.user_id == user_id)
-        .all()
-    )
+
+    if app.config.get("LOGIN_DISABLED"):
+        user_id = request.args.get("user")
+        if user_id:
+            user_group = (
+                models.Group.query.join(models.Group.users)
+                .filter(models.User.user_id == user_id)
+                .all()
+            )
+        else:
+            user_group = all_groups
+    elif current_user.is_admin:
+        user_group = all_groups
+    else:
+        user_id = current_user.user_id
+        user_group = (
+            models.Group.query.join(models.Group.users)
+            .filter(models.User.user_id == user_id)
+            .all()
+        )
+
+    if not user_group:
+        return "User does not belong to any permission groups", 403
 
     if group_query:
         group_query = group_query.split(",")
-        if not user_group:
-            return "User does not belong to any permission groups", 403
         codes = [code.group_code for code in user_group]
         for g in group_query:
             if g not in all_codes:

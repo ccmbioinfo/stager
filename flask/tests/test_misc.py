@@ -45,7 +45,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test not json array
     assert (
         client.post(
-            "/api/_bulk",
+            "/api/_bulk?group=ach",
             json={
                 "family_codename": "1001",
                 "participant_codename": "06332",
@@ -63,7 +63,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test enum error
     assert (
         client.post(
-            "/api/_bulk",
+            "/api/_bulk?group=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -83,7 +83,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test json array
     assert (
         client.post(
-            "/api/_bulk",
+            "/api/_bulk?group=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -111,7 +111,7 @@ def test_post_bulk(test_database, client, login_as):
     goodcsv = open("tests/samplecsv.csv", "r")
     assert (
         client.post(
-            "/api/_bulk",
+            "/api/_bulk?group=ach",
             data=goodcsv.read(),
             headers={"Content-Type": "text/csv"},
         ).status_code
@@ -139,6 +139,63 @@ def test_post_bulk(test_database, client, login_as):
                     "dataset_type": "WES",
                     "condition": "GermLine",
                 },
+            ],
+        ).status_code
+        == 400
+    )
+
+    # Test invalid group query
+    assert (
+        client.post(
+            "/api/_bulk?group=torgen&",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 404
+    )
+
+    # Test correct permission group
+    assert (
+        client.post(
+            "/api/_bulk?group=ach",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 200
+    )
+
+    # Test no permission group specified but belongs to multiple groups
+    assert (
+        client.post(
+            "/api/_bulk",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
             ],
         ).status_code
         == 400
@@ -183,12 +240,109 @@ def test_post_bulk(test_database, client, login_as):
     assert len(random_participant.tissue_samples[0].datasets) == 1
 
 
+def test_post_bulk_user(test_database, client, login_as):
+    login_as("user")
+    # Test allowed permission groups
+    assert (
+        client.post(
+            "/api/_bulk?group=ach",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 200
+    )
+    # Test no group query parameter, but user only belongs to one group
+    assert (
+        client.post(
+            "/api/_bulk",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 200
+    )
+    login_as("user_b")
+    # Test no permission groups
+    assert (
+        client.post(
+            "/api/_bulk?group=ach",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 403
+    )
+    login_as("user_a")
+    # Test multiple permission groups, none specified
+    assert (
+        client.post(
+            "/api/_bulk",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 400
+    )
+
+    # Test multiple permission groups, one specified
+    assert (
+        client.post(
+            "/api/_bulk?group=ach",
+            json=[
+                {
+                    "family_codename": "1001",
+                    "participant_codename": "1411",
+                    "tissue_sample": "Blood",
+                    "tissue_sample_type": "Blood",
+                    "dataset_type": "WGS",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                }
+            ],
+        ).status_code
+        == 200
+    )
+
+
 def test_bulk_multiple_csv(test_database, client, login_as):
     login_as("admin")
 
     assert (
         client.post(
-            "/api/_bulk",
+            "/api/_bulk?group=ach",
             data="""
 family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
@@ -213,7 +367,7 @@ def test_bulk_multiple_json(test_database, client, login_as):
 
     assert (
         client.post(
-            "/api/_bulk",
+            "/api/_bulk?group=ach",
             json=[
                 {
                     "family_codename": "HOOD",

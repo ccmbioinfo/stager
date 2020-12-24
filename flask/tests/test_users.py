@@ -23,6 +23,22 @@ expected_user_common = {
     "groups": ["ach"],
 }
 
+expected_user_a_common = {
+    "username": "user_a",
+    "email": "test_a@sickkids.ca",
+    "is_admin": False,
+    "deactivated": False,
+    "groups": ["ach", "bcch"],
+}
+
+expected_user_b_common = {
+    "username": "user_b",
+    "email": "test_b@sickkids.ca",
+    "is_admin": False,
+    "deactivated": False,
+    "groups": [],
+}
+
 
 @pytest.fixture
 def minio_policy():
@@ -51,7 +67,7 @@ def test_list_users(test_database, client, login_as):
     assert response.status_code == 200
 
     user_list = response.get_json()
-    assert len(user_list) == 2
+    assert len(user_list) == 4
 
     # return order is unspecified
     user_list.sort(key=lambda user: user["username"])
@@ -64,6 +80,14 @@ def test_list_users(test_database, client, login_as):
         {
             **expected_user_common,
             "last_login": user_list[1]["last_login"],
+        },
+        {
+            **expected_user_a_common,
+            "last_login": user_list[2]["last_login"],
+        },
+        {
+            **expected_user_b_common,
+            "last_login": user_list[3]["last_login"],
         },
     ]
 
