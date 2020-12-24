@@ -166,10 +166,18 @@ def test_create_analysis(test_database, client, login_as):
     #     == 400
     # )
 
-    # Test success and check db
+    # test requesting a dataset that the user does not have access to
     assert (
         client.post(
             "/api/analyses", json={"datasets": [1, 2], "pipeline_id": 1}
+        ).status_code
+        == 400
+    )
+
+    # Test success and check db
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": [1], "pipeline_id": 1}
         ).status_code
         == 200
     )
@@ -180,12 +188,12 @@ def test_create_analysis(test_database, client, login_as):
     )
     dataset_1 = (
         models.Dataset.query.options(joinedload(models.Dataset.analyses))
-        .filter(models.Dataset.dataset_id == 2)
+        .filter(models.Dataset.dataset_id == 1)
         .one_or_none()
     )
     assert analysis is not None
-    assert len(analysis.datasets) == 2
-    assert len(dataset_1.analyses) == 3
+    assert len(analysis.datasets) == 1
+    assert len(dataset_1.analyses) == 2
 
     login_as("admin")
     assert len(client.get("/api/analyses").get_json()) == 4
