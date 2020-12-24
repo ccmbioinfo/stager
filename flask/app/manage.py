@@ -7,7 +7,7 @@ from flask import current_app as app
 from flask.cli import with_appcontext
 from minio import Minio
 
-from . import models
+from .models import *
 from .extensions import db
 from .madmin import MinioAdmin, readwrite_buckets_policy
 
@@ -15,8 +15,8 @@ from .madmin import MinioAdmin, readwrite_buckets_policy
 @click.command("add-default-admin")
 @with_appcontext
 def add_default_admin():
-    if len(db.session.query(models.User).all()) == 0:
-        default_admin = models.User(
+    if len(db.session.query(User).all()) == 0:
+        default_admin = User(
             username=app.config.get("DEFAULT_ADMIN"),
             email=app.config.get("DEFAULT_ADMIN_EMAIL"),
             last_login=datetime.now(),
@@ -35,7 +35,7 @@ def add_default_admin():
 
 @with_appcontext
 def add_groups():
-    if len(db.session.query(models.Group).all()) != 0:
+    if len(db.session.query(Group).all()) != 0:
         return
     minio_client = Minio(
         app.config["MINIO_ENDPOINT"],
@@ -64,7 +64,7 @@ def add_groups():
             minio_client.make_bucket(default_code)
         except:
             print(f"MinIO bucket `{default_code}` already exists.")
-        group = models.Group(group_code=default_code, group_name=default_name)
+        group = Group(group_code=default_code, group_name=default_name)
         db.session.add(group)
 
     db.session.commit()
@@ -73,10 +73,10 @@ def add_groups():
 
 @with_appcontext
 def add_default_users():
-    if len(db.session.query(models.User).all()) != 1: # existing default admin 
+    if len(db.session.query(User).all()) != 1: # existing default admin 
         return
-    for group in db.session.query(models.Group).all():
-        default_user = models.User(
+    for group in db.session.query(Group).all():
+        default_user = User(
             username=f"{group.group_code}-user",
             email=f"user@test.{group.group_code}",
             last_login=datetime.now(),
@@ -94,7 +94,7 @@ def add_default_users():
 
 @with_appcontext
 def add_institutions():
-    if len(db.session.query(models.Institution).all()) != 0:
+    if len(db.session.query(Institution).all()) != 0:
         return
     institutions = [
         "Alberta Children's Hospital",
@@ -120,13 +120,13 @@ def add_institutions():
         "Unknown",
     ]
     for i in institutions:
-        db.session.add(models.Institution(institution=i))
+        db.session.add(Institution(institution=i))
 
     db.session.commit()
 
 @with_appcontext
 def add_dataset_types():
-    if len(db.session.query(models.DatasetType).all()) == 0:
+    if len(db.session.query(DatasetType).all()) == 0:
         dataset_types = [
             "RES",  # Research Exome Sequencing
             "CES",  # Clinical Exome Sequencing
@@ -144,28 +144,28 @@ def add_dataset_types():
             "RTA",  # Research DNA Methylation array
         ]
         for d in dataset_types:
-            db.session.add(models.DatasetType(dataset_type=d))
+            db.session.add(DatasetType(dataset_type=d))
 
         db.session.commit()
 
     # add metadataset type
-    if len(db.session.query(models.MetaDatasetType).all()) == 0:
+    if len(db.session.query(MetaDatasetType).all()) == 0:
         metadataset_types = ["Genome", "Exome", "RNA", "Other"]
         for m in metadataset_types:
-            db.session.add(models.MetaDatasetType(metadataset_type=m))
+            db.session.add(MetaDatasetType(metadataset_type=m))
 
         db.session.commit()
 
 @with_appcontext
 def add_pipelines():
-    if len(db.session.query(models.Pipeline).all()) != 0:
+    if len(db.session.query(Pipeline).all()) != 0:
         return
     default_pipelines = [
         {"pipeline_name": "CRG", "pipeline_version": "1.2"},
         {"pipeline_name": "CRE", "pipeline_version": "4.3"},
     ]
     for p in default_pipelines:
-        pipeline = models.Pipeline(
+        pipeline = Pipeline(
             pipeline_name=p["pipeline_name"], pipeline_version=p["pipeline_version"]
         )
         db.session.add(pipeline)
@@ -180,15 +180,15 @@ def add_pipelines():
 
 @with_appcontext
 def add_supported_datasets():
-    if len(db.session.query(models.PipelineDatasets).all()) != 0:
+    if len(db.session.query(PipelineDatasets).all()) != 0:
         return
     # genomic datasets map to pipeline_id 1 (CRG)
     db.session.add(
-        models.PipelineDatasets(pipeline_id=1, supported_metadataset_type="Genome")
+        PipelineDatasets(pipeline_id=1, supported_metadataset_type="Genome")
     )
     # exomic datasets map to pipeline_id 2 (CRE)
     db.session.add(
-        models.PipelineDatasets(pipeline_id=2, supported_metadataset_type="Exome")
+        PipelineDatasets(pipeline_id=2, supported_metadataset_type="Exome")
     )
     db.session.commit()
     print("Added dataset support info for pipelines")
@@ -196,25 +196,25 @@ def add_supported_datasets():
 
 @with_appcontext
 def add_metadataset():
-    if len(db.session.query(models.MetaDatasetType_DatasetType).all()) != 0:
+    if len(db.session.query(MetaDatasetType_DatasetType).all()) != 0:
         return
     for e in ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"]:
         db.session.add(
-            models.MetaDatasetType_DatasetType(metadataset_type="Exome", dataset_type=e)
+            MetaDatasetType_DatasetType(metadataset_type="Exome", dataset_type=e)
         )
     for g in ["RGS", "CGS", "WGS"]:
         db.session.add(
-            models.MetaDatasetType_DatasetType(
+            MetaDatasetType_DatasetType(
                 metadataset_type="Genome", dataset_type=g
             )
         )
     for o in ["RLM", "RMM", "RTA"]:
         db.session.add(
-            models.MetaDatasetType_DatasetType(metadataset_type="Other", dataset_type=o)
+            MetaDatasetType_DatasetType(metadataset_type="Other", dataset_type=o)
         )
 
     db.session.add(
-        models.MetaDatasetType_DatasetType(metadataset_type="RNA", dataset_type="RRS")
+        MetaDatasetType_DatasetType(metadataset_type="RNA", dataset_type="RRS")
     )
     db.session.commit()
     print("Added metadataset_dataset information")
@@ -223,14 +223,20 @@ def add_metadataset():
 
 @with_appcontext
 def add_data_hierarchies():
-     if len(db.session.query(models.Family).all()) != 0:
+    if len(db.session.query(Family).all()) != 0:
         return
     family_code_iter = 2000
     participant_code_iter = 1
-    for group in db.session.query(models.Group).all():
-        institution = db.session.query(models.Institution.filter_by(institution=group.group_name).one_or_none())
+    # db.session.query(Group).all()
+    for group in Group.query.filter(Group.group_code != 'c4r').all():
+        institution = Institution.query.filter_by(institution=group.group_name).one_or_none()
+        # default to CHEO for unknown
+        if not institution:
+            cheo = "Children's Hospital of Eastern Ontario"
+            institution = Institution.query.filter_by(institution=cheo).one_or_none()
+
         # create family per group
-        default_family = models.Family(
+        default_family = Family(
             family_codename=str(family_code_iter),
             created_by_id=1,
             updated_by_id=1
@@ -238,7 +244,7 @@ def add_data_hierarchies():
         # build trio
         for sex in ["-", "Female", "Male"]:
             participant = Participant(
-                participant_codename=f'{upper(group.group_code)}{participant_code_iter:04}',
+                participant_codename=f'{group.group_code.upper()}{participant_code_iter:04}',
                 institution_id=institution.institution_id,
                 affected=True if sex == "-" else False,
                 participant_type=ParticipantType.Proband if sex == "-" else ParticipantType.Parent,
@@ -253,21 +259,31 @@ def add_data_hierarchies():
                 created_by_id=1,
                 updated_by_id=1
             )
-            participant.tissue.append(tissue_sample)
+            participant.tissue_samples.append(tissue_sample)
             dataset = Dataset(
                 dataset_type="RGS",
-                entered=datetime.today().strftime('%Y-%m-%d'),
-                condition="GermLine"
+                created=datetime.today().strftime('%Y-%m-%d'),
+                condition="GermLine",
                 updated_by_id=1,
                 created_by_id=1,
             )
             dataset.groups.append(group)
             tissue_sample.datasets.append(dataset)
 
-            #TODO: add analyses here
+            # one analysis per trio
+            analysis = Analysis(
+                analysis_state=AnalysisState.Requested,
+                pipeline_id=1, # CRG
+                assignee_id=1,
+                requester_id=1,
+                requested=datetime.today().strftime('%Y-%m-%d'),
+                updated=datetime.today().strftime('%Y-%m-%d'),
+                updated_by_id=1
+            )
+            dataset.analyses.append(analysis)
 
         db.session.add(default_family)
-        db.session.flush()
+        db.session.commit()
         family_code_iter+=1
 
 
