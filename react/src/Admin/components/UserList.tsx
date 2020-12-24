@@ -17,8 +17,8 @@ import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
 
 async function updateUser(user: User) {
-    return fetch("/api/users", {
-        method: "PUT",
+    return fetch(`/api/users/${user.username}`, {
+        method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
@@ -142,7 +142,7 @@ export default function UserList() {
                                     const message = await response.text();
                                     if (response.ok) {
                                         enqueueSnackbar(
-                                            `User ${newUser.username} updated successfully - ${response.status} ${message}`,
+                                            `User ${newUser.username} updated successfully - ${response.status}`,
                                             { variant: "success" }
                                         );
                                         dispatch({ type: "update", payload: newUser });

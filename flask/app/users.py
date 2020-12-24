@@ -135,13 +135,12 @@ def reset_minio_user(username: str):
     )
 
 
+def validate(body: Dict[str, Any], key: str, kind: type) -> bool:
+    return key in body and isinstance(body[key], kind)
+
+
 def valid_strings(body: Dict[str, Any], *keys: str) -> bool:
-    return all(
-        map(
-            lambda key: key in body and isinstance(body[key], str) and len(body[key]),
-            keys,
-        )
-    )
+    return all(map(lambda key: validate(body, key, str) and len(body[key]), keys))
 
 
 # Really the only way to verify an email is to test it because the RFC for what
@@ -231,20 +230,44 @@ def update_user(username: str):
         return "Request body must be JSON", 415
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user = models.User.query.filter_by(username=username).first_or_404()
+        minio_admin = get_minio_admin()
+        user = (
+            models.User.query.filter_by(username=username)
+            .options(joinedload(models.User.groups))
+            .first_or_404()
+        )
         old_username = user.username
+
+        requested_groups = request.json.get("groups")
+        if requested_groups:
+            groups = models.Group.query.filter(
+                models.Group.group_code.in_(requested_groups)
+            ).all()
+            if len(requested_groups) != len(groups):
+                return "Invalid group code provided", 404
+
+            if user.minio_access_key:
+                for group in user.groups:
+                    # Reset existing group memberships
+                    minio_admin.group_remove(group.group_code, user.minio_access_key)
+
+                user.groups = groups
+                for group_code in requested_groups:
+                    # Add to group
+                    minio_admin.group_add(group_code, user.minio_access_key)
+                    # Reset policy for group in case the group did not exist
+                    minio_admin.set_policy(group_code, group=group_code)
+
         if valid_strings(request.json, "username"):
             user.username = request.json["username"]
         if valid_strings(request.json, "email") and verify_email(request.json["email"]):
             user.email = request.json["email"]
-        if "is_admin" in request.json and isinstance(request.json["is_admin"], bool):
+        if validate(request.json, "is_admin", kind=bool):
             user.is_admin = request.json["is_admin"]
-        if "deactivated" in request.json and isinstance(
-            request.json["deactivated"], bool
-        ):
+        if validate(request.json, "deactivated", kind=bool):
             user.deactivated = request.json["deactivated"]
             if user.deactivated and user.minio_access_key:
-                safe_remove(user)
+                safe_remove(user, minio_admin)
                 user.minio_access_key = None
                 user.minio_secret_key = None
         if valid_strings(request.json, "password"):
