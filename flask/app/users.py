@@ -235,7 +235,7 @@ def update_user(username: str):
         old_username = user.username
         if valid_strings(request.json, "username"):
             user.username = request.json["username"]
-        if valid_strings(request.json["email"]) and verify_email(request.json["email"]):
+        if valid_strings(request.json, "email") and verify_email(request.json["email"]):
             user.email = request.json["email"]
         if "is_admin" in request.json and isinstance(request.json["is_admin"], bool):
             user.is_admin = request.json["is_admin"]
@@ -247,7 +247,7 @@ def update_user(username: str):
                 safe_remove(user)
                 user.minio_access_key = None
                 user.minio_secret_key = None
-        if valid_strings(request.json["password"]):
+        if valid_strings(request.json, "password"):
             user.set_password(request.json["password"])
 
         transaction_or_abort(db.session.commit)
