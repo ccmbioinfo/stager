@@ -150,6 +150,7 @@ def get_analysis(id: int):
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 def create_analysis():
+
     if not request.json:
         return "Request body must be JSON!", 415
     try:
@@ -173,25 +174,19 @@ def create_analysis():
     requested = now
     updated = now
     analysis_state = "Requested"
-    try:
-        requester_id = updated_by_id = current_user.user_id
-    except:  # LOGIN DISABLED
-        requester_id = updated_by_id = 1
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
 
-    query = (
-        db.session.query(models.Analysis)
-        .options(contains_eager(models.Analysis.datasets))
-        .join(
-            models.datasets_analyses_table,
-            models.Analysis.analysis_id
-            == models.datasets_analyses_table.columns.analysis_id,
-        )
-        .join(models.Dataset)
+    try:
+        requester_id = updated_by_id = user_id
+    except:  # LOGIN DISABLED
+        requester_id = updated_by_id = 1
+
+    permitted_ids = (
+        db.session.query(models.Dataset)
         .join(
             models.groups_datasets_table,
             models.Dataset.dataset_id
@@ -203,11 +198,11 @@ def create_analysis():
             == models.users_groups_table.columns.group_id,
         )
         .filter(models.users_groups_table.columns.user_id == user_id)
+        .filter(models.Dataset.dataset_id.in_(dts_pks))
+        .all()
     )
 
-    permitted_ids = set([x for x, in query.values(models.Dataset.dataset_id)])
-
-    if not all([i in permitted_ids for i in dts_pks]):
+    if len(permitted_ids) != len(dts_pks):
         return "Not all datasets are accessible to the current user", 400
 
     obj = models.Analysis(
