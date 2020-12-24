@@ -376,3 +376,29 @@ def test_update_user(test_database, client, login_as):
     body = {"email": "noreply@sickkids.ca"}
     # TODO: should be 409 or something else in the future
     assert client.patch("/api/users/user", json=body).status_code == 400
+
+
+def test_update_user_groups(test_database, minio_policy, client, login_as):
+    # TODO: This doesn't actually test behaviour with multiple groups
+    # TODO: We don't confirm that if `groups` is omitted that they aren't erased
+    minio_admin = minio_policy
+    minio_admin.add_user("admin", "PresidentBusiness")
+    user = User.query.filter_by(username="admin").first()
+    user.minio_access_key = "admin"
+    user.minio_secret_key = "PresidentBusiness"
+    db.session.commit()
+
+    login_as("admin")
+    assert client.patch("/api/users/admin", json={"groups": ["dne"]}).status_code == 404
+
+    # Add
+    response = client.patch("/api/users/admin", json={"groups": ["ach"]})
+    assert response.status_code == 200
+    assert response.get_json()["groups"] == ["ach"]
+    assert "admin" in minio_admin.get_group("ach").get("members", [])
+
+    # Remove
+    response = client.patch("/api/users/admin", json={"groups": []})
+    assert response.status_code == 200
+    assert response.get_json()["groups"] == []
+    assert "admin" not in minio_admin.get_group("ach").get("members", [])

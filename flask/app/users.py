@@ -239,24 +239,23 @@ def update_user(username: str):
         old_username = user.username
 
         requested_groups = request.json.get("groups")
-        if requested_groups:
+        if requested_groups is not None:  # TODO: list is assumed here
             groups = models.Group.query.filter(
                 models.Group.group_code.in_(requested_groups)
             ).all()
             if len(requested_groups) != len(groups):
                 return "Invalid group code provided", 404
-
             if user.minio_access_key:
                 for group in user.groups:
                     # Reset existing group memberships
                     minio_admin.group_remove(group.group_code, user.minio_access_key)
 
-                user.groups = groups
                 for group_code in requested_groups:
                     # Add to group
                     minio_admin.group_add(group_code, user.minio_access_key)
                     # Reset policy for group in case the group did not exist
                     minio_admin.set_policy(group_code, group=group_code)
+            user.groups = groups
 
         if valid_strings(request.json, "username"):
             user.username = request.json["username"]
