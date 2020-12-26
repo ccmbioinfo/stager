@@ -33,7 +33,6 @@ def add_default_admin():
         )
 
 
-@with_appcontext
 def add_groups():
     if len(db.session.query(Group).all()) != 0:
         return
@@ -71,7 +70,6 @@ def add_groups():
     print("Created default groups with codes: {}".format(", ".join(default_groups)))
 
 
-@with_appcontext
 def add_default_users():
     if len(db.session.query(User).all()) != 1:  # existing default admin
         return
@@ -94,7 +92,6 @@ def add_default_users():
     db.session.commit()
 
 
-@with_appcontext
 def add_institutions():
     if len(db.session.query(Institution).all()) != 0:
         return
@@ -127,7 +124,6 @@ def add_institutions():
     db.session.commit()
 
 
-@with_appcontext
 def add_dataset_types():
     if len(db.session.query(DatasetType).all()) == 0:
         dataset_types = [
@@ -160,7 +156,6 @@ def add_dataset_types():
         db.session.commit()
 
 
-@with_appcontext
 def add_pipelines():
     if len(db.session.query(Pipeline).all()) != 0:
         return
@@ -182,7 +177,6 @@ def add_pipelines():
     )
 
 
-@with_appcontext
 def add_supported_datasets():
     if len(db.session.query(PipelineDatasets).all()) != 0:
         return
@@ -194,7 +188,6 @@ def add_supported_datasets():
     print("Added dataset support info for pipelines")
 
 
-@with_appcontext
 def add_metadataset():
     if len(db.session.query(MetaDatasetType_DatasetType).all()) != 0:
         return
@@ -218,7 +211,6 @@ def add_metadataset():
     print("Added metadataset_dataset information")
 
 
-@with_appcontext
 def add_data_hierarchies():
     if len(db.session.query(Family).all()) != 0:
         return
