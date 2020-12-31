@@ -160,7 +160,7 @@ export default function Analyses() {
     const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
-        document.title = "Analyses | ST2020";
+        document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
 
         // Fetch data here
         fetch("/api/analyses", { method: "GET" })
