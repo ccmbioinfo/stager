@@ -55,7 +55,7 @@ def register_extensions(app):
 
 
 def register_commands(app):
-    app.cli.add_command(manage.add_dummy_data)
+    app.cli.add_command(manage.add_default_data)
     app.cli.add_command(manage.add_default_admin)
 
 
