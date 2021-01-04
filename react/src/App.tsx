@@ -5,7 +5,7 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
-import { EnumProvider } from "./contexts/enums";
+import { FetchCacheProvider } from "./contexts/fetchCache";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -45,7 +45,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <EnumProvider>
+            <FetchCacheProvider>
                 <SnackbarProvider
                     ref={notistackRef}
                     action={key => (
@@ -72,7 +72,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                         isAdmin={isAdmin}
                     />
                 </SnackbarProvider>
-            </EnumProvider>
+            </FetchCacheProvider>
         );
     } else {
         return (
