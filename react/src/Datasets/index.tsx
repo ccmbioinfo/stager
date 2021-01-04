@@ -29,7 +29,7 @@ export default function Datasets({ isAdmin }: DatasetsProps) {
     const classes = useStyles();
 
     useEffect(() => {
-        document.title = "Datasets | ST2020";
+        document.title = `Datasets | ${process.env.REACT_APP_NAME}`;
     }, []);
 
     return (

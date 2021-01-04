@@ -92,7 +92,7 @@ export default function UserList() {
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
-        document.title = "Admin | ST2020";
+        document.title = `Admin | ${process.env.REACT_APP_NAME}`;
         fetch("/api/users")
             .then(response => response.json())
             .then(data =>
