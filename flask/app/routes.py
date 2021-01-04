@@ -384,8 +384,15 @@ def bulk_update():
         else:
             files = row.get("linked_files", [])
         dataset.files += [models.DatasetFile(path=path) for path in files if path]
-        for g in user_group:
-            dataset.groups.append(g)
+
+        if group_query:
+            dataset.groups += [
+                models.Group.query.filter_by(group_code=g).first_or_404()
+                for g in group_query
+            ]
+        else:
+            dataset.groups.extend(user_group)
+
         db.session.add(dataset)
         transaction_or_abort(db.session.flush)
         dataset_ids.append(dataset.dataset_id)
