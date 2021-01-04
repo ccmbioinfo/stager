@@ -97,7 +97,7 @@ export default function AnalysisRunnerDialog({
                                 <TableCell>Tissue Sample</TableCell>
                                 <TableCell>Type</TableCell>
                                 <TableCell>Condition</TableCell>
-                                <TableCell align="right">Input File</TableCell>
+                                <TableCell align="right">Input Files</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -108,7 +108,9 @@ export default function AnalysisRunnerDialog({
                                     <TableCell>{dataset.tissue_sample_type}</TableCell>
                                     <TableCell>{dataset.dataset_type}</TableCell>
                                     <TableCell>{dataset.condition}</TableCell>
-                                    <TableCell align="right">{dataset.input_hpf_path}</TableCell>
+                                    <TableCell align="right">
+                                        {dataset.linked_files.join(", ")}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

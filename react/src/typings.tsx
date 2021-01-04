@@ -60,7 +60,7 @@ export interface Dataset {
     tissue_sample_type: string;
     tissue_sample_id: string;
     dataset_type: string;
-    input_hpf_path: string;
+    linked_files: string[]; // paths to files
     notes: string;
     condition: string;
     extraction_protocol: string;
