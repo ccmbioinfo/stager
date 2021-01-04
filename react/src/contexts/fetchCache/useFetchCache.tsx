@@ -8,5 +8,6 @@ import { ClientContext, ResultContext } from "./FetchCacheContext";
  */
 export function useFetchCache(url: string) {
     useContext(ClientContext)(url);
-    return useContext(ResultContext);
+    const result = useContext(ResultContext);
+    return result ? (result[url] ? result[url] : undefined) : undefined;
 }

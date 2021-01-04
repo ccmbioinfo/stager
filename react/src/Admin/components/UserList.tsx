@@ -12,10 +12,9 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, NewUser, Group } from "../../typings";
+import { User, NewUser } from "../../typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
-import { useFetchCache } from "../../contexts/fetchCache";
 
 async function updateUser(user: User) {
     return fetch("/api/users", {
@@ -88,7 +87,6 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
 export default function UserList() {
     const classes = useStyles();
     const [users, dispatch] = useReducer(reducer, []);
-    const groups = useFetchCache("/api/groups") as Group[];
     const [openNewUser, setOpenNewUser] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -117,7 +115,6 @@ export default function UserList() {
                         variant: "success",
                     });
                 }}
-                groups={groups}
             />
             <Toolbar component={Paper} className={classes.toolbar}>
                 <Typography variant="h6">Users</Typography>
@@ -134,7 +131,6 @@ export default function UserList() {
                         <UserRow
                             key={user.username}
                             user={user}
-                            groups={groups}
                             onSave={newUser => {
                                 updateUser(newUser).then(async response => {
                                     const message = await response.text();
