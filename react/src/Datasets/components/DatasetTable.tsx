@@ -10,7 +10,7 @@ import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { Note } from "../../components";
-import { useEnums } from "../../contexts/enums";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -37,7 +37,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipelines, setPipelines] = useState<Pipeline[]>([]);
 
-    const enums = useEnums();
+    const enums = useFetchCache("/api/enums");
     let tissueSampleTypes: KeyValue = {};
     let datasetTypes: KeyValue = {};
     let conditions: KeyValue = {};

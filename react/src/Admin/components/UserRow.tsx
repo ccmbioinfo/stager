@@ -17,6 +17,7 @@ import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@materi
 import { Group, User } from "../../typings";
 import UserDetails from "./UserDetails";
 import { LastLoginDisplay, ChipGroup, MinioKeys } from "../../components";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
@@ -37,7 +38,6 @@ const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
  */
 export default function UserRow(props: {
     user: User;
-    groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
 }) {
@@ -46,6 +46,7 @@ export default function UserRow(props: {
     const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const groups = useFetchCache("/api/groups") || ([] as Group[]);
 
     // MinIO keys get fetched once when the user opens the dropdown
     useEffect(() => {
@@ -126,7 +127,7 @@ export default function UserRow(props: {
                     <Divider />
                     <UserDetails
                         user={user}
-                        groups={props.groups}
+                        groups={groups}
                         onSave={props.onSave}
                         onDelete={props.onDelete}
                         loading={loading}

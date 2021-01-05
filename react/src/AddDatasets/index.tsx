@@ -37,7 +37,7 @@ export default function AddParticipants() {
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
-        document.title = "Add Participants | ST2020";
+        document.title = `Add Datasets | ${process.env.REACT_APP_NAME}`;
         handleDataChange(createEmptyRows(1)); // sets errorMessage on initial render
     }, []);
 
