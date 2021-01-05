@@ -16,19 +16,6 @@ For more developer documentation, see [`docs/`](https://github.com/ccmbioinfo/st
 - [Visual Studio Code](https://code.visualstudio.com/) or [PyCharm](https://www.jetbrains.com/pycharm/)
 
 ## No Docker
-
-### Database
-Ensure the MySQL service is running. Then access its shell:
-```bash
-mysql -uroot
-create user 'admin'@'localhost' identified by 'admin';
-create database st2020;
-grant all privileges on st2020.* to 'admin'@'localhost';
-```
-You can change the database and username appropriately, but you will need to
-set your ST_DATABASE_URI environment variable appropriately in that event.
-This is used in `flask/app/config.py`.
-
 ### Application server
 Flask does not work with Python 3.8 and newer!
 Switch to the `flask` directory and install dependencies with `pip3 install -r requirements-dev.txt`.
@@ -67,33 +54,6 @@ You will need a recent Node.js and Yarn (`npm install -g yarn`).
 3. Start a development server in watch mode with `yarn start`.
 
 You can build the static bundles for production with `yarn build`.
-
-### Development
-```bash
-docker-compose up
-```
-This builds a `ccmbio/st2020` image with the Python dependencies and mounts the `flask` directory to watch for live changes.
-
-Start the Create React App development server the [same way as the no-Docker workflow.](#web-frontend)
-
-To rebuild the database after changes to the schema (i.e. to the `models.py` file)
-```
-docker-compose exec app bash
-# and within the container:
-flask db migrate -m "Commit message"
-flask db upgrade
-```
-Exit out of the container, restart and the changes to the schema should be applied.
-
-If the change is to an enum or something else that the isn't automatically picked up by flask migrate, you need to manually create the migration file by doing the following:
-
-1. When the application is running, enter into the `ccmbio/st2020` container as described above and run:
-```
-flask db revision -m "message about change"
-```
-2. Navigate to the `migrations/versions` folder and open the file that was just created.
-3. Edit the `upgrade`/`downgrade` functions by writing MySQL code directly in `op.execute("MYSQL CODE HERE)` calls
-4. Shut down everything, update the `models.py` and restart
 
 ## Running tests
 
