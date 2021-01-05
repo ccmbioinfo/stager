@@ -30,6 +30,7 @@ import {
     Brightness3,
     Brightness5,
     AddBox as AddBoxIcon,
+    SupervisedUserCircle,
 } from "@material-ui/icons";
 
 import Participants from "./Participants";
@@ -37,6 +38,7 @@ import Analyses from "./Analyses";
 import Datasets from "./Datasets";
 import AddDatasets from "./AddDatasets";
 import Settings from "./Settings";
+import Groups from "./Groups";
 import Admin from "./Admin";
 import { ListItemRouterLink, NotificationPopover } from "./components";
 
@@ -158,6 +160,12 @@ const routes: RouteItem[] = [
         linkTo: "/analysis",
         main: Analyses,
         icon: <ShowChartIcon />,
+    },
+    {
+        pageName: "Groups",
+        path: "/groups",
+        main: Groups,
+        icon: <SupervisedUserCircle />,
     },
     {
         pageName: "Settings",
