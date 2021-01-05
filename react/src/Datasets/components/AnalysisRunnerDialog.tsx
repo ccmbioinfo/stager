@@ -108,7 +108,7 @@ export default function AnalysisRunnerDialog({
                                     <TableCell>{dataset.tissue_sample_type}</TableCell>
                                     <TableCell>{dataset.dataset_type}</TableCell>
                                     <TableCell>{dataset.condition}</TableCell>
-                                    <TableCell align="right">{dataset.input_hpf_path}</TableCell>
+                                    <TableCell align="right">{dataset.linked_files}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

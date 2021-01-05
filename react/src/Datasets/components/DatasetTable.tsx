@@ -156,7 +156,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                     },
                     {
                         title: "File",
-                        field: "input_hpf_path",
+                        field: "linked_files",
                         grouping: false,
                         editComponent: props => (
                             <Autocomplete
@@ -223,11 +223,11 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                             // Remove the new value from the list of unlinked files to prevent reuse
                             // Readd the previous value if there was one since it is available again
                             const removeUsed = files.filter(
-                                file => file !== newDataset.input_hpf_path
+                                file => file !== newDataset.linked_files
                             );
                             setFiles(
-                                oldDataset?.input_hpf_path
-                                    ? [oldDataset.input_hpf_path, ...removeUsed].sort()
+                                oldDataset?.linked_files
+                                    ? [oldDataset.linked_files, ...removeUsed].sort()
                                     : removeUsed
                             );
                             enqueueSnackbar(

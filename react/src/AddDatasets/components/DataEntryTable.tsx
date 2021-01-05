@@ -49,7 +49,7 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const fallbackColumns = ["notes", "sex", "input_hpf_path", "sequencing_date"];
+const fallbackColumns = ["notes", "sex", "linked_files", "sequencing_date"];
 
 function getEnvColumns(): Array<keyof DataEntryRowOptional> {
     const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
@@ -148,10 +148,10 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     ) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
-        } else if (col.field === "input_hpf_path") {
+        } else if (col.field === "linked_files") {
             // Remove the new values from the list of unlinked files to prevent reuse
             // Readd the previous values that are not selected if there was one since it is available again
-            const notReselectedOldValue = props.data[rowIndex].input_hpf_path?.filter(
+            const notReselectedOldValue = props.data[rowIndex].linked_files?.filter(
                 oldValue => (newValue as string[]).find(value => oldValue === value) === undefined
             );
             const removeNewValue = files.filter(
@@ -266,7 +266,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                                           value,
                                                           {
                                                               ...value,
-                                                              input_hpf_path: undefined,
+                                                              linked_files: undefined,
                                                           },
                                                       ]
                                                     : value
