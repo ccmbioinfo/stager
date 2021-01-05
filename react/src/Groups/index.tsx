@@ -63,16 +63,16 @@ export default function Groups() {
                                 });
                                 if (response.ok) {
                                     const responseData = (await response.json()) as Group;
-                                    enqueueSnackbar(
-                                        `Group ${group.group_name} renamed to ${responseData.group_name} successfully.`,
-                                        { variant: "success" }
-                                    );
                                     setGroups(
                                         groups.map(currGroup =>
                                             currGroup.group_code === group.group_code
                                                 ? { ...group, group_name: responseData.group_name }
                                                 : currGroup
                                         )
+                                    );
+                                    enqueueSnackbar(
+                                        `Group ${group.group_name} renamed to ${responseData.group_name} successfully.`,
+                                        { variant: "success" }
                                     );
                                 } else {
                                     enqueueSnackbar(

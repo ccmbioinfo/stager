@@ -42,21 +42,23 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
 }));
 
-export function Group(props: {
+interface GroupProps {
     group: GroupType;
     onNameChange: (newName: string) => void;
     onDelete: () => void;
-}) {
+}
+
+export function Group({ group, onNameChange, onDelete }: GroupProps) {
     const classes = useStyles();
     const [editing, setEditing] = useState<boolean>(false);
-    const [groupName, setGroupName] = useState<string>(props.group.group_name);
+    const [groupName, setGroupName] = useState<string>(group.group_name);
     const [numUsers, setNumUsers] = useState<number>(0);
 
     useEffect(() => {
-        fetch(`/api/groups/${props.group.group_code}`)
+        fetch(`/api/groups/${group.group_code}`)
             .then(response => response.json())
             .then(data => setNumUsers(data.users.length));
-    }, [props]);
+    }, [group]);
 
     return (
         <Grid item xs={12} sm={6} md={4} xl={3}>
@@ -70,7 +72,7 @@ export function Group(props: {
                                 onChange={e => setGroupName(e.target.value)}
                             />
                         ) : (
-                            <Typography variant="h6">{props.group.group_name}</Typography>
+                            <Typography variant="h6">{group.group_name}</Typography>
                         )}
                     </Box>
                     <Box className={classes.actionButtons}>
@@ -78,7 +80,7 @@ export function Group(props: {
                             <>
                                 <IconButton
                                     onClick={() => {
-                                        props.onNameChange(groupName);
+                                        onNameChange(groupName);
                                         setEditing(false);
                                     }}
                                     className={classes.button}
@@ -87,7 +89,7 @@ export function Group(props: {
                                 </IconButton>
                                 <IconButton
                                     onClick={() => {
-                                        setGroupName(props.group.group_name);
+                                        setGroupName(group.group_name);
                                         setEditing(false);
                                     }}
                                     className={classes.button}
@@ -106,7 +108,7 @@ export function Group(props: {
                         )}
                         <IconButton
                             size="small"
-                            onClick={props.onDelete}
+                            onClick={onDelete}
                             color="secondary"
                             className={classes.button}
                         >
@@ -117,11 +119,11 @@ export function Group(props: {
                 <Box className={classes.grow} />
                 <Box className={classes.content}>
                     <Typography variant="body1" className={classes.grow}>
-                        {props.group.group_code.toUpperCase()}
+                        {group.group_code.toUpperCase()}
                     </Typography>
                     <Box className={classes.content}>
                         <GroupIcon color="action" className={classes.icon} />
-                        <Typography variant="body2">Users: {numUsers}</Typography>
+                        <Typography variant="body1">Users: {numUsers}</Typography>
                     </Box>
                 </Box>
             </Paper>
