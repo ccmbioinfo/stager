@@ -50,6 +50,11 @@ one item, which is certainly not the intent. Use `one_or_none` instead in this c
 ### Web frontend
 You will need a recent Node.js and Yarn (`npm install -g yarn`).
 1. Switch to the `react` directory.
+1. Create a `.env` with these parameters that you can change as needed.
+   ```
+   REACT_APP_NAME=Stager
+   REACT_APP_MINIO_URL=http://localhost:9000/
+   ```
 2. Install dependencies with `yarn`.
 3. Start a development server in watch mode with `yarn start`.
 

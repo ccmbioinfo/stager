@@ -1,8 +1,8 @@
 """Initial migration.
 
-Revision ID: 9887e04b19e8
+Revision ID: 2a2bc309568d
 Revises: 
-Create Date: 2020-12-18 19:33:36.724242
+Create Date: 2020-12-22 21:31:27.469232
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "9887e04b19e8"
+revision = "2a2bc309568d"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -109,6 +109,7 @@ def upgrade():
         "family",
         sa.Column("family_id", sa.Integer(), nullable=False),
         sa.Column("family_codename", sa.String(length=50), nullable=False),
+        sa.Column("family_aliases", sa.String(length=100), nullable=True),
         sa.Column("created", sa.DateTime(), nullable=False),
         sa.Column("created_by_id", sa.Integer(), nullable=False),
         sa.Column("updated", sa.DateTime(), nullable=False),
@@ -171,7 +172,12 @@ def upgrade():
         sa.Column("participant_id", sa.Integer(), nullable=False),
         sa.Column("family_id", sa.Integer(), nullable=False),
         sa.Column("participant_codename", sa.String(length=50), nullable=False),
-        sa.Column("sex", sa.Enum("Male", "Female", "Other", name="sex"), nullable=True),
+        sa.Column("participant_aliases", sa.String(length=100), nullable=True),
+        sa.Column(
+            "sex",
+            sa.Enum("Male", "Female", "Unknown", "Other", name="sex"),
+            nullable=True,
+        ),
         sa.Column(
             "participant_type",
             sa.Enum("Proband", "Parent", "Sibling", "Other", name="participanttype"),

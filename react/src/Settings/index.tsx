@@ -131,7 +131,7 @@ export default function Settings({ username }: { username: string }) {
     }
 
     useEffect(() => {
-        document.title = "Settings | ST2020";
+        document.title = `Settings | ${process.env.REACT_APP_NAME}`;
         dispatch({
             type: "fetch_start",
         });

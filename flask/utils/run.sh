@@ -22,7 +22,7 @@ else
     fi
     $COMMAND db upgrade
     $COMMAND add-default-admin
-    $COMMAND add-dummy-data
+    $COMMAND add-default-data
     export FLASK_ENV=development
     $COMMAND run "$@"
 fi

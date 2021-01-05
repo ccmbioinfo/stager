@@ -60,7 +60,7 @@ export default function LoginForm({
         setAuthenticated(result.ok);
     }
     useEffect(() => {
-        document.title = "Sign in | ST2020";
+        document.title = `Sign in | ${process.env.REACT_APP_NAME}`;
     }, []);
     const classes = useStyles();
     return (
@@ -68,7 +68,7 @@ export default function LoginForm({
             <Container maxWidth="sm">
                 <Paper component="form" className={classes.form}>
                     <Typography variant="h5" component="h2" gutterBottom>
-                        Sign in to ST2020
+                        Sign in to {process.env.REACT_APP_NAME}
                     </Typography>
                     {error && (
                         <Typography component="p" color="secondary">

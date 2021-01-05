@@ -9,14 +9,22 @@ import { KeyValue, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const [sexTypes, setSexTypes] = useState<KeyValue>({});
-    const [datasetTypes, setDatasetTypes] = useState<KeyValue>({});
-    const [participantTypes, setParticipantTypes] = useState<KeyValue>({});
+    const enums = useFetchCache("/api/enums");
+    let sexTypes: KeyValue = {};
+    let datasetTypes: KeyValue = {};
+    let participantTypes: KeyValue = {};
+    if (enums) {
+        sexTypes = toKeyValue(enums.Sex);
+        datasetTypes = toKeyValue(enums.DatasetType);
+        participantTypes = toKeyValue(enums.ParticipantType);
+    }
+
     const { enqueueSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
@@ -29,19 +37,6 @@ export default function ParticipantTable() {
     }
 
     useEffect(() => {
-        fetch("/api/enums").then(async response => {
-            if (response.ok) {
-                const enums = await response.json();
-                setSexTypes(toKeyValue(enums.Sex));
-                setDatasetTypes(toKeyValue(enums.DatasetType));
-                setParticipantTypes(toKeyValue(enums.ParticipantType));
-            } else {
-                console.error(
-                    `GET /api/enums failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-
         fetch("/api/participants").then(async response => {
             if (response.ok) {
                 const participants = await response.json();

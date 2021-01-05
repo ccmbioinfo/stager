@@ -5,6 +5,7 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
+import { FetchCacheProvider } from "./contexts/fetchCache";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -44,28 +45,34 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <SnackbarProvider
-                ref={notistackRef}
-                action={key => (
-                    <IconButton aria-label="close" color="inherit" onClick={onClickDismiss(key)}>
-                        <Close fontSize="small" />
-                    </IconButton>
-                )}
-                autoHideDuration={6000}
-                anchorOrigin={{
-                    horizontal: "center",
-                    vertical: "bottom",
-                }}
-            >
-                <Navigation
-                    signout={signout}
-                    username={username}
-                    lastLoginTime={lastLoginTime}
-                    darkMode={props.darkMode}
-                    toggleDarkMode={props.toggleDarkMode}
-                    isAdmin={isAdmin}
-                />
-            </SnackbarProvider>
+            <FetchCacheProvider>
+                <SnackbarProvider
+                    ref={notistackRef}
+                    action={key => (
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            onClick={onClickDismiss(key)}
+                        >
+                            <Close fontSize="small" />
+                        </IconButton>
+                    )}
+                    autoHideDuration={6000}
+                    anchorOrigin={{
+                        horizontal: "center",
+                        vertical: "bottom",
+                    }}
+                >
+                    <Navigation
+                        signout={signout}
+                        username={username}
+                        lastLoginTime={lastLoginTime}
+                        darkMode={props.darkMode}
+                        toggleDarkMode={props.toggleDarkMode}
+                        isAdmin={isAdmin}
+                    />
+                </SnackbarProvider>
+            </FetchCacheProvider>
         );
     } else {
         return (
