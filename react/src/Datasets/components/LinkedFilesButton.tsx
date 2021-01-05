@@ -1,8 +1,16 @@
 import React, { useState } from "react";
-import { ButtonBase } from "@material-ui/core";
+import { makeStyles, ButtonBase } from "@material-ui/core";
 import LinkedFilesPopover from "./LinkedFilesPopover";
 
+const useStyles = makeStyles(theme => ({
+    button: {
+        padding: theme.spacing(0, 1),
+        borderRadius: theme.shape.borderRadius,
+    },
+}));
+
 export default function LinkedFilesButton(props: { fileNames: string[] }) {
+    const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
     function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
@@ -32,8 +40,8 @@ export default function LinkedFilesButton(props: { fileNames: string[] }) {
                     horizontal: "center",
                 }}
             />
-            <ButtonBase disabled={length === 0} onClick={handleClick}>
-                {`${length} file${length === 1 ? "" : "s"}`}
+            <ButtonBase disabled={length === 0} onClick={handleClick} className={classes.button}>
+                <span>{`${length} file${length === 1 ? "" : "s"}`}</span>
             </ButtonBase>
         </>
     );
