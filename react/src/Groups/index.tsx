@@ -36,7 +36,7 @@ export default function Groups() {
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
-        document.title = "Groups | ST2020";
+        document.title = `Groups | ${process.env.REACT_APP_NAME}`;
 
         fetch("/api/groups")
             .then(response => response.json())
