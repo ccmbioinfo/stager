@@ -123,7 +123,7 @@ export class DataEntryRowOptional {
     sex?: string;
     affected?: boolean;
     solved?: boolean;
-    input_hpf_path?: string[];
+    linked_files?: string[];
     notes?: string;
     extraction_protocol?: string;
     capture_kit?: string;
