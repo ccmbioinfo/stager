@@ -217,6 +217,7 @@ export default function UserDetails(props: {
                             variant="contained"
                             color="primary"
                             onClick={() => setConfirmSave(true)}
+                            disabled={newState.password !== newState.confirmPassword}
                         >
                             Save Changes
                         </Button>
