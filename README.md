@@ -68,10 +68,6 @@ You will need a recent Node.js and Yarn (`npm install -g yarn`).
 
 You can build the static bundles for production with `yarn build`.
 
-## With Docker and Docker Compose
-Create a `.env` file with appropriate MySQL and MinIO credentials. See `sample.env` for which ones are needed.
-These are used in `docker-compose.yaml` and `docker-compose.prod.yaml`.
-
 ### Development
 ```bash
 docker-compose up
@@ -98,27 +94,6 @@ flask db revision -m "message about change"
 2. Navigate to the `migrations/versions` folder and open the file that was just created.
 3. Edit the `upgrade`/`downgrade` functions by writing MySQL code directly in `op.execute("MYSQL CODE HERE)` calls
 4. Shut down everything, update the `models.py` and restart
-
-### Production
-1. Add `star_ccm_sickkids_ca.crt` and `star_ccm_sickkids_ca.key` to `nginx/certs`.
-1. In the `react` directory, build the static bundles for nginx with `yarn build`.
-1. In the project root:
-```bash
-docker-compose -f docker-compose.prod.yaml up
-```
-This runs Gunicorn in the application container instead of Flask and does not bind mount the code.
-This additionally starts Nginx with the static bundles, certifications, and main config bind mounted.
-Nginx is solely responsible for HTTPS.
-
-## Editor integrations
-
-Make sure to get the EditorConfig extension for your editor.
-PyCharm has this out of the box but VSCode requires an extension in the marketplace.
-
-You can also get a Prettier integration for your editor to automatically format JavaScript code on save.
-
-The [VSCode Python extension](https://code.visualstudio.com/docs/python/editing#_formatting)
-can be configured fo Black as a code formatter and Pylint. PyCharm can also integrate Pylint with a plugin.
 
 ## Running tests
 
