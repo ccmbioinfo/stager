@@ -19,7 +19,7 @@ export default function Participants() {
     const classes = useStyles();
 
     useEffect(() => {
-        document.title = "Participants | ST2020";
+        document.title = `Participants | ${process.env.REACT_APP_NAME}`;
     }, []);
 
     return (
