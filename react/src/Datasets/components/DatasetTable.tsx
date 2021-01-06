@@ -55,7 +55,6 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const { enqueueSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
-    const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
         fetch("/api/datasets").then(async response => {
@@ -183,7 +182,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         title: "ID",
                         field: "dataset_id",
                         editable: "never",
-                        defaultFilter: paramFilter,
+                        defaultFilter: paramID,
                     },
                 ]}
                 data={datasets}
@@ -309,11 +308,6 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                     header: {
                         actions: "", //remove action buttons' header
                     },
-                }}
-                onFilterChange={filters => {
-                    const newValue = filters.find(filter => filter.column.field === "analysis_id")
-                        ?.value;
-                    setParamFilter(newValue ? newValue : "");
                 }}
             />
         </div>
