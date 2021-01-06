@@ -45,7 +45,7 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(group),
+            body: JSON.stringify({ ...group, group_code: group.group_code.toLowerCase() }),
         });
         if (response.ok) {
             const responseData: Group = await response.json();
