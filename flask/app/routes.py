@@ -200,6 +200,40 @@ def bulk_update():
         updated_by_id = 1
         created_by_id = 1
 
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user", models.User.user_id)
+    else:
+        user_id = current_user.user_id
+
+    # get user's group(s)
+    requested_groups = request.args.get("groups")
+
+    if requested_groups:
+        requested_groups = requested_groups.split(",")
+        groups = (
+            models.Group.query.join(models.Group.users)
+            .filter(
+                models.User.user_id == user_id,
+                models.Group.group_code.in_(requested_groups),
+            )
+            .all()
+        )
+        if len(requested_groups) != len(groups):
+            return "Invalid group code provided", 404
+    else:
+        groups = (
+            models.Group.query.join(models.Group.users)
+            .filter(models.User.user_id == user_id)
+            .all()
+        )
+        if len(groups) != 1:
+            return (
+                "User belongs to multiple permission groups but no group was specified",
+                400,
+            )
+        if not groups:
+            return "User does not belong to any permission groups", 403
+
     for i, row in enumerate(dat):
         sequencing_date = row.get("sequencing_date")
         if not sequencing_date:
@@ -295,6 +329,9 @@ def bulk_update():
         else:
             files = row.get("linked_files", [])
         dataset.files += [models.DatasetFile(path=path) for path in files if path]
+
+        dataset.groups += groups
+
         db.session.add(dataset)
         transaction_or_abort(db.session.flush)
         dataset_ids.append(dataset.dataset_id)
