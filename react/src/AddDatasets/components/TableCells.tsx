@@ -230,6 +230,7 @@ export function DateCell(props: {
     disabled?: boolean;
 }) {
     const classes = useCellStyles();
+    const isError = !props.value || props.value === "";
     return (
         <TableCell>
             <TextField
@@ -238,6 +239,8 @@ export function DateCell(props: {
                 size="small"
                 type="date"
                 value={props.value}
+                error={isError}
+                helperText={isError && "Field is required."}
                 disabled={props.disabled}
                 onChange={e => props.onEdit(e.target.value)}
             />

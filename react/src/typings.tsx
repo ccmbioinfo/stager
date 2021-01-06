@@ -117,6 +117,7 @@ export class DataEntryRowBase {
     tissue_sample_type!: string;
     dataset_type!: string;
     condition!: string;
+    sequencing_date!: string;
 }
 
 export class DataEntryRowOptional {
@@ -131,7 +132,6 @@ export class DataEntryRowOptional {
     read_length?: number;
     read_type?: string;
     sequencing_id?: string;
-    sequencing_date?: string;
     sequencing_centre?: string;
     batch_id?: string;
 }
