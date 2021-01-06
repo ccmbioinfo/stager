@@ -6,28 +6,41 @@ import {
     DialogContent,
     DialogTitle,
     TextField,
+    makeStyles,
+    Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { Group } from "../../typings";
+
+const useStyles = makeStyles(theme => ({
+    submitting: {
+        cursor: "wait",
+    },
+}));
 
 interface CreateGroupModalProps {
     open: boolean;
     onClose: () => void;
 }
 
+const emptyGroup = { group_code: "", group_name: "" };
+
 export default function CreateGroupModal(props: CreateGroupModalProps) {
-    const emptyGroup = { group_code: "", group_name: "" };
+    const classes = useStyles();
     const [group, setGroup] = useState<Group>(emptyGroup);
+    const [submitting, setSubmitting] = useState(false);
+    const [errorText, setErrorText] = useState<string>("");
     const { enqueueSnackbar } = useSnackbar();
 
     function onClose() {
         setGroup(emptyGroup);
+        setErrorText("");
         props.onClose();
     }
 
     async function submit(e: React.FormEvent) {
+        setSubmitting(true);
         e.preventDefault();
-
         const response = await fetch("/api/groups", {
             method: "POST",
             credentials: "same-origin",
@@ -39,19 +52,24 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
             enqueueSnackbar(`Group ${responseData.group_name} created successfully.`, {
                 variant: "success",
             });
+            onClose();
         } else {
-            enqueueSnackbar(
-                `Failed to create ${group.group_name}. Error: ${response.status} - ${response.statusText}`,
-                { variant: "error" }
-            );
+            setErrorText(await response.text());
         }
-        onClose();
+        setSubmitting(false);
     }
 
     return (
-        <Dialog open={props.open} onClose={onClose} fullWidth maxWidth="xs">
+        <Dialog
+            open={props.open}
+            onClose={onClose}
+            fullWidth
+            maxWidth="xs"
+            className={submitting ? classes.submitting : ""}
+        >
             <DialogTitle>New group</DialogTitle>
             <DialogContent>
+                {errorText === "" ? <></> : <Typography color="secondary">{errorText}</Typography>}
                 <TextField
                     required
                     label="Group name"
@@ -77,7 +95,13 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
                 <Button color="default" variant="outlined" onClick={onClose}>
                     Cancel
                 </Button>
-                <Button type="submit" color="primary" variant="contained" onClick={submit}>
+                <Button
+                    type="submit"
+                    color="primary"
+                    variant="contained"
+                    disabled={group.group_code === "" || group.group_name === "" || submitting}
+                    onClick={submit}
+                >
                     Create
                 </Button>
             </DialogActions>
