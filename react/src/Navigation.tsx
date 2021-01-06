@@ -162,12 +162,6 @@ const routes: RouteItem[] = [
         icon: <ShowChartIcon />,
     },
     {
-        pageName: "Groups",
-        path: "/groups",
-        main: Groups,
-        icon: <SupervisedUserCircle />,
-    },
-    {
         pageName: "Settings",
         path: "/settings",
         main: Settings,
@@ -178,6 +172,13 @@ const routes: RouteItem[] = [
         path: "/admin",
         main: Admin,
         icon: <VerifiedUserIcon />,
+        requiresAdmin: true,
+    },
+    {
+        pageName: "Groups",
+        path: "/groups",
+        main: Groups,
+        icon: <SupervisedUserCircle />,
         requiresAdmin: true,
     },
 ];
