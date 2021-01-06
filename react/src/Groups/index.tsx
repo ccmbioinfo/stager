@@ -87,11 +87,9 @@ export default function Groups() {
                                     credentials: "same-origin",
                                 });
                                 if (response.ok) {
-                                    const responseData = await response.json();
                                     setGroups(
                                         groups.filter(
-                                            currGroup =>
-                                                currGroup.group_code !== responseData.group_code
+                                            currGroup => currGroup.group_code !== group.group_code
                                         )
                                     );
                                     enqueueSnackbar(
