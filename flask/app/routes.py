@@ -244,50 +244,41 @@ def bulk_update():
         updated_by_id = 1
         created_by_id = 1
 
-    # get all group codes present in db
-    all_groups = models.Group.query.all()
-    all_codes = [g.group_code for g in all_groups]
-
-    # get user's group(s)
-    group_query = request.args.get("group")
-
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
-        if user_id:
-            user_group = (
-                models.Group.query.join(models.Group.users)
-                .filter(models.User.user_id == user_id)
-                .all()
-            )
-        else:
-            user_group = all_groups
     elif current_user.is_admin:
-        user_group = all_groups
+        user_id = models.User.user_id
     else:
         user_id = current_user.user_id
-        user_group = (
+
+    # get user's group(s)
+    requested_groups = request.args.get("groups")
+
+    if requested_groups:
+        requested_groups = requested_groups.split(",")
+        groups = (
+            models.Group.query.join(models.Group.users)
+            .filter(
+                models.User.user_id == user_id,
+                models.Group.group_code.in_(requested_groups),
+            )
+            .all()
+        )
+        if len(requested_groups) != len(groups):
+            return "Invalid group code provided", 404
+    else:
+        groups = (
             models.Group.query.join(models.Group.users)
             .filter(models.User.user_id == user_id)
             .all()
         )
-
-    if not user_group:
-        return "User does not belong to any permission groups", 403
-
-    if group_query:
-        group_query = group_query.split(",")
-        codes = [code.group_code for code in user_group]
-        for g in group_query:
-            if g not in all_codes:
-                return f"Group {g} does not exist", 404
-            if g not in codes:
-                return f"User does not belong to group {g}", 403
-    else:
-        if len(user_group) != 1:
+        if len(groups) != 1:
             return (
                 "User belongs to multiple permission groups but no group was specified",
                 400,
             )
+        if not groups:
+            return "User does not belong to any permission groups", 403
 
     for i, row in enumerate(dat):
         sequencing_date = row.get("sequencing_date")
@@ -385,13 +376,7 @@ def bulk_update():
             files = row.get("linked_files", [])
         dataset.files += [models.DatasetFile(path=path) for path in files if path]
 
-        if group_query:
-            dataset.groups += [
-                models.Group.query.filter_by(group_code=g).first_or_404()
-                for g in group_query
-            ]
-        else:
-            dataset.groups.extend(user_group)
+        dataset.groups += groups
 
         db.session.add(dataset)
         transaction_or_abort(db.session.flush)

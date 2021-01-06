@@ -45,7 +45,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test not json array
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json={
                 "family_codename": "1001",
                 "participant_codename": "06332",
@@ -63,7 +63,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test enum error
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -83,7 +83,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test json array
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -111,7 +111,7 @@ def test_post_bulk(test_database, client, login_as):
     goodcsv = open("tests/samplecsv.csv", "r")
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             data=goodcsv.read(),
             headers={"Content-Type": "text/csv"},
         ).status_code
@@ -147,7 +147,7 @@ def test_post_bulk(test_database, client, login_as):
     # Test invalid group query
     assert (
         client.post(
-            "/api/_bulk?group=torgen&",
+            "/api/_bulk?groups=torgen&",
             json=[
                 {
                     "family_codename": "1001",
@@ -164,23 +164,33 @@ def test_post_bulk(test_database, client, login_as):
     )
 
     # Test correct permission group
-    assert (
-        client.post(
-            "/api/_bulk?group=ach",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
-        ).status_code
-        == 200
+    response = client.post(
+        "/api/_bulk?groups=ach",
+        json=[
+            {
+                "family_codename": "1001",
+                "participant_codename": "1411",
+                "tissue_sample": "Blood",
+                "tissue_sample_type": "Blood",
+                "dataset_type": "WGS",
+                "condition": "GermLine",
+                "sequencing_date": "2020-12-17",
+            }
+        ],
     )
+
+    assert response.status_code == 200
+    # check that dataset is linked to group specified in query
+    dataset = response.get_json()
+    dataset_id = dataset[0]["dataset_id"]
+    dataset_group = (
+        models.Dataset.query.join(models.Dataset.groups)
+        .filter(
+            models.Group.group_code == "ach", models.Dataset.dataset_id == dataset_id
+        )
+        .one_or_none()
+    )
+    assert dataset_group is not None
 
     # Test no permission group specified but belongs to multiple groups
     assert (
@@ -245,7 +255,7 @@ def test_post_bulk_user(test_database, client, login_as):
     # Test allowed permission groups
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -282,7 +292,7 @@ def test_post_bulk_user(test_database, client, login_as):
     # Test no permission groups
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -295,7 +305,7 @@ def test_post_bulk_user(test_database, client, login_as):
                 }
             ],
         ).status_code
-        == 403
+        == 404
     )
     login_as("user_a")
     # Test multiple permission groups, none specified
@@ -320,7 +330,7 @@ def test_post_bulk_user(test_database, client, login_as):
     # Test multiple permission groups, one specified
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json=[
                 {
                     "family_codename": "1001",
@@ -342,7 +352,7 @@ def test_bulk_multiple_csv(test_database, client, login_as):
 
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             data="""
 family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
@@ -367,7 +377,7 @@ def test_bulk_multiple_json(test_database, client, login_as):
 
     assert (
         client.post(
-            "/api/_bulk?group=ach",
+            "/api/_bulk?groups=ach",
             json=[
                 {
                     "family_codename": "HOOD",
