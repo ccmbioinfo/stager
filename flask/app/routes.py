@@ -244,10 +244,8 @@ def bulk_update():
         updated_by_id = 1
         created_by_id = 1
 
-    if app.config.get("LOGIN_DISABLED"):
-        user_id = request.args.get("user")
-    elif current_user.is_admin:
-        user_id = models.User.user_id
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user", models.User.user_id)
     else:
         user_id = current_user.user_id
 
