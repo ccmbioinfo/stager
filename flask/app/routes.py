@@ -99,50 +99,6 @@ def validate_user(request_user: dict):
     return False
 
 
-@routes.route("/api/users", methods=["PUT"])
-@login_required
-@check_admin
-def update_user():
-    rq_user = request.get_json()
-    if not validate_user(rq_user):
-        return "Bad request", 400
-
-    db_user = models.User.query.filter_by(username=rq_user["username"]).first_or_404()
-    if "password" in rq_user and len(rq_user["password"]):
-        db_user.set_password(rq_user["password"])
-    if "email" in rq_user:
-        db_user.email = rq_user["email"]
-
-    try:
-        db.session.commit()
-        return "Updated", 204
-    except:
-        db.session.rollback()
-        return "Server error", 500
-
-
-@routes.route("/api/password", methods=["POST"])
-@login_required
-def change_password():
-    params = request.get_json()
-    if "current" not in params or "password" not in params or "confirm" not in params:
-        return "Bad request", 400
-
-    if params["password"] != params["confirm"]:
-        return "Passwords do not match", 400
-
-    if not current_user.check_password(params["current"]):
-        return "Incorrect password", 401
-
-    current_user.set_password(params["password"])
-    try:
-        db.session.commit()
-        return "Updated", 204
-    except:
-        db.session.rollback()
-        return "Server error", 500
-
-
 @routes.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
 @login_required
 def pipelines_list():

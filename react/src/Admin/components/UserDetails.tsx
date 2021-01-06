@@ -128,9 +128,22 @@ export default function UserDetails(props: {
                     <Grid container item md={12} lg={6} spacing={1}>
                         <Grid item xs={6}>
                             <FormControlLabel
-                                disabled // TODO: Re-enable when you can deactivate users
-                                label={<b>Active User</b>}
-                                control={<Checkbox checked={true} color="primary" />}
+                                label={<b>Deactivated</b>}
+                                control={
+                                    <Checkbox
+                                        checked={newState.deactivated}
+                                        color="primary"
+                                        onChange={e =>
+                                            dispatch({
+                                                type: "set",
+                                                payload: {
+                                                    ...newState,
+                                                    deactivated: e.target.checked,
+                                                },
+                                            })
+                                        }
+                                    />
+                                }
                             />
                         </Grid>
                         <Grid item xs={6}>
@@ -204,6 +217,7 @@ export default function UserDetails(props: {
                             variant="contained"
                             color="primary"
                             onClick={() => setConfirmSave(true)}
+                            disabled={newState.password !== newState.confirmPassword}
                         >
                             Save Changes
                         </Button>
