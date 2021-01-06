@@ -18,7 +18,9 @@ export default function LinkedFilesPopover(
     return (
         <Popover {...popoverProps}>
             {props.fileNames.map(name => (
-                <Typography className={classes.typography}>{name}</Typography>
+                <Typography className={classes.typography} key={`file-${name}`}>
+                    {name}
+                </Typography>
             ))}
         </Popover>
     );
