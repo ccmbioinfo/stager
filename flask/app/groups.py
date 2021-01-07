@@ -232,8 +232,11 @@ def delete_group(group_code):
         # Try deleting minio group as well
         db.session.delete(group)
         db.session.commit()
-        minio_admin.group_remove(group_code)
-        return "Deletion successful", 204
     except:
         db.session.rollback()
         return "Deletion of entity failed!", 422
+
+    try:
+        minio_admin.group_remove(group_code)
+    finally:
+        return "Deletion successful", 204

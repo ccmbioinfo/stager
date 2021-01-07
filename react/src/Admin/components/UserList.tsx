@@ -17,8 +17,8 @@ import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
 
 async function updateUser(user: User) {
-    return fetch("/api/users", {
-        method: "PUT",
+    return fetch(`/api/users/${user.username}`, {
+        method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
@@ -70,7 +70,7 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
             const newUser = action.payload;
             return state.concat({
                 username: newUser.username,
-                email: newUser.username,
+                email: newUser.email,
                 is_admin: newUser.isAdmin,
                 last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
                 deactivated: false,
@@ -136,7 +136,7 @@ export default function UserList() {
                                     const message = await response.text();
                                     if (response.ok) {
                                         enqueueSnackbar(
-                                            `User ${newUser.username} updated successfully - ${response.status} ${message}`,
+                                            `User ${newUser.username} updated successfully - ${response.status}`,
                                             { variant: "success" }
                                         );
                                         dispatch({ type: "update", payload: newUser });

@@ -157,7 +157,6 @@ export default function Analyses() {
 
     const { enqueueSnackbar } = useSnackbar();
     const { id: paramID } = useParams<{ id: string }>();
-    const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
@@ -306,7 +305,7 @@ export default function Analyses() {
                             type: "string",
                             editable: "never",
                             width: "8%",
-                            defaultFilter: paramFilter,
+                            defaultFilter: paramID,
                         },
                         {
                             title: "Pipeline",
@@ -609,12 +608,6 @@ export default function Analyses() {
                         header: {
                             actions: "", //remove action buttons' header
                         },
-                    }}
-                    onFilterChange={filters => {
-                        const newValue = filters.find(
-                            filter => filter.column.field === "analysis_id"
-                        )?.value;
-                        setParamFilter(newValue ? newValue : "");
                     }}
                 />
             </Container>

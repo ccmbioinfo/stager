@@ -64,6 +64,10 @@ def test_database(client):
     db.session.add(group)
     db.session.flush()
 
+    group_bcch = Group(group_code="bcch", group_name="BC Children's Hospital")
+    db.session.add(group_bcch)
+    db.session.flush()
+
     admin = User(username="admin", email="noreply@sickkids.ca", is_admin=True)
     admin.set_password("admin")
     admin.minio_access_key = "admin"
@@ -75,6 +79,20 @@ def test_database(client):
     user.minio_access_key = "user"
     user.groups.append(group)
     db.session.add(user)
+    db.session.flush()
+
+    user_a = User(username="user_a", email="test_a@sickkids.ca")
+    user_a.set_password("user_a")
+    user_a.minio_access_key = "user_a"
+    user_a.groups.append(group)
+    user_a.groups.append(group_bcch)
+    db.session.add(user_a)
+    db.session.flush()
+
+    user_b = User(username="user_b", email="test_b@sickkids.ca")
+    user_b.set_password("user_b")
+    user_b.minio_access_key = "user_b"
+    db.session.add(user_b)
     db.session.flush()
 
     wes = DatasetType(dataset_type="WES")
