@@ -14,10 +14,17 @@ export default function LinkedFilesPopover(
 ) {
     const classes = useStyles();
     const { fileNames, ...popoverProps } = props;
+    // sort alphabetically, case-insensitive
+    const sortedNames = fileNames.sort((a, b) => {
+        const [a_lower, b_lower] = [a.toLowerCase(), b.toLowerCase()];
+        if (a_lower < b_lower) return -1;
+        if (a_lower > b_lower) return 1;
+        return 0;
+    });
 
     return (
         <Popover {...popoverProps}>
-            {props.fileNames.map(name => (
+            {sortedNames.map(name => (
                 <Typography className={classes.typography} key={name}>
                     {name}
                 </Typography>

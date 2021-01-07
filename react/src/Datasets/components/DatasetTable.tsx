@@ -163,6 +163,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         customFilterAndSearch: (filter: string, rowData) =>
                             filter === "" + rowData.linked_files.length ||
                             rowData.linked_files.some(name => name.includes(filter)),
+                        customSort: (a, b) => a.linked_files.length - b.linked_files.length,
                         render: data => <LinkedFilesButton fileNames={data.linked_files} />,
                         editComponent: props => (
                             <Autocomplete
