@@ -10,6 +10,7 @@ import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { Note } from "../../components";
+import LinkedFilesButton from "./LinkedFilesButton";
 import { useFetchCache } from "../../contexts/fetchCache";
 
 const useStyles = makeStyles(theme => ({
@@ -154,9 +155,15 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         ),
                     },
                     {
-                        title: "File",
-                        field: "input_hpf_path",
+                        title: "Files",
+                        field: "linked_files",
                         grouping: false,
+                        // can search by number of files, or by file name
+                        customFilterAndSearch: (filter: string, rowData) =>
+                            filter === "" + rowData.linked_files.length ||
+                            rowData.linked_files.some(name => name.includes(filter)),
+                        customSort: (a, b) => a.linked_files.length - b.linked_files.length,
+                        render: data => <LinkedFilesButton fileNames={data.linked_files} />,
                         editComponent: props => (
                             <Autocomplete
                                 selectOnFocus
@@ -222,11 +229,11 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                             // Remove the new value from the list of unlinked files to prevent reuse
                             // Readd the previous value if there was one since it is available again
                             const removeUsed = files.filter(
-                                file => file !== newDataset.input_hpf_path
+                                file => !newDataset.linked_files.includes(file)
                             );
                             setFiles(
-                                oldDataset?.input_hpf_path
-                                    ? [oldDataset.input_hpf_path, ...removeUsed].sort()
+                                oldDataset && oldDataset.linked_files.length > 0
+                                    ? [...oldDataset.linked_files, ...removeUsed].sort()
                                     : removeUsed
                             );
                             enqueueSnackbar(

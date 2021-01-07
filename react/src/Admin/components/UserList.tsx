@@ -70,7 +70,7 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
             const newUser = action.payload;
             return state.concat({
                 username: newUser.username,
-                email: newUser.username,
+                email: newUser.email,
                 is_admin: newUser.isAdmin,
                 last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
                 deactivated: false,

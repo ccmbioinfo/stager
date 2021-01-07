@@ -11,7 +11,7 @@ export const participantColumns: ("participant_type" | "sex" | "affected" | "sol
 ];
 // Columns whose values are predefined
 export const enumerableColumns: Array<keyof DataEntryRow> = [
-    "input_hpf_path",
+    "linked_files",
     "condition",
     "dataset_type",
     "participant_type",
@@ -97,7 +97,7 @@ export function getOptions(
     const rowOptions = rows
         .filter((val, index) => index !== rowIndex) // not this row
         .map(val =>
-            toOption(col.field === "input_hpf_path" ? undefined : val[col.field], "Previous rows")
+            toOption(col.field === "linked_files" ? undefined : val[col.field], "Previous rows")
         );
 
     const familyCodenames: string[] = families.map(value => value.family_codename);
@@ -169,7 +169,7 @@ export function getOptions(
         case "solved":
             return booleans.map(b => toOption(b, "Is Solved"));
 
-        case "input_hpf_path":
+        case "linked_files":
             return files.map(f => toOption(f, "Unlinked files"));
 
         case "condition":

@@ -100,7 +100,7 @@ export function DataEntryCell(props: {
                 disabled={props.disabled}
             />
         );
-    } else if (props.col.field === "input_hpf_path") {
+    } else if (props.col.field === "linked_files") {
         return (
             <FileLinkingCell
                 values={props.row[props.col.field] || []}
