@@ -68,6 +68,7 @@ def login():
             "username": user.username,
             "last_login": last_login,
             "is_admin": current_user.is_admin,
+            "groups": [group.group_code for group in current_user.groups],
         }
     )
 
