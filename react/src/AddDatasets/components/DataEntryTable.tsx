@@ -34,10 +34,14 @@ import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
 import { useFetchCache } from "../../contexts/fetchCache";
+import { GroupDropdownSelect } from "../../components";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
     onChange: (data: DataEntryRow[]) => void;
+    allGroups: string[]; // this user's permission groups
+    groups: string[]; // selected groups to submit as
+    setGroups: (selectedGroups: string[]) => void;
 }
 
 const useTableStyles = makeStyles(theme => ({
@@ -217,6 +221,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     window.localStorage.removeItem("data-entry-default-columns");
                     setOptionals(getOptionalHeaders());
                 }}
+                allGroups={props.allGroups}
+                groups={props.groups}
+                setGroups={props.setGroups}
             />
             <TableContainer>
                 <Table>
@@ -367,6 +374,9 @@ function DataEntryToolbar(props: {
     handleColumnAction: (field: keyof DataEntryRow) => void;
     handleResetAction: () => void;
     columns: DataEntryHeader[];
+    allGroups: string[]; // this user's groups
+    groups: string[]; // selected groups
+    setGroups: (selectedGroups: string[]) => void;
 }) {
     const classes = useToolbarStyles();
     const [openUpload, setOpenUpload] = useState(false);
@@ -377,6 +387,12 @@ function DataEntryToolbar(props: {
                 <Box display="flex" flexGrow={1}>
                     <Typography variant="h6">Enter Metadata</Typography>
                 </Box>
+                <GroupDropdownSelect
+                    selectedGroupCodes={props.groups}
+                    allGroupCodes={props.allGroups}
+                    onChange={props.setGroups}
+                    disabled={props.allGroups.length <= 1}
+                />
                 <Tooltip title="Upload CSV">
                     <IconButton onClick={() => setOpenUpload(true)}>
                         <CloudUpload />

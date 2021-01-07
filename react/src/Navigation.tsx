@@ -181,6 +181,7 @@ export interface NavigationProps {
     darkMode: boolean;
     toggleDarkMode: () => void;
     isAdmin: boolean;
+    permissionGroups: string[];
 }
 
 export default function Navigation({
@@ -190,6 +191,7 @@ export default function Navigation({
     darkMode,
     toggleDarkMode,
     isAdmin,
+    permissionGroups,
 }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
@@ -306,6 +308,8 @@ export default function Navigation({
                                             return <route.main username={username} />;
                                         case "/datasets/:id?":
                                             return <route.main isAdmin={isAdmin} />;
+                                        case "/addDatasets":
+                                            return <route.main groups={permissionGroups} />;
                                         default:
                                             return <route.main />;
                                     }

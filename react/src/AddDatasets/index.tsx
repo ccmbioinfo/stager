@@ -28,12 +28,15 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function AddParticipants() {
+export default function AddParticipants(props: {
+    groups: string[]; // groups that the user is in
+}) {
     const classes = useStyles();
     const history = useHistory();
     const [data, setData] = useState<DataEntryRow[]>([]);
     const [open, setOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [asGroups, setAsGroups] = useState<string[]>([]); // "submitting as these groups"
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
@@ -41,8 +44,17 @@ export default function AddParticipants() {
         handleDataChange(createEmptyRows(1)); // sets errorMessage on initial render
     }, []);
 
+    useEffect(() => {
+        if (props.groups.length > 0) {
+            setAsGroups(props.groups);
+        } else {
+            setErrorMessage("Cannot submit. You are not part of any permission groups.");
+        }
+    }, [props.groups]);
+
     async function handleSubmit() {
-        const response = await fetch("/api/_bulk", {
+        const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
+        const response = await fetch("/api/_bulk" + params, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -98,7 +110,13 @@ export default function AddParticipants() {
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container className={classes.container} maxWidth={false}>
-                <DataEntryTable data={data} onChange={handleDataChange} />
+                <DataEntryTable
+                    data={data}
+                    onChange={handleDataChange}
+                    allGroups={props.groups}
+                    groups={asGroups}
+                    setGroups={setAsGroups}
+                />
             </Container>
             <Tooltip title={errorMessage} interactive>
                 <Container className={classes.buttonContainer} maxWidth={"sm"}>

@@ -33,6 +33,7 @@ export default function LoginForm({
     setLastLoginTime = (lastLogin: string) => {},
     setGlobalUsername = (username: string) => {},
     setIsAdmin = (isAdmin: boolean) => {},
+    setGroups = (groups: string[]) => {},
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -53,6 +54,7 @@ export default function LoginForm({
             setGlobalUsername(data["username"]);
             setLastLoginTime(data["last_login"]);
             setIsAdmin(data["is_admin"]);
+            setGroups(data["groups"]);
             setError("");
         } else {
             setError(await result.text());
