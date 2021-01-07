@@ -1,5 +1,25 @@
 import React from "react";
-import { FormControl, Input, InputLabel, MenuItem, Select } from "@material-ui/core";
+import {
+    makeStyles,
+    FormControl,
+    Input,
+    InputLabel,
+    MenuItem,
+    ListItemText,
+    Select,
+    Checkbox,
+} from "@material-ui/core";
+
+const useStyles = makeStyles(theme => ({
+    root: {
+        margin: theme.spacing(1),
+    },
+    formControl: {
+        minWidth: 240,
+        maxWidth: 300,
+        margin: theme.spacing(1),
+    },
+}));
 
 /**
  * A controlled multiselect component for selecting permission group codes from
@@ -11,26 +31,32 @@ export default function GroupDropdownSelect(props: {
     onChange: (selectedCodes: string[]) => void;
     disabled?: boolean;
 }) {
+    const classes = useStyles();
     function handleChange(event: React.ChangeEvent<{ value: unknown }>) {
         // material-ui docs do the typing this way for some reason
         props.onChange(event.target.value as string[]);
     }
 
     return (
-        <div>
-            <FormControl disabled={props.disabled}>
+        <div className={classes.root}>
+            <FormControl disabled={props.disabled} className={classes.formControl}>
                 <InputLabel id="permission-group-select-label">Permission Groups</InputLabel>
                 <Select
                     labelId="permission-group-select-label"
                     id="permission-group-select"
+                    fullWidth
                     multiple
                     value={props.selectedGroupCodes}
                     onChange={handleChange}
                     input={<Input />}
+                    renderValue={selected =>
+                        (selected as string[]).map(code => code.toUpperCase()).join(", ")
+                    }
                 >
                     {props.allGroupCodes.map(code => (
                         <MenuItem key={code} value={code}>
-                            {code.toUpperCase()}
+                            <Checkbox checked={props.selectedGroupCodes.indexOf(code) > -1} />
+                            <ListItemText primary={code.toUpperCase()} />
                         </MenuItem>
                     ))}
                 </Select>
