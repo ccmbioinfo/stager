@@ -205,3 +205,11 @@ export interface ConfirmPasswordAction {
     type: "password" | "confirm";
     payload: string;
 }
+
+export interface Option {
+    title: string;
+    inputValue: string;
+    origin?: string;
+    disabled?: boolean;
+    selected?: boolean;
+}

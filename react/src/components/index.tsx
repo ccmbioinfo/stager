@@ -17,6 +17,7 @@ export { default as DialogHeader } from "./DialogHeader";
 export { default as FieldDisplay } from "./FieldDisplay";
 export { default as FieldDisplayEditable } from "./FieldDisplayEditable";
 export { default as GridFieldsDisplay } from "./GridFieldsDisplay";
+export { default as FileLinkingComponent } from "./FileLinkingComponent";
 export { default as InfoList } from "./InfoList";
 export { default as LastLoginDisplay } from "./LastLoginDisplay";
 export { default as ListItemRouterLink } from "./ListItemRouterLink";
