@@ -83,6 +83,7 @@ for changes to persist.
 
 ## Application architecture
 
+The backend is a RESTful API only. It is not responsible for serving the frontend or HTTPS.
 The main entrypoint is [`wsgi.py`](https://github.com/ccmbioinfo/stager/blob/master/flask/wsgi.py),
 which instructs Flask (or any WSGI server in [production](https://github.com/ccmbioinfo/stager/blob/master/docs/production.md))
 to create an app instance with the default config and start the server to listen for HTTP requests.
