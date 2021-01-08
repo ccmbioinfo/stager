@@ -52,6 +52,13 @@ export default function AddParticipants(props: {
         }
     }, [props.groups]);
 
+    function onChangeGroups(newGroups: string[]) {
+        setAsGroups(newGroups);
+        if (newGroups.length === 0) {
+            setErrorMessage("Cannot submit. You must select a permission group.");
+        }
+    }
+
     async function handleSubmit() {
         const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
         const response = await fetch("/api/_bulk" + params, {
@@ -115,7 +122,7 @@ export default function AddParticipants(props: {
                     onChange={handleDataChange}
                     allGroups={props.groups}
                     groups={asGroups}
-                    setGroups={setAsGroups}
+                    setGroups={onChangeGroups}
                 />
             </Container>
             <Tooltip title={errorMessage} interactive>
