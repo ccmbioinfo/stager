@@ -47,17 +47,55 @@ export default function AddParticipants(props: {
     useEffect(() => {
         if (props.groups.length > 0) {
             setAsGroups(props.groups);
-        } else {
-            setErrorMessage("Cannot submit. You are not part of any permission groups.");
         }
     }, [props.groups]);
 
     function onChangeGroups(newGroups: string[]) {
         setAsGroups(newGroups);
-        if (newGroups.length === 0) {
-            setErrorMessage("Cannot submit. You must select a permission group.");
-        }
     }
+
+    // Check for error state
+    useEffect(() => {
+        // Check all permission groups
+        if (props.groups.length === 0) {
+            setErrorMessage("Cannot submit. You are not part of any permission groups.");
+            return;
+        }
+
+        // Check selected permission groups
+        if (asGroups.length === 0) {
+            setErrorMessage("Cannot submit. You must select a permission group.");
+            return;
+        }
+
+        // Check required fields for all rows
+        const headers = getDataEntryHeaders();
+        let problemRows = new Map<number, Array<keyof DataEntryRowBase>>();
+
+        for (let i = 0; i < data.length; i++) {
+            let row = data[i];
+            for (const field of headers.required) {
+                // Condition for a row being 'problematic'
+                if (row[field].trim() === "") {
+                    if (problemRows.get(i)) problemRows.set(i, problemRows.get(i)!.concat(field));
+                    else problemRows.set(i, [field]);
+                }
+            }
+        }
+
+        if (problemRows.size > 0) {
+            let message = "Cannot submit. Required fields missing for rows:";
+            problemRows.forEach((fields, key) => {
+                const fieldStr = fields.join(", ");
+                message += `\n${key + 1}: (${fieldStr})`;
+            });
+            setErrorMessage(message);
+            return;
+        }
+
+        // Checked everything, no problems
+        setErrorMessage("");
+    }, [data, asGroups, props.groups]);
 
     async function handleSubmit() {
         const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
@@ -85,32 +123,6 @@ export default function AddParticipants(props: {
 
     function handleDataChange(newData: DataEntryRow[]) {
         setData(newData);
-
-        // Check required fields for all rows
-        const headers = getDataEntryHeaders();
-        let problemRows = new Map<number, Array<keyof DataEntryRowBase>>();
-
-        for (let i = 0; i < newData.length; i++) {
-            let row = newData[i];
-            for (const field of headers.required) {
-                // Condition for a row being 'problematic'
-                if (row[field].trim() === "") {
-                    if (problemRows.get(i)) problemRows.set(i, problemRows.get(i)!.concat(field));
-                    else problemRows.set(i, [field]);
-                }
-            }
-        }
-
-        if (problemRows.size > 0) {
-            let errorMessage = "Cannot submit. Required fields missing for rows:";
-            problemRows.forEach((fields, key) => {
-                const fieldStr = fields.join(", ");
-                errorMessage += `\n${key + 1}: (${fieldStr})`;
-            });
-            setErrorMessage(errorMessage);
-        } else {
-            setErrorMessage("");
-        }
     }
 
     return (
