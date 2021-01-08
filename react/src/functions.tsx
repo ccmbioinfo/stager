@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import LocalizedFormat from "dayjs/plugin/localizedFormat";
+import { Query } from "material-table";
 import {
     Counts,
     KeyValue,
@@ -349,4 +350,44 @@ export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: bool
 export function strIsEmpty(str?: string): boolean {
     const testRegex = /\S/g;
     return str ? !testRegex.test(str) : true;
+}
+
+/*
+ * Builds a data fetch request and returns a promise that resolves
+ * to the result object.
+ *
+ * @param query Query parameter provided by mtable data prop
+ * @param url The API url to request from (/api/example)
+ */
+export async function queryTableData<RowData extends object>(
+    query: Query<RowData>,
+    url: string
+): Promise<any> {
+    let params = "";
+    // add filters
+    for (let filter of query.filters) {
+        if (filter.value !== "") {
+            params += `?${filter.column.field}=${filter.value}`;
+        }
+    }
+    // order by
+    if (query.orderBy && query.orderDirection) {
+        params += `?orderBy=${query.orderBy.field}`;
+        params += `?orderDirection=${query.orderDirection}`;
+    }
+    // page information
+    params += `?page=${query.page + 1}`;
+    params += `?limit=${query.pageSize}`;
+
+    const response = await fetch(url + params);
+    if (response.ok) {
+        const result = await response.json();
+        return {
+            data: result.data,
+            page: result.page - 1,
+            totalCount: result.total,
+        };
+    } else {
+        return response;
+    }
 }
