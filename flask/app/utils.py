@@ -1,8 +1,10 @@
 from functools import wraps
 from enum import Enum
 from typing import Any, Callable, Dict, List, Union
+from datetime import date, time, datetime
 
 from flask import abort
+from flask.json import JSONEncoder
 from flask_login import current_user
 from sqlalchemy import exc
 
@@ -62,3 +64,16 @@ def enum_validate(
                 if value not in column.type.enums and value is not None:
                     allowed = column.type.enums
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
+
+class DateTimeEncoder(JSONEncoder):
+    """
+    JSONEncoder override for encoding UTC datetimes in ISO format.
+    """
+    def default(self, obj):
+        
+        # handle any variant of date
+        if isinstance(obj, (date, time, datetime)):
+            return obj.isoformat()
+
+        # default behaviour
+        return JSONEncoder.default(self, obj)
