@@ -28,8 +28,8 @@ import {
     Restore,
     OpenInNew,
 } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../../typings";
-import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
+import { getOptions as _getOptions, getColumns, participantColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
