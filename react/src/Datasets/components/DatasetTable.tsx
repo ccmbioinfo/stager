@@ -166,9 +166,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         editComponent: props => (
                             <FileLinkingComponent
                                 values={props.rowData.linked_files}
-                                options={files.map(
-                                    file => ({ title: file, inputValue: file } as Option)
-                                )}
+                                options={files.map(file => ({ title: file, inputValue: file }))}
                                 onEdit={(newValue: string[]) => props.onChange(newValue)}
                                 disableTooltip
                             />
