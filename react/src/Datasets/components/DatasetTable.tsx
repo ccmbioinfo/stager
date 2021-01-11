@@ -5,7 +5,7 @@ import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../../functions";
-import { KeyValue, Dataset, Pipeline, Option } from "../../typings";
+import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { Note, FileLinkingComponent } from "../../components";
