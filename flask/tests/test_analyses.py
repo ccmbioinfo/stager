@@ -116,14 +116,31 @@ def test_update_participant(test_database, client, login_as):
         ).status_code
         == 400
     )
-    # Test success
-    response = client.patch("/api/analyses/1", json={"analysis_state": "Done"})
-    assert response.status_code == 200
-    # Make sure it updated
-    analysis = models.Analysis.query.filter(
-        models.Analysis.analysis_id == 1
-    ).one_or_none()
-    assert analysis.analysis_state == "Done"
+    # test analysis state restriction for users
+    for state in ["Requested", "Running", "Done", "Error"]:
+        assert (
+            client.patch("/api/analyses/1", json={"analysis_state": state}).status_code
+            == 403
+        )
+    # test success for cancellation
+    assert (
+        client.patch(
+            "/api/analyses/1", json={"analysis_state": "Cancelled"}
+        ).status_code
+        == 200
+    )
+
+    # test analysis state restriction (no restriction) for admins
+    login_as("admin")
+    for state in ["Requested", "Running", "Done", "Error", "Cancelled"]:
+        assert (
+            client.patch("/api/analyses/1", json={"analysis_state": state}).status_code
+            == 200
+        )
+        analysis = models.Analysis.query.filter(
+            models.Analysis.analysis_id == 1
+        ).one_or_none()
+        assert analysis.analysis_state == state
 
 
 # POST /api/analyses

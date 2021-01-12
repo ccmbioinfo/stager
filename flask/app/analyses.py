@@ -271,6 +271,14 @@ def update_analysis(id: int):
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+        if request.json.get("analysis_state"):
+            if request.json.get("analysis_state") in [
+                "Requested",
+                "Running",
+                "Done",
+                "Error",
+            ]:
+                return "Analysis state changes are restricted to administrators", 403
 
     if user_id:
         analysis = (
