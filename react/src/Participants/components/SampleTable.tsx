@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
 
 function getFields(dataset: Dataset) {
     return [
-        createFieldObj("Input HPF Path", dataset.input_hpf_path),
+        createFieldObj("Linked Files", dataset.linked_files),
         createFieldObj("Condition", dataset.condition),
         createFieldObj("Extraction Protocol", dataset.extraction_protocol),
         createFieldObj("Capture Kit", dataset.capture_kit),

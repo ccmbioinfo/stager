@@ -172,7 +172,7 @@ export function getDatasetFields(dataset: Dataset) {
 export function getSecDatasetFields(dataset: Dataset) {
     return [
         createFieldObj("Batch ID", dataset.batch_id, "batch_id"),
-        createFieldObj("HPF Path", dataset.input_hpf_path, "input_hpf_path"),
+        createFieldObj("Linked Files", dataset.linked_files, "linked_files"),
         createFieldObj("Condition", dataset.condition, "condition"),
         createFieldObj("Extraction Protocol", dataset.extraction_protocol, "extraction_protocol"),
         createFieldObj("Capture Kit", dataset.capture_kit, "capture_kit"),
@@ -306,6 +306,7 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
             tissue_sample_type: "",
             dataset_type: "",
             condition: "GermLine",
+            sequencing_date: "",
         });
     }
     return arr;

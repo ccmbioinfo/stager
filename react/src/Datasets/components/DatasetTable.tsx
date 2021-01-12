@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
-import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../../functions";
 import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import { Note } from "../../components";
+import { Note, FileLinkingComponent } from "../../components";
+import LinkedFilesButton from "./LinkedFilesButton";
 import { useFetchCache } from "../../contexts/fetchCache";
 
 const useStyles = makeStyles(theme => ({
@@ -55,7 +55,6 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const { enqueueSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
-    const [paramFilter, setParamFilter] = useState(paramID);
 
     useEffect(() => {
         fetch("/api/datasets").then(async response => {
@@ -155,19 +154,21 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         ),
                     },
                     {
-                        title: "File",
-                        field: "input_hpf_path",
+                        title: "Files",
+                        field: "linked_files",
                         grouping: false,
+                        // can search by number of files, or by file name
+                        customFilterAndSearch: (filter: string, rowData) =>
+                            filter === "" + rowData.linked_files.length ||
+                            rowData.linked_files.some(name => name.includes(filter)),
+                        customSort: (a, b) => a.linked_files.length - b.linked_files.length,
+                        render: data => <LinkedFilesButton fileNames={data.linked_files} />,
                         editComponent: props => (
-                            <Autocomplete
-                                selectOnFocus
-                                clearOnBlur
-                                handleHomeEndKeys
-                                autoHighlight
-                                onChange={(event, newValue) => props.onChange(newValue)}
-                                options={files}
-                                value={props.value}
-                                renderInput={params => <TextField {...params} variant="standard" />}
+                            <FileLinkingComponent
+                                values={props.rowData.linked_files}
+                                options={files.map(file => ({ title: file, inputValue: file }))}
+                                onEdit={(newValue: string[]) => props.onChange(newValue)}
+                                disableTooltip
                             />
                         ),
                     },
@@ -183,7 +184,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         title: "ID",
                         field: "dataset_id",
                         editable: "never",
-                        defaultFilter: paramFilter,
+                        defaultFilter: paramID,
                     },
                 ]}
                 data={datasets}
@@ -223,11 +224,11 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                             // Remove the new value from the list of unlinked files to prevent reuse
                             // Readd the previous value if there was one since it is available again
                             const removeUsed = files.filter(
-                                file => file !== newDataset.input_hpf_path
+                                file => !newDataset.linked_files.includes(file)
                             );
                             setFiles(
-                                oldDataset?.input_hpf_path
-                                    ? [oldDataset.input_hpf_path, ...removeUsed].sort()
+                                oldDataset && oldDataset.linked_files.length > 0
+                                    ? [...oldDataset.linked_files, ...removeUsed].sort()
                                     : removeUsed
                             );
                             enqueueSnackbar(
@@ -252,6 +253,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                             <div className={classes.chipBar}>
                                 {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
                                     <Chip
+                                        key={type}
                                         label={type}
                                         onClick={() => setDatasetTypeFilter([type])}
                                         clickable
@@ -309,11 +311,6 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                     header: {
                         actions: "", //remove action buttons' header
                     },
-                }}
-                onFilterChange={filters => {
-                    const newValue = filters.find(filter => filter.column.field === "analysis_id")
-                        ?.value;
-                    setParamFilter(newValue ? newValue : "");
                 }}
             />
         </div>

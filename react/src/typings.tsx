@@ -60,7 +60,7 @@ export interface Dataset {
     tissue_sample_type: string;
     tissue_sample_id: string;
     dataset_type: string;
-    input_hpf_path: string;
+    linked_files: string[]; // paths to files
     notes: string;
     condition: string;
     extraction_protocol: string;
@@ -117,13 +117,14 @@ export class DataEntryRowBase {
     tissue_sample_type!: string;
     dataset_type!: string;
     condition!: string;
+    sequencing_date!: string;
 }
 
 export class DataEntryRowOptional {
     sex?: string;
     affected?: boolean;
     solved?: boolean;
-    input_hpf_path?: string[];
+    linked_files?: string[];
     notes?: string;
     extraction_protocol?: string;
     capture_kit?: string;
@@ -131,7 +132,6 @@ export class DataEntryRowOptional {
     read_length?: number;
     read_type?: string;
     sequencing_id?: string;
-    sequencing_date?: string;
     sequencing_centre?: string;
     batch_id?: string;
 }
@@ -204,4 +204,12 @@ export interface ConfirmPasswordState {
 export interface ConfirmPasswordAction {
     type: "password" | "confirm";
     payload: string;
+}
+
+export interface Option {
+    title: string;
+    inputValue: string;
+    origin?: string;
+    disabled?: boolean;
+    selected?: boolean;
 }
