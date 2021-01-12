@@ -23,6 +23,22 @@ expected_user_common = {
     "groups": ["ach"],
 }
 
+expected_user_a_common = {
+    "username": "user_a",
+    "email": "test_a@sickkids.ca",
+    "is_admin": False,
+    "deactivated": False,
+    "groups": ["ach", "bcch"],
+}
+
+expected_user_b_common = {
+    "username": "user_b",
+    "email": "test_b@sickkids.ca",
+    "is_admin": False,
+    "deactivated": False,
+    "groups": [],
+}
+
 
 @pytest.fixture
 def minio_policy():
@@ -51,7 +67,7 @@ def test_list_users(test_database, client, login_as):
     assert response.status_code == 200
 
     user_list = response.get_json()
-    assert len(user_list) == 2
+    assert len(user_list) == 4
 
     # return order is unspecified
     user_list.sort(key=lambda user: user["username"])
@@ -64,6 +80,14 @@ def test_list_users(test_database, client, login_as):
         {
             **expected_user_common,
             "last_login": user_list[1]["last_login"],
+        },
+        {
+            **expected_user_a_common,
+            "last_login": user_list[2]["last_login"],
+        },
+        {
+            **expected_user_b_common,
+            "last_login": user_list[3]["last_login"],
         },
     ]
 
@@ -274,3 +298,131 @@ def test_delete_user(test_database, minio_policy, client, login_as):
     assert error["error"]["message"] == "Unable to get user info"
     assert error["error"]["cause"]["error"]["Code"] == "XMinioAdminNoSuchUser"
     assert User.query.filter_by(username="user").first() is None
+
+
+def test_change_password_unauthorized(test_database, client, login_as):
+    users = ["admin", "user", "doesnotexist"]
+    for user in users:
+        assert client.patch(f"/api/users/{user}").status_code == 401
+
+    users = ["admin", "doesnotexist"]
+    login_as("user")
+    for user in users:
+        assert client.patch(f"/api/users/{user}").status_code == 415
+        assert (
+            client.patch(f"/api/users/{user}", json={"password": "hunter2"}).status_code
+            == 403
+        )
+
+
+def test_change_password(test_database, client, login_as):
+    login_as("user")
+
+    assert (
+        client.patch(f"/api/users/user", json={"password": "hunter2"}).status_code
+        == 400
+    )
+    assert (
+        client.patch(
+            f"/api/users/user", json={"current": "hunter2", "password": "hunter2"}
+        ).status_code
+        == 401
+    )
+    assert (
+        client.patch(
+            f"/api/users/user", json={"current": "user", "password": "hunter2"}
+        ).status_code
+        == 204
+    )
+
+    login_as("user", "hunter2")
+
+
+def test_update_username(test_database, client, login_as):
+    login_as("admin")
+
+    response = client.patch("/api/users/user", json={"username": "thanos"})
+    assert response.status_code == 200
+    assert response.get_json()["username"] == "thanos"
+    assert response.location.endswith(f"/api/users/thanos")
+    assert client.get("/api/users/user").status_code == 404
+    assert client.get("/api/users/thanos").status_code == 200
+
+
+def test_update_username_conflict(test_database, client, login_as):
+    login_as("admin")
+    # TODO: should be 409 or something else in the future
+    assert (
+        client.patch("/api/users/user", json={"username": "admin"}).status_code == 400
+    )
+
+
+def test_deactivate_user(test_database, minio_policy, client, login_as):
+    minio_admin = minio_policy
+    minio_admin.add_user("user", "secretkey")
+    user = User.query.filter_by(username="user").first()
+    user.minio_access_key = "user"
+    user.minio_secret_key = "secretkey"
+    db.session.commit()
+
+    login_as("admin")
+    response = client.patch("/api/users/user", json={"deactivated": True})
+    assert response.status_code == 200
+    assert response.get_json()["deactivated"] is True
+    assert response.get_json()["minio_access_key"] is None
+    assert response.get_json()["minio_secret_key"] is None
+
+    with pytest.raises(RuntimeError) as exc:
+        deleted = minio_admin.get_user("user")
+    error = json.loads(exc.value.args[0])
+    assert error["error"]["message"] == "Unable to get user info"
+    assert error["error"]["cause"]["error"]["Code"] == "XMinioAdminNoSuchUser"
+
+
+def test_admin_change_password(test_database, client, login_as):
+    login_as("admin")
+    assert (
+        client.patch("/api/users/user", json={"password": "********"}).status_code
+        == 200
+    )
+    login_as("user", "********")
+
+
+def test_update_user(test_database, client, login_as):
+    login_as("admin")
+
+    body = {"email": "noreply@example.ca", "is_admin": True}
+    response = client.patch("/api/users/user", json=body)
+    assert response.status_code == 200
+    for field in body:
+        assert response.get_json()[field] == body[field]
+
+    body = {"email": "noreply@sickkids.ca"}
+    # TODO: should be 409 or something else in the future
+    assert client.patch("/api/users/user", json=body).status_code == 400
+
+
+def test_update_user_groups(test_database, minio_policy, client, login_as):
+    # TODO: This doesn't actually test behaviour with multiple groups
+    # TODO: We don't confirm that if `groups` is omitted that they aren't erased
+    minio_admin = minio_policy
+    minio_admin.add_user("admin", "PresidentBusiness")
+    user = User.query.filter_by(username="admin").first()
+    user.minio_access_key = "admin"
+    user.minio_secret_key = "PresidentBusiness"
+    db.session.commit()
+
+    login_as("admin")
+    assert client.patch("/api/users/admin", json={"groups": ["dne"]}).status_code == 404
+
+    # Add
+    response = client.patch("/api/users/admin", json={"groups": ["ach"]})
+    assert response.status_code == 200
+    assert response.get_json()["groups"] == ["ach"]
+    assert "admin" in minio_admin.get_group("ach").get("members", [])
+
+    # Remove
+    response = client.patch("/api/users/admin", json={"groups": []})
+    assert response.status_code == 200
+    assert response.get_json()["groups"] == []
+    assert "admin" not in minio_admin.get_group("ach").get("members", [])

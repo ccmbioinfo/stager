@@ -103,13 +103,12 @@ export default function Settings({ username }: { username: string }) {
 
     async function changePassword(e: React.MouseEvent) {
         e.preventDefault();
-        const response = await fetch("/api/password", {
-            method: "POST",
+        const response = await fetch(`/api/users/${username}`, {
+            method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 current: currentPassword,
                 password: newPassword,
-                confirm: confirmPassword,
             }),
         });
         if (response.ok) {
@@ -131,7 +130,7 @@ export default function Settings({ username }: { username: string }) {
     }
 
     useEffect(() => {
-        document.title = "Settings | ST2020";
+        document.title = `Settings | ${process.env.REACT_APP_NAME}`;
         dispatch({
             type: "fetch_start",
         });
@@ -146,6 +145,10 @@ export default function Settings({ username }: { username: string }) {
                 setGroups((data.groups as string[]).map(code => code.toUpperCase()));
             });
     }, [username]);
+
+    const passwordsDiffer = newPassword !== confirmPassword;
+    const passwordErrorText = passwordsDiffer && "Passwords do not match.";
+    const submittable = currentPassword && newPassword && !passwordsDiffer;
 
     return (
         <main className={classes.content}>
@@ -192,6 +195,8 @@ export default function Settings({ username }: { username: string }) {
                                 label="New password"
                                 value={newPassword}
                                 onChange={e => setNewPassword(e.target.value)}
+                                error={passwordsDiffer}
+                                helperText={passwordErrorText}
                             />
                             <TextField
                                 required
@@ -203,6 +208,8 @@ export default function Settings({ username }: { username: string }) {
                                 label="Confirm password"
                                 value={confirmPassword}
                                 onChange={e => setConfirmPassword(e.target.value)}
+                                error={passwordsDiffer}
+                                helperText={passwordErrorText}
                             />
                         </Grid>
                         <Grid item md={6} xs={12}>
@@ -215,6 +222,7 @@ export default function Settings({ username }: { username: string }) {
                             color="secondary"
                             type="submit"
                             onClick={changePassword}
+                            disabled={!submittable}
                         >
                             Update password
                         </Button>

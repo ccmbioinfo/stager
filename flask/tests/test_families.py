@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 def test_no_families(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/families?user=3")
+    response = client.get("/api/families?user=5")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 

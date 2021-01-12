@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import { Group, NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
+import { useFetchCache } from "../../contexts/fetchCache";
 
 interface CreateUserState {
     username: string;
@@ -52,7 +53,6 @@ export interface CreateUserModalProps {
     open: boolean;
     onClose: () => void;
     onSuccess: (state: NewUser) => void;
-    groups: Group[];
 }
 
 const useStyles = makeStyles(theme => ({
@@ -104,6 +104,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     const [submitting, setSubmitting] = useState(false);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
+    const groups = (useFetchCache("/api/groups") || []) as Group[];
 
     // Reset on open/close as side effect
     useEffect(() => {
@@ -216,7 +217,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     helperText={passwordErrorText}
                 />
                 <GroupSelect
-                    groups={props.groups}
+                    groups={groups}
                     selected={state.groups}
                     onSelectionChange={selectedGroups =>
                         dispatch({ type: "set", groups: selectedGroups })

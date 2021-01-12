@@ -12,6 +12,9 @@ export default function NewPasswordForm(props: {
 }) {
     const [showPassword, setShowPassword] = useState(false);
 
+    const passwordsDiffer = props.passwords.password !== props.passwords.confirmPassword;
+    const passwordErrorText = passwordsDiffer && "Passwords do not match.";
+
     return (
         <>
             <Typography>
@@ -30,6 +33,8 @@ export default function NewPasswordForm(props: {
                 label="New password"
                 value={props.passwords.password}
                 onChange={e => props.dispatch({ type: "password", payload: e.target.value })}
+                error={passwordsDiffer}
+                helperText={passwordErrorText}
             />
             <TextField
                 required
@@ -41,6 +46,8 @@ export default function NewPasswordForm(props: {
                 label="Confirm new password"
                 value={props.passwords.confirmPassword}
                 onChange={e => props.dispatch({ type: "confirm", payload: e.target.value })}
+                error={passwordsDiffer}
+                helperText={passwordErrorText}
             />
         </>
     );

@@ -12,13 +12,13 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, NewUser, Group } from "../../typings";
+import { User, NewUser } from "../../typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
 
 async function updateUser(user: User) {
-    return fetch("/api/users", {
-        method: "PUT",
+    return fetch(`/api/users/${user.username}`, {
+        method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
@@ -70,7 +70,7 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
             const newUser = action.payload;
             return state.concat({
                 username: newUser.username,
-                email: newUser.username,
+                email: newUser.email,
                 is_admin: newUser.isAdmin,
                 last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
                 deactivated: false,
@@ -87,12 +87,11 @@ function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUs
 export default function UserList() {
     const classes = useStyles();
     const [users, dispatch] = useReducer(reducer, []);
-    const [groups, setGroups] = useState<Group[]>([]);
     const [openNewUser, setOpenNewUser] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
-        document.title = "Admin | ST2020";
+        document.title = `Admin | ${process.env.REACT_APP_NAME}`;
         fetch("/api/users")
             .then(response => response.json())
             .then(data =>
@@ -101,9 +100,6 @@ export default function UserList() {
                     payload: data,
                 })
             ); // No safety check on JSON structure
-        fetch("/api/groups")
-            .then(response => response.json())
-            .then(data => setGroups(data as Group[]));
     }, []);
 
     return (
@@ -119,7 +115,6 @@ export default function UserList() {
                         variant: "success",
                     });
                 }}
-                groups={groups}
             />
             <Toolbar component={Paper} className={classes.toolbar}>
                 <Typography variant="h6">Users</Typography>
@@ -136,13 +131,12 @@ export default function UserList() {
                         <UserRow
                             key={user.username}
                             user={user}
-                            groups={groups}
                             onSave={newUser => {
                                 updateUser(newUser).then(async response => {
                                     const message = await response.text();
                                     if (response.ok) {
                                         enqueueSnackbar(
-                                            `User ${newUser.username} updated successfully - ${response.status} ${message}`,
+                                            `User ${newUser.username} updated successfully - ${response.status}`,
                                             { variant: "success" }
                                         );
                                         dispatch({ type: "update", payload: newUser });
