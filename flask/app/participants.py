@@ -40,7 +40,7 @@ def list_participants():
     limit = request.args.get("limit", default=10)
     page = request.args.get("page", default=1)
     order_by_col = request.args.get("order_by_by", default="participant_id", type=str)
-    filter_by_col = request.args.get("filter_by", default="participant_id,", type=str)
+    filter_by_col = request.args.get("filter_by", default="participant_id", type=str)
     filter_val = request.args.get("filter_val", default="", type=str)
     filter_val = f"%{filter_val}%"
 
