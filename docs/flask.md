@@ -102,8 +102,9 @@ This also registers the SQLAlchemy ORM and Flask-Migrate. More on this in the
 [database docs](https://github.com/ccmbioinfo/stager/blob/master/docs/database.md).
 
 The `add-default-admin` and `add-default-data` commands are registered to aid in development.
-They are automatically run by the startup shell script. Most of the remaining files each
-hold a Blueprint and implement a set of endpoints for that subroute.
+They are automatically run by the startup shell script. Custom Flask commands are implemented
+through [Click](https://flask.palletsprojects.com/en/1.1.x/cli/#custom-commands).
+Most of the remaining files each hold a Blueprint and implement a set of endpoints for that subroute.
 
 ## Tips
 
