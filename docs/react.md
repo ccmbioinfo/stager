@@ -29,3 +29,10 @@ docker-compose up -d --build
 1. Start a development server in watch mode with `yarn start`.
 
 You can build the static bundles for production with `yarn build`.
+
+These environment variables are fixed at build-time. To incorporate changes, you
+will need to restart the development server or rebuild the static bundles.
+
+Use a comma-delimited list of columns for the `REACT_APP_DEFAULT_OPTIONAL_COLUMNS`
+environment variable to control which optional columns are enabled by default on
+the Add Datasets page.
