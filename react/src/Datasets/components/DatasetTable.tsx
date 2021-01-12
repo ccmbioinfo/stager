@@ -5,11 +5,11 @@ import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../../functions";
+import { toKeyValue, exportCSV, rowDiff } from "../../functions";
 import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import { Note } from "../../components";
+import { DateTimeText, Note } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import { useFetchCache } from "../../contexts/fetchCache";
 
@@ -182,7 +182,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         field: "updated",
                         type: "string",
                         editable: "never",
-                        render: rowData => formatDateString(rowData.updated),
+                        render: rowData => <DateTimeText datetime={rowData.updated} />,
                     },
                     { title: "Updated By", field: "updated_by", editable: "never" },
                     {
