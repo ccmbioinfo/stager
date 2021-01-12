@@ -1,4 +1,4 @@
-import { DataEntryHeader, DataEntryRow, Family } from "../../typings";
+import { DataEntryHeader, DataEntryRow, Family, Option } from "../../typings";
 import { getDataEntryHeaders, snakeCaseToTitle } from "../../functions";
 
 export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
@@ -39,14 +39,6 @@ export function getColumns(category: "required" | "optional" | "RNASeq"): DataEn
     return (getDataEntryHeaders()[category] as Array<keyof DataEntryRow>).map(field =>
         toColumn(field, category !== "required")
     );
-}
-
-export interface Option {
-    title: string;
-    inputValue: string;
-    origin?: string;
-    disabled?: boolean;
-    selected?: boolean;
 }
 
 // Convert the provided value into an Option

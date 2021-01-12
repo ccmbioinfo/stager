@@ -17,6 +17,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [username, setUsername] = useState("");
     const [lastLoginTime, setLastLoginTime] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
+    const [groups, setGroups] = useState<string[]>([]);
 
     async function signout() {
         const result = await fetch("/api/logout", {
@@ -37,6 +38,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setUsername(loginInfo.username);
                 setLastLoginTime(loginInfo.last_login);
                 setIsAdmin(loginInfo.is_admin);
+                setGroups(loginInfo.groups);
             }
             setAuthenticated(result.ok);
         })();
@@ -70,6 +72,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                         darkMode={props.darkMode}
                         toggleDarkMode={props.toggleDarkMode}
                         isAdmin={isAdmin}
+                        permissionGroups={groups}
                     />
                 </SnackbarProvider>
             </FetchCacheProvider>
@@ -81,6 +84,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setLastLoginTime={setLastLoginTime}
                 setGlobalUsername={setUsername}
                 setIsAdmin={setIsAdmin}
+                setGroups={setGroups}
             />
         );
     }

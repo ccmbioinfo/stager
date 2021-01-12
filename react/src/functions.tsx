@@ -288,6 +288,7 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
             tissue_sample_type: "",
             dataset_type: "",
             condition: "GermLine",
+            sequencing_date: "",
         });
     }
     return arr;
