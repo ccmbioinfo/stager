@@ -79,7 +79,9 @@ flask db upgrade
 Because `flask db upgrade` is automatically called by the startup script [`./utils/run.sh`](https://github.com/ccmbioinfo/stager/blob/master/flask/utils/run.sh),
 you may experience problems when switching between branches that expect different database versions.
 Generally we just reset the database at this point, but you could avoid this by running
-`flask db downgrade` to the last common revision between the branches.
+`flask db downgrade` to the last common revision between the branches. In Docker, the most
+convenient way is to delete the bind mount (`rm -rf mysql`) while the container is down, and
+otherwise you should drop all tables from the database used by Stager.
 
 We may change the startup process to perform migrations in a separate container in the future.hpc.
 

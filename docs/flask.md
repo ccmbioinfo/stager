@@ -79,7 +79,8 @@ pip install -r requirements-dev.in
 ```
 
 Commit the changes to Git. If you are using Docker, you should rebuild the image
-for changes to persist.
+for changes to persist, e.g. `docker-compose up --build` to rebuild and restart
+the container on the new image.
 
 ## Application architecture
 
@@ -89,7 +90,7 @@ which instructs Flask (or any WSGI server in [production](https://github.com/ccm
 to create an app instance with the default config and start the server to listen for HTTP requests.
 
 Configuration is mostly read from environment variables in [`config.py`](https://github.com/ccmbioinfo/stager/blob/master/flask/app/config.py).
-Because [Flask-Login](https://flask-login.readthedocs.io/) is authenticates via a session cookie by default,
+Because [Flask-Login](https://flask-login.readthedocs.io/) authenticates via a session cookie by default,
 in development, it is convenient to add `LOGIN_DISABLED = True` to the end of the config object for
 testing your endpoints. Most routes are configured to assume that you are an admin if logins are
 disabled, with an option to assume a specific user identity with `user=PRIMARY_KEY` in the request
