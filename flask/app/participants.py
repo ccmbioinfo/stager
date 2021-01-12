@@ -39,13 +39,12 @@ def list_participants():
     # parsing query parameters
     limit = request.args.get("limit", default=10)
     page = request.args.get("page", default=1)
-    starts_with = request.args.get("starts_with", default="", type=str)
-    starts_with = f"{starts_with}%"  # sql syntax
-    order_by_col = request.args.get("order", default="participant_id", type=str)
-    filter_by = request.args.get("filter", default="participant_id,", type=str)
-    filter_by_col, filter_val = filter_by.split(",")[0], filter_by.split(",")[1]
+    order_by_col = request.args.get("order_by_by", default="participant_id", type=str)
+    filter_by_col = request.args.get("filter_by", default="participant_id,", type=str)
+    filter_val = request.args.get("filter_val", default="", type=str)
     filter_val = f"%{filter_val}%"
 
+    # for some reason type=int doesn't catch non-integer queries
     try:
         int(limit)
     except:
@@ -60,13 +59,11 @@ def list_participants():
 
     columns = models.Participant.__table__.columns.keys()
 
-    if order_by_col not in columns:
-        return f"Column name for ordering must be one of {columns}", 400
-    if filter_by_col not in columns:
-        return f"Column name for filtering must be one of {columns}", 400
-
-    order_column = getattr(models.Participant, order_by_col)
-    filter_column = getattr(models.Participant, filter_by_col)
+    try:
+        order_column = getattr(models.Participant, order_by_col)
+        filter_column = getattr(models.Participant, filter_by_col)
+    except AttributeError:
+        return f"Column name must be one of {columns}", 400
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -82,7 +79,6 @@ def list_participants():
                 ),
             )
             .filter(
-                models.Participant.participant_codename.like(starts_with),
                 filter_column.like(filter_val),
             )
             .join(models.TissueSample)
@@ -113,7 +109,6 @@ def list_participants():
                 joinedload(models.Participant.updated_by),
             )
             .filter(
-                models.Participant.participant_codename.like(starts_with),
                 filter_column.like(filter_val),
             )
             .order_by(order_column)
