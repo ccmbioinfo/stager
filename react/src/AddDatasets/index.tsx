@@ -109,9 +109,13 @@ export default function AddParticipants(props: {
 
         if (response.ok) {
             const responseData: Array<any> = await response.json();
-            enqueueSnackbar(`${responseData.length} datasets successfully added.`, {
-                variant: "success",
-            });
+            const length = responseData.length;
+            enqueueSnackbar(
+                `${length} ${length !== 1 ? "datasets" : "dataset"} successfully added.`,
+                {
+                    variant: "success",
+                }
+            );
             history.push("/datasets");
         } else {
             const message = `Error: ${response.status} - ${
