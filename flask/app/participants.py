@@ -37,22 +37,36 @@ participants_blueprint = Blueprint(
 def list_participants():
 
     # parsing query parameters
-    max_rows = request.args.get("max_rows", default=100)
+    limit = request.args.get("limit", default=10)
+    page = request.args.get("page", default=1)
     starts_with = request.args.get("starts_with", default="", type=str)
     starts_with = f"{starts_with}%"  # sql syntax
     order_by_col = request.args.get("order", default="participant_id", type=str)
-    # need some default or we need an ifelse statement, one with order_by method and one without. AFAIK there is no 'default' parameter we can pass into order_by to get the default sql ordering scheme
+    filter_by = request.args.get("filter", default="participant_id,", type=str)
+    filter_by_col, filter_val = filter_by.split(",")[0], filter_by.split(",")[1]
+    filter_val = f"%{filter_val}%"
 
     try:
-        int(max_rows)
+        int(limit)
     except:
-        return "Max rows must be a valid integer", 400
+        return "Limit must be a valid integer", 400
+
+    try:
+        int(page)
+    except:
+        return "Page must be a valid integer", 400
+
+    offset = (int(page) * int(limit)) - int(limit)
 
     columns = models.Participant.__table__.columns.keys()
 
     if order_by_col not in columns:
         return f"Column name for ordering must be one of {columns}", 400
-    column = getattr(models.Participant, order_by_col)
+    if filter_by_col not in columns:
+        return f"Column name for filtering must be one of {columns}", 400
+
+    order_column = getattr(models.Participant, order_by_col)
+    filter_column = getattr(models.Participant, filter_by_col)
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -67,7 +81,10 @@ def list_participants():
                     models.TissueSample.datasets
                 ),
             )
-            .filter(models.Participant.participant_codename.like(starts_with))
+            .filter(
+                models.Participant.participant_codename.like(starts_with),
+                filter_column.like(filter_val),
+            )
             .join(models.TissueSample)
             .join(models.Dataset)
             .join(
@@ -81,8 +98,9 @@ def list_participants():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .order_by(column)
-            .limit(max_rows)
+            .order_by(order_column)
+            .limit(limit)
+            .offset(offset)
         )
     else:
         participants = (
@@ -94,9 +112,13 @@ def list_participants():
                 joinedload(models.Participant.created_by),
                 joinedload(models.Participant.updated_by),
             )
-            .filter(models.Participant.participant_codename.like(starts_with))
-            .order_by(column)
-            .limit(max_rows)
+            .filter(
+                models.Participant.participant_codename.like(starts_with),
+                filter_column.like(filter_val),
+            )
+            .order_by(order_column)
+            .limit(limit)
+            .offset(offset)
         )
 
     return jsonify(
