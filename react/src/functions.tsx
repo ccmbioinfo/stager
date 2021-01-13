@@ -18,6 +18,9 @@ import {
     PseudoBooleanReadableMap,
 } from "./typings";
 
+dayjs.extend(utc);
+dayjs.extend(LocalizedFormat);
+
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
         if (counts[item]) {
@@ -40,8 +43,6 @@ export function toKeyValue(items: string[]) {
  * Convert an ISO datetime to human-readable format in the user's locale.
  */
 export function formatDateString(date: string) {
-    dayjs.extend(utc);
-    dayjs.extend(LocalizedFormat);
     const datetime = dayjs.utc(date);
     return datetime.local().format("LLLL");
 }
