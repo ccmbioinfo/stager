@@ -13,9 +13,9 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { formatDateString, jsonToAnalyses, isRowSelected, exportCSV } from "../functions";
+import { jsonToAnalyses, isRowSelected, exportCSV } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
-import { AnalysisInfoDialog, Note } from "../components";
+import { AnalysisInfoDialog, Note, DateTimeText } from "../components";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
@@ -336,7 +336,7 @@ export default function Analyses() {
                             field: "updated",
                             type: "string",
                             editable: "never",
-                            render: rowData => formatDateString(rowData.updated),
+                            render: rowData => <DateTimeText datetime={rowData.updated} />,
                         },
                         {
                             title: "Path Prefix",

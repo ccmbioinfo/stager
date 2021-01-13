@@ -4,7 +4,7 @@ import { Dns } from "@material-ui/icons";
 import MaterialTable, { MTableCell } from "material-table";
 import { formatDateString, createFieldObj } from "../../functions";
 import { Dataset, Sample, Info } from "../../typings";
-import { InfoList } from "../../components";
+import { DateTimeText, InfoList } from "../../components";
 
 const useStyles = makeStyles(theme => ({
     datasetList: {
@@ -46,7 +46,7 @@ export default function SampleTable(props: { samples: Sample[]; enums: any }) {
                 {
                     title: "Extraction Date",
                     field: "extraction_date",
-                    render: rowData => formatDateString(rowData.extraction_date),
+                    render: rowData => <DateTimeText datetime={rowData.extraction_date} />,
                 },
                 { title: "Sample Type", field: "tissue_sample_type" },
                 { title: "Tissue Processing", field: "tissue_processing" },
@@ -54,13 +54,13 @@ export default function SampleTable(props: { samples: Sample[]; enums: any }) {
                 {
                     title: "Creation Time",
                     field: "created",
-                    render: rowData => formatDateString(rowData.created),
+                    render: rowData => <DateTimeText datetime={rowData.created} />,
                 },
                 { title: "Create By", field: "created_by" },
                 {
                     title: "Update Time",
                     field: "updated",
-                    render: rowData => formatDateString(rowData.updated),
+                    render: rowData => <DateTimeText datetime={rowData.updated} />,
                 },
                 { title: "Updated By", field: "updated_by" },
             ]}
