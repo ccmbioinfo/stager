@@ -65,12 +65,14 @@ def enum_validate(
                     allowed = column.type.enums
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
+
 class DateTimeEncoder(JSONEncoder):
     """
     JSONEncoder override for encoding UTC datetimes in ISO format.
     """
+
     def default(self, obj):
-        
+
         # handle any variant of date
         if isinstance(obj, (date, time, datetime)):
             return obj.isoformat()
