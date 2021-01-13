@@ -188,7 +188,7 @@ def test_create_analysis(test_database, client, login_as):
         client.post(
             "/api/analyses", json={"datasets": [1, 2], "pipeline_id": 1}
         ).status_code
-        == 400
+        == 404
     )
 
     # Test success and check db

@@ -180,30 +180,28 @@ def create_analysis():
     else:
         user_id = current_user.user_id
 
-    try:
-        requester_id = updated_by_id = user_id
-    except:  # LOGIN DISABLED
-        requester_id = updated_by_id = 1
+    requester_id = updated_by_id = current_user.user_id
 
-    permitted_ids = (
-        db.session.query(models.Dataset)
-        .join(
-            models.groups_datasets_table,
-            models.Dataset.dataset_id
-            == models.groups_datasets_table.columns.dataset_id,
+    if user_id:
+        permitted_ids = (
+            db.session.query(models.Dataset)
+            .join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+            .filter(models.Dataset.dataset_id.in_(dts_pks))
+            .all()
         )
-        .join(
-            models.users_groups_table,
-            models.groups_datasets_table.columns.group_id
-            == models.users_groups_table.columns.group_id,
-        )
-        .filter(models.users_groups_table.columns.user_id == user_id)
-        .filter(models.Dataset.dataset_id.in_(dts_pks))
-        .all()
-    )
 
-    if len(permitted_ids) != len(dts_pks):
-        return "Not all datasets are accessible to the current user", 400
+        if len(permitted_ids) != len(dts_pks):
+            return "Not all datasets are accessible to the current user", 404
 
     obj = models.Analysis(
         **{
@@ -271,14 +269,13 @@ def update_analysis(id: int):
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-        if request.json.get("analysis_state"):
-            if request.json.get("analysis_state") in [
-                "Requested",
-                "Running",
-                "Done",
-                "Error",
-            ]:
-                return "Analysis state changes are restricted to administrators", 403
+        if request.json.get("analysis_state") in [
+            "Requested",
+            "Running",
+            "Done",
+            "Error",
+        ]:
+            return "Analysis state changes are restricted to administrators", 403
 
     if user_id:
         analysis = (
