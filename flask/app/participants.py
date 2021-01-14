@@ -12,7 +12,7 @@ from sqlalchemy import exc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
-from .utils import check_admin, transaction_or_abort, mixin, enum_validate
+from .utils import check_admin, transaction_or_abort, mixin, enum_validate, filter_query
 
 
 editable_columns = [
@@ -39,10 +39,7 @@ def list_participants():
     # parsing query parameters
     limit = request.args.get("limit", default=10)
     page = request.args.get("page", default=1)
-    order_by_col = request.args.get("order_by_by", default="participant_id", type=str)
-    filter_by_col = request.args.get("filter_by", default="participant_id", type=str)
-    filter_val = request.args.get("filter_val", default="", type=str)
-    filter_val = f"%{filter_val}%"
+    order_by_col = request.args.get("order_by", default="participant_id", type=str)
 
     # for some reason type=int doesn't catch non-integer queries
     try:
@@ -59,9 +56,19 @@ def list_participants():
 
     columns = models.Participant.__table__.columns.keys()
 
+    raw_filters = request.args.getlist("filter")
+    if raw_filters:
+        filt = filter_query(models.Participant, raw_filters)
+        if type(filt) == str:
+            return filt, 400
+    else:
+        filt = (
+            models.Participant.participant_codename
+            == models.Participant.participant_codename
+        )
+
     try:
         order_column = getattr(models.Participant, order_by_col)
-        filter_column = getattr(models.Participant, filter_by_col)
     except AttributeError:
         return f"Column name must be one of {columns}", 400
 
@@ -78,9 +85,7 @@ def list_participants():
                     models.TissueSample.datasets
                 ),
             )
-            .filter(
-                filter_column.like(filter_val),
-            )
+            .filter(filt)
             .join(models.TissueSample)
             .join(models.Dataset)
             .join(
@@ -98,6 +103,7 @@ def list_participants():
             .limit(limit)
             .offset(offset)
         )
+
     else:
         participants = (
             models.Participant.query.options(
@@ -108,13 +114,14 @@ def list_participants():
                 joinedload(models.Participant.created_by),
                 joinedload(models.Participant.updated_by),
             )
-            .filter(
-                filter_column.like(filter_val),
-            )
+            .filter(filt)
             .order_by(order_column)
             .limit(limit)
             .offset(offset)
         )
+
+    if 400 in participants:
+        return f"{participants}", 400
 
     return jsonify(
         [
