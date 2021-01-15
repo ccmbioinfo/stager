@@ -13,6 +13,7 @@ import { Resizable } from "re-resizable";
 import { DataEntryHeader, DataEntryRow, Option } from "../../typings";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
 import { toOption, booleanColumns, dateColumns, enumerableColumns } from "./utils";
+import { strIsEmpty } from "../../functions";
 
 const useCellStyles = makeStyles(theme => ({
     textField: {
@@ -111,8 +112,7 @@ export function AutocompleteCell(
             arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
             val.inputValue !== props.value.inputValue
     );
-
-    const isError = props.required && props.value.inputValue.trim() === "";
+    const isError = props.required && strIsEmpty(props.value.inputValue);
 
     return (
         <TableCell>

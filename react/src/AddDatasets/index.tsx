@@ -6,7 +6,7 @@ import { useSnackbar } from "notistack";
 import DataEntryTable from "./components/DataEntryTable";
 import { DataEntryRow, DataEntryRowBase } from "../typings";
 import { ConfirmModal } from "../components";
-import { createEmptyRows, getDataEntryHeaders } from "../functions";
+import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -76,7 +76,7 @@ export default function AddParticipants(props: {
             let row = data[i];
             for (const field of headers.required) {
                 // Condition for a row being 'problematic'
-                if (row[field].trim() === "") {
+                if (strIsEmpty(row[field])) {
                     if (problemRows.get(i)) problemRows.set(i, problemRows.get(i)!.concat(field));
                     else problemRows.set(i, [field]);
                 }

@@ -342,3 +342,11 @@ export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: bool
         val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
     return val;
 }
+
+/**
+ * Return true if the string contains non-whitespace characters, false otherwise.
+ */
+export function strIsEmpty(str?: string): boolean {
+    const testRegex = /\S/g;
+    return str ? testRegex.test(str) : false;
+}
