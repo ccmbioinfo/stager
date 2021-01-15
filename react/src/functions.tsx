@@ -344,9 +344,9 @@ export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: bool
 }
 
 /**
- * Return true if the string contains non-whitespace characters, false otherwise.
+ * Return true if the string is empty or contains only whitespace, false otherwise.
  */
 export function strIsEmpty(str?: string): boolean {
     const testRegex = /\S/g;
-    return str ? testRegex.test(str) : false;
+    return str ? !testRegex.test(str) : true;
 }
