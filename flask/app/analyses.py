@@ -174,13 +174,15 @@ def create_analysis():
     requested = now
     updated = now
     analysis_state = "Requested"
-
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
 
-    requester_id = updated_by_id = current_user.user_id
+    if not user_id and app.config.get("LOGIN_DISABLED"):
+        requester_id = updated_by_id = 1
+    else:
+        requester_id = updated_by_id = user_id or current_user.user_id
 
     if user_id:
         permitted_ids = (
@@ -269,11 +271,9 @@ def update_analysis(id: int):
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-        if request.json.get("analysis_state") in [
-            "Requested",
-            "Running",
-            "Done",
-            "Error",
+        if request.json.get("analysis_state") not in [
+            "Cancelled",
+            None,  # account for default
         ]:
             return "Analysis state changes are restricted to administrators", 403
 

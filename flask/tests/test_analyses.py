@@ -109,12 +109,12 @@ def test_update_participant(test_database, client, login_as):
     )
     # Test assignee does not exist
     assert client.patch("/api/analyses/1", json={"assignee": "nope"}).status_code == 400
-    # Test enum error
+    # Test enum error - doesn't really apply anymore if we get check for valid enums separately
     assert (
         client.patch(
             "/api/analyses/1", json={"analysis_state": "not_an_enum"}
         ).status_code
-        == 400
+        == 403
     )
     # test analysis state restriction for users
     for state in ["Requested", "Running", "Done", "Error"]:
