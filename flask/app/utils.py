@@ -66,6 +66,7 @@ def enum_validate(
 
 def filter_query(model, raw_filters):
     # modified from https://stackoverflow.com/questions/14845196/dynamically-constructing-filters-in-sqlalchemy#comment100031376_14876320
+    sql_filters = []
     for raw in raw_filters:
         try:
             key, op, value = raw.split(";", 3)
@@ -96,4 +97,5 @@ def filter_query(model, raw_filters):
             if value == "null":
                 value = None
             filt = getattr(column, attr)(value)
-    return filt
+        sql_filters.append(filt)
+    return sql_filters

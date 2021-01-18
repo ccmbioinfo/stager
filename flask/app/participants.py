@@ -62,10 +62,12 @@ def list_participants():
         if type(filt) == str:
             return filt, 400
     else:
-        filt = (
-            models.Participant.participant_codename
-            == models.Participant.participant_codename
-        )
+        filt = [
+            (
+                models.Participant.participant_codename
+                == models.Participant.participant_codename
+            )
+        ]
 
     try:
         order_column = getattr(models.Participant, order_by_col)
@@ -78,15 +80,16 @@ def list_participants():
         user_id = current_user.user_id
 
     if user_id:
+        participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            contains_eager(models.Participant.tissue_samples).contains_eager(
+                models.TissueSample.datasets
+            ),
+        )
+        for f in filt:
+            participants = participants.filter(f)
         participants = (
-            models.Participant.query.options(
-                joinedload(models.Participant.family),
-                contains_eager(models.Participant.tissue_samples).contains_eager(
-                    models.TissueSample.datasets
-                ),
-            )
-            .filter(filt)
-            .join(models.TissueSample)
+            participants.join(models.TissueSample)
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -105,20 +108,17 @@ def list_participants():
         )
 
     else:
-        participants = (
-            models.Participant.query.options(
-                joinedload(models.Participant.family),
-                joinedload(models.Participant.tissue_samples).joinedload(
-                    models.TissueSample.datasets
-                ),
-                joinedload(models.Participant.created_by),
-                joinedload(models.Participant.updated_by),
-            )
-            .filter(filt)
-            .order_by(order_column)
-            .limit(limit)
-            .offset(offset)
+        participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            joinedload(models.Participant.tissue_samples).joinedload(
+                models.TissueSample.datasets
+            ),
+            joinedload(models.Participant.created_by),
+            joinedload(models.Participant.updated_by),
         )
+        for f in filt:
+            participants = participants.filter(f)
+        participants = participants.order_by(order_column).limit(limit).offset(offset)
 
     if 400 in participants:
         return f"{participants}", 400
