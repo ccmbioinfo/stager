@@ -29,7 +29,12 @@ import {
     OpenInNew,
 } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
-import { getOptions as _getOptions, getColumns, participantColumns } from "./utils";
+import {
+    getOptions as _getOptions,
+    getColumns,
+    participantColumns,
+    checkParticipant,
+} from "./utils";
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
@@ -169,17 +174,21 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         }
         const newRows = props.data.map((value, index) => {
             if (autopopulate && index === rowIndex) {
+                // autopopulate row
                 const participant = findParticipant(newValue as string, col.field, value, families);
-                if (participant) {
+                const isValid = participant ? checkParticipant(participant, enums) : false;
+                if (participant && isValid) {
+                    // pre-existing participant
                     return setProp(
                         participantColumns.reduce(
-                            (row, currCol) => setProp(row, currCol, participant[currCol]),
-                            setProp({ ...value }, "participantColDisabled", true)
+                            (row, currCol) => setProp(row, currCol, participant[currCol]), // reducer
+                            setProp({ ...value }, "participantColDisabled", true) // init
                         ),
                         col.field,
                         newValue
                     );
                 } else {
+                    // No participant found
                     return setProp(
                         setProp({ ...value }, "participantColDisabled", false),
                         col.field,
