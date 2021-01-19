@@ -45,7 +45,7 @@ export default function AddParticipants(props: {
     }, []);
 
     useEffect(() => {
-        if (props.groups.length > 0) {
+        if (props.groups.length === 1) {
             setAsGroups(props.groups);
         }
     }, [props.groups]);
