@@ -169,17 +169,21 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         }
         const newRows = props.data.map((value, index) => {
             if (autopopulate && index === rowIndex) {
+                // autopopulate row
+                // pre-existing rows are disabled, even if the values are wrong
                 const participant = findParticipant(newValue as string, col.field, value, families);
                 if (participant) {
+                    // pre-existing participant
                     return setProp(
                         participantColumns.reduce(
-                            (row, currCol) => setProp(row, currCol, participant[currCol]),
-                            setProp({ ...value }, "participantColDisabled", true)
+                            (row, currCol) => setProp(row, currCol, participant[currCol]), // reducer
+                            setProp({ ...value }, "participantColDisabled", true) // init
                         ),
                         col.field,
                         newValue
                     );
                 } else {
+                    // No participant found
                     return setProp(
                         setProp({ ...value }, "participantColDisabled", false),
                         col.field,
@@ -292,12 +296,10 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                             onEdit(newValue, rowIndex, col, autocomplete)
                                         }
                                         key={col.field}
-                                        required
+                                        required={!row.participantColDisabled} // not required if pre-filled
                                         disabled={
                                             row.participantColDisabled &&
-                                            !!participantColumns.find(
-                                                currCol => currCol === col.field
-                                            )
+                                            (participantColumns as string[]).includes(col.field)
                                         }
                                     />
                                 ))}
