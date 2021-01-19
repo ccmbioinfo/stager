@@ -150,44 +150,32 @@ def get_analysis(id: int):
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 def create_analysis():
-
     if not request.json:
         return "Request body must be JSON!", 415
-    try:
-        dts_pks = request.json["datasets"]
-    except KeyError:
-        return "No Dataset field provided", 400
-    try:
-        pipeline_pk = request.json["pipeline_id"]
-    except KeyError:
-        return "No Pipeline field provided", 400
 
-    if not dts_pks:
-        return "No Dataset IDs provided", 400
+    pipeline_id = request.json.get("pipeline_id")
+    if not isinstance(pipeline_id, int):
+        return "Missing pipeline_id field or invalid type", 400
 
-    if not pipeline_pk:
-        return "No Pipeline ID provided", 400
+    datasets = request.json.get("datasets")
+    if not (isinstance(datasets, list) and len(datasets)):
+        return "Missing datasets field or invalid type", 400
 
-    pipeline_id = models.Pipeline.query.get(pipeline_pk).pipeline_id
+    if not models.Pipeline.query.get(pipeline_id):
+        return "Pipeline not found", 404
 
-    now = datetime.now()
-    requested = now
-    updated = now
-    analysis_state = "Requested"
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+    if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-
-    if not user_id and app.config.get("LOGIN_DISABLED"):
-        requester_id = updated_by_id = 1
-    else:
+        requester_id = updated_by_id = user_id or 1
+    elif current_user.is_admin:
+        user_id = request.args.get("user")
         requester_id = updated_by_id = user_id or current_user.user_id
+    else:
+        requester_id = updated_by_id = user_id = current_user.user_id
 
     if user_id:
-        permitted_ids = (
-            db.session.query(models.Dataset)
-            .join(
+        found_datasets_query = (
+            models.Dataset.query.join(
                 models.groups_datasets_table,
                 models.Dataset.dataset_id
                 == models.groups_datasets_table.columns.dataset_id,
@@ -198,49 +186,40 @@ def create_analysis():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .filter(models.Dataset.dataset_id.in_(dts_pks))
-            .all()
         )
+    else:
+        found_datasets_query = models.Dataset.query
 
-        if len(permitted_ids) != len(dts_pks):
-            return "Not all datasets are accessible to the current user", 404
+    found_datasets = found_datasets_query.filter(
+        models.Dataset.dataset_id.in_(datasets)
+    ).all()
+    if len(found_datasets) != len(datasets):
+        return "Some datasets were not found", 404
 
+    now = datetime.now()
     obj = models.Analysis(
-        **{
-            "requested": requested,
-            "analysis_state": analysis_state,
-            "requester_id": requester_id,
-            "updated_by_id": updated_by_id,
-            "updated": updated,
-            "requested": requested,
-            "pipeline_id": pipeline_id,
-        }
+        analysis_state="Requested",
+        pipeline_id=pipeline_id,
+        requester_id=requester_id,
+        requested=now,
+        updated=now,
+        updated_by_id=updated_by_id,
+        datasets=found_datasets,
     )
-
     db.session.add(obj)
-    transaction_or_abort(db.session.flush)
-
-    # update the dataset_analyses table
-    dataset_analyses_obj = [
-        {"dataset_id": x, "analysis_id": obj.analysis_id} for x in dts_pks
-    ]
-
-    inst = models.datasets_analyses_table.insert().values(dataset_analyses_obj)
-    try:
-        db.session.execute(inst)
-    except:
-        db.session.rollback()
-        return "Server error", 500
-
     transaction_or_abort(db.session.commit)
 
-    return jsonify(
-        {
-            **asdict(obj),
-            "assignee": obj.assignee_id and obj.assignee.username,
-            "requester": obj.requester_id and obj.requester.username,
-            "updated_by": obj.updated_by_id and obj.updated_by.username,
-        }
+    return (
+        jsonify(
+            {
+                **asdict(obj),
+                "assignee": obj.assignee_id and obj.assignee.username,
+                "requester": obj.requester_id and obj.requester.username,
+                "updated_by": obj.updated_by_id and obj.updated_by.username,
+            }
+        ),
+        201,
+        {"location": f"/api/analyses/{obj.analysis_id}"},
     )
 
 
