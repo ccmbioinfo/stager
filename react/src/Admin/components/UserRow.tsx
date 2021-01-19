@@ -25,7 +25,7 @@ const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     },
     title: {
         color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
-        fontStyle: active => (active ? "none" : "italic"),
+        fontStyle: active => (active ? "normal" : "italic"),
     },
     icon: {
         color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
