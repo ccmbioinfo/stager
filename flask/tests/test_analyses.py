@@ -165,23 +165,27 @@ def test_create_analysis(test_database, client, login_as):
         == 400
     )
 
-    # The following 2 tests have not been implemented yet, please uncomment when they have :)
-
     # # Test invalid dataset id given
-    # assert (
-    #     client.post(
-    #         "/api/analyses", json={"datasets": "haha", "pipeline_id": 1}
-    #     ).status_code
-    #     == 400
-    # )
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": "haha", "pipeline_id": 1}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": [], "pipeline_id": 1}
+        ).status_code
+        == 400
+    )
 
-    # # Test invalid pipeline id given
-    # assert (
-    #     client.post(
-    #         "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
-    #     ).status_code
-    #     == 400
-    # )
+    # Test invalid pipeline id given
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
+        ).status_code
+        == 400
+    )
 
     # test requesting a dataset that the user does not have access to
     assert (
@@ -196,7 +200,7 @@ def test_create_analysis(test_database, client, login_as):
         client.post(
             "/api/analyses", json={"datasets": [1], "pipeline_id": 1}
         ).status_code
-        == 200
+        == 201
     )
     analysis = (
         models.Analysis.query.options(joinedload(models.Analysis.datasets))
