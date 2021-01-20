@@ -8,7 +8,7 @@ from . import models
 
 from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc
+from sqlalchemy import exc, asc, desc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
@@ -40,6 +40,7 @@ def list_participants():
     limit = request.args.get("limit", default=10)
     page = request.args.get("page", default=1)
     order_by_col = request.args.get("order_by", default="participant_id", type=str)
+    order_dir = request.args.get("order_dir", default="asc", type=str)
 
     # for some reason type=int doesn't catch non-integer queries
     try:
@@ -74,6 +75,11 @@ def list_participants():
     except AttributeError:
         return f"Column name must be one of {columns}", 400
 
+    try:
+        order = getattr(order_column, order_dir)
+    except AttributeError:
+        return f"Column name must be 'asc' or 'desc'", 400
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
@@ -102,7 +108,7 @@ def list_participants():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .order_by(order_column)
+            .order_by(order())
             .limit(limit)
             .offset(offset)
         )
@@ -118,7 +124,7 @@ def list_participants():
         )
         for f in filt:
             participants = participants.filter(f)
-        participants = participants.order_by(order_column).limit(limit).offset(offset)
+        participants = participants.order_by(order()).limit(limit).offset(offset)
 
     if 400 in participants:
         return f"{participants}", 400
