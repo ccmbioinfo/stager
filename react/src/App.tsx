@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
@@ -11,6 +12,8 @@ const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
     notistackRef.current!.closeSnackbar(key);
 };
+
+const queryClient = new QueryClient();
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -47,35 +50,37 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <FetchCacheProvider>
-                <SnackbarProvider
-                    ref={notistackRef}
-                    action={key => (
-                        <IconButton
-                            aria-label="close"
-                            color="inherit"
-                            onClick={onClickDismiss(key)}
-                        >
-                            <Close fontSize="small" />
-                        </IconButton>
-                    )}
-                    autoHideDuration={6000}
-                    anchorOrigin={{
-                        horizontal: "center",
-                        vertical: "bottom",
-                    }}
-                >
-                    <Navigation
-                        signout={signout}
-                        username={username}
-                        lastLoginTime={lastLoginTime}
-                        darkMode={props.darkMode}
-                        toggleDarkMode={props.toggleDarkMode}
-                        isAdmin={isAdmin}
-                        permissionGroups={groups}
-                    />
-                </SnackbarProvider>
-            </FetchCacheProvider>
+            <QueryClientProvider client={queryClient}>
+                <FetchCacheProvider>
+                    <SnackbarProvider
+                        ref={notistackRef}
+                        action={key => (
+                            <IconButton
+                                aria-label="close"
+                                color="inherit"
+                                onClick={onClickDismiss(key)}
+                            >
+                                <Close fontSize="small" />
+                            </IconButton>
+                        )}
+                        autoHideDuration={6000}
+                        anchorOrigin={{
+                            horizontal: "center",
+                            vertical: "bottom",
+                        }}
+                    >
+                        <Navigation
+                            signout={signout}
+                            username={username}
+                            lastLoginTime={lastLoginTime}
+                            darkMode={props.darkMode}
+                            toggleDarkMode={props.toggleDarkMode}
+                            isAdmin={isAdmin}
+                            permissionGroups={groups}
+                        />
+                    </SnackbarProvider>
+                </FetchCacheProvider>
+            </QueryClientProvider>
         );
     } else {
         return (

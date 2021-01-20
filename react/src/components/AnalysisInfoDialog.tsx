@@ -7,7 +7,7 @@ import { Analysis, Dataset, Pipeline } from "../typings";
 import DialogHeader from "./DialogHeader";
 import DetailSection from "./DetailSection";
 import InfoList from "./InfoList";
-import { useFetchCache } from "../contexts/fetchCache";
+import { useEnums } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -46,7 +46,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipeline, setPipeline] = useState<Pipeline>();
     const labeledBy = "analysis-info-dialog-slide-title";
-    const enums = useFetchCache("/api/enums");
+    const enums = useEnums();
 
     useEffect(() => {
         fetch("/api/analyses/" + props.analysis.analysis_id)
