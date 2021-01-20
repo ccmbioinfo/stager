@@ -113,6 +113,20 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
+@routes.route("/api/metadatasettypes", methods=["GET"])
+@login_required
+def get_metadataset_types():
+
+    metadataset_dataset_types = models.MetaDatasetType_DatasetType.query.all()
+
+    d = {e.metadataset_type: [] for e in metadataset_dataset_types}
+
+    for k in metadataset_dataset_types:
+        d[k.metadataset_type].append(k.dataset_type)
+
+    return jsonify(d)
+
+
 @routes.route("/api/enums", methods=["GET"])
 @login_required
 def get_enums():
