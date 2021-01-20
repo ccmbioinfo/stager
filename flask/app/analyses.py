@@ -197,7 +197,7 @@ def create_analysis():
         return "Some datasets were not found", 404
 
     now = datetime.now()
-    obj = models.Analysis(
+    analysis = models.Analysis(
         analysis_state="Requested",
         pipeline_id=pipeline_id,
         requester_id=requester_id,
@@ -206,20 +206,34 @@ def create_analysis():
         updated_by_id=updated_by_id,
         datasets=found_datasets,
     )
-    db.session.add(obj)
+    db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
     return (
         jsonify(
             {
-                **asdict(obj),
-                "assignee": obj.assignee_id and obj.assignee.username,
-                "requester": obj.requester_id and obj.requester.username,
-                "updated_by": obj.updated_by_id and obj.updated_by.username,
+                **asdict(analysis),
+                "requester": analysis.requester_id and analysis.requester.username,
+                "updated_by": analysis.updated_by_id and analysis.updated_by.username,
+                "assignee": analysis.assignee_id and analysis.assignee.username,
+                "pipeline": analysis.pipeline,
+                "datasets": [
+                    {
+                        **asdict(dataset),
+                        "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                        "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                        "participant_type": dataset.tissue_sample.participant.participant_type,
+                        "sex": dataset.tissue_sample.participant.sex,
+                        "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                        "updated_by": dataset.tissue_sample.updated_by.username,
+                        "created_by": dataset.tissue_sample.created_by.username,
+                    }
+                    for dataset in analysis.datasets
+                ],
             }
         ),
         201,
-        {"location": f"/api/analyses/{obj.analysis_id}"},
+        {"location": f"/api/analyses/{analysis.analysis_id}"},
     )
 
 
