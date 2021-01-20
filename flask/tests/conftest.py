@@ -60,6 +60,48 @@ def client(application):
 
 @pytest.fixture
 def test_database(client):
+
+    dataset_types = [
+        "RES",
+        "CES",
+        "WES",
+        "CPS",
+        "RCS",
+        "RDC",
+        "RDE",
+        "RGS",
+        "CGS",
+        "WGS",
+        "RRS",
+        "RLM",
+        "RMM",
+        "RTA",
+    ]
+
+    for d in dataset_types:
+        db.session.add(DatasetType(dataset_type=d))
+    db.session.flush()
+
+    metadataset_types = ["Genome", "Exome", "RNA", "Other"]
+
+    for m in metadataset_types:
+        db.session.add(MetaDatasetType(metadataset_type=m))
+    db.session.flush()
+
+    md_d = {
+        "Exome": ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"],
+        "Genome": ["RGS", "CGS", "WGS"],
+        "Other": ["RLM", "RMM", "RTA"],
+        "RNA": ["RRS"],
+    }
+
+    for k in md_d:
+        for dataset in md_d[k]:
+            db.session.add(
+                MetaDatasetType_DatasetType(metadataset_type=k, dataset_type=dataset)
+            )
+    db.session.flush()
+
     group = Group(group_code="ach", group_name="Alberta")
     db.session.add(group)
     db.session.flush()
@@ -97,9 +139,6 @@ def test_database(client):
 
     wes = DatasetType(dataset_type="WES")
     wgs = DatasetType(dataset_type="WGS")
-    db.session.add(wes)
-    db.session.add(wgs)
-    db.session.flush()
 
     pipeline_1 = Pipeline(pipeline_name="CRG", pipeline_version="1.2")
     db.session.add(pipeline_1)
