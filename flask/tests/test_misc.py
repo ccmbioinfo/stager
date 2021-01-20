@@ -33,13 +33,11 @@ def test_get_metadatasettypes(test_database, client, login_as):
     response = client.get("/api/metadatasettypes")
     assert response.status_code == 200
     assert len(response.get_json()) == 4
-    for metadataset_type, _ in response.get_json().items():
-        assert metadataset_type is not None
+    for _, dataset_types in response.get_json().items():
+        assert dataset_types is not None and isinstance(dataset_types, list)
 
 
 # POST /api/_bulk
-
-
 def test_post_bulk(test_database, client, login_as):
     login_as("admin")
     # Test invalid csv

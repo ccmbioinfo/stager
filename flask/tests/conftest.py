@@ -137,9 +137,6 @@ def test_database(client):
     db.session.add(user_b)
     db.session.flush()
 
-    wes = DatasetType(dataset_type="WES")
-    wgs = DatasetType(dataset_type="WGS")
-
     pipeline_1 = Pipeline(pipeline_name="CRG", pipeline_version="1.2")
     db.session.add(pipeline_1)
     db.session.flush()
@@ -172,7 +169,7 @@ def test_database(client):
     participant_1.tissue_samples.append(sample_1)
 
     dataset_1 = Dataset(
-        dataset_type=wes.dataset_type,
+        dataset_type="WES",
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
@@ -180,7 +177,7 @@ def test_database(client):
     sample_1.datasets.append(dataset_1)
 
     dataset_2 = Dataset(
-        dataset_type=wgs.dataset_type,
+        dataset_type="WGS",
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
@@ -206,7 +203,7 @@ def test_database(client):
     participant_2.tissue_samples.append(sample_2)
 
     dataset_3 = Dataset(
-        dataset_type=wes.dataset_type,
+        dataset_type="WES",
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
@@ -265,7 +262,7 @@ def test_database(client):
     participant_3.tissue_samples.append(sample_3)
 
     dataset_4 = Dataset(
-        dataset_type=wgs.dataset_type,
+        dataset_type="WGS",
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
