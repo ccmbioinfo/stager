@@ -11,7 +11,7 @@ async function fetchGroups() {
  */
 export function useGroups(): Group[] {
     // all groups
-    const result = useQuery<Group[], Error>("groups", fetchGroups, {
+    const result = useQuery<Group[], Response>("groups", fetchGroups, {
         staleTime: 1000 * 60, // 1 minute
     });
     if (result.isSuccess) return result.data;
