@@ -43,6 +43,6 @@ jobs:
       env:
         MC_HOST_minio: https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_HOST }}
       run: |
-        curl --output /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
-        chmod +x /usr/local/bin/mc
+        sudo curl --output /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
+        sudo chmod +x /usr/local/bin/mc
         ./deploy.sh minio ${{ secrets.MINIO_BUCKET }}
