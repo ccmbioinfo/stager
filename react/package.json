@@ -18,7 +18,7 @@
     "@types/react-table": "^7.0.24",
     "dayjs": "^1.10.3",
     "material-table": "^1.69.1",
-    "notistack": "^1.0.1",
+    "notistack": "^1.0.3",
     "prettier": "^2.1.2",
     "re-resizable": "^6.9.0",
     "react": "^17.0.1",
