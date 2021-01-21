@@ -14,7 +14,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-router": "^5.1.11",
-    "@types/react-router-dom": "^5.1.6",
+    "@types/react-router-dom": "^5.1.7",
     "@types/react-table": "^7.0.24",
     "dayjs": "^1.10.3",
     "material-table": "^1.69.1",
