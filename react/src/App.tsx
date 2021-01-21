@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "react-query";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
-import { FetchCacheProvider } from "./contexts/fetchCache";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -51,35 +50,33 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     } else if (authenticated) {
         return (
             <QueryClientProvider client={queryClient}>
-                <FetchCacheProvider>
-                    <SnackbarProvider
-                        ref={notistackRef}
-                        action={key => (
-                            <IconButton
-                                aria-label="close"
-                                color="inherit"
-                                onClick={onClickDismiss(key)}
-                            >
-                                <Close fontSize="small" />
-                            </IconButton>
-                        )}
-                        autoHideDuration={6000}
-                        anchorOrigin={{
-                            horizontal: "center",
-                            vertical: "bottom",
-                        }}
-                    >
-                        <Navigation
-                            signout={signout}
-                            username={username}
-                            lastLoginTime={lastLoginTime}
-                            darkMode={props.darkMode}
-                            toggleDarkMode={props.toggleDarkMode}
-                            isAdmin={isAdmin}
-                            permissionGroups={groups}
-                        />
-                    </SnackbarProvider>
-                </FetchCacheProvider>
+                <SnackbarProvider
+                    ref={notistackRef}
+                    action={key => (
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            onClick={onClickDismiss(key)}
+                        >
+                            <Close fontSize="small" />
+                        </IconButton>
+                    )}
+                    autoHideDuration={6000}
+                    anchorOrigin={{
+                        horizontal: "center",
+                        vertical: "bottom",
+                    }}
+                >
+                    <Navigation
+                        signout={signout}
+                        username={username}
+                        lastLoginTime={lastLoginTime}
+                        darkMode={props.darkMode}
+                        toggleDarkMode={props.toggleDarkMode}
+                        isAdmin={isAdmin}
+                        permissionGroups={groups}
+                    />
+                </SnackbarProvider>
             </QueryClientProvider>
         );
     } else {
