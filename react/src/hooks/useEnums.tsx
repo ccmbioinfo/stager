@@ -1,15 +1,11 @@
 import { useQuery } from "react-query";
+import { basicFetch } from "./utils";
 
 // What we expect /api/enums to give us
 type EnumResult = { [key: string]: string[] };
 
 async function fetchEnums() {
-    const response = await fetch("/api/enums");
-    if (response.ok) {
-        return response.json();
-    } else {
-        throw new Error(`${response.status} - ${response.statusText}`);
-    }
+    return await basicFetch("/api/enums");
 }
 
 /**
