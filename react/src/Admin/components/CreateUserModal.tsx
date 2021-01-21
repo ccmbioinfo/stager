@@ -11,9 +11,9 @@ import {
     TextField,
     makeStyles,
 } from "@material-ui/core";
-import { Group, NewUser } from "../../typings";
+import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
-import { useFetchCache } from "../../contexts/fetchCache";
+import { useGroups } from "../../hooks";
 
 interface CreateUserState {
     username: string;
@@ -104,7 +104,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     const [submitting, setSubmitting] = useState(false);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
-    const groups = (useFetchCache("/api/groups") || []) as Group[];
+    const groups = useGroups();
 
     // Reset on open/close as side effect
     useEffect(() => {
