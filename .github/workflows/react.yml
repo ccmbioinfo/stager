@@ -29,17 +29,18 @@ jobs:
       with:
         path: |
           ${{ steps.yarn-cache-path.outputs.dir }}
-          node_modules
+          react/node_modules
         key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-yarn-
     - run: yarn install
+      if: steps.restore.outputs.cache-hit != 'true'
     - run: yarn build
     - run: yarn lint
     - run: yarn check-format
     # - run: yarn test -- --coverage
     - name: Deploy to MinIO bucket
-      # if: github.event_name == 'push'
+      if: github.event_name == 'push'
       env:
         MC_HOST_minio: https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_HOST }}
       run: |
