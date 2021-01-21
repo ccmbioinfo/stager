@@ -27,9 +27,17 @@ def test_get_enums(test_database, client, login_as):
         assert enumType is not None
 
 
+# GET /api/metadatasettypes
+def test_get_metadatasettypes(test_database, client, login_as):
+    login_as("admin")
+    response = client.get("/api/metadatasettypes")
+    assert response.status_code == 200
+    assert len(response.get_json()) == 4
+    for _, dataset_types in response.get_json().items():
+        assert dataset_types is not None and isinstance(dataset_types, list)
+
+
 # POST /api/_bulk
-
-
 def test_post_bulk(test_database, client, login_as):
     login_as("admin")
     # Test invalid csv
