@@ -9455,10 +9455,10 @@ react-error-overlay@^6.0.8:
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.8.tgz#474ed11d04fc6bda3af643447d85e9127ed6b5de"
   integrity sha512-HvPuUQnLp5H7TouGq3kzBeioJmXms1wHy9EGjz2OURWBp4qZO6AfGEcnxts1D/CbwPLRAgTMPCEgYhA3sEM4vw==
 
-react-file-drop@^3.0.7:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/react-file-drop/-/react-file-drop-3.1.0.tgz#54f2f433f306f9179997b632f7c349c6ff0e0d4e"
-  integrity sha512-VaDXCU2DNLKwlistNEc0yWy3VEr7UyokLEs0Dz6FHSdXtoCRYmA1i1bBaDG5i1DAhrtQueOuBAI40C1keI38cw==
+react-file-drop@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/react-file-drop/-/react-file-drop-3.1.2.tgz#9e545abddc2790110c262d9fd0718ad43c71b56e"
+  integrity sha512-fhujAloK9AIDzu18ltGrYe8Pk9NuXdCc8MrFgLNPJJS22B/GdTwD7Pz4BCCUiX+4sFZr42L4AZM7RsJN2xu1BQ==
   dependencies:
     prop-types "^15.7.2"
 
