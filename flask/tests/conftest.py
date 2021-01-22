@@ -61,6 +61,34 @@ def client(application):
 @pytest.fixture
 def test_database(client):
 
+    institutions = [
+        "Alberta Children's Hospital",
+        "BC Children's Hospital",
+        "Children's Hospital of Eastern Ontario",
+        "CHU Ste-Justine",
+        "Credit Valley Hospital",
+        "Hamilton Health Sciences Centre",
+        "Health Sciences North",
+        "International",
+        "IWK Health Centre",
+        "Kingston Health Sciences Centre",
+        "London Health Sciences Centre",
+        "Montreal Children's Hospital",
+        "Mount Sinai Hospital",
+        "North York General Hospital",
+        "Saskatoon Health Region",
+        "Stollery Children's Hospital",
+        "The Hospital for Sick Children",
+        "The Ottawa Hospital",
+        "University Health Network",
+        "Winnipeg Regional Health",
+        "Unknown",
+    ]
+    for i in institutions:
+        db.session.add(Institution(institution=i))
+
+    db.session.flush()
+
     dataset_types = [
         "RES",
         "CES",
@@ -141,12 +169,6 @@ def test_database(client):
     db.session.add(pipeline_1)
     db.session.flush()
 
-    institution_1 = Institution(institution="Test Institution A")
-    institution_2 = Institution(institution="Test Institution B")
-    db.session.add(institution_1)
-    db.session.add(institution_2)
-    db.session.flush()
-
     family_a = Family(
         family_codename="A", created_by_id=admin.user_id, updated_by_id=admin.user_id
     )
@@ -155,7 +177,7 @@ def test_database(client):
         participant_codename="001",
         sex=Sex.Female,
         participant_type=ParticipantType.Proband,
-        institution_id=institution_1.institution_id,
+        institution_id=1,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
@@ -189,7 +211,7 @@ def test_database(client):
         participant_codename="002",
         sex=Sex.Female,
         participant_type=ParticipantType.Parent,
-        institution_id=institution_1.institution_id,
+        institution_id=1,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
@@ -248,7 +270,7 @@ def test_database(client):
         participant_codename="003",
         sex=Sex.Male,
         participant_type=ParticipantType.Proband,
-        institution_id=institution_2.institution_id,
+        institution_id=2,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )

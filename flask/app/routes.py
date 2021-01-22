@@ -113,6 +113,15 @@ def pipelines_list():
     return jsonify(db_pipelines)
 
 
+@routes.route("/api/institutions", methods=["GET"])
+@login_required
+def get_institutions():
+
+    db_institutions = models.Institution.query.all()
+
+    return jsonify([x.institution for x in db_institutions])
+
+
 @routes.route("/api/metadatasettypes", methods=["GET"])
 @login_required
 def get_metadataset_types():
