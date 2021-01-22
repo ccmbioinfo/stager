@@ -21,7 +21,7 @@ export function useGroupsDelete() {
     const queryClient = useQueryClient();
     const mutation = useMutation<string, Response, string>(deleteGroup, {
         onSuccess: group_code => {
-            queryClient.removeQueries(["groups", group_code]);
+            queryClient.removeQueries(["groups", group_code.toLowerCase()]);
             queryClient.invalidateQueries("groups");
         },
     });

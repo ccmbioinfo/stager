@@ -27,7 +27,10 @@ export function useGroupsPatch() {
         onSuccess: updatedGroup => {
             queryClient.invalidateQueries("groups");
             // successfully patched, so we can update cache immediately
-            queryClient.setQueryData(["groups", updatedGroup.group_code], updatedGroup);
+            queryClient.setQueryData(
+                ["groups", updatedGroup.group_code.toLowerCase()],
+                updatedGroup
+            );
         },
     });
     return mutation;
