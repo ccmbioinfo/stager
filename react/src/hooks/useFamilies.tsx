@@ -7,7 +7,9 @@ async function fetchFamilies() {
 }
 
 /**
- * Return an array of all family objects.
+ * Return result of GET /api/families.
+ *
+ * That is, return an array of all families.
  */
 export function useFamilies() {
     const result = useQuery<Family[], Response>("families", fetchFamilies);

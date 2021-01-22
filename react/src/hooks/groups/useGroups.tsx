@@ -1,13 +1,15 @@
 import { useQuery } from "react-query";
-import { Group } from "../typings";
-import { basicFetch } from "./utils";
+import { Group } from "../../typings";
+import { basicFetch } from "../utils";
 
 async function fetchGroups() {
     return await basicFetch("/api/groups");
 }
 
 /**
- * Return all permission groups.
+ * Return result of GET /api/groups.
+ *
+ * That is, return an array of all permission groups as name-code pairs.
  */
 export function useGroups(): Group[] {
     // all groups
