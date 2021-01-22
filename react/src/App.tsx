@@ -12,7 +12,13 @@ const onClickDismiss = (key: SnackbarKey) => () => {
     notistackRef.current!.closeSnackbar(key);
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60, // 1 minute
+        },
+    },
+});
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
