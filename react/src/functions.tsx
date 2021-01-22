@@ -352,34 +352,31 @@ export function strIsEmpty(str?: string): boolean {
     return str ? !testRegex.test(str) : true;
 }
 
-/*
+/**
  * Builds a data fetch request and returns a promise that resolves
  * to the result object.
  *
  * @param query Query parameter provided by mtable data prop
  * @param url The API url to request from (/api/example)
  */
-export async function queryTableData<RowData extends object>(
-    query: Query<RowData>,
-    url: string
-): Promise<any> {
-    let params = "";
+export async function queryTableData<RowData extends object>(query: Query<RowData>, url: string) {
+    const urlObj = new URL(url);
     // add filters
     for (let filter of query.filters) {
         if (filter.value !== "") {
-            params += `?${filter.column.field}=${filter.value}`;
+            urlObj.searchParams.append("filter", `${filter.column.field};like;${filter.value}`);
         }
     }
     // order by
     if (query.orderBy && query.orderDirection) {
-        params += `?orderBy=${query.orderBy.field}`;
-        params += `?orderDirection=${query.orderDirection}`;
+        urlObj.searchParams.append("order_by", `${query.orderBy.field}`);
+        urlObj.searchParams.append("order_dir", `${query.orderDirection}`);
     }
     // page information
-    params += `?page=${query.page + 1}`;
-    params += `?limit=${query.pageSize}`;
+    urlObj.searchParams.append("page", `${query.page + 1}`);
+    urlObj.searchParams.append("limit", `${query.pageSize}`);
 
-    const response = await fetch(url + params);
+    const response = await fetch(url);
     if (response.ok) {
         const result = await response.json();
         return {
