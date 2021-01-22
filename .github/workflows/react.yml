@@ -36,11 +36,14 @@ jobs:
     - run: yarn install
       if: steps.restore.outputs.cache-hit != 'true'
     - run: yarn build
+      env:
+        REACT_APP_NAME: Stager
+        REACT_APP_MINIO_URL: https://sampletrackerdev.ccm.sickkids.ca/minio/
     - run: yarn lint
     - run: yarn check-format
     # - run: yarn test -- --coverage
     - name: Deploy to MinIO bucket
-      if: github.event_name == 'push'
+      # if: github.event_name == 'push'
       env:
         MC_HOST_minio: https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_HOST }}
       run: |
