@@ -4,11 +4,13 @@ on:
     branches:
       - master
     paths:
+      - .github/workflows/react.yml
       - react/**/*
   pull_request:
     branches:
       - '*'
     paths:
+      - .github/workflows/react.yml
       - react/**/*
 jobs:
   build:
@@ -43,7 +45,7 @@ jobs:
     - run: yarn check-format
     # - run: yarn test -- --coverage
     - name: Deploy to MinIO bucket
-      # if: github.event_name == 'push'
+      if: github.event_name == 'push'
       env:
         MC_HOST_minio: https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_HOST }}
       run: |
