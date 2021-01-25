@@ -10,4 +10,4 @@ COPY . .
 EXPOSE 5000
 # Prevent accidentally using this image for development by adding the prod server arguments in the entrypoint
 ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./utils/run.sh", "prod", "--bind", "0.0.0.0:5000"]
-CMD ["--preload", "--workers", "1", "--threads", "2"]
+CMD ["--preload", "--workers", "2", "--threads", "2"]
