@@ -24,7 +24,7 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-file-drop": "^3.0.7",
-    "react-query": "^3.5.16",
+    "react-query": "^3.6.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "4.0.1",
     "typescript": "~4.1.3"
