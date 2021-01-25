@@ -1,6 +1,6 @@
 # Production image. Runs a Guicorn WSGI server.
 FROM minio/mc:latest AS mc
-FROM python:3.7-slim
+FROM python:3.8.7-slim
 WORKDIR /var/www/sample-tracker/flask
 # Install PyPI prod-only packages first and then copy the MinIO client as the latter updates more frequently
 COPY requirements.txt .
