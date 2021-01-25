@@ -24,7 +24,6 @@ export function useGroupsPost() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Group, Response, Group>(postNewGroup, {
         onSuccess: (receivedGroup, sentGroup) => {
-            queryClient.invalidateQueries("groups");
             // we know that this group is brand new so we can cache it
             queryClient.setQueryData(["groups", sentGroup.group_code.toLowerCase()], receivedGroup);
 
@@ -33,6 +32,8 @@ export function useGroupsPost() {
                 // destructuring to keep consistent with GET /api/groups format
                 const { users, ...listableGroup } = receivedGroup;
                 queryClient.setQueryData("groups", [...cachedGroups, listableGroup]);
+            } else {
+                queryClient.invalidateQueries("groups");
             }
         },
     });
