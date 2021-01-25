@@ -60,7 +60,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/ccmbioinfo/stager:${{ steps.infer.outputs.tag || 'latest' }}
           context: flask
-          file: ../Dockerfile
+          file: "{context}/../Dockerfile"
           pull: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
