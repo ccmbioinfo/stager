@@ -1,10 +1,16 @@
 version: "3.8"
 
+x-common: &common
+  labels:
+    com.centurylinklabs.watchtower.scope: ccmbioinfo/stager
+  restart: unless-stopped
+  logging:
+    driver: "${COMPOSE_LOG_DRIVER:-journald}"
+
 services:
   mysql:
     image: mysql:8.0
-    user: "${MYSQL_USER:-mysql}"
-    restart: on-failure
+    user: "${MYSQL_UIDGID:-mysql}"
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USER}"
@@ -12,23 +18,25 @@ services:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
     volumes:
       - ${MYSQL_VOLUME}:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+    <<: *common
   minio:
     image: minio/minio
     user: "${MINIO_UIDGID}"
-    restart: on-failure
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
     volumes:
       - ${MINIO_VOLUME}:/data
     command: server /data
+    <<: *common
   app:
     build:
       context: flask
       dockerfile: ../Dockerfile
     image: "ghcr.io/ccmbioinfo/stager:${STAGER_VERSION:-latest}"
     user: "${FLASK_UIDGID:-www-data}"
-    restart: on-failure
     environment:
       FLASK_ENV: production
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
@@ -38,9 +46,9 @@ services:
     depends_on:
       - mysql
       - minio
+    <<: *common
   nginx:
     image: nginx:alpine
-    restart: on-failure
     ports:
       - "80:80"
       - "443:443"
@@ -49,8 +57,21 @@ services:
       - ./react/build:/var/www/stager
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/certs:/etc/nginx/certs
-#     - ./nginx/logs:/var/log/nginx
     depends_on:
       - app
       - minio
-    command: nginx -g "daemon off;"
+    <<: *common
+  watchtower:
+    image: containrrr/watchtower
+    environment:
+      DOCKER_CONFIG: /etc/docker
+      WATCHTOWER_CLEANUP: 1
+      WATCHTOWER_POLL_INTERVAL: 60
+      WATCHTOWER_NOTIFICATIONS: msteams
+      WATCHTOWER_NOTIFICATION_MSTEAMS_HOOK_URL: "${MSTEAMS_WEBHOOK}"
+      WATCHTOWER_NOTIFICATION_MSTEAMS_USE_LOG_DATA: "true"
+      WATCHTOWER_SCOPE: ccmbioinfo/stager
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "${DOCKER_CONFIG_DIRECTORY}:/etc/docker:ro"
+    <<: *common
