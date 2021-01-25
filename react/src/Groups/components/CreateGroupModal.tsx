@@ -11,6 +11,7 @@ import {
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { Group } from "../../typings";
+import { useGroupsPost } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     submitting: {
@@ -28,8 +29,9 @@ const emptyGroup = { group_code: "", group_name: "" };
 export default function CreateGroupModal(props: CreateGroupModalProps) {
     const classes = useStyles();
     const [group, setGroup] = useState<Group>(emptyGroup);
-    const [submitting, setSubmitting] = useState(false);
     const [errorText, setErrorText] = useState<string>("");
+    const groupPost = useGroupsPost();
+    const submitting = groupPost.status === "loading";
     const { enqueueSnackbar } = useSnackbar();
 
     function onClose() {
@@ -39,24 +41,19 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
     }
 
     async function submit(e: React.FormEvent) {
-        setSubmitting(true);
         e.preventDefault();
-        const response = await fetch("/api/groups", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...group, group_code: group.group_code.toLowerCase() }),
+
+        groupPost.mutate(group, {
+            onSuccess: newGroup => {
+                enqueueSnackbar(`Group ${newGroup.group_name} created successfully.`, {
+                    variant: "success",
+                });
+                onClose();
+            },
+            onError: async response => {
+                setErrorText(await response.text());
+            },
         });
-        if (response.ok) {
-            const responseData: Group = await response.json();
-            enqueueSnackbar(`Group ${responseData.group_name} created successfully.`, {
-                variant: "success",
-            });
-            onClose();
-        } else {
-            setErrorText(await response.text());
-        }
-        setSubmitting(false);
     }
 
     return (
