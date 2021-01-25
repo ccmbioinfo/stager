@@ -3,6 +3,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
+    user: "${MYSQL_USER:-mysql}"
     environment:
       MYSQL_DATABASE: "${TEST_MYSQL_DATABASE}"
       MYSQL_USER: "${TEST_MYSQL_USER}"
@@ -10,6 +11,7 @@ services:
       MYSQL_ROOT_PASSWORD: "${TEST_MYSQL_ROOT_PASSWORD}"
   minio:
     image: minio/minio
+    user: "${MINIO_UIDGID:-}"
     environment:
       MINIO_ACCESS_KEY: "${TEST_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
@@ -17,6 +19,7 @@ services:
   app:
     build: flask
     image: ghcr.io/ccmbioinfo/stager:dev
+    user: "${FLASK_UIDGID:-www-data}"
     environment:
       FLASK_ENV: development
       TEST_ST_DATABASE_URI: "mysql+pymysql://${TEST_MYSQL_USER}:${TEST_MYSQL_PASSWORD}@mysql/${TEST_MYSQL_DATABASE}"

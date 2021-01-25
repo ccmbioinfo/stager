@@ -3,6 +3,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
+    user: "${MYSQL_USER:-mysql}"
     restart: on-failure
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
@@ -13,6 +14,7 @@ services:
       - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
     image: minio/minio
+    user: "${MINIO_UIDGID}"
     restart: on-failure
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
@@ -25,6 +27,7 @@ services:
       context: flask
       dockerfile: ../Dockerfile
     image: "ghcr.io/ccmbioinfo/stager:${STAGER_VERSION:-latest}"
+    user: "${FLASK_UIDGID:-www-data}"
     restart: on-failure
     environment:
       FLASK_ENV: production
