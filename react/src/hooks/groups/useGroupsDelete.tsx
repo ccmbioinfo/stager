@@ -22,9 +22,14 @@ async function deleteGroup(group_code: string) {
 export function useGroupsDelete() {
     const queryClient = useQueryClient();
     const mutation = useMutation<string, Response, string>(deleteGroup, {
-        onSuccess: group_code => {
+        onSuccess: (text, group_code) => {
             queryClient.removeQueries(["groups", group_code.toLowerCase()]);
-            deleteFromCachedList<Group>("groups", queryClient, group_code, "group_code");
+            deleteFromCachedList<Group>(
+                "groups",
+                queryClient,
+                group_code.toLowerCase(),
+                "group_code"
+            );
         },
     });
     return mutation;
