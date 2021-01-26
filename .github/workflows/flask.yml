@@ -32,10 +32,11 @@ jobs:
       - name: Build and push development image
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/ccmbioinfo/stager:dev
           context: flask
           pull: true
+          push: ${{ github.event_name == 'push' }}
+          load: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
       - run: cp sample.env .env
@@ -57,10 +58,10 @@ jobs:
       - name: Build and push production image
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/ccmbioinfo/stager:${{ steps.infer.outputs.tag || 'latest' }}
           context: flask
           file: "{context}/../Dockerfile"
           pull: true
+          push: ${{ github.event_name == 'push' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
