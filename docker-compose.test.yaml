@@ -11,7 +11,6 @@ services:
       MYSQL_ROOT_PASSWORD: "${TEST_MYSQL_ROOT_PASSWORD}"
   minio:
     image: minio/minio
-    user: "${MINIO_UIDGID:-}"
     environment:
       MINIO_ACCESS_KEY: "${TEST_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
