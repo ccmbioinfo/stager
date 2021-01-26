@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Group } from "../../typings";
+import { deleteFromCachedList } from "../utils";
 
 async function deleteGroup(group_code: string) {
     const response = await fetch("/api/groups/" + group_code, {
@@ -23,16 +24,7 @@ export function useGroupsDelete() {
     const mutation = useMutation<string, Response, string>(deleteGroup, {
         onSuccess: group_code => {
             queryClient.removeQueries(["groups", group_code.toLowerCase()]);
-
-            const existingGroups: Group[] | undefined = queryClient.getQueryData("groups");
-            if (existingGroups !== undefined) {
-                queryClient.setQueryData(
-                    "groups",
-                    existingGroups.filter(group => group.group_code !== group_code)
-                );
-            } else {
-                queryClient.invalidateQueries("groups");
-            }
+            deleteFromCachedList<Group>("groups", queryClient, group_code, "group_code");
         },
     });
     return mutation;

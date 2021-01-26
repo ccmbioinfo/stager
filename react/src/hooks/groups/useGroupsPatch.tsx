@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Group } from "../../typings";
+import { updateInCachedList } from "../utils";
 
 async function patchGroup(newGroup: Group) {
     // group_code is immutable
@@ -30,18 +31,7 @@ export function useGroupsPatch() {
                 ["groups", updatedGroup.group_code.toLowerCase()],
                 updatedGroup
             );
-
-            const existingGroups: Group[] | undefined = queryClient.getQueryData("groups");
-            if (existingGroups !== undefined) {
-                queryClient.setQueryData(
-                    "groups",
-                    existingGroups.map(group =>
-                        group.group_code === updatedGroup.group_code ? updatedGroup : group
-                    )
-                );
-            } else {
-                queryClient.invalidateQueries("groups");
-            }
+            updateInCachedList<Group>("groups", queryClient, updatedGroup, "group_code");
         },
     });
     return mutation;
