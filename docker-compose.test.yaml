@@ -3,7 +3,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
-    user: "${MYSQL_USER:-mysql}"
+    user: "${MYSQL_UIDGID:-mysql}"
     environment:
       MYSQL_DATABASE: "${TEST_MYSQL_DATABASE}"
       MYSQL_USER: "${TEST_MYSQL_USER}"
