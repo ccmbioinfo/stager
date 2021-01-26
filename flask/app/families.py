@@ -73,7 +73,15 @@ def list_families():
         [
             {
                 **asdict(family),
-                "participants": family.participants,
+                "participants": [
+                    {
+                        **asdict(participant),
+                        "institution": participant.institution.institution
+                        if participant.institution
+                        else None,
+                    }
+                    for participant in family.participants
+                ],
                 "updated_by": family.updated_by.username,
                 "created_by": family.created_by.username,
             }
@@ -139,6 +147,9 @@ def get_family(id: int):
                 "participants": [
                     {
                         **asdict(participant),
+                        "institution": participant.institution.institution
+                        if participant.institution
+                        else None,
                         "updated_by": participant.updated_by.username,
                         "created_by": participant.created_by.username,
                         "tissue_samples": [

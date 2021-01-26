@@ -104,6 +104,9 @@ def list_participants():
             {
                 **asdict(participant),
                 "family_codename": participant.family.family_codename,
+                "institution": participant.institution.institution
+                if participant.institution
+                else None,
                 "updated_by": participant.updated_by.username,
                 "created_by": participant.created_by.username,
                 "tissue_samples": [
@@ -186,6 +189,9 @@ def update_participant(id: int):
         [
             {
                 **asdict(participant),
+                "institution": participant.institution.institution
+                if participant.institution
+                else None,
                 "created_by": participant.created_by.username,
                 "updated_by": participant.updated_by.username,
             }
@@ -237,6 +243,7 @@ def create_participant():
         affected=request.json.get("affected"),
         solved=request.json.get("solved"),
         participant_type=request.json.get("participant_type"),
+        institution_id=request.json.get("institution_id"),
         month_of_birth=request.json.get("month_of_birth"),
         created_by_id=created_by_id,
         updated_by_id=updated_by_id,
@@ -251,6 +258,9 @@ def create_participant():
         jsonify(
             {
                 **asdict(ptp_objs),
+                "institution": ptp_objs.institution.institution
+                if ptp_objs.institution
+                else None,
                 "created_by": ptp_objs.created_by.username,
                 "updated_by": ptp_objs.updated_by.username,
             }

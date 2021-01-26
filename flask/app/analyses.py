@@ -136,6 +136,9 @@ def get_analysis(id: int):
                     "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                     "participant_codename": dataset.tissue_sample.participant.participant_codename,
                     "participant_type": dataset.tissue_sample.participant.participant_type,
+                    "institution": dataset.tissue_sample.participant.institution.institution
+                    if dataset.tissue_sample.participant.institution
+                    else None,
                     "sex": dataset.tissue_sample.participant.sex,
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
                     "updated_by": dataset.tissue_sample.updated_by.username,
@@ -223,6 +226,9 @@ def create_analysis():
                         "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                         "participant_codename": dataset.tissue_sample.participant.participant_codename,
                         "participant_type": dataset.tissue_sample.participant.participant_type,
+                        "institution": dataset.tissue_sample.participant.institution.institution
+                        if dataset.tissue_sample.participant.institution
+                        else None,
                         "sex": dataset.tissue_sample.participant.sex,
                         "family_codename": dataset.tissue_sample.participant.family.family_codename,
                         "updated_by": dataset.tissue_sample.updated_by.username,

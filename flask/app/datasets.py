@@ -72,6 +72,9 @@ def list_datasets():
                 "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                 "participant_codename": dataset.tissue_sample.participant.participant_codename,
                 "participant_type": dataset.tissue_sample.participant.participant_type,
+                "institution": dataset.tissue_sample.participant.institution.institution
+                if dataset.tissue_sample.participant.institution
+                else None,
                 "sex": dataset.tissue_sample.participant.sex,
                 "family_codename": dataset.tissue_sample.participant.family.family_codename,
                 "created_by": dataset.tissue_sample.created_by.username,
@@ -130,6 +133,9 @@ def get_dataset(id: int):
             "tissue_sample": dataset.tissue_sample,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
             "participant_type": dataset.tissue_sample.participant.participant_type,
+            "institution": dataset.tissue_sample.participant.institution.institution
+            if dataset.tissue_sample.participant.institution
+            else None,
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
             "created_by": dataset.tissue_sample.participant.created_by.username,
