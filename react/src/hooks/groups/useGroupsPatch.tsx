@@ -1,20 +1,11 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Group } from "../../typings";
-import { updateInCachedList } from "../utils";
+import { updateInCachedList, changeFetch } from "../utils";
 
 async function patchGroup(newGroup: Group) {
     // group_code is immutable
     const { group_code, ...group } = newGroup;
-    const response = await fetch("/api/groups/" + group_code, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(group),
-    });
-    if (response.ok) {
-        return response.json();
-    } else {
-        throw response;
-    }
+    return changeFetch("/api/groups/" + group_code, "PATCH", group);
 }
 
 /**

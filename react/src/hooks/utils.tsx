@@ -29,7 +29,7 @@ export async function changeFetch(
     url: string,
     method: "POST" | "PATCH" | "DELETE",
     body?: any,
-    options?: FetchOptions
+    overrides?: FetchOptions
 ) {
     const response = await fetch(url, {
         method: method,
@@ -38,10 +38,10 @@ export async function changeFetch(
         body: body ? JSON.stringify(body) : undefined,
     });
     if (response.ok) {
-        if (options?.onSuccess) return options.onSuccess(response);
+        if (overrides?.onSuccess) return overrides.onSuccess(response);
         return response.json();
     } else {
-        if (options?.onError) return options.onError(response);
+        if (overrides?.onError) return overrides.onError(response);
         throw response;
     }
 }

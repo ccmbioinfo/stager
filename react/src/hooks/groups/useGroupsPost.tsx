@@ -1,19 +1,12 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Group } from "../../typings";
-import { addToCachedList } from "../utils";
+import { addToCachedList, changeFetch } from "../utils";
 
 async function postNewGroup(newGroup: Group) {
-    const response = await fetch("/api/groups", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newGroup, group_code: newGroup.group_code.toLowerCase() }),
+    return changeFetch("/api/groups", "POST", {
+        ...newGroup,
+        group_code: newGroup.group_code.toLowerCase(),
     });
-    if (response.ok) {
-        return response.json();
-    } else {
-        throw response;
-    }
 }
 
 /**

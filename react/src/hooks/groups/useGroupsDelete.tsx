@@ -1,17 +1,11 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Group } from "../../typings";
-import { deleteFromCachedList } from "../utils";
+import { changeFetch, deleteFromCachedList } from "../utils";
 
 async function deleteGroup(group_code: string) {
-    const response = await fetch("/api/groups/" + group_code, {
-        method: "DELETE",
-        credentials: "same-origin",
+    return changeFetch("/api/users/" + group_code, "DELETE", null, {
+        onSuccess: response => response.text(),
     });
-    if (response.ok) {
-        return response.text();
-    } else {
-        throw response;
-    }
 }
 
 /**
