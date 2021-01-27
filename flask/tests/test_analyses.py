@@ -221,7 +221,7 @@ def test_create_analysis(test_database, client, login_as):
 
     # test compatible metadataset types - may need to expand on these after more pipelines are introduced
 
-    test_compataible_dict = {
+    test_compatible_dict = {
         "wes_crg": ([3], 1, 404),  # Fail
         "wes_cre": ([3], 2, 201),  # Pass
         "wgs_crg": ([4], 1, 201),  # Pass
@@ -230,8 +230,8 @@ def test_create_analysis(test_database, client, login_as):
         "multi_cre_good": ([2, 3], 2, 201),  # Pass
     }
 
-    for key in test_compataible_dict:
-        dataset_ids, pipeline_id, expected_error_code = combination_d[key]
+    for key in test_compatible_dict:
+        dataset_ids, pipeline_id, expected_error_code = test_compatible_dict[key]
         assert (
             client.post(
                 "/api/analyses",
