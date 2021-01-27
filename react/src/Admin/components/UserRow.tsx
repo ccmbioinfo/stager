@@ -17,7 +17,7 @@ import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@materi
 import { User } from "../../typings";
 import UserDetails from "./UserDetails";
 import { LastLoginDisplay, ChipGroup, MinioKeys } from "../../components";
-import { useGroups } from "../../hooks";
+import { useGroupsQuery } from "../../hooks";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
@@ -46,7 +46,7 @@ export default function UserRow(props: {
     const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const groups = useGroups();
+    const groups = useGroupsQuery();
 
     // MinIO keys get fetched once when the user opens the dropdown
     useEffect(() => {

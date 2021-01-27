@@ -4,7 +4,7 @@ import { GroupAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { Group as GroupCard } from "./components/Group";
 import CreateGroupModal from "./components/CreateGroupModal";
-import { useGroups, useGroupsPatch, useGroupsDelete } from "../hooks";
+import { useGroupsQuery, useGroupsUpdateMutation, useGroupsDeleteMutation } from "../hooks";
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -31,9 +31,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function Groups() {
     const classes = useStyles();
-    const groups = useGroups();
-    const groupPatch = useGroupsPatch();
-    const groupDelete = useGroupsDelete();
+    const groups = useGroupsQuery();
+    const groupPatch = useGroupsUpdateMutation();
+    const groupDelete = useGroupsDeleteMutation();
     const [openNewGroup, setOpenNewGroup] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 

@@ -11,7 +11,7 @@ async function fetchGroups() {
  *
  * That is, return an array of all permission groups as name-code pairs.
  */
-export function useGroups(): Group[] {
+export function useGroupsQuery(): Group[] {
     // all groups
     const result = useQuery<Group[], Response>("groups", fetchGroups);
     if (result.isSuccess) return result.data;

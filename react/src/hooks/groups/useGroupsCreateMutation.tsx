@@ -14,7 +14,7 @@ async function postNewGroup(newGroup: Group) {
  *
  * Used for creating a new group.
  */
-export function useGroupsPost() {
+export function useGroupsCreateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Group, Response, Group>(postNewGroup, {
         onSuccess: (receivedGroup, sentGroup) => {

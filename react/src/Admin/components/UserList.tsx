@@ -14,9 +14,7 @@ import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
-import { useUsers } from "../../hooks/users/useUsers";
-import { useUserPatch } from "../../hooks/users/useUserPatch";
-import { useUserDelete } from "../../hooks/users/useUserDelete";
+import { useUsersQuery, useUsersUpdateMutation, useUsersDeleteMutation } from "../../hooks/";
 
 const useStyles = makeStyles(theme => ({
     toolbar: {
@@ -29,9 +27,9 @@ const useStyles = makeStyles(theme => ({
 
 export default function UserList() {
     const classes = useStyles();
-    const users = useUsers();
-    const userUpdateMutation = useUserPatch();
-    const userDeleteMutation = useUserDelete();
+    const users = useUsersQuery();
+    const userUpdateMutation = useUsersUpdateMutation();
+    const userDeleteMutation = useUsersDeleteMutation();
     const [openNewUser, setOpenNewUser] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 

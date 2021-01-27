@@ -12,7 +12,7 @@ async function patchUser(newUser: User) {
  * Used for updating fields such as password, email and
  * activation status.
  */
-export function useUserPatch() {
+export function useUsersUpdateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<User, Response, User>(patchUser, {
         onSuccess: newUser => {

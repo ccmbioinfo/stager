@@ -13,8 +13,7 @@ import {
 } from "@material-ui/core";
 import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
-import { useGroups } from "../../hooks";
-import { useUserPost } from "../../hooks/users/useUserPost";
+import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
 import { useSnackbar } from "notistack";
 
 const initState = {
@@ -97,8 +96,8 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     const [state, dispatch] = useReducer(reducer, initState);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
-    const groups = useGroups();
-    const userCreateMutation = useUserPost();
+    const groups = useGroupsQuery();
+    const userCreateMutation = useUsersCreateMutation();
     const { enqueueSnackbar } = useSnackbar();
 
     const submitting = userCreateMutation.status === "loading";

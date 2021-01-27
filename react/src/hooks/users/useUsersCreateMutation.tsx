@@ -3,7 +3,7 @@ import { User, NewUser } from "../../typings";
 import { addToCachedList, changeFetch } from "../utils";
 
 async function createUser(newUser: NewUser) {
-    return changeFetch("/api/users/" + newUser.username, "POST", newUser);
+    return changeFetch("/api/users", "POST", newUser);
 }
 
 /**
@@ -11,7 +11,7 @@ async function createUser(newUser: NewUser) {
  *
  * Used for creating a new user.
  */
-export function useUserPost() {
+export function useUsersCreateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<User, Response, NewUser>(createUser, {
         onSuccess: user => {

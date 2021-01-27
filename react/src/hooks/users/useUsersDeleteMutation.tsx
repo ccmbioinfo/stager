@@ -13,7 +13,7 @@ async function deleteUser(username: string) {
  *
  * Used for deleting a user by username.
  */
-export function useUserDelete() {
+export function useUsersDeleteMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<string, Response, string>(deleteUser, {
         onSuccess: (text, username) => {

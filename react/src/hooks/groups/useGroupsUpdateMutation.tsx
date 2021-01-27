@@ -13,7 +13,7 @@ async function patchGroup(newGroup: Group) {
  *
  * Used for updating fields for an existing group.
  */
-export function useGroupsPatch() {
+export function useGroupsUpdateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Group, Response, Group>(patchGroup, {
         onSuccess: updatedGroup => {
