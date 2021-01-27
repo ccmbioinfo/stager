@@ -21,4 +21,5 @@ export function useUserDelete() {
             deleteFromCachedList<User>("users", queryClient, username, "username");
         },
     });
+    return mutation;
 }

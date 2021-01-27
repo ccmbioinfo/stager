@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "react-query";
-import { User } from "../../typings";
+import { User, NewUser } from "../../typings";
 import { addToCachedList, changeFetch } from "../utils";
 
-async function createUser(newUser: User) {
+async function createUser(newUser: NewUser) {
     return changeFetch("/api/users/" + newUser.username, "POST", newUser);
 }
 
@@ -13,10 +13,10 @@ async function createUser(newUser: User) {
  */
 export function useUserPost() {
     const queryClient = useQueryClient();
-    const mutation = useMutation<User, Response, User>(createUser, {
-        onSuccess: newUser => {
-            queryClient.setQueryData(["users", newUser.username], newUser);
-            addToCachedList<User>("users", queryClient, newUser);
+    const mutation = useMutation<User, Response, NewUser>(createUser, {
+        onSuccess: user => {
+            queryClient.setQueryData(["users", user.username], user);
+            addToCachedList<User>("users", queryClient, user);
         },
     });
     return mutation;

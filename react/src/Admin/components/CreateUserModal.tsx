@@ -14,15 +14,8 @@ import {
 import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
 import { useGroups } from "../../hooks";
-
-interface CreateUserState {
-    username: string;
-    email: string;
-    is_admin: boolean;
-    password: string;
-    confirmPassword: string;
-    groups: string[];
-}
+import { useUserPost } from "../../hooks/users/useUserPost";
+import { useSnackbar } from "notistack";
 
 const initState = {
     username: "",
@@ -33,10 +26,10 @@ const initState = {
     groups: [],
 };
 
-type SetAction = { type: "set" } & Partial<CreateUserState>;
+type SetAction = { type: "set" } & Partial<NewUser>;
 type ResetAction = { type: "reset" };
 
-function reducer(state: CreateUserState, action: SetAction | ResetAction): CreateUserState {
+function reducer(state: NewUser, action: SetAction | ResetAction): NewUser {
     switch (action.type) {
         case "set":
             const { type, ...payload } = action;
@@ -100,11 +93,15 @@ function ErrorText(props: ErrorTextProps) {
 }
 
 export default function CreateUserModal(props: CreateUserModalProps) {
+    const classes = useStyles();
     const [state, dispatch] = useReducer(reducer, initState);
-    const [submitting, setSubmitting] = useState(false);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
     const groups = useGroups();
+    const userCreateMutation = useUserPost();
+    const { enqueueSnackbar } = useSnackbar();
+
+    const submitting = userCreateMutation.status === "loading";
 
     // Reset on open/close as side effect
     useEffect(() => {
@@ -113,34 +110,27 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     }, [props.open]);
 
     async function submit(e: React.FormEvent) {
-        setSubmitting(true);
         e.preventDefault();
         const { confirmPassword, ...user } = state;
-        const response = await fetch("/api/users", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(user),
+        userCreateMutation.mutate(user, {
+            onSuccess: newUser => {
+                enqueueSnackbar(`New user "${newUser.username}" created successfully`, {
+                    variant: "success",
+                });
+                props.onSuccess(user);
+            },
+            onError: async response => {
+                setErrorCode(response.status);
+                if (response.status === 422) setErrorDetails(await response.json());
+                else setErrorDetails({ error: "", message: "" });
+            },
         });
-        if (response.ok) {
-            props.onSuccess(await response.json());
-        } else {
-            setErrorCode(response.status);
-        }
-        if (response.status === 422) {
-            setErrorDetails(await response.json());
-        } else {
-            setErrorDetails({ error: "", message: "" });
-        }
-        setSubmitting(false);
     }
 
     const passwordsDiffer = state.password !== state.confirmPassword;
     const passwordErrorText = passwordsDiffer && "Passwords do not match.";
     const submittable =
         !submitting && state.username && state.email && state.password && !passwordsDiffer;
-
-    const classes = useStyles();
 
     return (
         <Dialog
