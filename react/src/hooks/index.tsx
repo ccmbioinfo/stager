@@ -12,3 +12,4 @@ export { useUsersQuery } from "./users/useUsersQuery";
 export { useUsersCreateMutation } from "./users/useUsersCreateMutation";
 export { useUsersUpdateMutation } from "./users/useUsersUpdateMutation";
 export { useUsersDeleteMutation } from "./users/useUsersDeleteMutation";
+export { useUserMinioMutation } from "./users/useUserMinioMutation";

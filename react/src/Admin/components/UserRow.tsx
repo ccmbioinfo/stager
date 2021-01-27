@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     Collapse,
     Divider,
@@ -16,8 +16,7 @@ import {
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
 import { User } from "../../typings";
 import UserDetails from "./UserDetails";
-import { LastLoginDisplay, ChipGroup, MinioKeys } from "../../components";
-import { useGroupsQuery } from "../../hooks";
+import { LastLoginDisplay, ChipGroup } from "../../components";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
@@ -42,34 +41,8 @@ export default function UserRow(props: {
     onDelete: (deleteUser: User) => void;
 }) {
     const classes = useRowStyles(!props.user.deactivated);
-    const [user, setUser] = useState<User>(props.user);
     const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const groups = useGroupsQuery();
-
-    // MinIO keys get fetched once when the user opens the dropdown
-    useEffect(() => {
-        if (open) {
-            setLoading(true);
-            fetch(`/api/users/${user.username}`)
-                .then(response => response.json())
-                .then(data => {
-                    setUser(oldUser => ({
-                        ...oldUser,
-                        minio_access_key: data.minio_access_key,
-                        minio_secret_key: data.minio_secret_key,
-                    }));
-                    setLoading(false);
-                });
-        }
-    }, [open, user.username]);
-
-    function handleMinioReset(loading: boolean, newKeys: MinioKeys) {
-        // Handles updating the keys if they're reset
-        setLoading(loading);
-        if (newKeys !== null) setUser(oldUser => ({ ...oldUser, ...newKeys }));
-    }
 
     const gridProps: GridProps = {
         justify: "space-between",
@@ -125,14 +98,15 @@ export default function UserRow(props: {
                 </ListItem>
                 <Collapse in={open}>
                     <Divider />
-                    <UserDetails
-                        user={user}
-                        groups={groups}
-                        onSave={props.onSave}
-                        onDelete={props.onDelete}
-                        loading={loading}
-                        onMinioReset={handleMinioReset}
-                    />
+                    {open && (
+                        <div id={props.user.username}>
+                            <UserDetails
+                                user={props.user}
+                                onSave={props.onSave}
+                                onDelete={props.onDelete}
+                            />
+                        </div>
+                    )}
                 </Collapse>
             </Paper>
         </Grid>

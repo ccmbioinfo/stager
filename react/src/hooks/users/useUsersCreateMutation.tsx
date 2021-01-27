@@ -7,7 +7,7 @@ async function createUser(newUser: NewUser) {
 }
 
 /**
- * Return a mutation object for POST /api/users/:username.
+ * Return a mutation object for POST /api/users.
  *
  * Used for creating a new user.
  */
