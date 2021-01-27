@@ -3,13 +3,19 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - react/**/*
+    paths:
+      - .github/workflows/flask.yml
+      - flask/**/*
+      - Dockerfile
+      - docker-compose*.yaml
   pull_request:
     branches:
       - '*'
-    paths-ignore:
-      - react/**/*
+    paths:
+      - .github/workflows/flask.yml
+      - flask/**/*
+      - Dockerfile
+      - docker-compose*.yaml
 jobs:
   build:
     runs-on: ubuntu-latest
