@@ -126,9 +126,6 @@ def list_participants():
             participants = participants.filter(f)
         participants = participants.order_by(order()).limit(limit).offset(offset)
 
-    if 400 in participants:
-        return f"{participants}", 400
-
     return jsonify(
         [
             {
