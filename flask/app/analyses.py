@@ -173,29 +173,6 @@ def create_analysis():
     else:
         requester_id = updated_by_id = user_id = current_user.user_id
 
-    # assumed to supersede user_id/admin check
-    compatible_datasets_pipelines_query = (
-        db.session.query(
-            models.Dataset, models.MetaDatasetType_DatasetType, models.PipelineDatasets
-        )
-        .filter(models.Dataset.dataset_id.in_(datasets))
-        .join(
-            models.MetaDatasetType_DatasetType,
-            models.Dataset.dataset_type
-            == models.MetaDatasetType_DatasetType.dataset_type,
-        )
-        .join(
-            models.PipelineDatasets,
-            models.PipelineDatasets.supported_metadataset_type
-            == models.MetaDatasetType_DatasetType.metadataset_type,
-        )
-        .filter(models.PipelineDatasets.pipeline_id == pipeline_id)
-        .all()
-    )
-
-    if len(compatible_datasets_pipelines_query) != len(datasets):
-        return "Requested pipelines are incompatible with datasets", 404
-
     if user_id:
         found_datasets_query = (
             models.Dataset.query.join(
@@ -219,6 +196,30 @@ def create_analysis():
 
     if len(found_datasets) != len(datasets):
         return "Some datasets were not found", 404
+
+    compatible_datasets_pipelines_query = (
+        db.session.query(
+            models.Dataset,
+            models.MetaDatasetType_DatasetType,
+            models.PipelineDatasets,
+        )
+        .filter(models.Dataset.dataset_id.in_(datasets))
+        .join(
+            models.MetaDatasetType_DatasetType,
+            models.Dataset.dataset_type
+            == models.MetaDatasetType_DatasetType.dataset_type,
+        )
+        .join(
+            models.PipelineDatasets,
+            models.PipelineDatasets.supported_metadataset_type
+            == models.MetaDatasetType_DatasetType.metadataset_type,
+        )
+        .filter(models.PipelineDatasets.pipeline_id == pipeline_id)
+        .all()
+    )
+
+    if len(compatible_datasets_pipelines_query) != len(datasets):
+        return "Requested pipelines are incompatible with datasets", 404
 
     now = datetime.now()
     analysis = models.Analysis(
