@@ -51,7 +51,7 @@ def login():
         return "Request body must be correctly-shaped JSON!", 400
 
     user = models.User.query.filter_by(username=body["username"]).first()
-    if user is None or not user.check_password(body["password"]):
+    if user is None or user.deactivated or not user.check_password(body["password"]):
         return "Unauthorized", 401
 
     # get/update last login
