@@ -1,7 +1,7 @@
 # Development image only. Runs a Flask development server.
 FROM minio/mc:latest AS mc
 FROM python:3.7-slim
-WORKDIR /var/www/sample-tracker/flask
+WORKDIR /usr/src/stager
 # Install PyPI packages first and then copy the MinIO client as the latter updates more frequently
 COPY requirements-dev.txt .
 RUN pip3 install -r requirements-dev.txt

@@ -13,7 +13,10 @@ class MinioAdmin:
         env = os.environ.copy()
         env[f"MC_HOST_{self._name}"] = self._url
         result = subprocess.run(
-            ["mc", "--json", "admin"] + cmd + [self._name] + params,
+            ["mc", "--config-dir", "/tmp/.mc", "--json", "admin"]
+            + cmd
+            + [self._name]
+            + params,
             env=env,
             capture_output=True,
             text=True,
