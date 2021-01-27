@@ -35,16 +35,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_PAT }}
-      - name: Build and push development image
+      - name: Build development image
         uses: docker/build-push-action@v2
         with:
           tags: ghcr.io/ccmbioinfo/stager:dev
           context: flask
           pull: true
-          push: ${{ github.event_name == 'push' }}
           load: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+      - name: Push development image
+        if: ${{ github.event_name == 'push' }}
+        run: docker push ghcr.io/ccmbioinfo/stager:dev
       - run: cp sample.env .env
       - name: Pytest
         run: docker-compose run --rm app
