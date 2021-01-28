@@ -96,7 +96,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
     const [state, dispatch] = useReducer(reducer, initState);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
-    const groups = useGroupsQuery();
+    const { data: groups } = useGroupsQuery();
     const userCreateMutation = useUsersCreateMutation();
     const { enqueueSnackbar } = useSnackbar();
 

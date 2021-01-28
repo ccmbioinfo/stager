@@ -37,7 +37,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipelines, setPipelines] = useState<Pipeline[]>([]);
 
-    const enums = useEnumsQuery();
+    const { data: enums } = useEnumsQuery();
     let tissueSampleTypes: KeyValue = {};
     let datasetTypes: KeyValue = {};
     let conditions: KeyValue = {};

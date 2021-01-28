@@ -63,7 +63,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function Settings({ username }: { username: string }) {
     const classes = useStyles();
-    const user = useUserQuery(username);
+    const { data: user, isFetching: loading } = useUserQuery(username);
     const passwordMutation = useUsersUpdateMutation();
 
     const [currentPassword, setCurrentPassword] = useState("");
@@ -72,7 +72,6 @@ export default function Settings({ username }: { username: string }) {
     const [groups, setGroups] = useState<string[]>([]);
     const [updating, setUpdating] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
-    const loading = user === undefined;
 
     async function changePassword(e: React.MouseEvent) {
         e.preventDefault();

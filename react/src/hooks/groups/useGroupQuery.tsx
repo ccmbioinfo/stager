@@ -16,6 +16,5 @@ export function useGroupQuery(group_code: string) {
     const result = useQuery<Group, Response>(["groups", group_code.toLowerCase()], () =>
         fetchGroup(group_code)
     );
-    if (result.isSuccess) return result.data;
-    return undefined;
+    return result;
 }

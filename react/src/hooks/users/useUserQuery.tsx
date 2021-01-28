@@ -12,8 +12,7 @@ async function fetchUser(username: string) {
  * That is, return all details about a particular user,
  * including MinIO credentials.
  */
-export function useUserQuery(username: string): User | undefined {
+export function useUserQuery(username: string) {
     const result = useQuery<User, Response>(["users", username], () => fetchUser(username));
-    if (result.isSuccess) return result.data;
-    return undefined;
+    return result;
 }

@@ -17,12 +17,13 @@ const useStyles = makeStyles(theme => ({
  * nicer to read.
  */
 export default function GroupSelect(props: {
-    groups: Group[];
+    groups: Group[] | undefined;
     selected: string[];
     onSelectionChange: (selectedGroups: string[]) => void;
 }) {
+    const groups = props.groups || [];
     const classes = useStyles();
-    const labels = props.groups.map(group => group.group_code.toUpperCase());
+    const labels = groups.map(group => group.group_code.toUpperCase());
     const selected = props.selected.map(value => value.toUpperCase());
 
     function onChange(label: string, newValue: boolean) {

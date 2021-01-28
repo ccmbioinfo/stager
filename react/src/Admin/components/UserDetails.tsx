@@ -69,9 +69,11 @@ export default function UserDetails(props: {
     onDelete: (deleteUser: User) => void;
 }) {
     const classes = useDetailStyles();
-    const groups = useGroupsQuery();
-    const user = useUserQuery(props.user.username);
-    const loading = user === undefined;
+    const groupsResult = useGroupsQuery();
+    const groups = groupsResult.data;
+    const userResult = useUserQuery(props.user.username);
+    const user = userResult.data;
+    const loading = userResult.isLoading;
     // Local changes saved in newState, and are "committed" when user saves changes
     const oldState = {
         ...props.user,

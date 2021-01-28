@@ -13,6 +13,5 @@ async function fetchFamilies() {
  */
 export function useFamiliesQuery() {
     const result = useQuery<Family[], Response>("families", fetchFamilies);
-    if (result.isSuccess) return result.data;
-    return [];
+    return result;
 }

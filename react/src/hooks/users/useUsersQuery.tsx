@@ -11,8 +11,7 @@ async function fetchAllUsers() {
  *
  * That is, returns a list of all users.
  */
-export function useUsersQuery(): User[] {
+export function useUsersQuery() {
     const result = useQuery<User[], Response>("users", fetchAllUsers);
-    if (result.isSuccess) return result.data;
-    return [];
+    return result;
 }

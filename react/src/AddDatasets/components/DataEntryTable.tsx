@@ -123,9 +123,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
     const [files, setFiles] = useState<string[]>([]);
-    const families = useFamiliesQuery();
-    const enums = useEnumsQuery();
-
+    const familyResult = useFamiliesQuery();
+    const families = familyResult.isSuccess ? familyResult.data : [];
+    const { data: enums } = useEnumsQuery();
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
     useEffect(() => {

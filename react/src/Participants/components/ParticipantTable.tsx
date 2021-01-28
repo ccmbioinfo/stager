@@ -15,7 +15,7 @@ export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const enums = useEnumsQuery();
+    const { data: enums } = useEnumsQuery();
     let sexTypes: KeyValue = {};
     let datasetTypes: KeyValue = {};
     let participantTypes: KeyValue = {};

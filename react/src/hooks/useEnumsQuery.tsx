@@ -16,6 +16,5 @@ export function useEnumsQuery() {
     const result = useQuery<EnumResult, Response>("enums", fetchEnums, {
         staleTime: Infinity, // for now, it never gets stale
     });
-    if (result.isSuccess) return result.data;
-    return undefined;
+    return result;
 }

@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function UserList() {
     const classes = useStyles();
-    const users = useUsersQuery();
+    const { data: users } = useUsersQuery();
     const userUpdateMutation = useUsersUpdateMutation();
     const userDeleteMutation = useUsersDeleteMutation();
     const [openNewUser, setOpenNewUser] = useState(false);
@@ -58,46 +58,47 @@ export default function UserList() {
             </Toolbar>
             <List>
                 <Grid container spacing={1} alignItems="flex-start">
-                    {users.map(user => (
-                        <UserRow
-                            key={user.username}
-                            user={user}
-                            onSave={newUser => {
-                                userUpdateMutation.mutate(newUser, {
-                                    onSuccess: user => {
-                                        enqueueSnackbar(
-                                            `User ${user.username} updated successfully`,
-                                            { variant: "success" }
-                                        );
-                                    },
-                                    onError: async response => {
-                                        const message = await response.text();
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} update failed - ${response.status} ${message}`,
-                                            { variant: "error" }
-                                        );
-                                    },
-                                });
-                            }}
-                            onDelete={newUser => {
-                                userDeleteMutation.mutate(newUser.username, {
-                                    onSuccess: message => {
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} deleted successfully`,
-                                            { variant: "success" }
-                                        );
-                                    },
-                                    onError: async response => {
-                                        const message = await response.text();
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} deletion failed - ${response.status} ${message}`,
-                                            { variant: "error" }
-                                        );
-                                    },
-                                });
-                            }}
-                        />
-                    ))}
+                    {users &&
+                        users.map(user => (
+                            <UserRow
+                                key={user.username}
+                                user={user}
+                                onSave={newUser => {
+                                    userUpdateMutation.mutate(newUser, {
+                                        onSuccess: user => {
+                                            enqueueSnackbar(
+                                                `User ${user.username} updated successfully`,
+                                                { variant: "success" }
+                                            );
+                                        },
+                                        onError: async response => {
+                                            const message = await response.text();
+                                            enqueueSnackbar(
+                                                `User ${newUser.username} update failed - ${response.status} ${message}`,
+                                                { variant: "error" }
+                                            );
+                                        },
+                                    });
+                                }}
+                                onDelete={newUser => {
+                                    userDeleteMutation.mutate(newUser.username, {
+                                        onSuccess: message => {
+                                            enqueueSnackbar(
+                                                `User ${newUser.username} deleted successfully`,
+                                                { variant: "success" }
+                                            );
+                                        },
+                                        onError: async response => {
+                                            const message = await response.text();
+                                            enqueueSnackbar(
+                                                `User ${newUser.username} deletion failed - ${response.status} ${message}`,
+                                                { variant: "error" }
+                                            );
+                                        },
+                                    });
+                                }}
+                            />
+                        ))}
                 </Grid>
             </List>
         </>
