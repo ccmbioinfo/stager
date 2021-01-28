@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "react-query";
 import { User } from "../../typings";
 import { changeFetch, updateInCachedList } from "../utils";
 
-async function patchUser(newUser: User) {
+async function patchUser(newUser: Partial<User>) {
     return changeFetch("/api/users/" + newUser.username, "PATCH", newUser);
 }
 
@@ -14,7 +14,7 @@ async function patchUser(newUser: User) {
  */
 export function useUsersUpdateMutation() {
     const queryClient = useQueryClient();
-    const mutation = useMutation<User, Response, User>(patchUser, {
+    const mutation = useMutation<User, Response, Partial<User>>(patchUser, {
         onSuccess: newUser => {
             queryClient.setQueryData(["users", newUser.username], newUser);
             updateInCachedList<User>("users", queryClient, newUser, "username");

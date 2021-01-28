@@ -171,6 +171,7 @@ export interface User {
     last_login: string;
     deactivated: boolean;
     groups: string[]; // Group.group_code
+    current?: string; // current password
     password?: string;
     confirmPassword?: string;
     minio_access_key?: string;

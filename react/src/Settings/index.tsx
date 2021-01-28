@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import {
     makeStyles,
@@ -11,7 +11,8 @@ import {
     Typography,
     Link,
 } from "@material-ui/core";
-import { MinioKeyDisplay, MinioResetButton, MinioKeys, ChipGroup } from "../components";
+import { MinioKeyDisplay, MinioResetButton, ChipGroup } from "../components";
+import { useUserQuery, useUsersUpdateMutation } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -60,91 +61,48 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-type KeyState = { loading: boolean } & MinioKeys;
-
-const initState = {
-    loading: false,
-    minio_access_key: undefined,
-    minio_secret_key: undefined,
-};
-
-type FetchStart = { type: "fetch_start" };
-type FetchEnd = { type: "fetch_end" } & Omit<KeyState, "loading">;
-type ResetAction = { type: "init" };
-type CombinedKeyAction = FetchStart | FetchEnd | ResetAction;
-
-function keyReducer(state: KeyState, action: CombinedKeyAction): KeyState {
-    switch (action.type) {
-        case "fetch_start":
-            return {
-                ...state,
-                loading: true,
-            };
-        case "fetch_end":
-            return {
-                loading: false,
-                minio_access_key: action.minio_access_key,
-                minio_secret_key: action.minio_secret_key,
-            };
-        case "init":
-            return initState;
-    }
-}
-
 export default function Settings({ username }: { username: string }) {
     const classes = useStyles();
+    const user = useUserQuery(username);
+    const passwordMutation = useUsersUpdateMutation();
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [keyState, dispatch] = useReducer(keyReducer, initState);
     const [groups, setGroups] = useState<string[]>([]);
+    const [updating, setUpdating] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const loading = user === undefined;
 
     async function changePassword(e: React.MouseEvent) {
         e.preventDefault();
-        const response = await fetch(`/api/users/${username}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                current: currentPassword,
-                password: newPassword,
-            }),
-        });
-        if (response.ok) {
-            setCurrentPassword("");
-            setNewPassword("");
-            setConfirmPassword("");
-            enqueueSnackbar("Password changed successfully.", { variant: "success" });
-        } else {
-            enqueueSnackbar(await response.text(), { variant: "error" });
-        }
-    }
-
-    function onMinioReset(loading: boolean, newKeys: MinioKeys) {
-        if (loading) {
-            dispatch({ type: "fetch_start" });
-        } else {
-            dispatch({ type: "fetch_end", ...newKeys });
-        }
+        setUpdating(true);
+        passwordMutation.mutate(
+            { username: username, current: currentPassword, password: newPassword },
+            {
+                onSuccess: newUser => {
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    enqueueSnackbar("Password changed successfully.", { variant: "success" });
+                },
+                onError: async response => {
+                    enqueueSnackbar(await response.text(), { variant: "error" });
+                },
+                onSettled: () => {
+                    setUpdating(false);
+                },
+            }
+        );
     }
 
     useEffect(() => {
         document.title = `Settings | ${process.env.REACT_APP_NAME}`;
-        dispatch({
-            type: "fetch_start",
-        });
-        fetch(`/api/users/${username}`)
-            .then(response => response.json())
-            .then(data => {
-                dispatch({
-                    type: "fetch_end",
-                    minio_access_key: data.minio_access_key as string,
-                    minio_secret_key: data.minio_secret_key as string,
-                });
-                setGroups((data.groups as string[]).map(code => code.toUpperCase()));
-            });
     }, [username]);
+
+    useEffect(() => {
+        if (user) setGroups(user.groups.map(code => code.toUpperCase()));
+    }, [user]);
 
     const passwordsDiffer = newPassword !== confirmPassword;
     const passwordErrorText = passwordsDiffer && "Passwords do not match.";
@@ -213,7 +171,11 @@ export default function Settings({ username }: { username: string }) {
                             />
                         </Grid>
                         <Grid item md={6} xs={12}>
-                            <MinioKeyDisplay {...keyState} />
+                            <MinioKeyDisplay
+                                loading={loading || updating}
+                                minio_access_key={user?.minio_access_key}
+                                minio_secret_key={user?.minio_secret_key}
+                            />
                         </Grid>
                     </Grid>
                     <div className={classes.submitButton}>
@@ -236,7 +198,7 @@ export default function Settings({ username }: { username: string }) {
                                 Go to MinIO
                             </Button>
                         </Link>
-                        <MinioResetButton username={username} onUpdate={onMinioReset} />
+                        <MinioResetButton username={username} />
                     </div>
                 </Paper>
             </Container>
