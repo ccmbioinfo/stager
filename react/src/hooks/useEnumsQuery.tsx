@@ -12,7 +12,7 @@ async function fetchEnums() {
  * Return json result of GET /api/enums.
  * Return undefined if fetch is unsuccessful.
  */
-export function useEnums() {
+export function useEnumsQuery() {
     const result = useQuery<EnumResult, Response>("enums", fetchEnums, {
         staleTime: Infinity, // for now, it never gets stale
     });
