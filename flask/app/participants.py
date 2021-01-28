@@ -131,6 +131,9 @@ def list_participants():
             {
                 **asdict(participant),
                 "family_codename": participant.family.family_codename,
+                "institution": participant.institution.institution
+                if participant.institution
+                else None,
                 "updated_by": participant.updated_by.username,
                 "created_by": participant.created_by.username,
                 "tissue_samples": [
@@ -213,6 +216,9 @@ def update_participant(id: int):
         [
             {
                 **asdict(participant),
+                "institution": participant.institution.institution
+                if participant.institution
+                else None,
                 "created_by": participant.created_by.username,
                 "updated_by": participant.updated_by.username,
             }
@@ -256,6 +262,20 @@ def create_participant():
     if enum_error:
         return enum_error, 400
 
+    # get institution id
+    institution = request.json.get("institution")
+    if institution:
+        institution_obj = models.Institution.query.filter(
+            models.Institution.institution == institution
+        ).one_or_none()
+        if institution_obj:
+            institution_id = institution_obj.institution_id
+        else:
+            institution_obj = models.Institution(institution=institution)
+            db.session.add(institution_obj)
+            transaction_or_abort(db.session.flush)
+            institution_id = institution_obj.institution_id
+
     ptp_objs = models.Participant(
         family_id=request.json.get("family_id"),
         participant_codename=request.json.get("participant_codename"),
@@ -264,6 +284,7 @@ def create_participant():
         affected=request.json.get("affected"),
         solved=request.json.get("solved"),
         participant_type=request.json.get("participant_type"),
+        institution_id=institution_id if institution else None,
         month_of_birth=request.json.get("month_of_birth"),
         created_by_id=created_by_id,
         updated_by_id=updated_by_id,
@@ -278,6 +299,9 @@ def create_participant():
         jsonify(
             {
                 **asdict(ptp_objs),
+                "institution": ptp_objs.institution.institution
+                if ptp_objs.institution
+                else None,
                 "created_by": ptp_objs.created_by.username,
                 "updated_by": ptp_objs.updated_by.username,
             }

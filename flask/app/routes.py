@@ -286,6 +286,20 @@ def bulk_update():
             db.session.rollback()
             return f"Error on line {str(i + 1)} - " + enum_error, 400
 
+        # get institution id
+        institution = row.get("institution")
+        if institution:
+            institution_obj = models.Institution.query.filter(
+                models.Institution.institution == institution
+            ).one_or_none()
+            if institution_obj:
+                institution_id = institution_obj.institution_id
+            else:
+                institution_obj = models.Institution(institution=institution)
+                db.session.add(institution_obj)
+                transaction_or_abort(db.session.commit)
+                institution_id = institution_obj.institution_id
+
         # Find the participant by codename or create it if it doesn't exist
         participant_id = models.Participant.query.filter(
             models.Participant.family_id == family_id,
@@ -300,6 +314,7 @@ def bulk_update():
                 affected=row.get("affected"),
                 solved=row.get("solved"),
                 participant_type=row.get("participant_type"),
+                institution_id=institution_id if institution else None,
                 month_of_birth=row.get("month_of_birth"),
                 created_by_id=created_by_id,
                 updated_by_id=updated_by_id,
@@ -380,6 +395,9 @@ def bulk_update():
             "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
             "participant_type": dataset.tissue_sample.participant.participant_type,
+            "institution": dataset.tissue_sample.participant.institution.institution
+            if dataset.tissue_sample.participant.institution
+            else None,
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
             "month_of_birth": dataset.tissue_sample.participant.month_of_birth,
