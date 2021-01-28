@@ -246,7 +246,7 @@ def create_participant():
         else:
             institution_obj = models.Institution(institution=institution)
             db.session.add(institution_obj)
-            transaction_or_abort(db.session.commit)
+            transaction_or_abort(db.session.flush)
             institution_id = institution_obj.institution_id
 
     ptp_objs = models.Participant(
