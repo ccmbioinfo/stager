@@ -50,7 +50,7 @@ minio==7.0.1
     # via -r requirements.in
 numpy==1.19.4
     # via pandas
-pandas==1.1.5
+pandas==1.2.1
     # via -r requirements.in
 pycparser==2.20
     # via cffi
