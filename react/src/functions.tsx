@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import LocalizedFormat from "dayjs/plugin/localizedFormat";
 import {
     Counts,
     KeyValue,
@@ -14,6 +17,9 @@ import {
     PseudoBoolean,
     PseudoBooleanReadableMap,
 } from "./typings";
+
+dayjs.extend(utc);
+dayjs.extend(LocalizedFormat);
 
 export function countArray(items: string[]) {
     return items.reduce<Counts>((counts, item) => {
@@ -34,34 +40,11 @@ export function toKeyValue(items: string[]) {
 }
 
 /**
- * Return a date string in the format "YYYY-MM-DD", if possible.
- *
- * @param {string} date Datestring of the form: "Day, DD Mon YYYY HH:MM:SS GMT"
+ * Convert an ISO datetime to human-readable format in the user's locale.
  */
 export function formatDateString(date: string) {
-    const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ];
-    // Pretty general datestring because we trust the server to send a good one
-    const regex = /^[A-Z][a-z]{2}, (\d{2}) ([A-Z][a-z]{2}) (\d{4}) \d{2}:\d{2}:\d{2} GMT$/;
-    const result = regex.exec(date);
-    if (result) {
-        let [year, month, day] = [result[3], "" + (months.indexOf(result[2]) + 1), result[1]];
-        if (month.length < 2) month = "0" + month;
-        return [year, month, day].join("-");
-    }
-    return date;
+    const datetime = dayjs.utc(date);
+    return datetime.local().format("LLLL");
 }
 
 /**
@@ -306,6 +289,7 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
             tissue_sample_type: "",
             dataset_type: "",
             condition: "GermLine",
+            sequencing_date: "",
         });
     }
     return arr;
@@ -357,4 +341,12 @@ export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: bool
     else if (typeof value === "boolean")
         val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
     return val;
+}
+
+/**
+ * Return true if the string is empty or contains only whitespace, false otherwise.
+ */
+export function strIsEmpty(str?: string): boolean {
+    const testRegex = /\S/g;
+    return str ? !testRegex.test(str) : true;
 }

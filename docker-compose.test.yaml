@@ -3,6 +3,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
+    user: "${MYSQL_UIDGID:-mysql}"
     environment:
       MYSQL_DATABASE: "${TEST_MYSQL_DATABASE}"
       MYSQL_USER: "${TEST_MYSQL_USER}"
@@ -16,7 +17,8 @@ services:
     command: server /data
   app:
     build: flask
-    image: ccmbio/st2020
+    image: ghcr.io/ccmbioinfo/stager:dev
+    user: "${FLASK_UIDGID:-www-data}"
     environment:
       FLASK_ENV: development
       TEST_ST_DATABASE_URI: "mysql+pymysql://${TEST_MYSQL_USER}:${TEST_MYSQL_PASSWORD}@mysql/${TEST_MYSQL_DATABASE}"
@@ -27,5 +29,5 @@ services:
       - mysql
       - minio
     volumes:
-      - ./flask:/var/www/sample-tracker/flask
+      - ./flask:/usr/src/stager
     command: pytest

@@ -4,11 +4,13 @@ on:
     branches:
       - master
     paths:
+      - .github/workflows/react.yml
       - react/**/*
   pull_request:
     branches:
       - '*'
     paths:
+      - .github/workflows/react.yml
       - react/**/*
 jobs:
   build:
@@ -18,11 +20,35 @@ jobs:
         working-directory: react
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@v2
       with:
         node-version: 14
+    - name: Get yarn cache path
+      id: yarn-cache-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+    - uses: actions/cache@v2
+      id: restore
+      with:
+        path: |
+          ${{ steps.yarn-cache-path.outputs.dir }}
+          react/node_modules
+        key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
     - run: yarn install
+      if: steps.restore.outputs.cache-hit != 'true'
     - run: yarn build
+      env:
+        REACT_APP_NAME: Stager
+        REACT_APP_MINIO_URL: https://sampletrackerdev.ccm.sickkids.ca/minio/
     - run: yarn lint
     - run: yarn check-format
     # - run: yarn test -- --coverage
+    - name: Deploy to MinIO bucket
+      if: github.event_name == 'push'
+      env:
+        MC_HOST_minio: https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_HOST }}
+      run: |
+        sudo curl --output /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
+        sudo chmod +x /usr/local/bin/mc
+        ./deploy.sh minio ${{ secrets.MINIO_BUCKET }}

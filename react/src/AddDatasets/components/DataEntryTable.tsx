@@ -28,16 +28,20 @@ import {
     Restore,
     OpenInNew,
 } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family } from "../../typings";
-import { Option, getOptions as _getOptions, getColumns, participantColumns } from "./utils";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
+import { getOptions as _getOptions, getColumns, participantColumns } from "./utils";
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
-import { useFetchCache } from "../../contexts/fetchCache";
+import { GroupDropdownSelect } from "../../components";
+import { useEnums, useFamilies } from "../../hooks";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
     onChange: (data: DataEntryRow[]) => void;
+    allGroups: string[]; // this user's permission groups
+    groups: string[]; // selected groups to submit as
+    setGroups: (selectedGroups: string[]) => void;
 }
 
 const useTableStyles = makeStyles(theme => ({
@@ -118,22 +122,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
-    const [families, setFamilies] = useState<Family[]>([]);
     const [files, setFiles] = useState<string[]>([]);
-    const enums = useFetchCache("/api/enums");
+    const families = useFamilies();
+    const enums = useEnums();
 
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
     useEffect(() => {
-        fetch("/api/families")
-            .then(response => response.json())
-            .then(data => {
-                setFamilies(data as Family[]);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
         fetch("/api/unlinked")
             .then(response => response.json())
             .then(files => setFiles(files.sort()))
@@ -165,17 +160,21 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         }
         const newRows = props.data.map((value, index) => {
             if (autopopulate && index === rowIndex) {
+                // autopopulate row
+                // pre-existing rows are disabled, even if the values are wrong
                 const participant = findParticipant(newValue as string, col.field, value, families);
                 if (participant) {
+                    // pre-existing participant
                     return setProp(
                         participantColumns.reduce(
-                            (row, currCol) => setProp(row, currCol, participant[currCol]),
-                            setProp({ ...value }, "participantColDisabled", true)
+                            (row, currCol) => setProp(row, currCol, participant[currCol]), // reducer
+                            setProp({ ...value }, "participantColDisabled", true) // init
                         ),
                         col.field,
                         newValue
                     );
                 } else {
+                    // No participant found
                     return setProp(
                         setProp({ ...value }, "participantColDisabled", false),
                         col.field,
@@ -217,6 +216,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     window.localStorage.removeItem("data-entry-default-columns");
                     setOptionals(getOptionalHeaders());
                 }}
+                allGroups={props.allGroups}
+                groups={props.groups}
+                setGroups={props.setGroups}
             />
             <TableContainer>
                 <Table>
@@ -285,12 +287,10 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                             onEdit(newValue, rowIndex, col, autocomplete)
                                         }
                                         key={col.field}
-                                        required
+                                        required={!row.participantColDisabled} // not required if pre-filled
                                         disabled={
                                             row.participantColDisabled &&
-                                            !!participantColumns.find(
-                                                currCol => currCol === col.field
-                                            )
+                                            (participantColumns as string[]).includes(col.field)
                                         }
                                     />
                                 ))}
@@ -367,6 +367,9 @@ function DataEntryToolbar(props: {
     handleColumnAction: (field: keyof DataEntryRow) => void;
     handleResetAction: () => void;
     columns: DataEntryHeader[];
+    allGroups: string[]; // this user's groups
+    groups: string[]; // selected groups
+    setGroups: (selectedGroups: string[]) => void;
 }) {
     const classes = useToolbarStyles();
     const [openUpload, setOpenUpload] = useState(false);
@@ -377,6 +380,12 @@ function DataEntryToolbar(props: {
                 <Box display="flex" flexGrow={1}>
                     <Typography variant="h6">Enter Metadata</Typography>
                 </Box>
+                <GroupDropdownSelect
+                    selectedGroupCodes={props.groups}
+                    allGroupCodes={props.allGroups}
+                    onChange={props.setGroups}
+                    disabled={props.allGroups.length <= 1}
+                />
                 <Tooltip title="Upload CSV">
                     <IconButton onClick={() => setOpenUpload(true)}>
                         <CloudUpload />

@@ -2,16 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
-import { Autocomplete } from "@material-ui/lab";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { toKeyValue, formatDateString, exportCSV, rowDiff } from "../../functions";
+import { toKeyValue, exportCSV, rowDiff } from "../../functions";
 import { KeyValue, Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import { Note } from "../../components";
+import { DateTimeText, Note, FileLinkingComponent } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
-import { useFetchCache } from "../../contexts/fetchCache";
+import { useEnums } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -38,7 +37,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipelines, setPipelines] = useState<Pipeline[]>([]);
 
-    const enums = useFetchCache("/api/enums");
+    const enums = useEnums();
     let tissueSampleTypes: KeyValue = {};
     let datasetTypes: KeyValue = {};
     let conditions: KeyValue = {};
@@ -165,15 +164,11 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         customSort: (a, b) => a.linked_files.length - b.linked_files.length,
                         render: data => <LinkedFilesButton fileNames={data.linked_files} />,
                         editComponent: props => (
-                            <Autocomplete
-                                selectOnFocus
-                                clearOnBlur
-                                handleHomeEndKeys
-                                autoHighlight
-                                onChange={(event, newValue) => props.onChange(newValue)}
-                                options={files}
-                                value={props.value}
-                                renderInput={params => <TextField {...params} variant="standard" />}
+                            <FileLinkingComponent
+                                values={props.rowData.linked_files}
+                                options={files.map(file => ({ title: file, inputValue: file }))}
+                                onEdit={(newValue: string[]) => props.onChange(newValue)}
+                                disableTooltip
                             />
                         ),
                     },
@@ -182,7 +177,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         field: "updated",
                         type: "string",
                         editable: "never",
-                        render: rowData => formatDateString(rowData.updated),
+                        render: rowData => <DateTimeText datetime={rowData.updated} />,
                     },
                     { title: "Updated By", field: "updated_by", editable: "never" },
                     {
@@ -258,6 +253,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                             <div className={classes.chipBar}>
                                 {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
                                     <Chip
+                                        key={type}
                                         label={type}
                                         onClick={() => setDatasetTypeFilter([type])}
                                         clickable

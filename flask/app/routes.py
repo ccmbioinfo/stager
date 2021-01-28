@@ -42,6 +42,7 @@ def login():
                 "username": current_user.username,
                 "last_login": last_login,
                 "is_admin": current_user.is_admin,
+                "groups": [group.group_code for group in current_user.groups],
             }
         )
 
@@ -50,7 +51,7 @@ def login():
         return "Request body must be correctly-shaped JSON!", 400
 
     user = models.User.query.filter_by(username=body["username"]).first()
-    if user is None or not user.check_password(body["password"]):
+    if user is None or user.deactivated or not user.check_password(body["password"]):
         return "Unauthorized", 401
 
     # get/update last login
@@ -67,6 +68,7 @@ def login():
             "username": user.username,
             "last_login": last_login,
             "is_admin": current_user.is_admin,
+            "groups": [group.group_code for group in current_user.groups],
         }
     )
 
@@ -109,6 +111,29 @@ def pipelines_list():
     )
 
     return jsonify(db_pipelines)
+
+
+@routes.route("/api/institutions", methods=["GET"])
+@login_required
+def get_institutions():
+
+    db_institutions = models.Institution.query.all()
+
+    return jsonify([x.institution for x in db_institutions])
+
+
+@routes.route("/api/metadatasettypes", methods=["GET"])
+@login_required
+def get_metadataset_types():
+
+    metadataset_dataset_types = models.MetaDatasetType_DatasetType.query.all()
+
+    d = {e.metadataset_type: [] for e in metadataset_dataset_types}
+
+    for k in metadataset_dataset_types:
+        d[k.metadataset_type].append(k.dataset_type)
+
+    return jsonify(d)
 
 
 @routes.route("/api/enums", methods=["GET"])

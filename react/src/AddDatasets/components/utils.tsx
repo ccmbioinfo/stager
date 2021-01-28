@@ -1,5 +1,5 @@
-import { DataEntryHeader, DataEntryRow, Family } from "../../typings";
-import { getDataEntryHeaders, snakeCaseToTitle } from "../../functions";
+import { DataEntryHeader, DataEntryRow, Family, Option, Participant } from "../../typings";
+import { getDataEntryHeaders, snakeCaseToTitle, strIsEmpty } from "../../functions";
 
 export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
 export const dateColumns: Array<keyof DataEntryRow> = ["sequencing_date"];
@@ -39,14 +39,6 @@ export function getColumns(category: "required" | "optional" | "RNASeq"): DataEn
     return (getDataEntryHeaders()[category] as Array<keyof DataEntryRow>).map(field =>
         toColumn(field, category !== "required")
     );
-}
-
-export interface Option {
-    title: string;
-    inputValue: string;
-    origin?: string;
-    disabled?: boolean;
-    selected?: boolean;
 }
 
 // Convert the provided value into an Option
@@ -183,4 +175,43 @@ export function getOptions(
         default:
             return rowOptions;
     }
+}
+
+/**
+ * Checks if a pre-existing participant has valid values, and should be disabled.
+ * Return true if valid, false otherwise.
+ * @param participant The pre-existing participant in question.
+ * @param enums The result from /api/enums
+ */
+export function checkParticipant(participant: Participant, enums: any): boolean {
+    const required: string[] = getDataEntryHeaders().required;
+
+    return participantColumns.every(column => {
+        if (required.includes(column)) {
+            // required columns should be checked to be valid
+
+            const index = snakeToTitle(column);
+            // must be defined
+            if (!participant[column]) return false;
+
+            if (enumerableColumns.includes(column)) {
+                // if enumerable, must be valid value
+                return enums[index].includes(participant[column]);
+            } else if (booleanColumns.includes(column)) {
+                return ["true", "false"].includes(participant[column]);
+            } else {
+                return !strIsEmpty(participant[column]);
+            }
+        } else {
+            // optional columns are fine
+            return true;
+        }
+    });
+}
+
+function snakeToTitle(str: string): string {
+    return str
+        .split("_")
+        .map(word => word.substring(0, 1).toUpperCase() + word.substring(1))
+        .join("");
 }

@@ -14,10 +14,10 @@ import {
     Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, Person, PersonOutline, Security } from "@material-ui/icons";
-import { Group, User } from "../../typings";
+import { User } from "../../typings";
 import UserDetails from "./UserDetails";
 import { LastLoginDisplay, ChipGroup, MinioKeys } from "../../components";
-import { useFetchCache } from "../../contexts/fetchCache";
+import { useGroups } from "../../hooks";
 
 const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     button: {
@@ -25,7 +25,7 @@ const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
     },
     title: {
         color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
-        fontStyle: active => (active ? "none" : "italic"),
+        fontStyle: active => (active ? "normal" : "italic"),
     },
     icon: {
         color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
@@ -46,7 +46,7 @@ export default function UserRow(props: {
     const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const groups = useFetchCache("/api/groups") || ([] as Group[]);
+    const groups = useGroups();
 
     // MinIO keys get fetched once when the user opens the dropdown
     useEffect(() => {

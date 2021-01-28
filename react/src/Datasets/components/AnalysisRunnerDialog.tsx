@@ -78,6 +78,7 @@ export default function AnalysisRunnerDialog({
                     >
                         {pipelines.map(({ pipeline_id, pipeline_name, pipeline_version }) => (
                             <FormControlLabel
+                                key={pipeline_id}
                                 label={`${pipeline_name} ${pipeline_version}`}
                                 value={pipeline_id}
                                 control={<Radio color="primary" />}

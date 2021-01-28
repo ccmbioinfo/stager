@@ -1,8 +1,10 @@
 from functools import wraps
 from enum import Enum
 from typing import Any, Callable, Dict, List, Union
+from datetime import date, time, datetime
 
 from flask import abort
+from flask.json import JSONEncoder
 from flask_login import current_user
 from sqlalchemy import exc
 
@@ -99,3 +101,18 @@ def filter_query(model, raw_filters):
             filt = getattr(column, attr)(value)
         sql_filters.append(filt)
     return sql_filters
+
+
+class DateTimeEncoder(JSONEncoder):
+    """
+    JSONEncoder override for encoding UTC datetimes in ISO format.
+    """
+
+    def default(self, obj):
+
+        # handle any variant of date
+        if isinstance(obj, (date, time, datetime)):
+            return obj.isoformat()
+
+        # default behaviour
+        return JSONEncoder.default(self, obj)

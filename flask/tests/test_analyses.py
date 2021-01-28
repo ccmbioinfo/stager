@@ -109,21 +109,38 @@ def test_update_participant(test_database, client, login_as):
     )
     # Test assignee does not exist
     assert client.patch("/api/analyses/1", json={"assignee": "nope"}).status_code == 400
-    # Test enum error
+    # Test enum error - doesn't really apply anymore if we get check for valid enums separately
     assert (
         client.patch(
             "/api/analyses/1", json={"analysis_state": "not_an_enum"}
         ).status_code
-        == 400
+        == 403
     )
-    # Test success
-    response = client.patch("/api/analyses/1", json={"analysis_state": "Done"})
-    assert response.status_code == 200
-    # Make sure it updated
-    analysis = models.Analysis.query.filter(
-        models.Analysis.analysis_id == 1
-    ).one_or_none()
-    assert analysis.analysis_state == "Done"
+    # test analysis state restriction for users
+    for state in ["Requested", "Running", "Done", "Error"]:
+        assert (
+            client.patch("/api/analyses/1", json={"analysis_state": state}).status_code
+            == 403
+        )
+    # test success for cancellation
+    assert (
+        client.patch(
+            "/api/analyses/1", json={"analysis_state": "Cancelled"}
+        ).status_code
+        == 200
+    )
+
+    # test analysis state restriction (no restriction) for admins
+    login_as("admin")
+    for state in ["Requested", "Running", "Done", "Error", "Cancelled"]:
+        assert (
+            client.patch("/api/analyses/1", json={"analysis_state": state}).status_code
+            == 200
+        )
+        analysis = models.Analysis.query.filter(
+            models.Analysis.analysis_id == 1
+        ).one_or_none()
+        assert analysis.analysis_state == state
 
 
 # POST /api/analyses
@@ -148,30 +165,42 @@ def test_create_analysis(test_database, client, login_as):
         == 400
     )
 
-    # The following 2 tests have not been implemented yet, please uncomment when they have :)
-
     # # Test invalid dataset id given
-    # assert (
-    #     client.post(
-    #         "/api/analyses", json={"datasets": "haha", "pipeline_id": 1}
-    #     ).status_code
-    #     == 400
-    # )
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": "haha", "pipeline_id": 1}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": [], "pipeline_id": 1}
+        ).status_code
+        == 400
+    )
 
-    # # Test invalid pipeline id given
-    # assert (
-    #     client.post(
-    #         "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
-    #     ).status_code
-    #     == 400
-    # )
+    # Test invalid pipeline id given
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
+        ).status_code
+        == 400
+    )
 
-    # Test success and check db
+    # test requesting a dataset that the user does not have access to
     assert (
         client.post(
             "/api/analyses", json={"datasets": [1, 2], "pipeline_id": 1}
         ).status_code
-        == 200
+        == 404
+    )
+
+    # Test success and check db
+    assert (
+        client.post(
+            "/api/analyses", json={"datasets": [1], "pipeline_id": 1}
+        ).status_code
+        == 201
     )
     analysis = (
         models.Analysis.query.options(joinedload(models.Analysis.datasets))
@@ -180,12 +209,12 @@ def test_create_analysis(test_database, client, login_as):
     )
     dataset_1 = (
         models.Dataset.query.options(joinedload(models.Dataset.analyses))
-        .filter(models.Dataset.dataset_id == 2)
+        .filter(models.Dataset.dataset_id == 1)
         .one_or_none()
     )
     assert analysis is not None
-    assert len(analysis.datasets) == 2
-    assert len(dataset_1.analyses) == 3
+    assert len(analysis.datasets) == 1
+    assert len(dataset_1.analyses) == 2
 
     login_as("admin")
     assert len(client.get("/api/analyses").get_json()) == 4

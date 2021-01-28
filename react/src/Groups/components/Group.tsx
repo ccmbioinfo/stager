@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     makeStyles,
     Theme,
@@ -12,6 +12,7 @@ import {
 import { Group as GroupIcon, Edit, Check, Close, Delete } from "@material-ui/icons";
 import ConfirmModal from "../../components/ConfirmModal";
 import { Group as GroupType } from "../../typings";
+import { useGroup } from "../../hooks";
 
 const useStyles = makeStyles((theme: Theme) => ({
     paper: {
@@ -53,14 +54,10 @@ export function Group({ group, onNameChange, onDelete }: GroupProps) {
     const classes = useStyles();
     const [editing, setEditing] = useState<boolean>(false);
     const [groupName, setGroupName] = useState<string>(group.group_name);
-    const [numUsers, setNumUsers] = useState<number>(0);
+    const tempGroup = useGroup(group.group_code);
+    let numUsers = 0;
+    if (tempGroup && tempGroup.users) numUsers = tempGroup.users.length;
     const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
-
-    useEffect(() => {
-        fetch(`/api/groups/${group.group_code}`)
-            .then(response => response.json())
-            .then(data => setNumUsers(data.users.length));
-    }, [group]);
 
     return (
         <Grid item xs={12} sm={6} md={4} xl={3}>

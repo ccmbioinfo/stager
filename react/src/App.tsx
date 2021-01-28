@@ -2,21 +2,30 @@ import React, { useState, useEffect, useMemo } from "react";
 import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
-import { FetchCacheProvider } from "./contexts/fetchCache";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
     notistackRef.current!.closeSnackbar(key);
 };
 
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60, // 1 minute
+        },
+    },
+});
+
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [username, setUsername] = useState("");
     const [lastLoginTime, setLastLoginTime] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
+    const [groups, setGroups] = useState<string[]>([]);
 
     async function signout() {
         const result = await fetch("/api/logout", {
@@ -37,6 +46,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setUsername(loginInfo.username);
                 setLastLoginTime(loginInfo.last_login);
                 setIsAdmin(loginInfo.is_admin);
+                setGroups(loginInfo.groups);
             }
             setAuthenticated(result.ok);
         })();
@@ -45,7 +55,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <FetchCacheProvider>
+            <QueryClientProvider client={queryClient}>
                 <SnackbarProvider
                     ref={notistackRef}
                     action={key => (
@@ -70,9 +80,10 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                         darkMode={props.darkMode}
                         toggleDarkMode={props.toggleDarkMode}
                         isAdmin={isAdmin}
+                        permissionGroups={groups}
                     />
                 </SnackbarProvider>
-            </FetchCacheProvider>
+            </QueryClientProvider>
         );
     } else {
         return (
@@ -81,6 +92,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setLastLoginTime={setLastLoginTime}
                 setGlobalUsername={setUsername}
                 setIsAdmin={setIsAdmin}
+                setGroups={setGroups}
             />
         );
     }
