@@ -9,7 +9,7 @@ import { KeyValue, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
-import { useEnums } from "../../hooks";
+import { useEnums, useParticipantsPage } from "../../hooks";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -24,6 +24,7 @@ export default function ParticipantTable() {
         datasetTypes = toKeyValue(enums.DatasetType);
         participantTypes = toKeyValue(enums.ParticipantType);
     }
+    const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -35,28 +36,6 @@ export default function ParticipantTable() {
             await navigator.clipboard.writeText(toCopy);
         }
     }
-
-    useEffect(() => {
-        fetch("/api/participants").then(async response => {
-            if (response.ok) {
-                const participants = await response.json();
-                // Collect all dataset type labels from all tissue samples
-                // for each participant in the dataset_types array
-                participants.forEach((participant: Participant) => {
-                    participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
-                        datasets.map(dataset => dataset.dataset_type)
-                    );
-                    participant.affected += "";
-                    participant.solved += "";
-                });
-                setParticipants(participants as Participant[]);
-            } else {
-                console.error(
-                    `GET /api/participants failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-    }, []);
 
     return (
         <div>
@@ -154,7 +133,7 @@ export default function ParticipantTable() {
                         ),
                     },
                 ]}
-                data={participants}
+                data={dataFetch}
                 title="Participants"
                 options={{
                     pageSize: 10,

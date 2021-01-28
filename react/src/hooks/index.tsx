@@ -5,3 +5,4 @@ export { useGroups } from "./groups/useGroups";
 export { useGroupsPost } from "./groups/useGroupsPost";
 export { useGroupsPatch } from "./groups/useGroupsPatch";
 export { useGroupsDelete } from "./groups/useGroupsDelete";
+export { useParticipantsPage } from "./participants/useParticipantsPage";
