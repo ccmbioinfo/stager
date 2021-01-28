@@ -8,11 +8,11 @@ from . import models
 
 from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc
+from sqlalchemy import exc, asc, desc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
-from .utils import check_admin, transaction_or_abort, mixin, enum_validate
+from .utils import check_admin, transaction_or_abort, mixin, enum_validate, filter_query
 
 
 editable_columns = [
@@ -37,22 +37,48 @@ participants_blueprint = Blueprint(
 def list_participants():
 
     # parsing query parameters
-    max_rows = request.args.get("max_rows", default=100)
-    starts_with = request.args.get("starts_with", default="", type=str)
-    starts_with = f"{starts_with}%"  # sql syntax
-    order_by_col = request.args.get("order", default="participant_id", type=str)
-    # need some default or we need an ifelse statement, one with order_by method and one without. AFAIK there is no 'default' parameter we can pass into order_by to get the default sql ordering scheme
+    limit = request.args.get("limit", default=10)
+    page = request.args.get("page", default=1)
+    order_by_col = request.args.get("order_by", default="participant_id", type=str)
+    order_dir = request.args.get("order_dir", default="asc", type=str)
+
+    # for some reason type=int doesn't catch non-integer queries
+    try:
+        int(limit)
+    except:
+        return "Limit must be a valid integer", 400
 
     try:
-        int(max_rows)
+        int(page)
     except:
-        return "Max rows must be a valid integer", 400
+        return "Page must be a valid integer", 400
+
+    offset = (int(page) * int(limit)) - int(limit)
 
     columns = models.Participant.__table__.columns.keys()
 
-    if order_by_col not in columns:
-        return f"Column name for ordering must be one of {columns}", 400
-    column = getattr(models.Participant, order_by_col)
+    raw_filters = request.args.getlist("filter")
+    if raw_filters:
+        filt = filter_query(models.Participant, raw_filters)
+        if type(filt) == str:
+            return filt, 400
+    else:
+        filt = [
+            (
+                models.Participant.participant_codename
+                == models.Participant.participant_codename
+            )
+        ]
+
+    try:
+        order_column = getattr(models.Participant, order_by_col)
+    except AttributeError:
+        return f"Column name must be one of {columns}", 400
+
+    try:
+        order = getattr(order_column, order_dir)
+    except AttributeError:
+        return f"Column name must be 'asc' or 'desc'", 400
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -60,15 +86,16 @@ def list_participants():
         user_id = current_user.user_id
 
     if user_id:
+        participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            contains_eager(models.Participant.tissue_samples).contains_eager(
+                models.TissueSample.datasets
+            ),
+        )
+        for f in filt:
+            participants = participants.filter(f)
         participants = (
-            models.Participant.query.options(
-                joinedload(models.Participant.family),
-                contains_eager(models.Participant.tissue_samples).contains_eager(
-                    models.TissueSample.datasets
-                ),
-            )
-            .filter(models.Participant.participant_codename.like(starts_with))
-            .join(models.TissueSample)
+            participants.join(models.TissueSample)
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -81,23 +108,23 @@ def list_participants():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .order_by(column)
-            .limit(max_rows)
+            .order_by(order())
+            .limit(limit)
+            .offset(offset)
         )
+
     else:
-        participants = (
-            models.Participant.query.options(
-                joinedload(models.Participant.family),
-                joinedload(models.Participant.tissue_samples).joinedload(
-                    models.TissueSample.datasets
-                ),
-                joinedload(models.Participant.created_by),
-                joinedload(models.Participant.updated_by),
-            )
-            .filter(models.Participant.participant_codename.like(starts_with))
-            .order_by(column)
-            .limit(max_rows)
+        participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            joinedload(models.Participant.tissue_samples).joinedload(
+                models.TissueSample.datasets
+            ),
+            joinedload(models.Participant.created_by),
+            joinedload(models.Participant.updated_by),
         )
+        for f in filt:
+            participants = participants.filter(f)
+        participants = participants.order_by(order()).limit(limit).offset(offset)
 
     return jsonify(
         [
