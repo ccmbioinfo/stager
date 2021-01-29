@@ -11,7 +11,7 @@ import {
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { Group } from "../../typings";
-import { useGroupsCreateMutation } from "../../hooks";
+import { useGroupCreateMutation } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     submitting: {
@@ -30,7 +30,7 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
     const classes = useStyles();
     const [group, setGroup] = useState<Group>(emptyGroup);
     const [errorText, setErrorText] = useState<string>("");
-    const groupPost = useGroupsCreateMutation();
+    const groupPost = useGroupCreateMutation();
     const submitting = groupPost.status === "loading";
     const { enqueueSnackbar } = useSnackbar();
 

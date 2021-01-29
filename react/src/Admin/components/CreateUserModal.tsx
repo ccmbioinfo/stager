@@ -11,10 +11,11 @@ import {
     TextField,
     makeStyles,
 } from "@material-ui/core";
+import { useSnackbar } from "notistack";
+
 import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
 import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
-import { useSnackbar } from "notistack";
 
 const initState = {
     username: "",

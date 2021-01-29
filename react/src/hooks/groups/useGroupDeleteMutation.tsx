@@ -13,7 +13,7 @@ async function deleteGroup(group_code: string) {
  *
  * Used for deleting a group.
  */
-export function useGroupsDeleteMutation() {
+export function useGroupDeleteMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<string, Response, string>(deleteGroup, {
         onSuccess: (text, group_code) => {

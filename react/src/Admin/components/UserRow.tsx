@@ -99,13 +99,11 @@ export default function UserRow(props: {
                 <Collapse in={open}>
                     <Divider />
                     {open && (
-                        <div id={props.user.username}>
-                            <UserDetails
-                                user={props.user}
-                                onSave={props.onSave}
-                                onDelete={props.onDelete}
-                            />
-                        </div>
+                        <UserDetails
+                            user={props.user}
+                            onSave={props.onSave}
+                            onDelete={props.onDelete}
+                        />
                     )}
                 </Collapse>
             </Paper>
