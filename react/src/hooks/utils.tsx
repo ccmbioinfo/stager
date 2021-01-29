@@ -1,7 +1,7 @@
 // Function patterns that commonly occur in this set of hooks.
 
 import { Query, QueryResult } from "material-table";
-import { Participant } from "../typings";
+import { stringToBoolean } from "../functions";
 
 /**
  * Fetch the provided url. Return the json response if successful.
@@ -30,8 +30,16 @@ export async function queryTableData<RowData extends object>(
     const searchParams = new URLSearchParams();
     // add filters
     for (let filter of query.filters) {
-        if (filter.value) {
-            searchParams.append("filter", `${filter.column.field};like;${filter.value}`);
+        const isBoolean = ["affected", "solved"].includes("" + filter.column.field);
+        let operator = "like";
+        let value = filter.value;
+        // booleans use "eq" as operator
+        if (isBoolean) {
+            operator = "eq";
+            value = stringToBoolean(filter.value);
+        }
+        if (filter.value || isBoolean) {
+            searchParams.append("filter", `${filter.column.field};${operator};${value}`);
         }
     }
     // order by

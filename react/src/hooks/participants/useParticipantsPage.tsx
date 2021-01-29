@@ -4,8 +4,9 @@ import { queryTableData } from "../utils";
 import { Participant } from "../../typings";
 
 async function fetchParticipants(query: Query<Participant>) {
+    // fetch
     const queryResult = await queryTableData<Participant>(query, "/api/participants");
-
+    // format results
     queryResult.data.forEach((participant: Participant) => {
         participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
             datasets.map(dataset => dataset.dataset_type)
