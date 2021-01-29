@@ -158,9 +158,9 @@ export interface DataEntryHeader {
 export interface NewUser {
     username: string;
     email: string;
-    isAdmin: boolean;
+    is_admin: boolean;
     password: string;
-    confirmPassword: string;
+    confirmPassword?: string;
     groups: string[]; // Group.group_code
 }
 
@@ -171,6 +171,7 @@ export interface User {
     last_login: string;
     deactivated: boolean;
     groups: string[]; // Group.group_code
+    current?: string; // current password
     password?: string;
     confirmPassword?: string;
     minio_access_key?: string;

@@ -2,34 +2,30 @@ import React, { useState } from "react";
 import { Button, ButtonProps } from "@material-ui/core";
 import { User } from "../typings";
 import ConfirmModal from "./ConfirmModal";
+import { useUserMinioMutation } from "../hooks";
 
 export type MinioKeys = Partial<Pick<User, "minio_access_key" | "minio_secret_key">>;
 
 export default function MinioResetButton(
     props: {
         username: string;
-        onUpdate: (loading: boolean, keys: MinioKeys) => void;
+        onUpdate?: (loading: boolean, keys: MinioKeys) => void;
     } & ButtonProps
 ) {
     const { username, onUpdate, ...buttonProps } = props;
+    const minioResetMutation = useUserMinioMutation();
     const [open, setOpen] = useState(false);
 
     function onMinioReset() {
-        onUpdate(true, {});
-        fetch(`/api/users/${username}`, {
-            method: "POST",
-            body: JSON.stringify({ username: username }),
-            headers: {
-                "Content-Type": "application/json",
+        if (onUpdate) onUpdate(true, {});
+        minioResetMutation.mutate(username, {
+            onSuccess: keys => {
+                if (onUpdate) onUpdate(false, keys);
             },
-        })
-            .then(response => response.json())
-            .then(data =>
-                onUpdate(false, {
-                    minio_access_key: data.minio_access_key,
-                    minio_secret_key: data.minio_secret_key,
-                })
-            );
+            onError: () => {
+                if (onUpdate) onUpdate(false, {});
+            },
+        });
     }
 
     return (
