@@ -55,9 +55,9 @@ export async function queryTableData<RowData extends object>(
     if (response.ok) {
         const result = await response.json();
         return {
-            data: result,
-            page: query.page,
-            totalCount: query.pageSize,
+            data: result.data,
+            page: result.page - 1,
+            totalCount: result.totalCount,
         };
     } else {
         throw response;

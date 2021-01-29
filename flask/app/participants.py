@@ -94,6 +94,8 @@ def list_participants():
         )
         for f in filt:
             participants = participants.filter(f)
+
+        totalCount = participants.count()
         participants = (
             participants.join(models.TissueSample)
             .join(models.Dataset)
@@ -124,25 +126,30 @@ def list_participants():
         )
         for f in filt:
             participants = participants.filter(f)
+        totalCount = participants.count()
         participants = participants.order_by(order()).limit(limit).offset(offset)
 
     return jsonify(
-        [
-            {
-                **asdict(participant),
-                "family_codename": participant.family.family_codename,
-                "institution": participant.institution.institution
-                if participant.institution
-                else None,
-                "updated_by": participant.updated_by.username,
-                "created_by": participant.created_by.username,
-                "tissue_samples": [
-                    {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
-                    for tissue_sample in participant.tissue_samples
-                ],
-            }
-            for participant in participants
-        ]
+        {
+            "data": [
+                {
+                    **asdict(participant),
+                    "family_codename": participant.family.family_codename,
+                    "institution": participant.institution.institution
+                    if participant.institution
+                    else None,
+                    "updated_by": participant.updated_by.username,
+                    "created_by": participant.created_by.username,
+                    "tissue_samples": [
+                        {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
+                        for tissue_sample in participant.tissue_samples
+                    ],
+                }
+                for participant in participants
+            ],
+            "page": int(page),
+            "totalCount": totalCount,
+        }
     )
 
 
