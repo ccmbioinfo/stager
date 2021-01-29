@@ -195,10 +195,10 @@ def test_create_analysis(test_database, client, login_as):
         == 404
     )
 
-    # Test success and check db
+    # Test success and check db (switched from dataset 1 to dataset 3 as 1 is WES and incompatible with pipeline_id 2)
     assert (
         client.post(
-            "/api/analyses", json={"datasets": [1], "pipeline_id": 1}
+            "/api/analyses", json={"datasets": [3], "pipeline_id": 2}
         ).status_code
         == 201
     )
@@ -207,14 +207,35 @@ def test_create_analysis(test_database, client, login_as):
         .filter(models.Analysis.analysis_id == 4)
         .one_or_none()
     )
-    dataset_1 = (
+    dataset_3 = (
         models.Dataset.query.options(joinedload(models.Dataset.analyses))
-        .filter(models.Dataset.dataset_id == 1)
+        .filter(models.Dataset.dataset_id == 3)
         .one_or_none()
     )
     assert analysis is not None
     assert len(analysis.datasets) == 1
-    assert len(dataset_1.analyses) == 2
+    assert len(dataset_3.analyses) == 3
 
     login_as("admin")
     assert len(client.get("/api/analyses").get_json()) == 4
+
+    # test compatible metadataset types - may need to expand on these after more pipelines are introduced
+
+    test_compatible_dict = {
+        "wes_crg": ([3], 1, 404),  # Fail
+        "wes_cre": ([3], 2, 201),  # Pass
+        "wgs_crg": ([4], 1, 201),  # Pass
+        "wgs_cre": ([4], 2, 404),  # Fail
+        "multi_cre_bad": ([3, 4], 1, 404),  # Fail
+        "multi_cre_good": ([2, 3], 2, 201),  # Pass
+    }
+
+    for key in test_compatible_dict:
+        dataset_ids, pipeline_id, expected_error_code = test_compatible_dict[key]
+        assert (
+            client.post(
+                "/api/analyses",
+                json={"datasets": dataset_ids, "pipeline_id": pipeline_id},
+            ).status_code
+            == expected_error_code
+        )

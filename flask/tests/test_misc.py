@@ -11,7 +11,7 @@ def test_get_pipelines(test_database, client, login_as):
     login_as("admin")
     response = client.get("/api/pipelines")
     assert response.status_code == 200
-    assert len(response.get_json()) == 1
+    assert len(response.get_json()) == 2
 
 
 # GET /api/enums
