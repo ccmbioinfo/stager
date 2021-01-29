@@ -3,7 +3,7 @@ import { Group } from "../../typings";
 import { changeFetch, deleteFromCachedList } from "../utils";
 
 async function deleteGroup(group_code: string) {
-    return changeFetch("/api/users/" + group_code, "DELETE", null, {
+    return await changeFetch<string, Response>("/api/groups/" + group_code, "DELETE", null, {
         onSuccess: response => response.text(),
     });
 }

@@ -25,11 +25,17 @@ export async function basicFetch(url: string, options?: FetchOptions) {
  * Return the JSON response if successful.
  * Throw the response if unsuccessful.
  */
-export async function changeFetch(
+export async function changeFetch<
+    TSuccess extends unknown | Promise<any>,
+    TError extends unknown | Response
+>(
     url: string,
     method: "POST" | "PATCH" | "DELETE",
     body?: any,
-    overrides?: FetchOptions
+    overrides?: {
+        onSuccess?: (res: Response) => Promise<TSuccess>;
+        onError?: (res: Response) => Promise<TError>;
+    }
 ) {
     const response = await fetch(url, {
         method: method,
@@ -38,10 +44,10 @@ export async function changeFetch(
         body: body ? JSON.stringify(body) : undefined,
     });
     if (response.ok) {
-        if (overrides?.onSuccess) return overrides.onSuccess(response);
+        if (overrides?.onSuccess) return await overrides.onSuccess(response);
         return response.json();
     } else {
-        if (overrides?.onError) return overrides.onError(response);
+        if (overrides?.onError) throw await overrides.onError(response);
         throw response;
     }
 }
