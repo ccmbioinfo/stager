@@ -338,6 +338,7 @@ def update_analysis(id: int):
         "finished",
         "notes",
     ]
+
     if "assignee" in request.json:
         if not request.json["assignee"]:
             analysis.assignee = None
@@ -354,6 +355,12 @@ def update_analysis(id: int):
 
     if enum_error:
         return enum_error, 400
+
+    if request.json.get("analysis_state") == "Running":
+        analysis.started = datetime.now()
+    elif request.json.get("analysis_state") == "Done":
+        analysis.finished = datetime.now()
+    # Error and Cancelled defaults to time set in 'updated'
 
     if user_id:
         analysis.updated_by_id = user_id
