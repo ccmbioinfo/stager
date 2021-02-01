@@ -2,7 +2,7 @@ import json
 
 import pytest
 from app import db
-from app.madmin import MinioAdmin, readwrite_buckets_policy
+from app.madmin import MinioAdmin, stager_buckets_policy
 from app.models import User
 from conftest import TestConfig
 
@@ -48,7 +48,7 @@ def minio_policy():
         access_key=TestConfig.MINIO_ACCESS_KEY,
         secret_key=TestConfig.MINIO_SECRET_KEY,
     )
-    madmin.add_policy("ach", readwrite_buckets_policy("ach"))
+    madmin.add_policy("ach", stager_buckets_policy("ach"))
     yield madmin
     try:
         madmin.remove_policy("ach")
