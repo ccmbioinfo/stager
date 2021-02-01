@@ -16,7 +16,7 @@
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
     "@types/react-table": "^7.0.28",
-    "dayjs": "^1.10.3",
+    "dayjs": "^1.10.4",
     "material-table": "^1.69.1",
     "notistack": "^1.0.3",
     "prettier": "^2.1.2",
