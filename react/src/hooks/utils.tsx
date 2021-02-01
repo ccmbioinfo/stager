@@ -1,6 +1,6 @@
 // Function patterns that commonly occur in this set of hooks.
 
-import { Query as MTQuery, QueryResult as MTQueryResult } from "material-table";
+import { Query, QueryResult } from "material-table";
 import { stringToBoolean } from "../functions";
 import { MutationKey, QueryClient } from "react-query";
 
@@ -30,9 +30,9 @@ export async function basicFetch(url: string, options?: FetchOptions) {
  * @param url The API url to request from (/api/example)
  */
 export async function queryTableData<RowData extends object>(
-    query: MTQuery<RowData>,
+    query: Query<RowData>,
     url: string
-): Promise<MTQueryResult<RowData>> {
+): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams();
     // add filters
     for (let filter of query.filters) {
@@ -54,7 +54,7 @@ export async function queryTableData<RowData extends object>(
         searchParams.append("order_dir", `${query.orderDirection}`);
     }
     // page information
-    searchParams.append("page", `${query.page + 1}`);
+    searchParams.append("page", `${query.page}`);
     searchParams.append("limit", `${query.pageSize}`);
 
     const response = await fetch(url + "?" + searchParams.toString());
@@ -62,8 +62,8 @@ export async function queryTableData<RowData extends object>(
         const result = await response.json();
         return {
             data: result.data,
-            page: result.page - 1,
-            totalCount: result.totalCount,
+            page: result.page,
+            totalCount: result.total_count,
         };
     } else {
         throw response;

@@ -38,7 +38,7 @@ def list_participants():
 
     # parsing query parameters
     limit = request.args.get("limit", default=10)
-    page = request.args.get("page", default=1)
+    page = request.args.get("page", default=0)
     order_by_col = request.args.get("order_by", default="participant_id", type=str)
     order_dir = request.args.get("order_dir", default="asc", type=str)
 
@@ -53,7 +53,7 @@ def list_participants():
     except:
         return "Page must be a valid integer", 400
 
-    offset = (int(page) * int(limit)) - int(limit)
+    offset = int(page) * int(limit)
 
     columns = models.Participant.__table__.columns.keys()
 
@@ -95,7 +95,6 @@ def list_participants():
         for f in filt:
             participants = participants.filter(f)
 
-        totalCount = participants.count()
         participants = (
             participants.join(models.TissueSample)
             .join(models.Dataset)
@@ -110,10 +109,9 @@ def list_participants():
                 == models.users_groups_table.columns.group_id,
             )
             .filter(models.users_groups_table.columns.user_id == user_id)
-            .order_by(order())
-            .limit(limit)
-            .offset(offset)
         )
+        total_count = participants.count()
+        participants = participants.order_by(order()).limit(limit).offset(offset)
 
     else:
         participants = models.Participant.query.options(
@@ -126,7 +124,7 @@ def list_participants():
         )
         for f in filt:
             participants = participants.filter(f)
-        totalCount = participants.count()
+        total_count = participants.count()
         participants = participants.order_by(order()).limit(limit).offset(offset)
 
     return jsonify(
@@ -148,7 +146,7 @@ def list_participants():
                 for participant in participants
             ],
             "page": int(page),
-            "totalCount": totalCount,
+            "total_count": total_count,
         }
     )
 
