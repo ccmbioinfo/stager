@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Grid,
@@ -12,25 +12,9 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, NewUser } from "../../typings";
 import UserRow from "./UserRow";
 import CreateUserModal from "./CreateUserModal";
-
-async function updateUser(user: User) {
-    return fetch(`/api/users/${user.username}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
-    });
-}
-
-async function deleteUser(user: User) {
-    return fetch(`/api/users/${user.username}`, {
-        method: "DELETE",
-        credentials: "same-origin",
-    });
-}
+import { useUsersQuery, useUsersUpdateMutation, useUsersDeleteMutation } from "../../hooks/";
 
 const useStyles = makeStyles(theme => ({
     toolbar: {
@@ -41,65 +25,16 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface AddUserAction {
-    type: "add";
-    payload: NewUser;
-}
-interface ChangeUserAction {
-    type: "update" | "delete";
-    payload: User;
-}
-interface SetUserAction {
-    type: "set";
-    payload: User | User[];
-}
-// Use a reducer for state management to handle update, add, delete
-function reducer(state: User[], action: AddUserAction | ChangeUserAction | SetUserAction) {
-    switch (action.type) {
-        case "set":
-            // Sets the state; only to be used when fetching data
-            if (Array.isArray(action.payload)) return action.payload;
-            return [action.payload];
-        case "update":
-            // Update the user with this username.
-            const updatedUser = action.payload;
-            return state.map(user =>
-                user.username === updatedUser.username ? { ...user, ...updatedUser } : user
-            );
-        case "add":
-            const newUser = action.payload;
-            return state.concat({
-                username: newUser.username,
-                email: newUser.email,
-                is_admin: newUser.isAdmin,
-                last_login: new Date(0).toUTCString(), // TODO: update when #217 fixed
-                deactivated: false,
-                groups: newUser.groups,
-            });
-        case "delete":
-            return state.filter(user => user.username !== action.payload.username);
-        default:
-            console.error(`Invalid action: ${action}`);
-            return state;
-    }
-}
-
 export default function UserList() {
     const classes = useStyles();
-    const [users, dispatch] = useReducer(reducer, []);
+    const { data: users } = useUsersQuery();
+    const userUpdateMutation = useUsersUpdateMutation();
+    const userDeleteMutation = useUsersDeleteMutation();
     const [openNewUser, setOpenNewUser] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
         document.title = `Admin | ${process.env.REACT_APP_NAME}`;
-        fetch("/api/users")
-            .then(response => response.json())
-            .then(data =>
-                dispatch({
-                    type: "set",
-                    payload: data,
-                })
-            ); // No safety check on JSON structure
     }, []);
 
     return (
@@ -108,12 +43,8 @@ export default function UserList() {
                 id="create-modal"
                 open={openNewUser}
                 onClose={() => setOpenNewUser(false)}
-                onSuccess={user => {
-                    dispatch({ type: "add", payload: user });
+                onSuccess={() => {
                     setOpenNewUser(false);
-                    enqueueSnackbar(`New user "${user.username}" created successfully`, {
-                        variant: "success",
-                    });
                 }}
             />
             <Toolbar component={Paper} className={classes.toolbar}>
@@ -127,46 +58,47 @@ export default function UserList() {
             </Toolbar>
             <List>
                 <Grid container spacing={1} alignItems="flex-start">
-                    {users.map(user => (
-                        <UserRow
-                            key={user.username}
-                            user={user}
-                            onSave={newUser => {
-                                updateUser(newUser).then(async response => {
-                                    const message = await response.text();
-                                    if (response.ok) {
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} updated successfully - ${response.status}`,
-                                            { variant: "success" }
-                                        );
-                                        dispatch({ type: "update", payload: newUser });
-                                    } else {
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} update failed - ${response.status} ${message}`,
-                                            { variant: "error" }
-                                        );
-                                    }
-                                });
-                            }}
-                            onDelete={newUser => {
-                                deleteUser(newUser).then(async response => {
-                                    const message = await response.text();
-                                    if (response.ok) {
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} deleted successfully - ${response.status} ${message}`,
-                                            { variant: "success" }
-                                        );
-                                        dispatch({ type: "delete", payload: newUser });
-                                    } else {
-                                        enqueueSnackbar(
-                                            `User ${newUser.username} deletion failed - ${response.status} ${message}`,
-                                            { variant: "error" }
-                                        );
-                                    }
-                                });
-                            }}
-                        />
-                    ))}
+                    {users &&
+                        users.map(user => (
+                            <UserRow
+                                key={user.username}
+                                user={user}
+                                onSave={newUser => {
+                                    userUpdateMutation.mutate(newUser, {
+                                        onSuccess: user => {
+                                            enqueueSnackbar(
+                                                `User ${user.username} updated successfully`,
+                                                { variant: "success" }
+                                            );
+                                        },
+                                        onError: async response => {
+                                            const message = await response.text();
+                                            enqueueSnackbar(
+                                                `User ${newUser.username} update failed - ${response.status} ${message}`,
+                                                { variant: "error" }
+                                            );
+                                        },
+                                    });
+                                }}
+                                onDelete={newUser => {
+                                    userDeleteMutation.mutate(newUser.username, {
+                                        onSuccess: message => {
+                                            enqueueSnackbar(
+                                                `User ${newUser.username} deleted successfully`,
+                                                { variant: "success" }
+                                            );
+                                        },
+                                        onError: async response => {
+                                            const message = await response.text();
+                                            enqueueSnackbar(
+                                                `User ${newUser.username} deletion failed - ${response.status} ${message}`,
+                                                { variant: "error" }
+                                            );
+                                        },
+                                    });
+                                }}
+                            />
+                        ))}
                 </Grid>
             </List>
         </>

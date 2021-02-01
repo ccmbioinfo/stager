@@ -11,7 +11,7 @@ import {
     getSecDatasetFields,
     createFieldObj,
 } from "../../functions";
-import { useEnums } from "../../hooks";
+import { useEnumsQuery } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -51,7 +51,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
-    const enums = useEnums();
+    const enums = useEnumsQuery();
 
     useEffect(() => {
         fetch("/api/datasets/" + props.dataset.dataset_id)

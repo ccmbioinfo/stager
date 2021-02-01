@@ -34,7 +34,7 @@ import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
 import { GroupDropdownSelect } from "../../components";
-import { useEnums, useFamilies } from "../../hooks";
+import { useEnumsQuery, useFamiliesQuery } from "../../hooks";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -123,9 +123,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
     const [files, setFiles] = useState<string[]>([]);
-    const families = useFamilies();
-    const enums = useEnums();
-
+    const familyResult = useFamiliesQuery();
+    const families = familyResult.isSuccess ? familyResult.data : [];
+    const { data: enums } = useEnumsQuery();
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
     useEffect(() => {

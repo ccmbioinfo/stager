@@ -4,7 +4,7 @@ import { GroupAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { Group as GroupCard } from "./components/Group";
 import CreateGroupModal from "./components/CreateGroupModal";
-import { useGroups, useGroupsPatch, useGroupsDelete } from "../hooks";
+import { useGroupsQuery, useGroupUpdateMutation, useGroupDeleteMutation } from "../hooks";
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -31,9 +31,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function Groups() {
     const classes = useStyles();
-    const groups = useGroups();
-    const groupPatch = useGroupsPatch();
-    const groupDelete = useGroupsDelete();
+    const { data: groups } = useGroupsQuery();
+    const groupPatch = useGroupUpdateMutation();
+    const groupDelete = useGroupDeleteMutation();
     const [openNewGroup, setOpenNewGroup] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -47,47 +47,48 @@ export default function Groups() {
             <Container className={classes.container} maxWidth={false}>
                 <CreateGroupModal open={openNewGroup} onClose={() => setOpenNewGroup(false)} />
                 <Grid container spacing={1} alignItems="stretch">
-                    {groups.map(group => (
-                        <GroupCard
-                            key={group.group_code}
-                            group={group}
-                            onNameChange={(newName: string) => {
-                                groupPatch.mutate(
-                                    { ...group, group_name: newName },
-                                    {
-                                        onSuccess: patchedGroup => {
+                    {groups &&
+                        groups.map(group => (
+                            <GroupCard
+                                key={group.group_code}
+                                group={group}
+                                onNameChange={(newName: string) => {
+                                    groupPatch.mutate(
+                                        { ...group, group_name: newName },
+                                        {
+                                            onSuccess: patchedGroup => {
+                                                enqueueSnackbar(
+                                                    `Group ${group.group_name} renamed to ${patchedGroup.group_name} successfully.`,
+                                                    { variant: "success" }
+                                                );
+                                            },
+                                            onError: response => {
+                                                enqueueSnackbar(
+                                                    `Failed to edit group ${group.group_name}. Error: ${response.status} - ${response.statusText}`,
+                                                    { variant: "error" }
+                                                );
+                                            },
+                                        }
+                                    );
+                                }}
+                                onDelete={() => {
+                                    groupDelete.mutate(group.group_code, {
+                                        onSuccess: () => {
                                             enqueueSnackbar(
-                                                `Group ${group.group_name} renamed to ${patchedGroup.group_name} successfully.`,
+                                                `Group ${group.group_name} deleted successfully.`,
                                                 { variant: "success" }
                                             );
                                         },
                                         onError: response => {
                                             enqueueSnackbar(
-                                                `Failed to edit group ${group.group_name}. Error: ${response.status} - ${response.statusText}`,
+                                                `Group ${group.group_name} deletion failed. Error: ${response.status} - ${response.statusText}`,
                                                 { variant: "error" }
                                             );
                                         },
-                                    }
-                                );
-                            }}
-                            onDelete={() => {
-                                groupDelete.mutate(group.group_code, {
-                                    onSuccess: () => {
-                                        enqueueSnackbar(
-                                            `Group ${group.group_name} deleted successfully.`,
-                                            { variant: "success" }
-                                        );
-                                    },
-                                    onError: response => {
-                                        enqueueSnackbar(
-                                            `Group ${group.group_name} deletion failed. Error: ${response.status} - ${response.statusText}`,
-                                            { variant: "error" }
-                                        );
-                                    },
-                                });
-                            }}
-                        />
-                    ))}
+                                    });
+                                }}
+                            />
+                        ))}
                 </Grid>
                 <Fab
                     color="primary"

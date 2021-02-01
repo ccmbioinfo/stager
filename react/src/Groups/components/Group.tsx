@@ -12,7 +12,7 @@ import {
 import { Group as GroupIcon, Edit, Check, Close, Delete } from "@material-ui/icons";
 import ConfirmModal from "../../components/ConfirmModal";
 import { Group as GroupType } from "../../typings";
-import { useGroup } from "../../hooks";
+import { useGroupQuery } from "../../hooks";
 
 const useStyles = makeStyles((theme: Theme) => ({
     paper: {
@@ -54,7 +54,7 @@ export function Group({ group, onNameChange, onDelete }: GroupProps) {
     const classes = useStyles();
     const [editing, setEditing] = useState<boolean>(false);
     const [groupName, setGroupName] = useState<string>(group.group_name);
-    const tempGroup = useGroup(group.group_code);
+    const { data: tempGroup } = useGroupQuery(group.group_code);
     let numUsers = 0;
     if (tempGroup && tempGroup.users) numUsers = tempGroup.users.length;
     const [confirmDelete, setConfirmDelete] = useState<boolean>(false);

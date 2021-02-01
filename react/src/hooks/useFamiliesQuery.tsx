@@ -11,8 +11,7 @@ async function fetchFamilies() {
  *
  * That is, return an array of all families.
  */
-export function useFamilies() {
+export function useFamiliesQuery() {
     const result = useQuery<Family[], Response>("families", fetchFamilies);
-    if (result.isSuccess) return result.data;
-    return [];
+    return result;
 }

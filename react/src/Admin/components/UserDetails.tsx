@@ -11,15 +11,10 @@ import {
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { Group, User, ConfirmPasswordAction } from "../../typings";
-import {
-    NewPasswordForm,
-    ConfirmModal,
-    MinioResetButton,
-    MinioKeyDisplay,
-    MinioKeys,
-} from "../../components";
+import { User, ConfirmPasswordAction } from "../../typings";
+import { NewPasswordForm, ConfirmModal, MinioResetButton, MinioKeyDisplay } from "../../components";
 import GroupSelect from "./GroupSelect";
+import { useGroupsQuery, useUserQuery } from "../../hooks";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -70,13 +65,15 @@ function reducer(state: User, action: CombinedActions) {
  */
 export default function UserDetails(props: {
     user: User;
-    groups: Group[];
     onSave: (newUser: User) => void;
     onDelete: (deleteUser: User) => void;
-    loading: boolean;
-    onMinioReset: (loading: boolean, newKeys: MinioKeys) => void;
 }) {
     const classes = useDetailStyles();
+    const groupsResult = useGroupsQuery();
+    const groups = groupsResult.data;
+    const userResult = useUserQuery(props.user.username);
+    const user = userResult.data;
+    const loading = userResult.isLoading;
     // Local changes saved in newState, and are "committed" when user saves changes
     const oldState = {
         ...props.user,
@@ -168,9 +165,9 @@ export default function UserDetails(props: {
                         </Grid>
                         <Grid item xs={12}>
                             <MinioKeyDisplay
-                                loading={props.loading}
-                                minio_access_key={props.user.minio_access_key}
-                                minio_secret_key={props.user.minio_secret_key}
+                                loading={loading}
+                                minio_access_key={user?.minio_access_key}
+                                minio_secret_key={user?.minio_secret_key}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -185,7 +182,7 @@ export default function UserDetails(props: {
                     </Grid>
                     <Grid item md={12} lg={6}>
                         <GroupSelect
-                            groups={props.groups}
+                            groups={groups}
                             selected={newState.groups}
                             onSelectionChange={selection =>
                                 dispatch({ type: "group", payload: selection })
@@ -194,11 +191,7 @@ export default function UserDetails(props: {
                     </Grid>
                 </Grid>
                 <Toolbar className={classes.toolbar}>
-                    <MinioResetButton
-                        username={props.user.username}
-                        onUpdate={props.onMinioReset}
-                        className={classes.button}
-                    />
+                    <MinioResetButton username={props.user.username} className={classes.button} />
                     <Button
                         color="secondary"
                         variant="contained"

@@ -12,10 +12,9 @@ async function fetchGroup(group_code: string) {
  * That is, return the specified group object which includes
  * the list of users who belong to it.
  */
-export function useGroup(group_code: string) {
+export function useGroupQuery(group_code: string) {
     const result = useQuery<Group, Response>(["groups", group_code.toLowerCase()], () =>
         fetchGroup(group_code)
     );
-    if (result.isSuccess) return result.data;
-    return undefined;
+    return result;
 }

@@ -196,8 +196,33 @@ def create_analysis():
     found_datasets = found_datasets_query.filter(
         models.Dataset.dataset_id.in_(datasets)
     ).all()
+
     if len(found_datasets) != len(datasets):
         return "Some datasets were not found", 404
+
+    compatible_datasets_pipelines_query = (
+        db.session.query(
+            models.Dataset,
+            models.MetaDatasetType_DatasetType,
+            models.PipelineDatasets,
+        )
+        .filter(models.Dataset.dataset_id.in_(datasets))
+        .join(
+            models.MetaDatasetType_DatasetType,
+            models.Dataset.dataset_type
+            == models.MetaDatasetType_DatasetType.dataset_type,
+        )
+        .join(
+            models.PipelineDatasets,
+            models.PipelineDatasets.supported_metadataset_type
+            == models.MetaDatasetType_DatasetType.metadataset_type,
+        )
+        .filter(models.PipelineDatasets.pipeline_id == pipeline_id)
+        .all()
+    )
+
+    if len(compatible_datasets_pipelines_query) != len(datasets):
+        return "Requested pipelines are incompatible with datasets", 404
 
     now = datetime.now()
     analysis = models.Analysis(
