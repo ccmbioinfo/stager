@@ -45,6 +45,7 @@ services:
     depends_on:
       - mysql
       - minio
+      - keycloak
     volumes:
       - ./flask:/usr/src/stager
   keycloak:
