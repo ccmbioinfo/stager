@@ -12,7 +12,8 @@ def test_no_participants(test_database, client, login_as):
 
     response = client.get("/api/participants?user=5")
     assert response.status_code == 200
-    assert len(response.get_json()) == 0
+    assert len(response.get_json()["data"]) == 0
+    assert response.get_json()["total_count"] == 0
 
 
 def test_list_participants_admin(test_database, client, login_as):
@@ -20,7 +21,8 @@ def test_list_participants_admin(test_database, client, login_as):
 
     response = client.get("/api/participants")
     assert response.status_code == 200
-    assert len(response.get_json()) == 3
+    assert len(response.get_json()["data"]) == 3
+    assert response.get_json()["total_count"] == 3
 
 
 def test_list_participants_user(test_database, client, login_as):
@@ -29,16 +31,17 @@ def test_list_participants_user(test_database, client, login_as):
     response = client.get("/api/participants")
     assert response.status_code == 200
     # Check number of participants
-    assert len(response.get_json()) == 2
+    assert len(response.get_json()["data"]) == 2
+    assert response.get_json()["total_count"] == 2
     # Check number of tissue samples per participant
-    assert len(response.get_json()[0]["tissue_samples"]) == 1
-    assert len(response.get_json()[1]["tissue_samples"]) == 1
+    assert len(response.get_json()["data"][0]["tissue_samples"]) == 1
+    assert len(response.get_json()["data"][1]["tissue_samples"]) == 1
     # Check number of datasets per tissue sample in participant
-    assert len(response.get_json()[0]["tissue_samples"][0]["datasets"]) == 1
-    assert len(response.get_json()[1]["tissue_samples"][0]["datasets"]) == 1
+    assert len(response.get_json()["data"][0]["tissue_samples"][0]["datasets"]) == 1
+    assert len(response.get_json()["data"][1]["tissue_samples"][0]["datasets"]) == 1
 
     # Check if they are the right participants
-    diclist = response.get_json()
+    diclist = response.get_json()["data"]
     assert (
         diclist[0]["participant_codename"] == "001"
         and diclist[1]["participant_codename"] == "002"
@@ -55,16 +58,17 @@ def test_list_participants_user_from_admin(test_database, client, login_as):
     response = client.get("/api/participants?user=2")
     assert response.status_code == 200
     # Check number of participants
-    assert len(response.get_json()) == 2
+    assert len(response.get_json()["data"]) == 2
+    assert response.get_json()["total_count"] == 2
     # Check number of tissue samples per participant
-    assert len(response.get_json()[0]["tissue_samples"]) == 1
-    assert len(response.get_json()[1]["tissue_samples"]) == 1
+    assert len(response.get_json()["data"][0]["tissue_samples"]) == 1
+    assert len(response.get_json()["data"][1]["tissue_samples"]) == 1
     # Check number of datasets per tissue sample in participant
-    assert len(response.get_json()[0]["tissue_samples"][0]["datasets"]) == 1
-    assert len(response.get_json()[1]["tissue_samples"][0]["datasets"]) == 1
+    assert len(response.get_json()["data"][0]["tissue_samples"][0]["datasets"]) == 1
+    assert len(response.get_json()["data"][1]["tissue_samples"][0]["datasets"]) == 1
 
     # Check if they are the right participants
-    diclist = response.get_json()
+    diclist = response.get_json()["data"]
     assert (
         diclist[0]["participant_codename"] == "001"
         and diclist[1]["participant_codename"] == "002"
@@ -118,7 +122,8 @@ def test_delete_participant(test_database, client, login_as):
     # Make sure it's gone
     response2 = client.get("/api/participants")
     assert response2.status_code == 200
-    assert len(response2.get_json()) == 2
+    assert len(response2.get_json()["data"]) == 2
+    assert response2.get_json()["total_count"] == 2
 
 
 # PATCH /api/participants/:id
