@@ -250,15 +250,18 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         <div>
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
-                                {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
-                                    <Chip
-                                        key={type}
-                                        label={type}
-                                        onClick={() => setDatasetTypeFilter([type])}
-                                        clickable
-                                        className={classes.chip}
-                                    />
-                                ))}
+                                {metadatasetTypes &&
+                                    Object.entries(
+                                        metadatasetTypes
+                                    ).map(([metatype, datasetTypes]) => (
+                                        <Chip
+                                            key={metatype}
+                                            label={metatype}
+                                            onClick={() => setDatasetTypeFilter(datasetTypes)}
+                                            clickable
+                                            className={classes.chip}
+                                        />
+                                    ))}
                                 <IconButton
                                     onClick={() => setDatasetTypeFilter([])}
                                     className={classes.chip}
