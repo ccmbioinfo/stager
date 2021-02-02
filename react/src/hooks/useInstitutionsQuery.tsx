@@ -9,7 +9,7 @@ async function fetchInstitutions() {
  * Return query object for GET /api/institutions
  */
 export function useInstitutionsQuery() {
-    const result = useQuery("institutions", fetchInstitutions, {
+    const result = useQuery<string[], Response>("institutions", fetchInstitutions, {
         staleTime: Infinity,
     });
     return result;

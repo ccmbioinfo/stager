@@ -1,5 +1,6 @@
 export { useEnumsQuery } from "./useEnumsQuery";
 export { useFamiliesQuery } from "./useFamiliesQuery";
+export { useInstitutionsQuery } from "./useInstitutionsQuery";
 
 export { useGroupQuery } from "./groups/useGroupQuery";
 export { useGroupsQuery } from "./groups/useGroupsQuery";
