@@ -2,7 +2,6 @@
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
 export type FieldDisplayValueType = string[] | string | number | boolean | null | undefined;
-export type Enums = { [key: string]: string[] } | undefined;
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {

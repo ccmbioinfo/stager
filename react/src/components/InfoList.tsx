@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function InfoList(props: {
     infoList: Info[];
-    enums: any;
+    enums?: Record<string, string[]>;
     title?: string;
     icon: JSX.Element;
     linkPath?: string;

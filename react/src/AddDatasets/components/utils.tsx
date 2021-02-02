@@ -82,7 +82,7 @@ export function getOptions(
     col: DataEntryHeader,
     rowIndex: number,
     families: Family[],
-    enums: any,
+    enums: Record<string, string[]> | undefined,
     files: string[]
 ): Option[] {
     const row = rows[rowIndex];
@@ -183,7 +183,10 @@ export function getOptions(
  * @param participant The pre-existing participant in question.
  * @param enums The result from /api/enums
  */
-export function checkParticipant(participant: Participant, enums: any): boolean {
+export function checkParticipant(
+    participant: Participant,
+    enums?: Record<string, string[]>
+): boolean {
     const required: string[] = getDataEntryHeaders().required;
 
     return participantColumns.every(column => {
@@ -196,7 +199,7 @@ export function checkParticipant(participant: Participant, enums: any): boolean 
 
             if (enumerableColumns.includes(column)) {
                 // if enumerable, must be valid value
-                return enums[index].includes(participant[column]);
+                return enums?.[index].includes(participant[column]);
             } else if (booleanColumns.includes(column)) {
                 return ["true", "false"].includes(participant[column]);
             } else {
