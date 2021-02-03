@@ -21,11 +21,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface DatasetsProps {
-    isAdmin: boolean;
-}
-
-export default function Datasets({ isAdmin }: DatasetsProps) {
+export default function Datasets() {
     const classes = useStyles();
 
     useEffect(() => {
@@ -38,7 +34,7 @@ export default function Datasets({ isAdmin }: DatasetsProps) {
             <Container maxWidth={false} className={classes.container}>
                 <Grid container spacing={0}>
                     <Grid item xs={12}>
-                        <DatasetTable isAdmin={isAdmin} />
+                        <DatasetTable />
                     </Grid>
                 </Grid>
             </Container>

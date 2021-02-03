@@ -2,7 +2,6 @@
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
 export type FieldDisplayValueType = string[] | string | number | boolean | null | undefined;
-export type Enums = { [key: string]: string[] } | undefined;
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {
@@ -40,6 +39,7 @@ export interface Participant {
     updated: string;
     updated_by: number;
     tissue_samples: Sample[];
+    institution: string;
 }
 export interface Sample {
     tissue_sample_id: string;
@@ -177,6 +177,9 @@ export interface User {
     minio_access_key?: string;
     minio_secret_key?: string;
 }
+
+// A logged-in user
+export type CurrentUser = Pick<User, "username" | "last_login" | "is_admin" | "groups">;
 
 export interface Group {
     group_code: string;

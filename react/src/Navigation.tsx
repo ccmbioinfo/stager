@@ -39,6 +39,7 @@ import Groups from "./Groups";
 import Admin from "./Admin";
 import { ListItemRouterLink, NotificationPopover } from "./components";
 import logo from "./assets/logo.png";
+import { useUserContext } from "./contexts";
 
 const drawerWidth = 200;
 
@@ -189,25 +190,14 @@ const routes: RouteItem[] = [
 
 export interface NavigationProps {
     signout: () => void;
-    username: string;
-    lastLoginTime: string;
     darkMode: boolean;
     toggleDarkMode: () => void;
-    isAdmin: boolean;
-    permissionGroups: string[];
 }
 
-export default function Navigation({
-    username,
-    signout,
-    lastLoginTime,
-    darkMode,
-    toggleDarkMode,
-    isAdmin,
-    permissionGroups,
-}: NavigationProps) {
+export default function Navigation({ signout, darkMode, toggleDarkMode }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
+    const currentUser = useUserContext();
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -264,8 +254,8 @@ export default function Navigation({
                                 icon={<Brightness5 />}
                             />
                         </Tooltip>
-                        <NotificationPopover lastLoginTime={lastLoginTime} />
-                        <Tooltip title={"Logged in as " + username} arrow>
+                        <NotificationPopover lastLoginTime={currentUser.last_login} />
+                        <Tooltip title={"Logged in as " + currentUser.username} arrow>
                             <AccountCircleIcon fontSize="large" />
                         </Tooltip>
                         <Tooltip title="Log out">
@@ -290,7 +280,7 @@ export default function Navigation({
                     <Divider />
                     <List>
                         {routes.map((route, index) =>
-                            !route.requiresAdmin || isAdmin ? (
+                            !route.requiresAdmin || currentUser.is_admin ? (
                                 <ListItemRouterLink
                                     key={index}
                                     to={route.linkTo ? route.linkTo : "" + route.path}
@@ -305,23 +295,12 @@ export default function Navigation({
                 </Drawer>
                 <Switch>
                     {routes.map((route, index) =>
-                        !route.requiresAdmin || isAdmin ? (
+                        !route.requiresAdmin || currentUser.is_admin ? (
                             <Route
                                 key={index}
                                 path={route.path}
                                 exact={route.exact}
-                                render={() => {
-                                    switch (route.path) {
-                                        case "/settings":
-                                            return <route.main username={username} />;
-                                        case "/datasets/:id?":
-                                            return <route.main isAdmin={isAdmin} />;
-                                        case "/addDatasets":
-                                            return <route.main groups={permissionGroups} />;
-                                        default:
-                                            return <route.main />;
-                                    }
-                                }}
+                                render={() => <route.main />}
                             />
                         ) : (
                             <Redirect key={index} to={`/participants`} />

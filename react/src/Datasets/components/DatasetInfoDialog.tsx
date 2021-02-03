@@ -51,7 +51,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [sample, setSample] = useState<Sample>();
 
-    const enums = useEnumsQuery();
+    const { data: enums } = useEnumsQuery();
 
     useEffect(() => {
         fetch("/api/datasets/" + props.dataset.dataset_id)

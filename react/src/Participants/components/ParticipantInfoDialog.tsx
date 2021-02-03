@@ -36,6 +36,7 @@ function getParticipantFields(participant: Participant): Field[] {
         createFieldObj("Created By", participant.created_by, "created_by", true),
         createFieldObj("Time of Update", formatDateString(participant.updated), "updated", true),
         createFieldObj("Updated By", participant.updated_by, "updated_by", true),
+        createFieldObj("Institution", participant.institution, "institution", true),
     ];
 }
 
@@ -51,7 +52,7 @@ export default function ParticipantInfoDialog(props: DialogProp) {
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const { enqueueSnackbar } = useSnackbar();
-    const enums = useEnumsQuery();
+    const { data: enums } = useEnumsQuery();
 
     useEffect(() => {
         (async () => {

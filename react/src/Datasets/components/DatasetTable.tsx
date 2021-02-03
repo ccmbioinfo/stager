@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { toKeyValue, exportCSV, rowDiff } from "../../functions";
-import { KeyValue, Dataset, Pipeline } from "../../typings";
+import { Dataset, Pipeline } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { DateTimeText, Note, FileLinkingComponent } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
-import { useEnumsQuery } from "../../hooks";
+import { useEnumsQuery, useMetadatasetTypesQuery } from "../../hooks";
+import { useUserContext } from "../../contexts";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -24,12 +25,9 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface DatasetTableProps {
-    isAdmin: boolean;
-}
-
-export default function DatasetTable({ isAdmin }: DatasetTableProps) {
+export default function DatasetTable() {
     const classes = useStyles();
+    const currentUser = useUserContext();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
@@ -38,14 +36,13 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
     const [pipelines, setPipelines] = useState<Pipeline[]>([]);
 
     const { data: enums } = useEnumsQuery();
-    let tissueSampleTypes: KeyValue = {};
-    let datasetTypes: KeyValue = {};
-    let conditions: KeyValue = {};
-    if (enums) {
-        tissueSampleTypes = toKeyValue(enums.TissueSampleType as string[]);
-        datasetTypes = toKeyValue(enums.DatasetType as string[]);
-        conditions = toKeyValue(enums.DatasetCondition as string[]);
-    }
+    const { data: metadatasetTypes } = useMetadatasetTypesQuery();
+    const datasetTypes = useMemo(
+        () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
+        [metadatasetTypes]
+    );
+    const tissueSampleTypes = useMemo(() => enums?.TissueSampleType, [enums]);
+    const conditions = useMemo(() => enums?.DatasetCondition, [enums]);
 
     const [files, setFiles] = useState<string[]>([]);
 
@@ -251,15 +248,18 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                         <div>
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
-                                {[...new Set(datasets.map(e => e.dataset_type))].map(type => (
-                                    <Chip
-                                        key={type}
-                                        label={type}
-                                        onClick={() => setDatasetTypeFilter([type])}
-                                        clickable
-                                        className={classes.chip}
-                                    />
-                                ))}
+                                {metadatasetTypes &&
+                                    Object.entries(
+                                        metadatasetTypes
+                                    ).map(([metatype, datasetTypes]) => (
+                                        <Chip
+                                            key={metatype}
+                                            label={metatype}
+                                            onClick={() => setDatasetTypeFilter(datasetTypes)}
+                                            clickable
+                                            className={classes.chip}
+                                        />
+                                    ))}
                                 <IconButton
                                     onClick={() => setDatasetTypeFilter([])}
                                     className={classes.chip}
@@ -274,7 +274,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                     {
                         tooltip: "Delete selected datasets",
                         icon: Delete,
-                        hidden: !isAdmin,
+                        hidden: !currentUser.is_admin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
                             const sampleString = (data as Dataset[])

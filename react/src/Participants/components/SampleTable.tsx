@@ -36,7 +36,10 @@ function getFields(dataset: Dataset) {
     ];
 }
 
-export default function SampleTable(props: { samples: Sample[]; enums: any }) {
+export default function SampleTable(props: {
+    samples: Sample[];
+    enums?: Record<string, string[]>;
+}) {
     const classes = useStyles();
 
     return (
