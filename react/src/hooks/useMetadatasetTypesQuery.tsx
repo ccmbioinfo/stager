@@ -2,7 +2,8 @@ import { useQuery } from "react-query";
 import { basicFetch } from "./utils";
 
 /**
- * Return JSON result of GET /api/metadatasettypes, or undefined if the fetch is unsuccessful.
+ * Returns a query object for GET /api/metadatasettypes.
+ * The data property is undefined if the fetch is unsuccessful.
  */
 export function useMetadatasetTypesQuery() {
     const result = useQuery<Record<string, string[]>, Response>(
