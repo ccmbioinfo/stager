@@ -36,6 +36,7 @@ function getParticipantFields(participant: Participant): Field[] {
         createFieldObj("Created By", participant.created_by, "created_by", true),
         createFieldObj("Time of Update", formatDateString(participant.updated), "updated", true),
         createFieldObj("Updated By", participant.updated_by, "updated_by", true),
+        createFieldObj("Institution", participant.institution, "institution", true),
     ];
 }
 
