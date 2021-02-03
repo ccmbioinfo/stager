@@ -8,9 +8,6 @@ import {
     AppBar,
     Toolbar,
     List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
     Typography,
     Divider,
     IconButton,
@@ -41,6 +38,7 @@ import Settings from "./Settings";
 import Groups from "./Groups";
 import Admin from "./Admin";
 import { ListItemRouterLink, NotificationPopover } from "./components";
+import logo from "./assets/logo.png";
 
 const drawerWidth = 200;
 
@@ -112,6 +110,12 @@ const useStyles = (darkMode: boolean) =>
                 },
                 bottomItems: {
                     marginTop: "auto",
+                },
+                logo: {
+                    height: "3em",
+                    width: "auto",
+                    objectFit: "scale-down",
+                    margin: theme.spacing(0, 2),
                 },
             })),
         [darkMode]
@@ -250,6 +254,7 @@ export default function Navigation({
                                 </Route>
                             ))}
                         </Switch>
+                        <img className={classes.logo} src={logo} alt="" />
                         <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
                             <MuiSwitch
                                 checked={darkMode}
