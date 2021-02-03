@@ -40,7 +40,7 @@ export interface Participant {
     updated: string;
     updated_by: number;
     tissue_samples: Sample[];
-    institution: number;
+    institution: string;
 }
 export interface Sample {
     tissue_sample_id: string;
