@@ -9,8 +9,8 @@ async function fetchEnums() {
 }
 
 /**
- * Return json result of GET /api/enums.
- * Return undefined if fetch is unsuccessful.
+ * Returns a query object for GET /api/enums.
+ * The data property is undefined if the fetch is unsuccessful.
  */
 export function useEnumsQuery() {
     const result = useQuery<EnumResult, Response>("enums", fetchEnums, {

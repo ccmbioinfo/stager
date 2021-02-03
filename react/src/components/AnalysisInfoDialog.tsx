@@ -46,7 +46,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [pipeline, setPipeline] = useState<Pipeline>();
     const labeledBy = "analysis-info-dialog-slide-title";
-    const enums = useEnumsQuery();
+    const { data: enums } = useEnumsQuery();
 
     useEffect(() => {
         fetch("/api/analyses/" + props.analysis.analysis_id)

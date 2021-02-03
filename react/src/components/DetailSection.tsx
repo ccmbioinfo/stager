@@ -52,7 +52,7 @@ interface DataInfo {
 
 interface DetailSectionProps {
     fields: Field[];
-    enums: any;
+    enums?: Record<string, string[]>;
     collapsibleFields?: Field[];
     title?: string;
     dataInfo?: DataInfo; // dataInfo indicates data is editable

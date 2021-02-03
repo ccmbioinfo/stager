@@ -1,29 +1,30 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
 import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
-import { KeyValue, Participant } from "../../typings";
+import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
-import { useEnumsQuery, useParticipantsPage } from "../../hooks";
+import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantsPage } from "../../hooks";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
+
     const { data: enums } = useEnumsQuery();
-    let sexTypes: KeyValue = {};
-    let datasetTypes: KeyValue = {};
-    let participantTypes: KeyValue = {};
-    if (enums) {
-        sexTypes = toKeyValue(enums.Sex);
-        datasetTypes = toKeyValue(enums.DatasetType);
-        participantTypes = toKeyValue(enums.ParticipantType);
-    }
+    const { data: metadatasetTypes } = useMetadatasetTypesQuery();
+    const datasetTypes = useMemo(
+        () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
+        [metadatasetTypes]
+    );
+    const sexTypes = useMemo(() => enums && toKeyValue(enums.Sex), [enums]);
+    const participantTypes = useMemo(() => enums && toKeyValue(enums.ParticipantType), [enums]);
+
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();

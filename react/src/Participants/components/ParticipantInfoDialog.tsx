@@ -51,7 +51,7 @@ export default function ParticipantInfoDialog(props: DialogProp) {
     const labeledBy = "participant-info-dialog-slide-title";
     const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const { enqueueSnackbar } = useSnackbar();
-    const enums = useEnumsQuery();
+    const { data: enums } = useEnumsQuery();
 
     useEffect(() => {
         (async () => {
