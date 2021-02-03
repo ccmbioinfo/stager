@@ -129,7 +129,7 @@ class Participant(db.Model):
 @dataclass
 class Institution(db.Model):
     institution_id: int = db.Column(db.Integer, primary_key=True)
-    institution: str = db.Column(db.String(100))
+    institution: str = db.Column(db.String(100), unique=True, nullable=False)
 
 
 class TissueSampleType(str, Enum):
@@ -214,10 +214,6 @@ class DatasetCondition(str, Enum):
     Somatic = "Somatic"  # e.g. cancer
 
 
-class DatasetExtractionProtocol(str, Enum):
-    Something = "Something"
-
-
 class DatasetReadType(str, Enum):
     PairedEnd = "PairedEnd"
     SingleEnd = "SingleEnd"
@@ -251,9 +247,7 @@ class Dataset(db.Model):
     )
     notes: str = db.Column(db.Text)
     condition: DatasetCondition = db.Column(db.Enum(DatasetCondition), nullable=False)
-    extraction_protocol: DatasetExtractionProtocol = db.Column(
-        db.Enum(DatasetExtractionProtocol)
-    )
+    extraction_protocol: str = db.Column(db.String(100))
     capture_kit: str = db.Column(db.String(50))
     library_prep_method: str = db.Column(db.String(50))
     library_prep_date: datetime = db.Column(db.Date)
