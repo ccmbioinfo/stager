@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "react-query";
 
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
+import { CurrentUser } from "./typings";
+import { UserContext, emptyUser } from "./contexts";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -22,10 +24,8 @@ const queryClient = new QueryClient({
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-    const [username, setUsername] = useState("");
-    const [lastLoginTime, setLastLoginTime] = useState("");
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [groups, setGroups] = useState<string[]>([]);
+
+    const [currentUser, setCurrentUser] = useState<CurrentUser>(emptyUser);
 
     async function signout() {
         const result = await fetch("/api/logout", {
@@ -43,10 +43,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             const result = await fetch("/api/login", { method: "POST" });
             if (result.ok) {
                 const loginInfo = await result.json();
-                setUsername(loginInfo.username);
-                setLastLoginTime(loginInfo.last_login);
-                setIsAdmin(loginInfo.is_admin);
-                setGroups(loginInfo.groups);
+                setCurrentUser(loginInfo);
             }
             setAuthenticated(result.ok);
         })();
@@ -55,46 +52,36 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <QueryClientProvider client={queryClient}>
-                <SnackbarProvider
-                    ref={notistackRef}
-                    action={key => (
-                        <IconButton
-                            aria-label="close"
-                            color="inherit"
-                            onClick={onClickDismiss(key)}
-                        >
-                            <Close fontSize="small" />
-                        </IconButton>
-                    )}
-                    autoHideDuration={6000}
-                    anchorOrigin={{
-                        horizontal: "center",
-                        vertical: "bottom",
-                    }}
-                >
-                    <Navigation
-                        signout={signout}
-                        username={username}
-                        lastLoginTime={lastLoginTime}
-                        darkMode={props.darkMode}
-                        toggleDarkMode={props.toggleDarkMode}
-                        isAdmin={isAdmin}
-                        permissionGroups={groups}
-                    />
-                </SnackbarProvider>
-            </QueryClientProvider>
+            <UserContext.Provider value={currentUser}>
+                <QueryClientProvider client={queryClient}>
+                    <SnackbarProvider
+                        ref={notistackRef}
+                        action={key => (
+                            <IconButton
+                                aria-label="close"
+                                color="inherit"
+                                onClick={onClickDismiss(key)}
+                            >
+                                <Close fontSize="small" />
+                            </IconButton>
+                        )}
+                        autoHideDuration={6000}
+                        anchorOrigin={{
+                            horizontal: "center",
+                            vertical: "bottom",
+                        }}
+                    >
+                        <Navigation
+                            signout={signout}
+                            darkMode={props.darkMode}
+                            toggleDarkMode={props.toggleDarkMode}
+                        />
+                    </SnackbarProvider>
+                </QueryClientProvider>
+            </UserContext.Provider>
         );
     } else {
-        return (
-            <LoginForm
-                setAuthenticated={setAuthenticated}
-                setLastLoginTime={setLastLoginTime}
-                setGlobalUsername={setUsername}
-                setIsAdmin={setIsAdmin}
-                setGroups={setGroups}
-            />
-        );
+        return <LoginForm setAuthenticated={setAuthenticated} setCurrentUser={setCurrentUser} />;
     }
 }
 
