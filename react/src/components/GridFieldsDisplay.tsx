@@ -16,7 +16,7 @@ export default function GridFieldsDisplay(props: {
     fields: Field[];
     editMode: boolean;
     onEdit: (fieldName: string | undefined, value: any) => void;
-    enums: any;
+    enums?: Record<string, string[]>;
     orderPriority?: "left-right" | "top-down";
     columnWidth?: Width;
 }) {
