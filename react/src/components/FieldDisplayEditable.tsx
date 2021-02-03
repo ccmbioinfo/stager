@@ -58,7 +58,7 @@ function EnhancedTextField({
     onEdit,
 }: {
     field: Field;
-    enums: any;
+    enums?: Record<string, string[]>;
     onEdit: (fieldName: string | undefined, value: boolean | string | null) => void;
 }) {
     const classes = useTextStyles();
@@ -152,7 +152,7 @@ export default function FieldDisplayEditable(props: {
     field: Field;
     editMode: boolean;
     onEdit: (fieldName: string | undefined, value: any) => void;
-    enums: any;
+    enums?: Record<string, string[]>;
 }) {
     const classes = useStyles();
 
