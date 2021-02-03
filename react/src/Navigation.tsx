@@ -263,6 +263,11 @@ export default function Navigation({
                         <Tooltip title={"Logged in as " + username} arrow>
                             <AccountCircleIcon fontSize="large" />
                         </Tooltip>
+                        <Tooltip title="Log out">
+                            <IconButton onClick={signout}>
+                                <MeetingRoomIcon fontSize="large" />
+                            </IconButton>
+                        </Tooltip>
                     </Toolbar>
                 </AppBar>
                 <Drawer
@@ -292,17 +297,6 @@ export default function Navigation({
                             )
                         )}
                     </List>
-                    <Divider />
-                    <div className={classes.bottomItems}>
-                        <List>
-                            <ListItem button onClick={signout}>
-                                <ListItemIcon>
-                                    <MeetingRoomIcon />
-                                </ListItemIcon>
-                                <ListItemText primary="Sign out" />
-                            </ListItem>
-                        </List>
-                    </div>
                 </Drawer>
                 <Switch>
                     {routes.map((route, index) =>
