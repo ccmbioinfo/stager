@@ -8,6 +8,7 @@ import {
     Typography,
     Box,
 } from "@material-ui/core";
+import { CurrentUser } from "./typings";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -30,10 +31,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function LoginForm({
     setAuthenticated = (auth: boolean) => {},
-    setLastLoginTime = (lastLogin: string) => {},
-    setGlobalUsername = (username: string) => {},
-    setIsAdmin = (isAdmin: boolean) => {},
-    setGroups = (groups: string[]) => {},
+    setCurrentUser = (user: CurrentUser) => {},
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -51,10 +49,7 @@ export default function LoginForm({
         });
         if (result.ok) {
             const data = await result.json();
-            setGlobalUsername(data["username"]);
-            setLastLoginTime(data["last_login"]);
-            setIsAdmin(data["is_admin"]);
-            setGroups(data["groups"]);
+            setCurrentUser(data);
             setError("");
         } else {
             setError(await result.text());

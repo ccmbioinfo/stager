@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import { MinioKeyDisplay, MinioResetButton, ChipGroup } from "../components";
 import { useUserQuery, useUsersUpdateMutation } from "../hooks";
+import { useUserContext } from "../contexts";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -61,9 +62,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function Settings({ username }: { username: string }) {
+export default function Settings() {
     const classes = useStyles();
-    const { data: user, isFetching: loading } = useUserQuery(username);
+    const currentUser = useUserContext();
+    const { data: user, isFetching: loading } = useUserQuery(currentUser.username);
     const passwordMutation = useUsersUpdateMutation();
 
     const [currentPassword, setCurrentPassword] = useState("");
@@ -77,7 +79,7 @@ export default function Settings({ username }: { username: string }) {
         e.preventDefault();
         setUpdating(true);
         passwordMutation.mutate(
-            { username: username, current: currentPassword, password: newPassword },
+            { username: currentUser.username, current: currentPassword, password: newPassword },
             {
                 onSuccess: newUser => {
                     setCurrentPassword("");
@@ -97,7 +99,7 @@ export default function Settings({ username }: { username: string }) {
 
     useEffect(() => {
         document.title = `Settings | ${process.env.REACT_APP_NAME}`;
-    }, [username]);
+    }, []);
 
     useEffect(() => {
         if (user) setGroups(user.groups.map(code => code.toUpperCase()));
@@ -114,7 +116,7 @@ export default function Settings({ username }: { username: string }) {
                 <Paper className={classes.paper} component="form">
                     <div className={classes.headerContainer}>
                         <Typography variant="h4" component="h2">
-                            Hello {username}!
+                            Hello {currentUser.username}!
                         </Typography>
                         <div style={{ flexGrow: 1 }} />
                         {groups.length > 0 ? (
@@ -197,7 +199,7 @@ export default function Settings({ username }: { username: string }) {
                                 Go to MinIO
                             </Button>
                         </Link>
-                        <MinioResetButton username={username} />
+                        <MinioResetButton username={currentUser.username} />
                     </div>
                 </Paper>
             </Container>

@@ -8,6 +8,7 @@ import { DataEntryRow, DataEntryRowBase } from "../typings";
 import { ConfirmModal } from "../components";
 import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
 import { participantColumns } from "./components/utils";
+import { useUserContext } from "../contexts";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -29,11 +30,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function AddParticipants(props: {
-    groups: string[]; // groups that the user is in
-}) {
+export default function AddParticipants() {
     const classes = useStyles();
     const history = useHistory();
+    const currentUser = useUserContext();
     const [data, setData] = useState<DataEntryRow[]>([]);
     const [open, setOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -46,10 +46,10 @@ export default function AddParticipants(props: {
     }, []);
 
     useEffect(() => {
-        if (props.groups.length === 1) {
-            setAsGroups(props.groups);
+        if (currentUser.groups.length === 1) {
+            setAsGroups(currentUser.groups);
         }
-    }, [props.groups]);
+    }, [currentUser]);
 
     function onChangeGroups(newGroups: string[]) {
         setAsGroups(newGroups);
@@ -58,7 +58,7 @@ export default function AddParticipants(props: {
     // Check for error state
     useEffect(() => {
         // Check all permission groups
-        if (props.groups.length === 0) {
+        if (currentUser.groups.length === 0) {
             setErrorMessage("Cannot submit. You are not part of any permission groups.");
             return;
         }
@@ -101,7 +101,7 @@ export default function AddParticipants(props: {
 
         // Checked everything, no problems
         setErrorMessage("");
-    }, [data, asGroups, props.groups]);
+    }, [data, asGroups, currentUser]);
 
     async function handleSubmit() {
         const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
@@ -142,7 +142,7 @@ export default function AddParticipants(props: {
                 <DataEntryTable
                     data={data}
                     onChange={handleDataChange}
-                    allGroups={props.groups}
+                    allGroups={currentUser.groups}
                     groups={asGroups}
                     setGroups={onChangeGroups}
                 />

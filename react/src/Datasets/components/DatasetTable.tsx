@@ -11,6 +11,7 @@ import DatasetInfoDialog from "./DatasetInfoDialog";
 import { DateTimeText, Note, FileLinkingComponent } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import { useEnumsQuery, useMetadatasetTypesQuery } from "../../hooks";
+import { useUserContext } from "../../contexts";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -24,12 +25,9 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface DatasetTableProps {
-    isAdmin: boolean;
-}
-
-export default function DatasetTable({ isAdmin }: DatasetTableProps) {
+export default function DatasetTable() {
     const classes = useStyles();
+    const currentUser = useUserContext();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
@@ -276,7 +274,7 @@ export default function DatasetTable({ isAdmin }: DatasetTableProps) {
                     {
                         tooltip: "Delete selected datasets",
                         icon: Delete,
-                        hidden: !isAdmin,
+                        hidden: !currentUser.is_admin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
                             const sampleString = (data as Dataset[])

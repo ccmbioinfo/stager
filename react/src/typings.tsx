@@ -178,6 +178,9 @@ export interface User {
     minio_secret_key?: string;
 }
 
+// A logged-in user
+export type CurrentUser = Pick<User, "username" | "last_login" | "is_admin" | "groups">;
+
 export interface Group {
     group_code: string;
     group_name: string;
