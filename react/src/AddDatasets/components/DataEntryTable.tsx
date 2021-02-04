@@ -34,7 +34,7 @@ import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
 import { GroupDropdownSelect } from "../../components";
-import { useEnumsQuery, useFamiliesQuery } from "../../hooks";
+import { useEnumsQuery, useFamiliesQuery, useInstitutionsQuery } from "../../hooks";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -124,7 +124,9 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const [files, setFiles] = useState<string[]>([]);
     const familyResult = useFamiliesQuery();
-    const families = familyResult.isSuccess ? familyResult.data : [];
+    const families = familyResult.data || [];
+    const institutionResult = useInstitutionsQuery();
+    const institutions = institutionResult.data || [];
     const { data: enums } = useEnumsQuery();
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
@@ -192,7 +194,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryHeader): Option[] {
-        return _getOptions(props.data, col, rowIndex, families, enums, files);
+        return _getOptions(props.data, col, rowIndex, families, enums, files, institutions);
     }
 
     function toggleHideColumn(colField: keyof DataEntryRow) {
