@@ -1,5 +1,4 @@
 from datetime import datetime
-import json
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 
@@ -12,7 +11,13 @@ from sqlalchemy import exc, asc, desc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
-from .utils import check_admin, transaction_or_abort, mixin, enum_validate, filter_query
+from .utils import (
+    check_admin,
+    transaction_or_abort,
+    mixin,
+    enum_validate,
+    string_to_bool,
+)
 
 
 editable_columns = [
@@ -41,7 +46,26 @@ def list_participants():
     page = request.args.get("page", default=0)
     order_by_col = request.args.get("order_by", default="participant_id", type=str)
     order_dir = request.args.get("order_dir", default="asc", type=str)
+    # parsing filters to reduce overfetch
+    participant_codename = request.args.get(
+        "participant_codename", default=None, type=str
+    )
+    participant_codename = f"%{participant_codename}%" if participant_codename else "%"
+    notes = request.args.get("notes", default=None, type=str)
+    notes = f"%{notes}%" if notes else None
+    participant_type = request.args.get(
+        "participant_type", default="Proband,Parent,Sibling,Other", type=str
+    ).split(",")
+    sex = request.args.get("sex", default="Male,Female,Unknown,Other", type=str).split(
+        ","
+    )
+    affected = request.args.get("affected", default=None, type=str)
+    solved = request.args.get("solved", default=None, type=str)
+    family_codename = request.args.get("family_codename", default=None, type=str)
+    family_codename = f"%{family_codename}%" if family_codename else "%"
+    dataset_type = request.args.get("dataset_type", default=None, type=str)
 
+    # enum_error = enum_validate(models.Participant, request.json, editable_columns)
     # for some reason type=int doesn't catch non-integer queries
     try:
         int(limit)
@@ -56,19 +80,6 @@ def list_participants():
     offset = int(page) * int(limit)
 
     columns = models.Participant.__table__.columns.keys()
-
-    raw_filters = request.args.getlist("filter")
-    if raw_filters:
-        filt = filter_query(models.Participant, raw_filters)
-        if type(filt) == str:
-            return filt, 400
-    else:
-        filt = [
-            (
-                models.Participant.participant_codename
-                == models.Participant.participant_codename
-            )
-        ]
 
     try:
         order_column = getattr(models.Participant, order_by_col)
@@ -86,17 +97,9 @@ def list_participants():
         user_id = current_user.user_id
 
     if user_id:
-        participants = models.Participant.query.options(
-            joinedload(models.Participant.family),
-            contains_eager(models.Participant.tissue_samples).contains_eager(
-                models.TissueSample.datasets
-            ),
-        )
-        for f in filt:
-            participants = participants.filter(f)
-
         participants = (
-            participants.join(models.TissueSample)
+            models.Participant.query.join(models.Participant.family)
+            .join(models.TissueSample)
             .join(models.Dataset)
             .join(
                 models.groups_datasets_table,
@@ -108,24 +111,54 @@ def list_participants():
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(models.users_groups_table.columns.user_id == user_id)
+            .filter(
+                models.users_groups_table.columns.user_id == user_id,
+                models.Participant.participant_codename.like(participant_codename),
+                models.Family.family_codename.like(family_codename),
+                models.Participant.participant_type.in_(participant_type),
+                models.Participant.sex.in_(sex),
+            )
         )
-        total_count = participants.count()
-        participants = participants.order_by(order()).limit(limit).offset(offset)
 
     else:
-        participants = models.Participant.query.options(
-            joinedload(models.Participant.family),
-            joinedload(models.Participant.tissue_samples).joinedload(
-                models.TissueSample.datasets
-            ),
-            joinedload(models.Participant.created_by),
-            joinedload(models.Participant.updated_by),
+        participants = (
+            models.Participant.query.join(models.Family)
+            .join(models.TissueSample)
+            .join(models.Dataset)
+            .filter(
+                models.Participant.participant_codename.like(participant_codename),
+                models.Family.family_codename.like(family_codename),
+                models.Participant.participant_type.in_(participant_type),
+                models.Participant.sex.in_(sex),
+            )
         )
-        for f in filt:
-            participants = participants.filter(f)
-        total_count = participants.count()
-        participants = participants.order_by(order()).limit(limit).offset(offset)
+
+    if notes:
+        if notes != "%null%":
+            participants = participants.filter(models.Participant.notes.like(notes))
+        else:
+            participants = participants.filter(models.Participant.notes == None)
+    if affected:
+        # need conditional statements for nullable columns, otherwise null values filtered out
+        if affected == "null":
+            participants = participants.filter(models.Participant.affected == None)
+        else:
+            affected = string_to_bool(affected)
+            participants = participants.filter(models.Participant.affected == affected)
+    if solved:
+        if solved.lower() == "null":
+            participants = participants.filter(models.Participant.solved == None)
+        else:
+            solved = string_to_bool(solved)
+            participants = participants.filter(models.Participant.solved == solved)
+    if dataset_type:
+        dataset_type = dataset_type.split(",")
+        participants = participants.filter(
+            models.Dataset.dataset_type.in_(dataset_type)
+        )
+
+    total_count = participants.count()
+    participants = participants.order_by(order()).limit(limit).offset(offset)
 
     return jsonify(
         {
