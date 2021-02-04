@@ -258,7 +258,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                         <Tooltip title={"Logged in as " + currentUser.username} arrow>
                             <AccountCircleIcon fontSize="large" />
                         </Tooltip>
-                        <Tooltip title="Log out">
+                        <Tooltip title="Sign out">
                             <IconButton onClick={signout}>
                                 <MeetingRoomIcon fontSize="large" />
                             </IconButton>
