@@ -97,8 +97,14 @@ def list_participants():
         user_id = current_user.user_id
 
     if user_id:
+        participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            contains_eager(models.Participant.tissue_samples).contains_eager(
+                models.TissueSample.datasets
+            ),
+        )
         participants = (
-            models.Participant.query.join(models.Participant.family)
+            participants.join(models.Participant.family)
             .join(models.TissueSample)
             .join(models.Dataset)
             .join(
@@ -121,8 +127,17 @@ def list_participants():
         )
 
     else:
+        participants = models.Participant.query.options(
+            joinedload(models.Participant.family),
+            joinedload(models.Participant.tissue_samples).joinedload(
+                models.TissueSample.datasets
+            ),
+            joinedload(models.Participant.created_by),
+            joinedload(models.Participant.updated_by),
+        )
+
         participants = (
-            models.Participant.query.join(models.Family)
+            participants.join(models.Family)
             .join(models.TissueSample)
             .join(models.Dataset)
             .filter(
