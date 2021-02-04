@@ -8,14 +8,7 @@ import FieldDisplay from "./FieldDisplay";
 type TextFieldEvent = React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>;
 
 const multilineFields = ["notes"];
-const enumFields = [
-    "sex",
-    "participant_type",
-    "condition",
-    "extraction_protocol",
-    "read_type",
-    "dataset_type",
-];
+const enumFields = ["sex", "participant_type", "condition", "read_type", "dataset_type"];
 const nonNullableFields = ["dataset_type", "condition"]; //does not include uneditable fields
 const booleanFields = ["affected", "solved"];
 const dateFields = ["library_prep_date"];
@@ -31,8 +24,6 @@ function getFieldInEnums(fieldName: string): string {
             return "ParticipantType";
         case "condition":
             return "DatasetCondition";
-        case "extraction_protocol":
-            return "DatasetExtractionProtocol";
         case "read_type":
             return "DatasetReadType";
         case "dataset_type":
@@ -63,7 +54,7 @@ function EnhancedTextField({
 }) {
     const classes = useTextStyles();
     const nullOption = (
-        <MenuItem value={""} key="">
+        <MenuItem value="" key="">
             <em>None</em>
         </MenuItem>
     );
@@ -90,7 +81,7 @@ function EnhancedTextField({
             onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
         };
         children = [
-            ...enums[getFieldInEnums(field.fieldName)].map((option: string) => (
+            ...enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
                 <MenuItem key={option} value={option}>
                     {option}
                 </MenuItem>
