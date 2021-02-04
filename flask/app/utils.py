@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Union
 from datetime import date, time, datetime
 
-from flask import abort
+from flask import abort, jsonify
 from flask.json import JSONEncoder
 from flask_login import current_user
 from sqlalchemy import exc
@@ -11,6 +11,14 @@ from sqlalchemy import exc
 
 from flask import current_app as app
 from .extensions import db
+from werkzeug.exceptions import HTTPException
+
+
+def handle_error(e):
+    code = 500
+    if isinstance(e, HTTPException):
+        code = e.code
+    return jsonify(error=str(e)), code
 
 
 def mixin(

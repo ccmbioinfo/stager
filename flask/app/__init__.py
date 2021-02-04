@@ -1,7 +1,8 @@
 import logging
 from flask import Flask, logging as flask_logging
 from .extensions import db, login, migrate
-from .utils import DateTimeEncoder
+from .utils import DateTimeEncoder, handle_error
+from werkzeug.exceptions import default_exceptions
 
 from app import (
     buckets,
@@ -26,6 +27,9 @@ def create_app(config):
     app = Flask(__name__)
     app.config.from_object(config)
     app.json_encoder = DateTimeEncoder
+
+    for ex in default_exceptions:
+        app.register_error_handler(ex, handle_error)
 
     config_logger(app)
     register_extensions(app)
