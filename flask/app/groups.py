@@ -61,7 +61,7 @@ def get_group(group_code):
         ).one_or_none()
 
     if group is None:
-        return "Forbidden", 403
+        abort(403, description="Forbidden")
 
     return jsonify(
         {
@@ -80,7 +80,7 @@ def get_group(group_code):
 def update_group(group_code):
 
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
@@ -91,7 +91,7 @@ def update_group(group_code):
                 group_name=request.json["group_name"]
             ).one_or_none()
             if (conflicting_group is not None) and (conflicting_group != group):
-                return "Group name in use", 422
+                abort(422, description="Group name in use")
             group.group_name = request.json["group_name"]
 
     minio_admin = MinioAdmin(
@@ -107,7 +107,7 @@ def update_group(group_code):
         ).all()
         # Make sure all users are valid
         if len(users) != len(request.json["users"]):
-            return "Invalid username provided", 404
+            abort(404, description="Invalid username provided")
 
         # Clear users from db and minio group
         if len(group.users) != 0:
@@ -128,7 +128,7 @@ def update_group(group_code):
         return jsonify(group)
     except:
         db.session.rollback()
-        return "Server error", 500
+        abort(500)
 
 
 @groups_blueprint.route("/api/groups", methods=["POST"])
@@ -136,21 +136,21 @@ def update_group(group_code):
 @check_admin
 def create_group():
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     group_name = request.json.get("group_name")
     group_code = request.json.get("group_code")
 
     if not group_name:
-        return "A group display name must be provided", 400
+        abort(400, description="A group display name must be provided")
     if not group_code:
-        return "A group codename must be provided", 400
+        abort(400, description="A group codename must be provided")
 
     if models.Group.query.filter(
         (models.Group.group_code == group_code)
         | (models.Group.group_name == group_name)
     ).value("group_id"):
-        return "Group already exists", 422
+        abort(422, description="Group already exists")
 
     minio_client = Minio(
         app.config["MINIO_ENDPOINT"],
@@ -168,10 +168,10 @@ def create_group():
     try:
         # Create minio bucket via mc, 422 if it already exists
         if minio_client.bucket_exists(group_code):
-            return "Minio bucket already exists", 422
+            abort(422, description="Minio bucket already exists")
         minio_client.make_bucket(group_code)
     except:
-        return "Invalid bucket name", 422
+        abort(422, description="Invalid bucket name")
 
     group_obj = models.Group(group_code=group_code, group_name=group_name)
 
@@ -182,7 +182,7 @@ def create_group():
         ).all()
         # Make sure all users are valid
         if len(users) != len(request.json["users"]):
-            return "Invalid username provided", 404
+            abort(404, description="Invalid username provided")
         group_obj.users += users
 
     # Make corresponding policy
@@ -220,13 +220,13 @@ def delete_group(group_code):
 
     # Check group users in db
     if len(group.users) != 0:
-        return "Group has users, cannot delete!", 422
+        abort(422, description="Group has users, cannot delete!")
 
     # Check group users in minio, in case it is somehow different from db
     if group_code in minio_admin.list_groups():
         group_info = minio_admin.get_group(group_code)
         if "members" in group_info:
-            return "Group has users, cannot delete!", 422
+            abort(422, description="Group has users, cannot delete!")
 
     try:
         # Try deleting minio group as well
@@ -234,7 +234,7 @@ def delete_group(group_code):
         db.session.commit()
     except:
         db.session.rollback()
-        return "Deletion of entity failed!", 422
+        abort(422, description="Deletion of entity failed!")
 
     try:
         minio_admin.group_remove(group_code)

@@ -64,7 +64,7 @@ def get_tissue_sample(id: int):
         )
 
     if not tissue_sample:
-        return "Not Found", 404
+        abort(404)
 
     return jsonify(
         {
@@ -99,9 +99,9 @@ def delete_tissue_sample(id: int):
             return "Updated", 204
         except:
             db.session.rollback()
-            return "Server error", 500
+            abort(500)
     else:
-        return "Tissue has dataset(s), cannot delete", 422
+        abort(422, description="Tissue has dataset(s), cannot delete")
 
 
 @tissue_blueprint.route("/api/tissue_samples", methods=["POST"])
@@ -109,22 +109,22 @@ def delete_tissue_sample(id: int):
 @check_admin
 def create_tissue_sample():
     if not request.json:
-        return "Request body must be JSON", 400
+        abort(400, description="Request body must be JSON")
 
     tissue_sample_type = request.json.get("tissue_sample_type")
     if not tissue_sample_type:
-        return "A tissue sample type must be provided", 400
+        abort(400, description="A tissue sample type must be provided")
 
     participant_id = request.json.get("participant_id")
     if not participant_id:
-        return "A participant id must be provided", 400
+        abort(400, description="A participant id must be provided")
 
     models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
 
     enum_error = enum_validate(models.TissueSample, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description=enum_error)
 
     try:
         created_by_id = updated_by_id = current_user.user_id
@@ -160,14 +160,14 @@ def create_tissue_sample():
         )
     except:
         db.session.rollback()
-        return "Server error", 500
+        abort(500)
 
 
 @tissue_blueprint.route("/api/tissue_samples/<int:id>", methods=["PATCH"])
 @login_required
 def update_tissue_sample(id: int):
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -208,12 +208,12 @@ def update_tissue_sample(id: int):
         )
 
     if not tissue_sample:
-        return "Not Found", 404
+        abort(404)
 
     enum_error = mixin(tissue_sample, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description=enum_error)
 
     if user_id:
         tissue_sample.updated_by_id = user_id

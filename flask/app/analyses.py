@@ -33,7 +33,7 @@ def list_analyses():
     try:
         since_date = datetime.fromisoformat(since_date)
     except:
-        return "Malformed query date", 400
+        abort(400, description="Malformed query date")
 
     if user_id:
         query = (
@@ -121,7 +121,7 @@ def get_analysis(id: int):
         )
 
     if not analysis:
-        return "Not Found", 404
+        return abort(404)
 
     return jsonify(
         {
@@ -154,18 +154,18 @@ def get_analysis(id: int):
 @login_required
 def create_analysis():
     if not request.json:
-        return "Request body must be JSON!", 415
+        abort(415, description="Request body must be JSON!")
 
     pipeline_id = request.json.get("pipeline_id")
     if not isinstance(pipeline_id, int):
-        return "Missing pipeline_id field or invalid type", 400
+        abort(400, description="Missing pipeline_id field or invalid type")
 
     datasets = request.json.get("datasets")
     if not (isinstance(datasets, list) and len(datasets)):
-        return "Missing datasets field or invalid type", 400
+        abort(400, description="Missing datasets field or invalid type")
 
     if not models.Pipeline.query.get(pipeline_id):
-        return "Pipeline not found", 404
+        abort(404, description="Pipeline not found")
 
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
@@ -198,7 +198,7 @@ def create_analysis():
     ).all()
 
     if len(found_datasets) != len(datasets):
-        return "Some datasets were not found", 404
+        abort(404, description="Some datasets were not found")
 
     compatible_datasets_pipelines_query = (
         db.session.query(
@@ -222,7 +222,7 @@ def create_analysis():
     )
 
     if len(compatible_datasets_pipelines_query) != len(datasets):
-        return "Requested pipelines are incompatible with datasets", 404
+        abort(404, description="Requested pipelines are incompatible with datasets")
 
     now = datetime.now()
     analysis = models.Analysis(
@@ -282,14 +282,14 @@ def delete_analysis(id: int):
         return "Updated", 204
     except:
         db.session.rollback()
-        return "Server error", 500
+        abort(500)
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["PATCH"])
 @login_required
 def update_analysis(id: int):
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON!")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -299,7 +299,10 @@ def update_analysis(id: int):
             "Cancelled",
             None,  # account for default
         ]:
-            return "Analysis state changes are restricted to administrators", 403
+            abort(
+                403,
+                description="Analysis state changes are restricted to administrators",
+            )
 
     if user_id:
         analysis = (
@@ -349,12 +352,12 @@ def update_analysis(id: int):
             if assignee:
                 analysis.assignee = assignee.user_id
             else:
-                return "assignee not found", 400
+                abort(400, description="Assignee not found")
 
     enum_error = mixin(analysis, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description=enum_error)  # check if this works
 
     if request.json.get("analysis_state") == "Running":
         analysis.started = datetime.now()

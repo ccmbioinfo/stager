@@ -46,12 +46,12 @@ def list_participants():
     try:
         int(limit)
     except:
-        return "Limit must be a valid integer", 400
+        abort(400, description="Limit must be a valid integer")
 
     try:
         int(page)
     except:
-        return "Page must be a valid integer", 400
+        abort(400, description="Page must be a valid integer")
 
     offset = int(page) * int(limit)
 
@@ -61,7 +61,7 @@ def list_participants():
     if raw_filters:
         filt = filter_query(models.Participant, raw_filters)
         if type(filt) == str:
-            return filt, 400
+            abort(400, description="filt")
     else:
         filt = [
             (
@@ -73,12 +73,12 @@ def list_participants():
     try:
         order_column = getattr(models.Participant, order_by_col)
     except AttributeError:
-        return f"Column name must be one of {columns}", 400
+        abort(400, description=f"Column name must be one of {columns}")
 
     try:
         order = getattr(order_column, order_dir)
     except AttributeError:
-        return f"Column name must be 'asc' or 'desc'", 400
+        abort(400, description=f"Column name must be 'asc' or 'desc'")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -167,9 +167,9 @@ def delete_participant(id: int):
             return "Updated", 204
         except:
             db.session.rollback()
-            return "Server error", 500
+            abort(500, description="Server error")
     else:
-        return "Participant has tissue samples, cannot delete", 422
+        abort(422, description="Participant has tissue samples, cannot delete")
 
 
 @participants_blueprint.route("/api/participants/<int:id>", methods=["PATCH"])
@@ -177,7 +177,7 @@ def delete_participant(id: int):
 def update_participant(id: int):
 
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -210,7 +210,7 @@ def update_participant(id: int):
     enum_error = mixin(participant, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description="enum_error")
 
     if user_id:
         participant.updated_by_id = user_id
@@ -236,7 +236,7 @@ def update_participant(id: int):
 @check_admin
 def create_participant():
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     try:
         updated_by_id = current_user.user_id
@@ -254,7 +254,7 @@ def create_participant():
     )
 
     if ptp_query.first() is not None:
-        return "Participant codename already exists under family", 422
+        abort(422, description="Participant codename already exists under family")
 
     # check if family exists
     models.Family.query.filter(
@@ -265,7 +265,7 @@ def create_participant():
     enum_error = enum_validate(models.Participant, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description=enum_error)
 
     # get institution id
     institution = request.json.get("institution")
