@@ -13,7 +13,7 @@ export function useDatasetDeleteMutation() {
     const mutation = useMutation<Response, Response, string>(deleteDataset, {
         onSuccess: (res, id) => {
             queryClient.removeQueries(["datasets", id]);
-            // TODO: Add exact key matching
+            // TODO: Replace below with invalidate queries after #283
             deleteFromCachedList<Dataset>("datasets", queryClient, id, "dataset_id");
         },
     });

@@ -11,7 +11,7 @@ export function useDatasetCreateMutation() {
     const mutation = useMutation<Dataset, Response, Dataset>(createDataset, {
         onSuccess: newDataset => {
             queryClient.setQueryData(["datasets", newDataset.dataset_id], newDataset);
-            // TODO: Add exact key matching
+            // TODO: Replace below with invalidate queries after #283
             addToCachedList<Dataset>("datasets", queryClient, newDataset);
         },
     });
