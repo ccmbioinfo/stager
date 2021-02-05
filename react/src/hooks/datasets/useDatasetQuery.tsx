@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { Dataset } from "../../typings";
+import { DatasetDetailed } from "../../typings";
 import { basicFetch } from "../utils";
 
 async function fetchDataset(id: string) {
@@ -15,6 +15,6 @@ async function fetchDataset(id: string) {
  * participant and family.
  */
 export function useDatasetQuery(id: string) {
-    const result = useQuery<Dataset, Response>(["datasets", id], () => fetchDataset(id));
+    const result = useQuery<DatasetDetailed, Response>(["datasets", id], () => fetchDataset(id));
     return result;
 }

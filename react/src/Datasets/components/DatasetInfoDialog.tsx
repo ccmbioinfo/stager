@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
-import { Dataset, Analysis, Sample } from "../../typings";
+import { Dataset, Sample } from "../../typings";
 import {
     formatDateString,
     getAnalysisInfoList,
@@ -11,7 +11,7 @@ import {
     getSecDatasetFields,
     createFieldObj,
 } from "../../functions";
-import { useEnumsQuery } from "../../hooks";
+import { useEnumsQuery, useDatasetQuery } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -47,23 +47,11 @@ interface DialogProp {
 export default function DatasetInfoDialog(props: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
-
-    const [analyses, setAnalyses] = useState<Analysis[]>([]);
-    const [sample, setSample] = useState<Sample>();
+    const { data: dataset } = useDatasetQuery(props.dataset.dataset_id);
+    const analyses = useMemo(() => dataset?.analyses, [dataset]);
+    const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
     const { data: enums } = useEnumsQuery();
-
-    useEffect(() => {
-        fetch("/api/datasets/" + props.dataset.dataset_id)
-            .then(response => response.json())
-            .then(data => {
-                setAnalyses(data.analyses as Analysis[]);
-                setSample(data.tissue_sample as Sample);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }, [props.dataset]);
 
     return (
         <Dialog
@@ -104,7 +92,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
-                    {analyses.length > 0 && (
+                    {analyses && analyses.length > 0 && (
                         <InfoList
                             infoList={getAnalysisInfoList(analyses)}
                             title="Analyses which use this dataset"
