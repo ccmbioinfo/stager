@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict
 
-from flask import Blueprint, current_app as app, jsonify, request
+from flask import abort, Blueprint, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
@@ -59,7 +59,7 @@ def get_user(username: str):
         and not current_user.is_admin
         and username != current_user.username
     ):
-        return "Unauthorized", 401
+        abort(401)
 
     user = (
         models.User.query.options(joinedload(models.User.groups))
@@ -116,9 +116,9 @@ def reset_minio_user(username: str):
         and not current_user.is_admin
         and username != current_user.username
     ):
-        return "Unauthorized", 401
+        abort(401)
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
     user = (
         models.User.query.options(joinedload(models.User.groups))
         .filter(models.User.username == username)
@@ -159,29 +159,28 @@ def verify_email(email: str) -> bool:
 @check_admin
 def create_user():
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     if not valid_strings(request.json, "username", "email", "password"):
-        return "Missing fields", 400
+        abort(400, description="Missing fields")
     if (
         len(request.json["username"]) > models.User.username.type.length
         or len(request.json["email"]) >= models.User.email.type.length
     ):
-        return "Username or email too long", 400
+        abort(400, description="Username or email too long")
     if not verify_email(request.json["email"]):
-        return "Bad email", 400
+        abort(400, description="Bad email")
 
     user = models.User.query.filter(
         (models.User.username == request.json["username"])
         | (models.User.email == request.json["email"])
     ).first()
     if user is not None:
-        # TODO: integrate with #219
         if user.username == request.json["username"]:
-            error = {"error": "existingUser", "message": "User already exists."}
+            msg = "User already exists"
         else:
-            error = {"error": "existingEmail", "message": "Email already in use."}
-        return jsonify(error), 422, {"location": f"/api/users/{user.username}"}
+            msg = "Email already in use"
+        return abort(422, description=msg), {"location": f"/api/users/{user.username}"}
 
     user = models.User(
         username=request.json["username"],
@@ -196,7 +195,7 @@ def create_user():
             models.Group.group_code.in_(requested_groups)
         ).all()
         if len(requested_groups) != len(groups):
-            return "Invalid group code provided", 404
+            abort(404, description="Invalid group code provided")
         user.groups += groups
 
     reset_minio_credentials(user)
@@ -216,7 +215,7 @@ def delete_user(username: str):
     except:
         db.session.rollback()
         # Assume user foreign key required elsewhere and not other error
-        return "This user can only be deactivated", 422
+        abort(422, description="This user can only be deactivated")
 
     safe_remove(user)
 
@@ -227,7 +226,7 @@ def delete_user(username: str):
 @login_required
 def update_user(username: str):
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         minio_admin = get_minio_admin()
@@ -244,7 +243,7 @@ def update_user(username: str):
                 models.Group.group_code.in_(requested_groups)
             ).all()
             if len(requested_groups) != len(groups):
-                return "Invalid group code provided", 404
+                abort(404, description="Invalid group code provided")
             if user.minio_access_key:
                 for group in user.groups:
                     # Reset existing group memberships
@@ -281,16 +280,16 @@ def update_user(username: str):
     # Update the current user's password given the existing password
     elif username == current_user.username:
         if "current" not in request.json or "password" not in request.json:
-            return "Bad request", 400
+            abort(400, description="Bad request")
         if not current_user.check_password(request.json["current"]):
-            return "Incorrect password", 401
+            abort(401, description="Incorrect password")
         current_user.set_password(request.json["password"])
         try:
             db.session.commit()
             return "Updated", 204
         except:
             db.session.rollback()
-            return "Server error", 500
+            abort(500)
 
     else:
-        return "Unauthorized", 403
+        abort(403)

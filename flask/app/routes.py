@@ -5,7 +5,7 @@ from enum import Enum
 from io import StringIO
 
 import pandas as pd
-from flask import current_app as app, jsonify, Response, request, Blueprint
+from flask import abort, current_app as app, jsonify, Response, request, Blueprint
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
@@ -48,11 +48,11 @@ def login():
 
     body = request.json
     if not body or "username" not in body or "password" not in body:
-        return "Request body must be correctly-shaped JSON!", 400
+        abort(400, description="Request body must be correctly-shaped JSON!")
 
     user = models.User.query.filter_by(username=body["username"]).first()
     if user is None or user.deactivated or not user.check_password(body["password"]):
-        return "Unauthorized", 401
+        abort(401, description="Unauthorized")
 
     # get/update last login
     try:
@@ -77,7 +77,7 @@ def login():
 @login_required
 def logout():
     if not request.json:
-        return "Request body must be JSON!", 400
+        abort(400, description="Request body must be JSON!")
     logout_user()
     return "", 204
 
@@ -203,20 +203,23 @@ def bulk_update():
             dat = dat.where(pd.notnull(dat), None)
             dat = dat.to_dict(orient="records")
         except Exception as err:
-            return str(err), 400
+            abort(400, description=str(err))
 
     elif request.content_type == "application/json":
         if not request.json:
-            return "Request body must be JSON", 415
+            abort(415, description="Request body must be JSON")
 
         # the jsons must be in a list, even if it is a single json object
         if not isinstance(request.json, list):
-            return "JSON must be in an array", 422
+            abort(422, description="JSON must be in an array")
 
         dat = request.json
 
     else:
-        return "Only Content Type 'text/csv' or 'application/json' Supported", 415
+        abort(
+            415,
+            description="Only Content Type 'text/csv' or 'application/json' Supported",
+        )
 
     try:
         updated_by_id = current_user.user_id
@@ -244,7 +247,7 @@ def bulk_update():
             .all()
         )
         if len(requested_groups) != len(groups):
-            return "Invalid group code provided", 404
+            abort(404, description="Invalid group code provided")
     else:
         groups = (
             models.Group.query.join(models.Group.users)
@@ -252,17 +255,17 @@ def bulk_update():
             .all()
         )
         if len(groups) != 1:
-            return (
-                "User belongs to multiple permission groups but no group was specified",
+            abort(
                 400,
+                description="User belongs to multiple permission groups but no group was specified",
             )
         if not groups:
-            return "User does not belong to any permission groups", 403
+            abort(403, description="User does not belong to any permission groups")
 
     for i, row in enumerate(dat):
         sequencing_date = row.get("sequencing_date")
         if not sequencing_date:
-            return "A sequencing date must be provided", 400
+            abort(400, description="A sequencing date must be provided")
 
         # Find the family by codename or create it if it doesn't exist
         family_id = models.Family.query.filter(
@@ -284,7 +287,7 @@ def bulk_update():
         )
         if enum_error:
             db.session.rollback()
-            return f"Error on line {str(i + 1)} - " + enum_error, 400
+            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
 
         # get institution id
         institution = row.get("institution")
@@ -329,7 +332,7 @@ def bulk_update():
         )
         if enum_error:
             db.session.rollback()
-            return f"Error on line {str(i + 1)}: " + enum_error, 400
+            abort(400, description=f"Error on line {str(i + 1)}: " + enum_error)
 
         # Create a new tissue sample under this participant
         tissue_sample = models.TissueSample(
@@ -346,7 +349,7 @@ def bulk_update():
         enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
         if enum_error:
             db.session.rollback()
-            return f"Error on line {str(i + 1)} - " + enum_error, 400
+            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
 
         # Create a new dataset under the new tissue sample
         dataset = models.Dataset(
