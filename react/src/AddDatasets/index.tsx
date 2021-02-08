@@ -4,11 +4,12 @@ import { CloudUpload } from "@material-ui/icons";
 import { useHistory } from "react-router";
 import { useSnackbar } from "notistack";
 import DataEntryTable from "./components/DataEntryTable";
+import { participantColumns } from "./components/utils";
 import { DataEntryRow, DataEntryRowBase } from "../typings";
 import { ConfirmModal } from "../components";
 import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
-import { participantColumns } from "./components/utils";
 import { useUserContext } from "../contexts";
+import { useBulkCreateMutation } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -34,6 +35,7 @@ export default function AddParticipants() {
     const classes = useStyles();
     const history = useHistory();
     const currentUser = useUserContext();
+    const datasetsMutation = useBulkCreateMutation();
     const [data, setData] = useState<DataEntryRow[]>([]);
     const [open, setOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -103,32 +105,28 @@ export default function AddParticipants() {
         setErrorMessage("");
     }, [data, asGroups, currentUser]);
 
-    async function handleSubmit() {
-        const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
-        const response = await fetch("/api/_bulk" + params, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (response.ok) {
-            const responseData: Array<any> = await response.json();
-            const length = responseData.length;
-            enqueueSnackbar(
-                `${length} ${length !== 1 ? "datasets" : "dataset"} successfully added.`,
-                {
-                    variant: "success",
-                }
-            );
-            history.push("/datasets");
-        } else {
-            const message = `Error: ${response.status} - ${
-                response.statusText
-            } "${await response.text()}"`;
-            enqueueSnackbar(message, { variant: "error" });
-        }
+    function handleSubmit() {
+        datasetsMutation.mutate(
+            { data: data, asGroups: asGroups },
+            {
+                onSuccess: datasets => {
+                    const length = datasets.length;
+                    enqueueSnackbar(
+                        `${length} ${length !== 1 ? "datasets" : "dataset"} successfully added.`,
+                        {
+                            variant: "success",
+                        }
+                    );
+                    history.push("/datasets");
+                },
+                onError: async response => {
+                    const message = `Error: ${response.status} - ${
+                        response.statusText
+                    } "${await response.text()}"`;
+                    enqueueSnackbar(message, { variant: "error" });
+                },
+            }
+        );
     }
 
     function handleDataChange(newData: DataEntryRow[]) {
