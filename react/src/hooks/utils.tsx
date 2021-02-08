@@ -2,7 +2,8 @@
 
 import { Query, QueryResult } from "material-table";
 import { stringToBoolean } from "../functions";
-import { MutationKey, QueryClient } from "react-query";
+import { InvalidateOptions, InvalidateQueryFilters, MutationKey, QueryClient } from "react-query";
+import { SetDataOptions } from "react-query/types/core/query";
 
 interface FetchOptions {
     onSuccess?: (res: Response) => any;
@@ -102,6 +103,12 @@ export async function changeFetch<
     }
 }
 
+interface UpdateCacheOptions {
+    invalidateQueryFilters?: InvalidateQueryFilters;
+    invalidateOptions?: InvalidateOptions;
+    setQueryData?: SetDataOptions;
+}
+
 /**
  * Helper function for updating a cached list after adding to, updating in, or removing
  * from said list.
@@ -109,13 +116,18 @@ export async function changeFetch<
 function updateCachedList<T>(
     queryKey: MutationKey,
     queryClient: QueryClient,
-    updater: (existingData: T[]) => T[]
+    updater: (existingData: T[]) => T[],
+    options?: UpdateCacheOptions
 ) {
     const existingData = queryClient.getQueryData<T[]>(queryKey);
     if (existingData !== undefined) {
-        queryClient.setQueryData(queryKey, updater(existingData));
+        queryClient.setQueryData(queryKey, updater(existingData), options?.setQueryData);
     } else {
-        queryClient.invalidateQueries(queryKey);
+        queryClient.invalidateQueries(
+            queryKey,
+            options?.invalidateQueryFilters,
+            options?.invalidateOptions
+        );
     }
 }
 
@@ -129,10 +141,14 @@ export function deleteFromCachedList<T>(
     queryKey: MutationKey,
     queryClient: QueryClient,
     deletedId: T[keyof T],
-    identifier: keyof T
+    identifier: keyof T,
+    options?: UpdateCacheOptions
 ) {
-    updateCachedList<T>(queryKey, queryClient, existingData =>
-        existingData.filter(data => data[identifier] !== deletedId)
+    updateCachedList<T>(
+        queryKey,
+        queryClient,
+        existingData => existingData.filter(data => data[identifier] !== deletedId),
+        options
     );
 }
 
@@ -145,16 +161,26 @@ export function updateInCachedList<T>(
     queryKey: MutationKey,
     queryClient: QueryClient,
     updated: T,
-    identifier: keyof T
+    identifier: keyof T,
+    options?: UpdateCacheOptions
 ) {
-    updateCachedList<T>(queryKey, queryClient, existingData =>
-        existingData.map(data => (data[identifier] === updated[identifier] ? updated : data))
+    updateCachedList<T>(
+        queryKey,
+        queryClient,
+        existingData =>
+            existingData.map(data => (data[identifier] === updated[identifier] ? updated : data)),
+        options
     );
 }
 
 /**
  * Add a new entry to a cached list.
  */
-export function addToCachedList<T>(queryKey: MutationKey, queryClient: QueryClient, added: T) {
-    updateCachedList<T>(queryKey, queryClient, existingData => [...existingData, added]);
+export function addToCachedList<T>(
+    queryKey: MutationKey,
+    queryClient: QueryClient,
+    added: T,
+    options?: UpdateCacheOptions
+) {
+    updateCachedList<T>(queryKey, queryClient, existingData => [...existingData, added], options);
 }
