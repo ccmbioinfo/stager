@@ -113,7 +113,7 @@ const useStyles = (darkMode: boolean) =>
                     marginTop: "auto",
                 },
                 logo: {
-                    height: "3em",
+                    height: "2.5em",
                     width: "auto",
                     objectFit: "scale-down",
                     margin: theme.spacing(0, 2),
@@ -244,7 +244,6 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                                 </Route>
                             ))}
                         </Switch>
-                        <img className={classes.logo} src={logo} alt="" />
                         <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
                             <MuiSwitch
                                 checked={darkMode}
@@ -273,6 +272,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                     open={open}
                 >
                     <div className={classes.toolbarIcon}>
+                        <img className={classes.logo} src={logo} alt="" />
                         <IconButton onClick={handleDrawerClose}>
                             <ChevronLeftIcon />
                         </IconButton>
