@@ -11,13 +11,7 @@ from sqlalchemy import exc, asc, desc
 from sqlalchemy.orm import aliased, contains_eager, joinedload
 from werkzeug.exceptions import HTTPException
 
-from .utils import (
-    check_admin,
-    transaction_or_abort,
-    mixin,
-    enum_validate,
-    string_to_bool,
-)
+from .utils import check_admin, transaction_or_abort, mixin, enum_validate, filter_bool
 
 
 editable_columns = [
@@ -63,9 +57,7 @@ def list_participants():
     solved = request.args.get("solved", default=None, type=str)
     family_codename = request.args.get("family_codename", default=None, type=str)
     family_codename = f"%{family_codename}%" if family_codename else "%"
-    dataset_type = request.args.get("dataset_type", default=None, type=str)
 
-    # enum_error = enum_validate(models.Participant, request.json, editable_columns)
     # for some reason type=int doesn't catch non-integer queries
     try:
         int(limit)
@@ -81,10 +73,13 @@ def list_participants():
 
     columns = models.Participant.__table__.columns.keys()
 
-    try:
-        order_column = getattr(models.Participant, order_by_col)
-    except AttributeError:
-        return f"Column name must be one of {columns}", 400
+    if order_by_col == "family_codename":
+        order_column = getattr(models.Family, order_by_col)
+    else:
+        try:
+            order_column = getattr(models.Participant, order_by_col)
+        except AttributeError:
+            return f"Column name must be one of {columns}", 400
 
     try:
         order = getattr(order_column, order_dir)
@@ -127,19 +122,11 @@ def list_participants():
         )
 
     else:
-        participants = models.Participant.query.options(
-            joinedload(models.Participant.family),
-            joinedload(models.Participant.tissue_samples).joinedload(
-                models.TissueSample.datasets
-            ),
-            joinedload(models.Participant.created_by),
-            joinedload(models.Participant.updated_by),
-        )
-
         participants = (
-            participants.join(models.Family)
+            models.Participant.query.join(models.Family)
+            .options(contains_eager(models.Participant.family))
             .join(models.TissueSample)
-            .join(models.Dataset)
+            .options(contains_eager(models.Participant.tissue_samples))
             .filter(
                 models.Participant.participant_codename.like(participant_codename),
                 models.Family.family_codename.like(family_codename),
@@ -154,23 +141,15 @@ def list_participants():
         else:
             participants = participants.filter(models.Participant.notes == None)
     if affected:
-        # need conditional statements for nullable columns, otherwise null values filtered out
-        if affected == "null":
-            participants = participants.filter(models.Participant.affected == None)
-        else:
-            affected = string_to_bool(affected)
-            participants = participants.filter(models.Participant.affected == affected)
-    if solved:
-        if solved.lower() == "null":
-            participants = participants.filter(models.Participant.solved == None)
-        else:
-            solved = string_to_bool(solved)
-            participants = participants.filter(models.Participant.solved == solved)
-    if dataset_type:
-        dataset_type = dataset_type.split(",")
-        participants = participants.filter(
-            models.Dataset.dataset_type.in_(dataset_type)
+        participants = filter_bool(
+            models.Participant, participants, "affected", affected
         )
+        if type(participants) is str:
+            return participants, 400
+    if solved:
+        participants = filter_bool(models.Participant, participants, "solved", solved)
+        if type(participants) is str:
+            return participants, 400
 
     total_count = participants.count()
     participants = participants.order_by(order()).limit(limit).offset(offset)

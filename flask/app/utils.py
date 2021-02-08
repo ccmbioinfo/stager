@@ -67,9 +67,19 @@ def enum_validate(
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
 
-def string_to_bool(string: str) -> Union[None, str]:
-    str_bool = loads(string.lower())
-    return str_bool
+def filter_bool(
+    entity: db.Model, query: db.Model.query, column: str, value: str
+) -> Union[db.Model.query, str]:
+    value = value.lower()
+    if value == "null":
+        query = query.filter(getattr(entity, column) == None)
+    elif value == "true":
+        query = query.filter(getattr(entity, column) == True)
+    elif value == "false":
+        query = query.filter(getattr(entity, column) == False)
+    else:
+        query = f"{column} must be true, false, or null"
+    return query
 
 
 class DateTimeEncoder(JSONEncoder):
