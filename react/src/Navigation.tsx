@@ -118,6 +118,9 @@ const useStyles = (darkMode: boolean) =>
                     objectFit: "scale-down",
                     margin: theme.spacing(0, 2),
                 },
+                appBarButton: {
+                    color: theme.palette.common.white,
+                },
             })),
         [darkMode]
     );
@@ -257,8 +260,8 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                         <Tooltip title={"Logged in as " + currentUser.username} arrow>
                             <AccountCircleIcon fontSize="large" />
                         </Tooltip>
-                        <Tooltip title="Sign out">
-                            <IconButton onClick={signout}>
+                        <Tooltip title="Sign out" arrow>
+                            <IconButton onClick={signout} className={classes.appBarButton}>
                                 <MeetingRoomIcon fontSize="large" />
                             </IconButton>
                         </Tooltip>
@@ -274,7 +277,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                     <div className={classes.toolbarIcon}>
                         <img className={classes.logo} src={logo} alt="" />
                         <IconButton onClick={handleDrawerClose}>
-                            <ChevronLeftIcon />
+                            <ChevronLeftIcon fontSize="large" />
                         </IconButton>
                     </div>
                     <Divider />
