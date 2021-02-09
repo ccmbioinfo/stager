@@ -29,9 +29,6 @@ def create_app(config):
     app.config.from_object(config)
     app.json_encoder = DateTimeEncoder
 
-    # for ex in default_exceptions:
-    #     app.register_error_handler(ex, handle_error)
-
     config_logger(app)
     register_extensions(app)
     register_commands(app)
