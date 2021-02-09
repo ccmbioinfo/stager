@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { makeStyles, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
-import { useSnackbar } from "notistack";
 import {
     formatDateString,
     getAnalysisInfoList,
@@ -12,6 +11,7 @@ import { Participant, Analysis, Field } from "../../typings";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
 import { useEnumsQuery } from "../../hooks";
+import { useDatasetQueries } from "../../hooks/datasets/useDatasetQueries";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -49,36 +49,21 @@ interface DialogProp {
 
 export default function ParticipantInfoDialog(props: DialogProp) {
     const classes = useStyles();
+    const datasets = useMemo(
+        () => props.participant.tissue_samples.flatMap(sample => sample.datasets),
+        [props.participant]
+    );
+    const datasetResults = useDatasetQueries(datasets.map(d => d.dataset_id));
+    const analyses = useMemo(
+        () =>
+            datasetResults.reduce(
+                (prev, curr) => (curr.isSuccess ? prev.concat(curr.data.analyses) : prev),
+                [] as Analysis[]
+            ),
+        [datasetResults]
+    );
     const labeledBy = "participant-info-dialog-slide-title";
-    const [analyses, setAnalyses] = useState<Analysis[]>([]);
-    const { enqueueSnackbar } = useSnackbar();
     const { data: enums } = useEnumsQuery();
-
-    useEffect(() => {
-        (async () => {
-            const datasets = props.participant.tissue_samples.flatMap(sample => sample.datasets);
-            let analysisList: Analysis[] = [];
-            for (const dataset of datasets) {
-                const response = await fetch("/api/datasets/" + dataset.dataset_id);
-                if (response.ok) {
-                    const data = await response.json();
-                    analysisList = analysisList.concat(data.analyses as Analysis[]);
-                } else {
-                    throw new Error(
-                        `GET /api/datasets/${dataset.dataset_id} failed. Reason: ${response.status} - ${response.statusText}`
-                    );
-                }
-            }
-            return analysisList;
-        })()
-            .then(analysisList => {
-                setAnalyses(analysisList);
-            })
-            .catch(error => {
-                console.error(error);
-                enqueueSnackbar(error.message, { variant: "error" });
-            });
-    }, [props.participant, enqueueSnackbar]);
 
     return (
         <Dialog

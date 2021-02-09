@@ -19,6 +19,7 @@ export { useUserMinioMutation } from "./users/useUserMinioMutation";
 export { useParticipantsPage } from "./participants/useParticipantsPage";
 
 export { useDatasetQuery } from "./datasets/useDatasetQuery";
+export { useDatasetsQuery } from "./datasets/useDatasetsQuery";
 export { useDatasetsPage } from "./datasets/useDatasetsPage";
 export { useDatasetCreateMutation } from "./datasets/useDatasetCreateMutation";
 export { useDatasetUpdateMutation } from "./datasets/useDatasetUpdateMutation";

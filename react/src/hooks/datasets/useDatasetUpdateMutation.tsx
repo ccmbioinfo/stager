@@ -2,13 +2,13 @@ import { useMutation, useQueryClient } from "react-query";
 import { Dataset } from "../../typings";
 import { changeFetch, updateInCachedList } from "../utils";
 
-async function patchDataset(newDataset: Dataset) {
+async function patchDataset(newDataset: Partial<Dataset>) {
     return changeFetch("/api/datasets/" + newDataset.dataset_id, "PATCH", newDataset);
 }
 
 export function useDatasetUpdateMutation() {
     const queryClient = useQueryClient();
-    const mutation = useMutation<Dataset, Response, Dataset>(patchDataset, {
+    const mutation = useMutation<Dataset, Response, Partial<Dataset>>(patchDataset, {
         onSuccess: newDataset => {
             queryClient.setQueryData(["datasets", newDataset.dataset_id], newDataset);
             // TODO: Replace below with invalidate queries after #283

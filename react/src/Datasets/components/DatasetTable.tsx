@@ -11,10 +11,10 @@ import DatasetInfoDialog from "./DatasetInfoDialog";
 import { DateTimeText, Note, FileLinkingComponent } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
-    useDatasetsPage,
     useDatasetUpdateMutation,
     useEnumsQuery,
     useMetadatasetTypesQuery,
+    useDatasetsQuery,
 } from "../../hooks";
 import { useUserContext } from "../../contexts";
 
@@ -37,7 +37,7 @@ export default function DatasetTable() {
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
-    const getDatasets = useDatasetsPage();
+    const { data: datasets } = useDatasetsQuery();
     const datasetUpdateMutation = useDatasetUpdateMutation();
 
     const [pipelines, setPipelines] = useState<Pipeline[]>([]);
@@ -168,7 +168,7 @@ export default function DatasetTable() {
                         defaultFilter: paramID,
                     },
                 ]}
-                data={getDatasets}
+                data={datasets || []}
                 title="Datasets"
                 options={{
                     pageSize: 10,
@@ -184,37 +184,39 @@ export default function DatasetTable() {
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
                         const diffDataset = rowDiff<Dataset>(newDataset, oldDataset);
-                        datasetUpdateMutation.mutate(
-                            {
-                                ...diffDataset,
-                                dataset_id: oldDataset?.dataset_id,
-                            },
-                            {
-                                onSuccess: receivedDataset => {
-                                    const removeUsed = files.filter(
-                                        file => !receivedDataset.linked_files.includes(file)
-                                    );
-                                    setFiles(
-                                        oldDataset && oldDataset.linked_files.length > 0
-                                            ? [...oldDataset.linked_files, ...removeUsed].sort()
-                                            : removeUsed
-                                    );
-                                    enqueueSnackbar(
-                                        `Dataset ID ${newDataset.dataset_id} updated successfully`,
-                                        { variant: "success" }
-                                    );
+                        if (oldDataset) {
+                            datasetUpdateMutation.mutate(
+                                {
+                                    ...diffDataset,
+                                    dataset_id: oldDataset.dataset_id,
                                 },
-                                onError: response => {
-                                    console.error(
-                                        `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
-                                    );
-                                    enqueueSnackbar(
-                                        `Failed to edit Dataset ID ${oldDataset?.dataset_id} - ${response.status} ${response.statusText}`,
-                                        { variant: "error" }
-                                    );
-                                },
-                            }
-                        );
+                                {
+                                    onSuccess: receivedDataset => {
+                                        const removeUsed = files.filter(
+                                            file => !receivedDataset.linked_files.includes(file)
+                                        );
+                                        setFiles(
+                                            oldDataset && oldDataset.linked_files.length > 0
+                                                ? [...oldDataset.linked_files, ...removeUsed].sort()
+                                                : removeUsed
+                                        );
+                                        enqueueSnackbar(
+                                            `Dataset ID ${newDataset.dataset_id} updated successfully`,
+                                            { variant: "success" }
+                                        );
+                                    },
+                                    onError: response => {
+                                        console.error(
+                                            `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
+                                        );
+                                        enqueueSnackbar(
+                                            `Failed to edit Dataset ID ${oldDataset?.dataset_id} - ${response.status} ${response.statusText}`,
+                                            { variant: "error" }
+                                        );
+                                    },
+                                }
+                            );
+                        }
                     },
                 }}
                 components={{

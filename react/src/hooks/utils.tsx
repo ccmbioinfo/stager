@@ -2,7 +2,7 @@
 
 import { Query, QueryResult } from "material-table";
 import { stringToBoolean } from "../functions";
-import { MutationKey, QueryClient } from "react-query";
+import { MutationKey, QueryClient, useQueries, UseQueryOptions, UseQueryResult } from "react-query";
 
 interface FetchOptions {
     onSuccess?: (res: Response) => any;
@@ -157,4 +157,29 @@ export function updateInCachedList<T>(
  */
 export function addToCachedList<T>(queryKey: MutationKey, queryClient: QueryClient, added: T) {
     updateCachedList<T>(queryKey, queryClient, existingData => [...existingData, added]);
+}
+
+// useQueries doesn't have proper typing yet, so we have this wrapper
+// see: https://github.com/tannerlinsley/react-query/issues/1675#issuecomment-767323572
+
+type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
+
+export function useQueriesTyped<TQueries extends readonly UseQueryOptions[]>(
+    queries: [...TQueries]
+): {
+    [ArrayElement in keyof TQueries]: UseQueryResult<
+        TQueries[ArrayElement] extends { select: infer TSelect }
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              TSelect extends (data: any) => any
+                ? ReturnType<TSelect>
+                : never
+            : Awaited<
+                  ReturnType<
+                      NonNullable<Extract<TQueries[ArrayElement], UseQueryOptions>["queryFn"]>
+                  >
+              >
+    >;
+} {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return useQueries(queries as UseQueryOptions<unknown, unknown, unknown>[]) as any;
 }
