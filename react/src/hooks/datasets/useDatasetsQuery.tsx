@@ -11,7 +11,7 @@ async function fetchDatasets() {
  *
  * That is, return a list of all datasets.
  *
- * TODO: Replace with useDatasetsPage once overfetch is ready. (#263)
+ * TODO: Replace with useDatasetsPage once overfetch is ready. (#283)
  */
 export function useDatasetsQuery() {
     const result = useQuery<Dataset[], Response>("datasets", fetchDatasets);
