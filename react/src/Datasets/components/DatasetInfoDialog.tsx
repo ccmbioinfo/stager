@@ -41,7 +41,7 @@ interface DialogProp {
     open: boolean;
     dataset: Dataset;
     onClose: () => void;
-    onUpdate: (dataset_id: string, newDataset: { [key: string]: any }) => void;
+    onUpdate?: (dataset_id: string, newDataset: { [key: string]: any }) => void;
 }
 
 export default function DatasetInfoDialog(props: DialogProp) {
