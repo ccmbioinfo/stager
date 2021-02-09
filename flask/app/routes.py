@@ -5,10 +5,9 @@ from enum import Enum
 from io import StringIO
 
 import pandas as pd
-from flask import abort, current_app as app, jsonify, Response, request, Blueprint
+from flask import abort, current_app as app, jsonify, request, Blueprint
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.orm import aliased, contains_eager, joinedload
-from werkzeug.exceptions import HTTPException
 
 from .extensions import db, login
 from . import models
@@ -80,14 +79,6 @@ def logout():
         abort(400, description="Request body must be JSON!")
     logout_user()
     return "", 204
-
-
-@routes.errorhandler(HTTPException)
-def on_http_exception(error: HTTPException) -> Response:
-    response = error.get_response()
-    response.content_type = "text/plain"
-    response.data = error.description
-    return response
 
 
 def validate_user(request_user: dict):
