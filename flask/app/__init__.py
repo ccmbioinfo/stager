@@ -2,7 +2,6 @@ import logging
 from flask import Flask, logging as flask_logging
 from .extensions import db, login, migrate
 from .utils import DateTimeEncoder
-from werkzeug.exceptions import default_exceptions
 
 from app import (
     buckets,
