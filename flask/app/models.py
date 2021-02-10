@@ -284,7 +284,11 @@ class Dataset(db.Model):
     created_by = db.relationship("User", foreign_keys=[created_by_id])
 
     files = db.relationship(
-        "DatasetFile", backref="dataset", cascade="all, delete", passive_deletes=True
+        "DatasetFile",
+        backref="dataset",
+        cascade="all, delete",
+        passive_deletes=True,
+        lazy="joined",
     )
     linked_files: List[str]
 
