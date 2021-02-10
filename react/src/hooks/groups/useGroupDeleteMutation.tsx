@@ -22,7 +22,12 @@ export function useGroupDeleteMutation() {
                 "groups",
                 queryClient,
                 group_code.toLowerCase(),
-                "group_code"
+                "group_code",
+                {
+                    invalidateQueryFilters: {
+                        exact: true,
+                    },
+                }
             );
         },
     });

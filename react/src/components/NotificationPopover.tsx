@@ -80,13 +80,14 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
 
     return (
         <>
-            <IconButton onClick={handlePopoverOpen} className={classes.icon}>
-                <Tooltip title="See notifications" arrow>
+            <Tooltip title="See notifications" arrow>
+                <IconButton onClick={handlePopoverOpen} className={classes.icon}>
                     <Badge badgeContent={analyses.length} color="secondary">
                         <NotificationsActive fontSize="large" style={{ fill: "white" }} />
                     </Badge>
-                </Tooltip>
-            </IconButton>
+                </IconButton>
+            </Tooltip>
+
             <Popover
                 open={popoverOpen}
                 anchorEl={anchorEl}

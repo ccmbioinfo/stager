@@ -3,6 +3,8 @@ export { useFamiliesQuery } from "./useFamiliesQuery";
 export { useInstitutionsQuery } from "./useInstitutionsQuery";
 export { useMetadatasetTypesQuery } from "./useMetadatasetTypesQuery";
 
+export { useBulkCreateMutation } from "./bulk/useBulkCreateMutation";
+
 export { useGroupQuery } from "./groups/useGroupQuery";
 export { useGroupsQuery } from "./groups/useGroupsQuery";
 export { useGroupCreateMutation } from "./groups/useGroupCreateMutation";
