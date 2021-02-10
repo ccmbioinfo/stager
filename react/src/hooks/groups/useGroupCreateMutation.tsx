@@ -21,7 +21,11 @@ export function useGroupCreateMutation() {
             queryClient.setQueryData(["groups", sentGroup.group_code.toLowerCase()], receivedGroup);
             // destructuring to keep consistent with GET /api/groups format
             const { users, ...listableGroup } = receivedGroup;
-            addToCachedList<Group>("groups", queryClient, listableGroup);
+            addToCachedList<Group>("groups", queryClient, listableGroup, {
+                invalidateQueryFilters: {
+                    exact: true,
+                },
+            });
         },
     });
     return mutation;

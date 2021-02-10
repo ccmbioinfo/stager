@@ -22,7 +22,11 @@ export function useGroupUpdateMutation() {
                 ["groups", updatedGroup.group_code.toLowerCase()],
                 updatedGroup
             );
-            updateInCachedList<Group>("groups", queryClient, updatedGroup, "group_code");
+            updateInCachedList<Group>("groups", queryClient, updatedGroup, "group_code", {
+                invalidateQueryFilters: {
+                    exact: true,
+                },
+            });
         },
     });
     return mutation;

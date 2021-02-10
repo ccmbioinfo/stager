@@ -134,6 +134,7 @@ export class DataEntryRowOptional {
     sequencing_id?: string;
     sequencing_centre?: string;
     batch_id?: string;
+    institution?: string;
 }
 
 // Cannot enforce "RNASeq => these values are set" with types

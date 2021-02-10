@@ -17,6 +17,7 @@ export const enumerableColumns: Array<keyof DataEntryRow> = [
     "participant_type",
     "sex",
     "tissue_sample_type",
+    "institution",
 ];
 
 // Convert a field string (snake_case) into a displayable title (Snake Case)
@@ -76,6 +77,7 @@ export function toOption(
  * @param rowIndex The row index of this cell.
  * @param families The result from /api/families
  * @param enums The result from /api/enums
+ * @param institutions The result from /api/institutions
  */
 export function getOptions(
     rows: DataEntryRow[],
@@ -83,7 +85,8 @@ export function getOptions(
     rowIndex: number,
     families: Family[],
     enums: Record<string, string[]> | undefined,
-    files: string[]
+    files: string[],
+    institutions: string[]
 ): Option[] {
     const row = rows[rowIndex];
     const rowOptions = rows
@@ -171,6 +174,9 @@ export function getOptions(
                 );
             }
             return rowOptions;
+
+        case "institution":
+            return institutions.map(i => toOption(i, "Institutions"));
 
         default:
             return rowOptions;

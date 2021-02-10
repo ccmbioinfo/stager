@@ -8,9 +8,6 @@ import {
     AppBar,
     Toolbar,
     List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
     Typography,
     Divider,
     IconButton,
@@ -41,6 +38,7 @@ import Settings from "./Settings";
 import Groups from "./Groups";
 import Admin from "./Admin";
 import { ListItemRouterLink, NotificationPopover } from "./components";
+import logo from "./assets/logo.png";
 import { useUserContext } from "./contexts";
 
 const drawerWidth = 200;
@@ -113,6 +111,15 @@ const useStyles = (darkMode: boolean) =>
                 },
                 bottomItems: {
                     marginTop: "auto",
+                },
+                logo: {
+                    height: "2.5em",
+                    width: "auto",
+                    objectFit: "scale-down",
+                    margin: theme.spacing(0, 2),
+                },
+                appBarButton: {
+                    color: theme.palette.common.white,
                 },
             })),
         [darkMode]
@@ -253,6 +260,11 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                         <Tooltip title={"Logged in as " + currentUser.username} arrow>
                             <AccountCircleIcon fontSize="large" />
                         </Tooltip>
+                        <Tooltip title="Sign out" arrow>
+                            <IconButton onClick={signout} className={classes.appBarButton}>
+                                <MeetingRoomIcon fontSize="large" />
+                            </IconButton>
+                        </Tooltip>
                     </Toolbar>
                 </AppBar>
                 <Drawer
@@ -263,8 +275,9 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                     open={open}
                 >
                     <div className={classes.toolbarIcon}>
+                        <img className={classes.logo} src={logo} alt="" />
                         <IconButton onClick={handleDrawerClose}>
-                            <ChevronLeftIcon />
+                            <ChevronLeftIcon fontSize="large" />
                         </IconButton>
                     </div>
                     <Divider />
@@ -282,17 +295,6 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             )
                         )}
                     </List>
-                    <Divider />
-                    <div className={classes.bottomItems}>
-                        <List>
-                            <ListItem button onClick={signout}>
-                                <ListItemIcon>
-                                    <MeetingRoomIcon />
-                                </ListItemIcon>
-                                <ListItemText primary="Sign out" />
-                            </ListItem>
-                        </List>
-                    </div>
                 </Drawer>
                 <Switch>
                     {routes.map((route, index) =>
