@@ -55,9 +55,9 @@ export default function ParticipantInfoDialog(props: DialogProp) {
     const datasetResults = useDatasetQueries(datasets.map(d => d.dataset_id));
     const analyses = useMemo(
         () =>
-            datasetResults.reduce(
+            datasetResults.reduce<Analysis[]>(
                 (prev, curr) => (curr.isSuccess ? prev.concat(curr.data.analyses) : prev),
-                [] as Analysis[]
+                []
             ),
         [datasetResults]
     );

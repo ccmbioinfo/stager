@@ -18,9 +18,8 @@ export function useDatasetsPage() {
     const queryClient = useQueryClient();
 
     return async (query: Query<Dataset>) => {
-        return await queryClient.fetchQuery<QueryResult<Dataset>, Error>(
-            ["datasets", query],
-            () => fetchDatasets(query) as Promise<QueryResult<Dataset>>
+        return await queryClient.fetchQuery<QueryResult<Dataset>, Error>(["datasets", query], () =>
+            fetchDatasets(query)
         );
     };
 }

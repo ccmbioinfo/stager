@@ -2,15 +2,14 @@
 
 import { Query, QueryResult } from "material-table";
 import { stringToBoolean } from "../functions";
-import { 
-    MutationKey, 
-    QueryClient, 
-    useQueries, 
-    UseQueryOptions, 
+import {
+    MutationKey,
+    QueryClient,
+    useQueries,
+    UseQueryOptions,
     UseQueryResult,
     InvalidateOptions,
     InvalidateQueryFilters,
-    MutationKey,
 } from "react-query";
 import { SetDataOptions } from "react-query/types/core/query";
 
