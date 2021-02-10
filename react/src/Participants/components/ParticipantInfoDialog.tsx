@@ -10,8 +10,7 @@ import {
 import { Participant, Analysis, Field } from "../../typings";
 import { DialogHeader, DetailSection, InfoList } from "../../components";
 import SampleTable from "./SampleTable";
-import { useEnumsQuery } from "../../hooks";
-import { useDatasetQueries } from "../../hooks/datasets/useDatasetQueries";
+import { useEnumsQuery, useDatasetQueries } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
