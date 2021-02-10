@@ -22,7 +22,7 @@ click==7.1.2
     # via
     #   black
     #   flask
-cryptography==3.3.1
+cryptography==3.3.2
     # via pymysql
 flask-login==0.5.0
     # via -r requirements.in
