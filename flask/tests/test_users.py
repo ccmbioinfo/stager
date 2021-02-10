@@ -263,8 +263,8 @@ def test_create_conflicting_user(test_database, client, login_as):
     for user in users:
         response = client.post("/api/users", json=user)
         assert response.status_code == 422
-        error = response.get_json()
-        assert "error" in error and "message" in error
+        error_json = response.get_json()
+        assert "error" in error_json
 
 
 def test_delete_unauthorized(test_database, client, login_as):

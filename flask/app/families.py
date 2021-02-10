@@ -23,12 +23,12 @@ def list_families():
     try:
         int(max_rows)
     except:
-        return "Max rows must be a valid integer", 400
+        abort(400, description="Max rows must be a valid integer")
 
     columns = models.Family.__table__.columns.keys()
 
     if order_by_col not in columns:
-        return f"Column name for ordering must be one of {columns}", 400
+        abort(400, description=f"Column name for ordering must be one of {columns}")
     column = getattr(models.Family, order_by_col)
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -136,7 +136,7 @@ def get_family(id: int):
         )
 
     if not family:
-        return "Not Found", 404
+        abort(404)
 
     return jsonify(
         [
@@ -186,9 +186,9 @@ def delete_family(id: int):
             return "Deletion successful", 204
         except:
             db.session.rollback()
-            return "Deletion of entity failed!", 422
+            abort(422, description="Deletion of entity failed!")
     else:
-        return "Family has participants, cannot delete!", 422
+        abort(422, description="Family has participants, cannot delete!")
 
 
 @family_blueprint.route("/api/families/<int:id>", methods=["PATCH"])
@@ -196,12 +196,12 @@ def delete_family(id: int):
 def update_family(id: int):
 
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     try:
         fam_codename = request.json["family_codename"]
     except KeyError:
-        return "No family codename provided", 400
+        abort(400, description="No family codename provided")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -246,7 +246,7 @@ def update_family(id: int):
         )
     except:
         db.session.rollback()
-        return "Server error", 500
+        abort(500)
 
 
 @family_blueprint.route("/api/families", methods=["POST"])
@@ -254,7 +254,7 @@ def update_family(id: int):
 @check_admin
 def create_family():
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     try:
         updated_by_id = current_user.user_id
@@ -266,12 +266,12 @@ def create_family():
     fam_codename = request.json.get("family_codename")
 
     if not fam_codename:
-        return "A family codename must be provided", 400
+        abort(400, description="A family codename must be provided")
 
     if models.Family.query.filter(models.Family.family_codename == fam_codename).value(
         "family_id"
     ):
-        return "Family Codename already in use", 422
+        abort(422, description="Family Codename already in use")
 
     fam_objs = models.Family(
         family_codename=fam_codename,

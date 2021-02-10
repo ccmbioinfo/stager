@@ -74,10 +74,10 @@ def test_wrong_credentials(client):
     res = login(client, USERNAME + "x", PASSWORD)
 
     assert res.status_code == 401
-    assert res.data == b"Unauthorized"
+    assert res.get_json()["error"] == "Unauthorized"
 
     # Logging in with wrong password
     res = login(client, USERNAME, PASSWORD + "x")
 
     assert res.status_code == 401
-    assert res.data == b"Unauthorized"
+    assert res.get_json()["error"] == "Unauthorized"

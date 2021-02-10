@@ -157,7 +157,7 @@ def get_dataset(id: int):
 @login_required
 def update_dataset(id: int):
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -182,7 +182,7 @@ def update_dataset(id: int):
     enum_error = mixin(dataset, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description=enum_error)
 
     if "linked_files" in request.json:
         for existing in dataset.files:
@@ -222,28 +222,28 @@ def delete_dataset(id: int):
             return "Updated", 204
         except:
             db.session.rollback()
-            return "Server error", 500
+            abort(500, description="Server error")
     else:
-        return "Dataset has analyses, cannot delete", 422
+        abort(422, description="Dataset has analyses, cannot delete")
 
 
 @datasets_blueprint.route("/api/datasets", methods=["POST"])
 @login_required
 def create_dataset():
     if not request.json:
-        return "Request body must be JSON", 415
+        abort(415, description="Request body must be JSON")
 
     dataset_type = request.json.get("dataset_type")
     if not dataset_type:
-        return "A dataset type must be provided", 400
+        abort(400, description="A dataset type must be provided")
 
     tissue_sample_id = request.json.get("tissue_sample_id")
     if not tissue_sample_id:
-        return "A tissue sample id must be provided", 400
+        abort(400, description="A tissue sample id must be provided")
 
     sequencing_date = request.json.get("sequencing_date")
     if not sequencing_date:
-        return "A sequencing date must be provided", 400
+        abort(400, description="A sequencing date must be provided")
 
     models.TissueSample.query.filter_by(
         tissue_sample_id=tissue_sample_id
@@ -252,7 +252,7 @@ def create_dataset():
     enum_error = enum_validate(models.Dataset, request.json, editable_columns)
 
     if enum_error:
-        return enum_error, 400
+        abort(400, description=enum_error)
 
     try:
         created_by_id = updated_by_id = current_user.user_id

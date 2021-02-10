@@ -14,6 +14,7 @@ from app import (
     groups,
     users,
     manage,
+    error_handler,
 )
 
 
@@ -48,6 +49,8 @@ def register_blueprints(app):
     app.register_blueprint(buckets.bucket_blueprint)
     app.register_blueprint(groups.groups_blueprint)
     app.register_blueprint(users.users_blueprint)
+
+    app.register_blueprint(error_handler.error_blueprint)
 
 
 def register_extensions(app):
