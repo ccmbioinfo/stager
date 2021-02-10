@@ -10,7 +10,7 @@ async function fetchDatasets(query: Query<Dataset>) {
 }
 
 /**
- * Return a function for paging datasets.
+ * Return a function for GET /api/analyses with query parameters.
  *
  * Used with material-table's remote data feature.
  */

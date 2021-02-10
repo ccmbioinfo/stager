@@ -8,6 +8,11 @@ async function deleteDataset(id: string) {
     });
 }
 
+/**
+ * Return mutation object for DELETE /api/datasets/:id.
+ *
+ * Used for deleting a dataset by id.
+ */
 export function useDatasetDeleteMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Response, Response, string>(deleteDataset, {
