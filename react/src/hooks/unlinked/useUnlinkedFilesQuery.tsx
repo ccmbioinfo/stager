@@ -1,4 +1,5 @@
 import { useQuery } from "react-query";
+import { basicFetch } from "../utils";
 
 async function fetchFiles() {
     return await basicFetch("/api/unlinked");
@@ -12,6 +13,7 @@ async function fetchFiles() {
  */
 export function useUnlinkedFilesQuery() {
     const result = useQuery<string[], Response>("unlinked", fetchFiles);
-    if (result.isSuccess) result.data = result.data.sort();
+    if (result.isSuccess)
+        result.data = result.data.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     return result;
 }

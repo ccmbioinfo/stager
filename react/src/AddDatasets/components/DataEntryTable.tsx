@@ -34,7 +34,12 @@ import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
 import { GroupDropdownSelect } from "../../components";
-import { useEnumsQuery, useFamiliesQuery, useInstitutionsQuery } from "../../hooks";
+import {
+    useEnumsQuery,
+    useFamiliesQuery,
+    useInstitutionsQuery,
+    useUnlinkedFilesQuery,
+} from "../../hooks";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -122,6 +127,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
+    const filesQuery = useUnlinkedFilesQuery();
     const [files, setFiles] = useState<string[]>([]);
     const familyResult = useFamiliesQuery();
     const families = familyResult.data || [];
@@ -131,11 +137,8 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [showRNA, setShowRNA] = useState<boolean>(false);
 
     useEffect(() => {
-        fetch("/api/unlinked")
-            .then(response => response.json())
-            .then(files => setFiles(files.sort()))
-            .catch(console.error);
-    }, []);
+        if (filesQuery.isSuccess) setFiles(filesQuery.data);
+    }, [filesQuery]);
 
     function onEdit(
         newValue: string | boolean | string[],
