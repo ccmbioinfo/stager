@@ -2,6 +2,7 @@ from functools import wraps
 from enum import Enum
 from typing import Any, Callable, Dict, List, Union
 from datetime import date, time, datetime
+from json import loads
 
 from flask import abort
 from flask.json import JSONEncoder
@@ -66,41 +67,19 @@ def enum_validate(
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
 
-def filter_query(model, raw_filters):
-    # modified from https://stackoverflow.com/questions/14845196/dynamically-constructing-filters-in-sqlalchemy#comment100031376_14876320
-    sql_filters = []
-    for raw in raw_filters:
-        try:
-            key, op, value = raw.split(";", 3)
-        except ValueError:
-            return f"Invalid filter: {raw}"
-        column = getattr(model, key, None)
-        if not column:
-            return f"Invalid filter column: {key}"
-        if hasattr(column.type, "enums"):  # check if enum
-            if value not in column.type.enums and value is not None:
-                allowed = column.type.enums
-                return f'Invalid value for: "{column}", current input is "{value}" but must be one of {allowed}'
-        if op == "in":
-            filt = column.in_(value.split(","))
-        else:
-            try:
-                attr = (
-                    list(
-                        filter(
-                            lambda e: hasattr(column, e % op),
-                            ["%s", "%s_", "__%s__"],
-                        )
-                    )[0]
-                    % op
-                )
-            except IndexError:
-                return f"Invalid filter operator: {op}"
-            if value == "null":
-                value = None
-            filt = getattr(column, attr)(value)
-        sql_filters.append(filt)
-    return sql_filters
+def filter_bool(
+    entity: db.Model, query: db.Model.query, column: str, value: str
+) -> Union[db.Model.query, str]:
+    value = value.lower()
+    if value == "null":
+        query = query.filter(getattr(entity, column) == None)
+    elif value == "true":
+        query = query.filter(getattr(entity, column) == True)
+    elif value == "false":
+        query = query.filter(getattr(entity, column) == False)
+    else:
+        query = f"{column} must be true, false, or null"
+    return query
 
 
 class DateTimeEncoder(JSONEncoder):
