@@ -216,7 +216,7 @@ def add_data_hierarchies():
         return
     family_code_iter = 2000
     participant_code_iter = 1
-    # db.session.query(Group).all()
+    c4r_group = Group.query.filter_by(group_code="c4r").one()
     for group in Group.query.filter(Group.group_code != "c4r").all():
         institution = Institution.query.filter_by(
             institution=group.group_name
@@ -253,15 +253,23 @@ def add_data_hierarchies():
                 updated_by_id=1,
             )
             participant.tissue_samples.append(tissue_sample)
-            dataset = Dataset(
+            gdataset = Dataset(
                 dataset_type="RGS",
                 created=datetime.today().strftime("%Y-%m-%d"),
                 condition="GermLine",
                 updated_by_id=1,
                 created_by_id=1,
             )
-            dataset.groups.append(group)
-            tissue_sample.datasets.append(dataset)
+            edataset = Dataset(
+                dataset_type="RES",
+                created=datetime.today().strftime("%Y-%m-%d"),
+                condition="GermLine",
+                updated_by_id=1,
+                created_by_id=1,
+            )
+            gdataset.groups += [group, c4r_group]
+            edataset.groups += [group, c4r_group]
+            tissue_sample.datasets += [gdataset, edataset]
 
             # one analysis per trio
             analysis = Analysis(
@@ -273,7 +281,7 @@ def add_data_hierarchies():
                 updated=datetime.today().strftime("%Y-%m-%d"),
                 updated_by_id=1,
             )
-            dataset.analyses.append(analysis)
+            gdataset.analyses.append(analysis)
 
         db.session.add(default_family)
         db.session.commit()
