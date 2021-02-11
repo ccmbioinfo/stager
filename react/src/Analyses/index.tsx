@@ -17,11 +17,10 @@ import { UseMutationResult } from "react-query";
 import { isRowSelected, exportCSV, jsonToAnalyses } from "../functions";
 import { Analysis, AnalysisChange, PipelineStatus } from "../typings";
 import { AnalysisInfoDialog, Note, DateTimeText } from "../components";
+import { useAnalysesQuery, useAnalysisUpdateMutation } from "../hooks";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
-import { useAnalysesQuery } from "../hooks/analyses/useAnalysesQuery";
-import { useAnalysisUpdateMutation } from "../hooks/analyses/useAnalysisUpdateMutation";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

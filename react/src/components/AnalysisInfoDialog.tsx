@@ -7,8 +7,7 @@ import { Analysis, Pipeline } from "../typings";
 import DialogHeader from "./DialogHeader";
 import DetailSection from "./DetailSection";
 import InfoList from "./InfoList";
-import { useEnumsQuery } from "../hooks";
-import { useAnalysisQuery } from "../hooks/analyses/useAnalysisQuery";
+import { useEnumsQuery, useAnalysisQuery } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
