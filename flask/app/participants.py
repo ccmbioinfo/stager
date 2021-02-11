@@ -89,15 +89,15 @@ def list_participants() -> Response:
     filters = []
     family_codename = request.args.get("family_codename", type=str)
     if family_codename:
-        filters.append(models.Family.family_codename.like(f"%'{family_codename}'%"))
+        filters.append(func.instr(models.Family.family_codename, family_codename))
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
         filters.append(
-            models.Participant.participant_codename.like(f"%'{participant_codename}'%")
+            func.instr(models.Participant.participant_codename, participant_codename)
         )
     notes = request.args.get("notes", type=str)
     if notes:
-        filters.append(models.Participant.notes.like(f"%'{notes}'%"))
+        filters.append(func.instr(models.Participant.notes, notes))
     participant_type = request.args.get("participant_type", type=str)
     if participant_type:
         filters.append(
