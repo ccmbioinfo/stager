@@ -23,7 +23,7 @@ export function useAnalysesQuery(since?: Date) {
     let queryKey: any[] | string = ["analyses"];
     let dateString: string | undefined;
     if (since) {
-        dateString = dayjs(since).toISOString();
+        dateString = dayjs(since).format("YYYY-MM-DDTHH:mm:ssZ");
         queryKey.push({ since: dateString });
     }
     if (queryKey.length === 1) queryKey = queryKey[0];
