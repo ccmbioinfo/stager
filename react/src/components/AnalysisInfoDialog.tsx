@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { Dialog, Divider, DialogContent } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dns } from "@material-ui/icons";
 import { formatDateString, getDatasetInfoList, createFieldObj } from "../functions";
-import { Analysis, Dataset, Pipeline } from "../typings";
+import { Analysis, Pipeline } from "../typings";
 import DialogHeader from "./DialogHeader";
 import DetailSection from "./DetailSection";
 import InfoList from "./InfoList";
 import { useEnumsQuery } from "../hooks";
+import { useAnalysisQuery } from "../hooks/analyses/useAnalysisQuery";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -43,20 +44,16 @@ interface AlertInfoDialogProp {
 
 export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const classes = useStyles();
-    const [datasets, setDatasets] = useState<Dataset[]>([]);
-    const [pipeline, setPipeline] = useState<Pipeline>();
+    const analysisQuery = useAnalysisQuery(props.analysis.analysis_id);
+    const datasets = useMemo(() => (analysisQuery.isSuccess ? analysisQuery.data.datasets : []), [
+        analysisQuery,
+    ]);
+    const pipeline = useMemo(
+        () => (analysisQuery.isSuccess ? analysisQuery.data.pipeline : undefined),
+        [analysisQuery]
+    );
     const labeledBy = "analysis-info-dialog-slide-title";
     const { data: enums } = useEnumsQuery();
-
-    useEffect(() => {
-        fetch("/api/analyses/" + props.analysis.analysis_id)
-            .then(response => response.json())
-            .then(data => {
-                setDatasets(data.datasets);
-                setPipeline(data.pipeline);
-            })
-            .catch(error => {});
-    }, [props.analysis]);
 
     return (
         <Dialog

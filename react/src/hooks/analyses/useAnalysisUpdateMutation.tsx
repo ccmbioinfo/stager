@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Analysis } from "../../typings";
+import { Analysis, AnalysisChange } from "../../typings";
 import { changeFetch, updateInCachedList } from "../utils";
 
-async function patchAnalysis(newAnalysis: Analysis) {
+async function patchAnalysis(newAnalysis: AnalysisChange) {
     return await changeFetch("/api/analyses/" + newAnalysis.analysis_id, "PATCH", newAnalysis);
 }
 
@@ -13,7 +13,7 @@ async function patchAnalysis(newAnalysis: Analysis) {
  */
 export function useAnalysisUpdateMutation() {
     const queryClient = useQueryClient();
-    const mutation = useMutation<Analysis, Response, Analysis>(patchAnalysis, {
+    const mutation = useMutation<Analysis, Response, AnalysisChange>(patchAnalysis, {
         onSuccess: newAnalysis => {
             queryClient.setQueryData(["analyses", newAnalysis.analysis_id], newAnalysis);
             // TODO: Replace below with invalidate queries after overfetch #283

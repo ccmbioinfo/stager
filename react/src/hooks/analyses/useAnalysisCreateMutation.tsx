@@ -3,7 +3,7 @@ import { Analysis, Dataset, Pipeline } from "../../typings";
 import { addToCachedList, changeFetch } from "../utils";
 
 interface NewAnalysisParams {
-    datasets: Dataset[];
+    datasets: Dataset["dataset_id"][];
     pipeline_id: Pipeline["pipeline_id"];
 }
 

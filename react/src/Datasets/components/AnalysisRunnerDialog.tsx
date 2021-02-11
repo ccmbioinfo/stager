@@ -21,8 +21,8 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { Analysis, Dataset } from "../../typings";
-import { usePipelinesQuery } from "../../hooks";
+import { Dataset } from "../../typings";
+import { usePipelinesQuery, useAnalysisCreateMutation } from "../../hooks";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[];
@@ -47,6 +47,7 @@ export default function AnalysisRunnerDialog({
     const pipelineQuery = usePipelinesQuery();
     const pipelines = pipelineQuery.data || [];
     const [pipeline, setPipeline] = useState(NaN);
+    const mutation = useAnalysisCreateMutation();
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -127,33 +128,30 @@ export default function AnalysisRunnerDialog({
                     variant="contained"
                     onClick={async () => {
                         onClose();
-                        const response = await fetch("/api/analyses", {
-                            method: "POST",
-                            body: JSON.stringify({
+                        mutation.mutate(
+                            {
                                 datasets: datasets.map(d => d.dataset_id),
                                 pipeline_id: pipeline,
-                            }),
-                            headers: {
-                                "Content-Type": "application/json",
                             },
-                        });
-                        if (response.ok) {
-                            const analysis = (await response.json()) as Analysis;
-
-                            let p = pipelines.find(
-                                p => p.pipeline_id === parseInt(analysis.pipeline_id)
-                            );
-                            enqueueSnackbar(
-                                `Analysis ID ${analysis.analysis_id} created of ${datasets.length} datasets with pipeline ${p?.pipeline_name} ${p?.pipeline_version}`,
-                                { variant: "success" }
-                            );
-                        } else {
-                            const errorText = await response.text();
-                            enqueueSnackbar(
-                                `Analysis could not be requested. Error: ${response.status} - ${errorText}`,
-                                { variant: "error" }
-                            );
-                        }
+                            {
+                                onSuccess: analysis => {
+                                    let p = pipelines.find(
+                                        p => p.pipeline_id === parseInt(analysis.pipeline_id)
+                                    );
+                                    enqueueSnackbar(
+                                        `Analysis ID ${analysis.analysis_id} created of ${datasets.length} datasets with pipeline ${p?.pipeline_name} ${p?.pipeline_version}`,
+                                        { variant: "success" }
+                                    );
+                                },
+                                onError: async response => {
+                                    const errorText = await response.text();
+                                    enqueueSnackbar(
+                                        `Analysis could not be requested. Error: ${response.status} - ${errorText}`,
+                                        { variant: "error" }
+                                    );
+                                },
+                            }
+                        );
                     }}
                     color="primary"
                 >

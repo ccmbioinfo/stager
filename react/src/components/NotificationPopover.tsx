@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
     makeStyles,
     Paper,
@@ -12,8 +12,8 @@ import {
 import { NotificationsActive } from "@material-ui/icons";
 import Notification from "./Notification";
 import { Analysis } from "../typings";
-import { jsonToAnalyses } from "../functions";
 import AnalysisInfoDialog from "./AnalysisInfoDialog";
+import { useAnalysesQuery } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     popover: {
@@ -50,7 +50,8 @@ export interface NotificationPopoverProps {
 export default function NotificationPopover({ lastLoginTime }: NotificationPopoverProps) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [analyses, setAnalyses] = useState<Analysis[]>([] as Analysis[]);
+    const lastLoginDate = useMemo(() => new Date(lastLoginTime), [lastLoginTime]);
+    const { data: analyses } = useAnalysesQuery(lastLoginDate);
     const popoverOpen = Boolean(anchorEl);
     const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -61,28 +62,12 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const handlePopoverClose = () => {
         setAnchorEl(null);
     };
-    useEffect(() => {
-        // debugging
-        // const lastLoginISO = new Date(Date.UTC(0, 0)).toISOString().slice(0, -1);
-        // actual
-        const lastLoginISO = new Date(lastLoginTime).toISOString().slice(0, -1);
-        fetch(`/api/analyses?since=${lastLoginISO}`).then(async response => {
-            if (response.ok) {
-                const result = jsonToAnalyses(await response.json());
-                setAnalyses(result);
-            } else {
-                console.error(
-                    `GET /api/analyses?since=ISO_TIMESTAMP failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-    }, [lastLoginTime]);
 
     return (
         <>
             <Tooltip title="See notifications" arrow>
                 <IconButton onClick={handlePopoverOpen} className={classes.icon}>
-                    <Badge badgeContent={analyses.length} color="secondary">
+                    <Badge badgeContent={analyses?.length} color="secondary">
                         <NotificationsActive fontSize="large" style={{ fill: "white" }} />
                     </Badge>
                 </IconButton>
@@ -112,20 +97,21 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                                 className={classes.title}
                                 display="inline"
                             >
-                                {analyses.length === 0 ? "No Notifications" : "Notifications"}
+                                {analyses?.length === 0 ? "No Notifications" : "Notifications"}
                             </Typography>
                         </Box>
                         <Box>
                             <div className={classes.notifications}>
-                                {analyses.map(analysis => (
-                                    <Notification
-                                        analysis={analysis}
-                                        onClick={() => {
-                                            setClickedAnalysis(analysis);
-                                            setOpenDialog(true);
-                                        }}
-                                    />
-                                ))}
+                                {analyses &&
+                                    analyses.map(analysis => (
+                                        <Notification
+                                            analysis={analysis}
+                                            onClick={() => {
+                                                setClickedAnalysis(analysis);
+                                                setOpenDialog(true);
+                                            }}
+                                        />
+                                    ))}
                             </div>
                         </Box>
                     </Paper>
