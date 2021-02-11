@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import date, datetime
 from enum import Enum
 from typing import List
+
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
-
 
 users_groups_table = db.Table(
     "users_groups",

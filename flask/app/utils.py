@@ -1,18 +1,15 @@
-from functools import wraps
+from datetime import date, datetime, time
 from enum import Enum
+from functools import wraps
 from typing import Any, Callable, Dict, List, Union
-from datetime import date, time, datetime
-from json import loads
 
-from flask import abort, jsonify
+from flask import abort, current_app as app, jsonify, request
 from flask.json import JSONEncoder
 from flask_login import current_user
 from sqlalchemy import exc
-
-
-from flask import current_app as app
-from .extensions import db
 from werkzeug.exceptions import HTTPException
+
+from .extensions import db
 
 
 def handle_error(e):
@@ -43,6 +40,31 @@ def check_admin(handler):
             if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
                 return handler(*args, **kwargs)
         return "Unauthorized", 401
+
+    return decorated_handler
+
+
+# Support general paged query parameters
+def paged(handler):
+    @wraps(handler)
+    def decorated_handler(*args, **kwargs):
+        with app.app_context():
+            # for some reason type=int doesn't catch non-integer queries, only returning None
+            try:
+                page = int(request.args.get("page", default=0))
+                if page < 0:  # zero-indexed pages
+                    raise ValueError
+            except:
+                abort(400, description="page must be a non-negative integer")
+            try:
+                limit = request.args.get("limit")
+                if limit is not None:  # unspecified limit means return everything
+                    limit = int(limit)
+                    if limit <= 0:  # MySQL accepts 0 but that's just a waste of time
+                        raise ValueError
+            except:
+                abort(400, description="limit must be a positive integer")
+            return handler(*args, **kwargs, page=page, limit=limit)
 
     return decorated_handler
 
