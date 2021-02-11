@@ -75,8 +75,8 @@ class Family(db.Model):
     )
     participants = db.relationship("Participant", backref="family")
 
-    updated_by = db.relationship("User", foreign_keys=[updated_by_id])
-    created_by = db.relationship("User", foreign_keys=[created_by_id])
+    updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
+    created_by = db.relationship("User", foreign_keys=[created_by_id], lazy="joined")
 
 
 class Sex(str, Enum):
@@ -280,8 +280,8 @@ class Dataset(db.Model):
     groups = db.relationship(
         "Group", secondary=groups_datasets_table, backref="datasets"
     )
-    updated_by = db.relationship("User", foreign_keys=[updated_by_id])
-    created_by = db.relationship("User", foreign_keys=[created_by_id])
+    updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
+    created_by = db.relationship("User", foreign_keys=[created_by_id], lazy="joined")
 
     files = db.relationship(
         "DatasetFile",
@@ -361,9 +361,9 @@ class Analysis(db.Model):
     updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    updated_by = db.relationship("User", foreign_keys=[updated_by_id])
-    assignee = db.relationship("User", foreign_keys=[assignee_id])
-    requester = db.relationship("User", foreign_keys=[requester_id])
+    updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
+    assignee = db.relationship("User", foreign_keys=[assignee_id], lazy="joined")
+    requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
 
 
 @dataclass
