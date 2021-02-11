@@ -106,6 +106,7 @@ export default function DetailSection(props: DetailSectionProps) {
     }
 
     async function updateData() {
+        // TODO: Revisit after /api/partipants part of #283
         let url;
         if (props.dataInfo?.type === "participant") {
             url = `/api/participants/${props.dataInfo?.ID}`;

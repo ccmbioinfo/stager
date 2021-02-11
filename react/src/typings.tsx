@@ -78,6 +78,16 @@ export interface Dataset {
     updated_by: number;
     discriminator: string;
 }
+
+// Result from /api/datasets/:id
+export interface DatasetDetails {
+    tissue_sample: Sample;
+    institution: string;
+    analyses: Analysis[];
+}
+
+export type DatasetDetailed = Dataset & DatasetDetails;
+
 export interface Analysis {
     analysis_id: string;
     pipeline_id: string;
