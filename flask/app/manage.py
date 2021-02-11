@@ -230,6 +230,16 @@ def add_data_hierarchies():
         default_family = Family(
             family_codename=str(family_code_iter), created_by_id=1, updated_by_id=1
         )
+        # one analysis per trio
+        analysis = Analysis(
+            analysis_state=AnalysisState.Requested,
+            pipeline_id=1,  # CRG
+            assignee_id=1,
+            requester_id=1,
+            requested=datetime.now(),
+            updated=datetime.now(),
+            updated_by_id=1,
+        )
         # build trio
         for sex in ["-", "Female", "Male"]:
             participant = Participant(
@@ -255,14 +265,14 @@ def add_data_hierarchies():
             participant.tissue_samples.append(tissue_sample)
             gdataset = Dataset(
                 dataset_type="RGS",
-                created=datetime.today().strftime("%Y-%m-%d"),
+                created=datetime.now(),
                 condition="GermLine",
                 updated_by_id=1,
                 created_by_id=1,
             )
             edataset = Dataset(
                 dataset_type="RES",
-                created=datetime.today().strftime("%Y-%m-%d"),
+                created=datetime.now(),
                 condition="GermLine",
                 updated_by_id=1,
                 created_by_id=1,
@@ -270,17 +280,6 @@ def add_data_hierarchies():
             gdataset.groups += [group, c4r_group]
             edataset.groups += [group, c4r_group]
             tissue_sample.datasets += [gdataset, edataset]
-
-            # one analysis per trio
-            analysis = Analysis(
-                analysis_state=AnalysisState.Requested,
-                pipeline_id=1,  # CRG
-                assignee_id=1,
-                requester_id=1,
-                requested=datetime.today().strftime("%Y-%m-%d"),
-                updated=datetime.today().strftime("%Y-%m-%d"),
-                updated_by_id=1,
-            )
             gdataset.analyses.append(analysis)
 
         db.session.add(default_family)
