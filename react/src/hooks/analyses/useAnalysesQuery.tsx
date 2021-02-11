@@ -19,12 +19,14 @@ async function fetchAnalyses(since?: string) {
  * those that changed state after the provided date.
  */
 export function useAnalysesQuery(since?: Date) {
-    const queryKey: any[] = ["analyses"];
+    // Construct the query key based on whether 'since' is defined
+    let queryKey: any[] | string = ["analyses"];
     let dateString: string | undefined;
     if (since) {
         dateString = dayjs(since).toISOString();
         queryKey.push({ since: dateString });
     }
+    if (queryKey.length === 1) queryKey = queryKey[0];
 
     const result = useQuery<any[], Response>(queryKey, () => fetchAnalyses(dateString), {
         staleTime: since && 0, // analyses since 'now' are immediately stale

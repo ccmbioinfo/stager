@@ -105,6 +105,13 @@ export interface Analysis {
     updated_by: number;
     pipeline: Pipeline;
 }
+
+export interface AnalysisDetails {
+    datasets: Dataset[];
+}
+
+export type AnalysisDetailed = Analysis & AnalysisDetails;
+
 export interface Pipeline {
     pipeline_id: number;
     pipeline_name: string;
