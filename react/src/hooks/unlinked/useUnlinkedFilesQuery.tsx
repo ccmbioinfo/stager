@@ -13,7 +13,5 @@ async function fetchFiles() {
  */
 export function useUnlinkedFilesQuery() {
     const result = useQuery<string[], Response>("unlinked", fetchFiles);
-    if (result.isSuccess)
-        result.data = result.data.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     return result;
 }

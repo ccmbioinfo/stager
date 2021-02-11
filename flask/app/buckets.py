@@ -57,4 +57,4 @@ def get_unlinked_files():
         if file_name not in linked_files:
             unlinked_files.append(file_name)
 
-    return jsonify(unlinked_files)
+    return jsonify(sorted(unlinked_files))
