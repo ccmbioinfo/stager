@@ -1,6 +1,10 @@
 # Production image. Runs a Guicorn WSGI server.
 FROM minio/mc:RELEASE.2021-02-07T02-02-05Z AS mc
 FROM python:3.7-slim
+LABEL org.opencontainers.image.title Stager production
+LABEL org.opencontainers.image.authors https://ccm.sickkids.ca/
+LABEL org.opencontainers.image.source https://github.com/ccmbioinfo/stager
+LABEL org.opencontainers.image.vendor Centre for Computational Medicine
 WORKDIR /usr/src/stager
 # Install PyPI prod-only packages first and then copy the MinIO client as the latter updates more frequently
 COPY requirements.txt .
