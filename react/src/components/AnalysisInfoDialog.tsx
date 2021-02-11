@@ -44,9 +44,10 @@ interface AlertInfoDialogProp {
 export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const classes = useStyles();
     const analysisQuery = useAnalysisQuery(props.analysis.analysis_id);
-    const datasets = useMemo(() => (analysisQuery.isSuccess ? analysisQuery.data.datasets : []), [
-        analysisQuery,
-    ]);
+    const datasets = useMemo(
+        () => (analysisQuery.isSuccess ? analysisQuery.data.datasets || [] : []),
+        [analysisQuery]
+    );
     const pipeline = useMemo(
         () => (analysisQuery.isSuccess ? analysisQuery.data.pipeline : undefined),
         [analysisQuery]
