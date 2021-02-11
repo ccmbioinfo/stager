@@ -1,19 +1,21 @@
-from datetime import datetime
-import json
-from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
+from datetime import datetime
 
-from .extensions import db, login
+from flask import Blueprint, Response, abort, current_app as app, jsonify, request
+from flask_login import current_user, login_required
+from sqlalchemy import distinct, func
+from sqlalchemy.orm import contains_eager, joinedload
+
 from . import models
-
-from flask import abort, jsonify, request, Response, Blueprint, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc
-from sqlalchemy.orm import aliased, joinedload
-from werkzeug.exceptions import HTTPException
-
-from .utils import mixin, transaction_or_abort, check_admin, enum_validate
-
+from .extensions import db
+from .utils import (
+    check_admin,
+    enum_validate,
+    filter_in_enum_or_abort,
+    mixin,
+    paged,
+    transaction_or_abort,
+)
 
 editable_columns = [
     "dataset_type",
@@ -40,48 +42,180 @@ datasets_blueprint = Blueprint(
 
 @datasets_blueprint.route("/api/datasets", methods=["GET"])
 @login_required
-def list_datasets():
+@paged
+def list_datasets(page: int, limit: int) -> Response:
+    order_by = request.args.get("order_by", type=str)
+    allowed_columns = [
+        "dataset_type",
+        "condition",
+        "notes",
+        "updated",
+        "updated_by",
+        "linked_files",
+        "tissue_sample_type",
+        "participant_codename",
+        "family_codename",
+    ]
+    if order_by is None:
+        order = None  # system default, likely dataset_id
+    elif order_by == "updated_by":
+        order = models.Dataset.updated_by.username
+    elif order_by == "linked_files":
+        order = models.DatasetFile.path
+    elif order_by == "tissue_sample_type":
+        order = models.TissueSample.tissue_sample_type
+    elif order_by == "participant_codename":
+        order = models.Participant.participant_codename
+    elif order_by == "family_codename":
+        order = models.Family.family_codename
+    elif order_by in allowed_columns:
+        # Since this is an elif clause, we know special cases are already handled above.
+        # order_by has been restricted to a known list, so we can safely use getattr
+        order = getattr(models.Dataset, order_by)
+    else:
+        abort(400, description=f"order_by must be one of {allowed_columns}")
+
+    if order:
+        order_dir = request.args.get("order_dir", type=str)
+        if order_dir == "desc":
+            order = order.desc()
+        elif order_dir == "asc":
+            order = order.asc()
+        else:
+            abort(400, description="order_dir must be either 'asc' or 'desc'")
+
+    filters = []
+    notes = request.args.get("notes", type=str)
+    if notes:
+        filters.append(func.instr(models.Dataset.notes, notes))
+    updated_by = request.args.get("updated_by", type=str)
+    if updated_by:
+        filters.append(func.instr(models.Dataset.updated_by.username, updated_by))
+    linked_files = request.args.get("linked_files", type=str)
+    if linked_files:
+        filters.append(func.instr(models.Dataset.path, linked_files))
+    participant_codename = request.args.get("participant_codename", type=str)
+    if participant_codename:
+        filters.append(
+            func.instr(models.Participant.participant_codename, participant_codename)
+        )
+    family_codename = request.args.get("family_codename", type=str)
+    if family_codename:
+        filters.append(func.instr(models.Family.family_codename, family_codename))
+    dataset_type = request.args.get("dataset_type", type=str)
+    if dataset_type:
+        filters.append(
+            filter_in_enum_or_abort(
+                models.Dataset.dataset_type, models.DatasetType, dataset_type
+            )
+        )
+    condition = request.args.get("condition", type=str)
+    if condition:
+        filters.append(
+            filter_in_enum_or_abort(
+                models.Dataset.condition, models.DatasetCondition, condition
+            )
+        )
+    tissue_sample_type = request.args.get("tissue_sample_type", type=str)
+    if tissue_sample_type:
+        filters.append(
+            filter_in_enum_or_abort(
+                models.TissueSample.tissue_sample_type,
+                models.TissueSampleType,
+                tissue_sample_type,
+            )
+        )
+    updated = request.args.get("updated", type=str)
+    if updated:
+        description = "updated must be of the form before/after,iso-datetime"
+        updated = updated.split(",")
+        if len(updated) != 2:
+            abort(400, description=description)
+        try:
+            updated[1] = datetime.fromisoformat(updated[1])
+        except ValueError as err:  # bad datetime format
+            abort(400, description=err)
+        if updated[0] == "before":
+            filters.append(models.Dataset.updated <= updated[1])
+        elif updated[0] == "after":
+            filters.append(models.Dataset.updated >= updated[1])
+        else:
+            abort(400, description=description)
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-
-    if user_id:
+    if user_id:  # Regular user or assumed identity, return only permitted datasets
         query = (
-            models.Dataset.query.join(models.groups_datasets_table)
+            models.Dataset.query.options(
+                contains_eager(models.Dataset.tissue_sample)
+                .contains_eager(models.TissueSample.participant)
+                .contains_eager(models.Participant.family),
+                contains_eager(models.Dataset.tissue_sample)
+                .contains_eager(models.TissueSample.participant)
+                .joinedload(models.Participant.institution),
+                contains_eager(models.Dataset.files),
+                contains_eager(models.Dataset.updated_by),
+            )
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .outerjoin(models.Dataset.files)
+            .join(models.Dataset.updated_by)
+            .join(models.groups_datasets_table)
             .join(
                 models.users_groups_table,
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(models.users_groups_table.columns.user_id == user_id)
+            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
         )
-    else:
-        query = models.Dataset.query
+    else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
+        query = (
+            models.Dataset.query.options(
+                contains_eager(models.Dataset.tissue_sample)
+                .contains_eager(models.TissueSample.participant)
+                .contains_eager(models.Participant.family),
+                contains_eager(models.Dataset.tissue_sample)
+                .contains_eager(models.TissueSample.participant)
+                .joinedload(models.Participant.institution),
+                contains_eager(models.Dataset.files),
+                contains_eager(models.Dataset.updated_by),
+            )
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .outerjoin(models.Dataset.files)
+            .join(models.Dataset.updated_by)
+            .filter(*filters)
+        )
 
-    datasets = query.options(
-        joinedload(models.Dataset.tissue_sample)
-        .joinedload(models.TissueSample.participant)
-        .joinedload(models.Participant.family)
-    ).all()
+    total_count = query.with_entities(
+        func.count(distinct(models.Dataset.dataset_id))
+    ).scalar()
+    datasets = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
     return jsonify(
-        [
-            {
-                **asdict(dataset),
-                "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
-                "participant_codename": dataset.tissue_sample.participant.participant_codename,
-                "participant_type": dataset.tissue_sample.participant.participant_type,
-                "institution": dataset.tissue_sample.participant.institution.institution
-                if dataset.tissue_sample.participant.institution
-                else None,
-                "sex": dataset.tissue_sample.participant.sex,
-                "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                "created_by": dataset.tissue_sample.created_by.username,
-                "updated_by": dataset.tissue_sample.updated_by.username,
-            }
-            for dataset in datasets
-        ]
+        {
+            "data": [
+                {
+                    **asdict(dataset),
+                    "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                    "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                    "participant_type": dataset.tissue_sample.participant.participant_type,
+                    "institution": dataset.tissue_sample.participant.institution
+                    and dataset.tissue_sample.participant.institution.institution,
+                    "sex": dataset.tissue_sample.participant.sex,
+                    "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                    "created_by": dataset.tissue_sample.created_by.username,
+                    "updated_by": dataset.tissue_sample.updated_by.username,
+                }
+                for dataset in datasets
+            ],
+            "page": page if limit else 0,
+            "total_count": total_count,
+        }
     )
 
 
