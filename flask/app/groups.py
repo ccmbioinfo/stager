@@ -6,7 +6,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 from .utils import check_admin, transaction_or_abort, mixin
 
 from minio import Minio
-from .madmin import MinioAdmin, stager_buckets_policy
+from .madmin import MinioAdmin, readwrite_buckets_policy
 
 
 groups_blueprint = Blueprint(
@@ -186,7 +186,7 @@ def create_group():
         group_obj.users += users
 
     # Make corresponding policy
-    policy = stager_buckets_policy(group_code)
+    policy = readwrite_buckets_policy(group_code)
     minio_admin.add_policy(group_code, policy)
 
     # Add users to minio group if applicable, creating group as well

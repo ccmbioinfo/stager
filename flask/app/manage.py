@@ -9,7 +9,7 @@ from minio import Minio
 
 from .models import *
 from .extensions import db
-from .madmin import MinioAdmin, stager_buckets_policy
+from .madmin import MinioAdmin, readwrite_buckets_policy
 
 
 @click.command("add-default-admin")
@@ -57,7 +57,7 @@ def add_groups():
     }
 
     for default_code, default_name in default_groups.items():
-        policy = stager_buckets_policy(default_code)
+        policy = readwrite_buckets_policy(default_code)
         minio_admin.add_policy(default_code, policy)
         try:
             minio_client.make_bucket(default_code)

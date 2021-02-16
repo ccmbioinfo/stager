@@ -2,7 +2,7 @@ import pytest
 from app import db, models
 from sqlalchemy.orm import joinedload
 from conftest import TestConfig
-from app.madmin import MinioAdmin, stager_buckets_policy
+from app.madmin import MinioAdmin, readwrite_buckets_policy
 from minio import Minio
 
 
@@ -17,7 +17,7 @@ def minio_admin():
     madmin.add_user("user", "useruser")
     madmin.add_user("admin", "adminadmin")
     madmin.group_add("ach", "user")
-    madmin.add_policy("ach", stager_buckets_policy("ach"))
+    madmin.add_policy("ach", readwrite_buckets_policy("ach"))
     madmin.set_policy("ach", group="ach")
     yield madmin
     # Teardown
