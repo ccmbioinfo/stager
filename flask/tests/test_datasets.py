@@ -15,22 +15,30 @@ def test_list_datasets_admin(client, test_database, login_as):
     # Retrieve all datasets as admin
     response = client.get("/api/datasets")
     assert response.status_code == 200
-    assert len(response.get_json()) == 4
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 4
 
     # Assume user identity belonging to no groups
     response = client.get("/api/datasets?user=1")
     assert response.status_code == 200
-    assert len(response.get_json()) == 0
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 0
 
     # Assume user identity belonging to a group with limited visibility
     response = client.get("/api/datasets?user=2")
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 2
 
     # Assume nonexistent user identity
     response = client.get("/api/datasets?user=400")
     assert response.status_code == 200
-    assert len(response.get_json()) == 0
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 0
 
 
 def test_list_datasets_user(client, test_database, login_as):
@@ -42,20 +50,28 @@ def test_list_datasets_user(client, test_database, login_as):
     # Retrieve all datasets I can access
     response = client.get("/api/datasets")
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 2
 
     # Cannot assume another user's identity, query string ignored
     response = client.get("/api/datasets?user=1")
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 2
 
     response = client.get("/api/datasets?user=2")
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 2
 
     response = client.get("/api/datasets?user=400")
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    body = response.get_json()
+    assert body["page"] == 0
+    assert len(body["data"]) == body["total_count"] == 2
 
 
 def test_get_dataset_admin(client, test_database, login_as):
