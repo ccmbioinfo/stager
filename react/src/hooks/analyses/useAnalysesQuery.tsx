@@ -28,9 +28,7 @@ export function useAnalysesQuery(since?: Date) {
     }
     if (queryKey.length === 1) queryKey = queryKey[0];
 
-    const result = useQuery<any[], Response>(queryKey, () => fetchAnalyses(dateString), {
-        staleTime: since && 0, // analyses since 'now' are immediately stale
-    });
+    const result = useQuery<any[], Response>(queryKey, () => fetchAnalyses(dateString));
     if (result.isSuccess) result.data = jsonToAnalyses(result.data);
     return result as QueryObserverResult<Analysis[], Response>;
 }
