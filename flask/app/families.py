@@ -16,10 +16,15 @@ family_blueprint = Blueprint(
 @family_blueprint.route("/api/families", methods=["GET"])
 @login_required
 def list_families():
+
+    app.logger.info("Parsing query parameters..")
+
     starts_with = request.args.get("starts_with", default="", type=str)
     starts_with = f"{starts_with}%"
     max_rows = request.args.get("max_rows", default=100)
     order_by_col = request.args.get("order", default="family_id", type=str)
+
+    app.logger.info("Validating max rows..")
     try:
         int(max_rows)
     except:
@@ -27,16 +32,22 @@ def list_families():
 
     columns = models.Family.__table__.columns.keys()
 
+    app.logger.info("Validating 'order_by' column..")
     if order_by_col not in columns:
         abort(400, description=f"Column name for ordering must be one of {columns}")
     column = getattr(models.Family, order_by_col)
 
+    app.logger.info("Query parameters successfully parsed.")
+
+    app.logger.info("Retrieving user id..")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+    app.logger.info("User ID is '%s'", user_id)
 
     if user_id:
+        app.logger.info("Processing query - restricted based on user id.")
         families = (
             models.Family.query.options(contains_eager(models.Family.participants))
             .filter(models.Family.family_codename.like(starts_with))
@@ -58,6 +69,7 @@ def list_families():
             .limit(max_rows)
         )
     else:
+        app.logger.info("Processing query - unrestricted based on user id.")
         families = (
             models.Family.query.options(
                 joinedload(models.Family.participants),
@@ -68,7 +80,7 @@ def list_families():
             .order_by(column)
             .limit(max_rows)
         )
-
+    app.logger.info("Query successful, returning JSON...")
     return jsonify(
         [
             {
