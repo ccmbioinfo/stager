@@ -1,5 +1,4 @@
 from dataclasses import asdict
-from datetime import datetime
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
@@ -12,6 +11,7 @@ from .utils import (
     check_admin,
     enum_validate,
     filter_in_enum_or_abort,
+    filter_updated_or_abort,
     mixin,
     paged,
     transaction_or_abort,
@@ -90,7 +90,7 @@ def list_datasets(page: int, limit: int) -> Response:
         filters.append(func.instr(models.Dataset.notes, notes))
     updated_by = request.args.get("updated_by", type=str)
     if updated_by:
-        filters.append(func.instr(models.Dataset.updated_by.username, updated_by))
+        filters.append(func.instr(models.User.username, updated_by))
     linked_files = request.args.get("linked_files", type=str)
     if linked_files:
         filters.append(func.instr(models.Dataset.path, linked_files))
@@ -127,20 +127,7 @@ def list_datasets(page: int, limit: int) -> Response:
         )
     updated = request.args.get("updated", type=str)
     if updated:
-        description = "updated must be of the form before/after,iso-datetime"
-        updated = updated.split(",")
-        if len(updated) != 2:
-            abort(400, description=description)
-        try:
-            updated[1] = datetime.fromisoformat(updated[1])
-        except ValueError as err:  # bad datetime format
-            abort(400, description=err)
-        if updated[0] == "before":
-            filters.append(models.Dataset.updated <= updated[1])
-        elif updated[0] == "after":
-            filters.append(models.Dataset.updated >= updated[1])
-        else:
-            abort(400, description=description)
+        filters.append(filter_updated_or_abort(models.Dataset.updated, updated))
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")

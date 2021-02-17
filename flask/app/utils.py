@@ -115,6 +115,23 @@ def filter_nullable_bool_or_abort(column: db.Column, value: str):
         abort(400, description=f"{column.name} must be true, false, or null")
 
 
+def filter_updated_or_abort(column: db.Column, value: str):
+    description = "updated must be of the form before/after,iso-datetime"
+    updated = value.split(",")
+    if len(updated) != 2:
+        abort(400, description=description)
+    try:
+        updated[1] = datetime.fromisoformat(updated[1])
+    except ValueError as err:  # bad datetime format
+        abort(400, description=err)
+    if updated[0] == "before":
+        return column <= updated[1]
+    elif updated[0] == "after":
+        return column >= updated[1]
+    else:
+        abort(400, description=description)
+
+
 class DateTimeEncoder(JSONEncoder):
     """
     JSONEncoder override for encoding UTC datetimes in ISO format.
