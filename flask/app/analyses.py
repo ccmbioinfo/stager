@@ -1,19 +1,23 @@
-from datetime import datetime
-import json
-from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
+from datetime import datetime
+from typing import Container
 
-from .extensions import db, login
+from flask_login import current_user, login_required
+from sqlalchemy import distinct, func
+from sqlalchemy.orm import aliased, contains_eager
+
+from flask import Blueprint, Response, abort, current_app as app, jsonify, request
+
 from . import models
-
-from flask import abort, jsonify, request, Response, Blueprint, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc
-from sqlalchemy.orm import contains_eager, aliased, joinedload
-from werkzeug.exceptions import HTTPException
-
-
-from .utils import mixin, check_admin, transaction_or_abort
+from .extensions import db
+from .utils import (
+    check_admin,
+    filter_in_enum_or_abort,
+    filter_updated_or_abort,
+    mixin,
+    paged,
+    transaction_or_abort,
+)
 
 analyses_blueprint = Blueprint(
     "analyses",
@@ -23,31 +27,82 @@ analyses_blueprint = Blueprint(
 
 @analyses_blueprint.route("/api/analyses", methods=["GET"], endpoint="analyses_list")
 @login_required
-def list_analyses():
+@paged
+def list_analyses(page: int, limit: int) -> Response:
+    order_by = request.args.get("order_by", type=str)
+    allowed_columns = [
+        "updated",
+        "result_path",
+        "notes",
+        "analysis_state",
+        "assignee",
+        "requester",
+    ]
+    assignee_user = aliased(models.User)
+    requester_user = aliased(models.User)
+    if order_by is None:
+        order = None  # system default, likely analysis_id
+    elif order_by == "assignee":
+        order = assignee_user.username
+    elif order_by == "requester":
+        order = requester_user.username
+    elif order_by in allowed_columns:
+        # Since this is an elif clause, we know special cases are already handled above.
+        # order_by has been restricted to a known list, so we can safely use getattr
+        order = getattr(models.Analysis, order_by)
+    else:
+        abort(400, description=f"order_by must be one of {allowed_columns}")
+
+    if order:
+        order_dir = request.args.get("order_dir", type=str)
+        if order_dir == "desc":
+            order = order.desc()
+        elif order_dir == "asc":
+            order = order.asc()
+        else:
+            abort(400, description="order_dir must be either 'asc' or 'desc'")
+
+    filters = []
+    assignee = request.args.get("assignee", type=str)
+    if assignee:
+        filters.append(func.instr(assignee_user.username, assignee))
+    requester = request.args.get("requester", type=str)
+    if requester:
+        filters.append(func.instr(requester_user.username, requester))
+    notes = request.args.get("notes", type=str)
+    if notes:
+        filters.append(func.instr(models.Analysis.notes, notes))
+    result_path = request.args.get("result_path", type=str)
+    if result_path:
+        filters.append(func.instr(models.Analysis.result_path, result_path))
+    updated = request.args.get("updated", type=str)
+    if updated:
+        filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
+    analysis_state = request.args.get("analysis_state", type=str)
+    if analysis_state:
+        filters.append(
+            filter_in_enum_or_abort(
+                models.Analysis.analysis_state,
+                models.AnalysisState,
+                analysis_state,
+            )
+        )
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-
-    since_date = request.args.get("since", default="0001-01-01T00:00:00-04:00")
-    try:
-        since_date = datetime.fromisoformat(since_date)
-    except:
-        abort(400, description="Malformed query date")
-
-    if user_id:
+    query = models.Analysis.query
+    if assignee:
+        query = query.join(assignee_user, models.Analysis.assignee)
+    if requester:
+        query = query.join(requester_user, models.Analysis.requester)
+    if user_id:  # Regular user or assumed identity, return only permitted analyses
         query = (
-            db.session.query(models.Analysis)
-            .options(contains_eager(models.Analysis.datasets))
-            .join(
-                models.datasets_analyses_table,
-                models.Analysis.analysis_id
-                == models.datasets_analyses_table.columns.analysis_id,
-            )
-            .join(models.Dataset)
+            query.join(models.datasets_analyses_table)
             .join(
                 models.groups_datasets_table,
-                models.Dataset.dataset_id
+                models.datasets_analyses_table.columns.dataset_id
                 == models.groups_datasets_table.columns.dataset_id,
             )
             .join(
@@ -55,28 +110,31 @@ def list_analyses():
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(models.users_groups_table.columns.user_id == user_id)
+            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
         )
-    else:
-        query = db.session.query(models.Analysis)
+    else:  # Admin or LOGIN_DISABLED, authorized to query all analyses
+        query = query.filter(*filters)
 
-    analyses = (
-        query.filter(models.Analysis.updated >= since_date)
-        .outerjoin(models.Pipeline)
-        .all()
-    )
+    total_count = query.with_entities(
+        func.count(distinct(models.Analysis.analysis_id))
+    ).scalar()
+    analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
+
     return jsonify(
-        [
-            {
-                **asdict(analysis),
-                "requester": analysis.requester and analysis.requester.username,
-                "updated_by_id": analysis.updated_by_id
-                and analysis.updated_by.username,
-                "assignee": analysis.assignee_id and analysis.assignee.username,
-                "pipeline": analysis.pipeline,
-            }
-            for analysis in analyses
-        ]
+        {
+            "data": [
+                {
+                    **asdict(analysis),
+                    "requester": analysis.requester.username,
+                    "updated_by": analysis.updated_by.username,
+                    "assignee": analysis.assignee_id and analysis.assignee.username,
+                    "pipeline": analysis.pipeline,
+                }
+                for analysis in analyses
+            ],
+            "page": page if limit else 0,
+            "total_count": total_count,
+        }
     )
 
 
