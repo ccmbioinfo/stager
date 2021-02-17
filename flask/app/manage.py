@@ -216,7 +216,7 @@ def add_data_hierarchies():
         return
     family_code_iter = 2000
     participant_code_iter = 1
-    # db.session.query(Group).all()
+    c4r_group = Group.query.filter_by(group_code="c4r").one()
     for group in Group.query.filter(Group.group_code != "c4r").all():
         institution = Institution.query.filter_by(
             institution=group.group_name
@@ -229,6 +229,16 @@ def add_data_hierarchies():
         # create family per group
         default_family = Family(
             family_codename=str(family_code_iter), created_by_id=1, updated_by_id=1
+        )
+        # one analysis per trio
+        analysis = Analysis(
+            analysis_state=AnalysisState.Requested,
+            pipeline_id=1,  # CRG
+            assignee_id=1,
+            requester_id=1,
+            requested=datetime.now(),
+            updated=datetime.now(),
+            updated_by_id=1,
         )
         # build trio
         for sex in ["-", "Female", "Male"]:
@@ -253,27 +263,24 @@ def add_data_hierarchies():
                 updated_by_id=1,
             )
             participant.tissue_samples.append(tissue_sample)
-            dataset = Dataset(
+            gdataset = Dataset(
                 dataset_type="RGS",
-                created=datetime.today().strftime("%Y-%m-%d"),
+                created=datetime.now(),
                 condition="GermLine",
                 updated_by_id=1,
                 created_by_id=1,
             )
-            dataset.groups.append(group)
-            tissue_sample.datasets.append(dataset)
-
-            # one analysis per trio
-            analysis = Analysis(
-                analysis_state=AnalysisState.Requested,
-                pipeline_id=1,  # CRG
-                assignee_id=1,
-                requester_id=1,
-                requested=datetime.today().strftime("%Y-%m-%d"),
-                updated=datetime.today().strftime("%Y-%m-%d"),
+            edataset = Dataset(
+                dataset_type="RES",
+                created=datetime.now(),
+                condition="GermLine",
                 updated_by_id=1,
+                created_by_id=1,
             )
-            dataset.analyses.append(analysis)
+            gdataset.groups += [group, c4r_group]
+            edataset.groups += [group, c4r_group]
+            tissue_sample.datasets += [gdataset, edataset]
+            gdataset.analyses.append(analysis)
 
         db.session.add(default_family)
         db.session.commit()
