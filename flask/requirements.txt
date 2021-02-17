@@ -46,7 +46,7 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   wtforms
-minio==7.0.1
+minio==7.0.2
     # via -r requirements.in
 numpy==1.19.4
     # via pandas
