@@ -2,8 +2,19 @@ import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisChange, AnalysisDetailed } from "../../typings";
 import { changeFetch, updateInCachedList } from "../utils";
 
-async function patchAnalysis(newAnalysis: AnalysisChange) {
-    return await changeFetch("/api/analyses/" + newAnalysis.analysis_id, "PATCH", newAnalysis);
+interface UpdateSource {
+    source?: "selection" | "row_edit";
+}
+
+export type AnalysisOptions = AnalysisChange & UpdateSource;
+
+async function patchAnalysis(newAnalysis: AnalysisOptions) {
+    const { source, ...analysis } = newAnalysis;
+    const data = await changeFetch("/api/analyses/" + newAnalysis.analysis_id, "PATCH", analysis);
+    if (source === "selection") {
+        data.tableData = { checked: true };
+    }
+    return data;
 }
 
 /**
@@ -13,8 +24,8 @@ async function patchAnalysis(newAnalysis: AnalysisChange) {
  */
 export function useAnalysisUpdateMutation() {
     const queryClient = useQueryClient();
-    const mutation = useMutation<Analysis, Response, AnalysisChange>(patchAnalysis, {
-        onSuccess: newAnalysis => {
+    const mutation = useMutation<Analysis, Response, AnalysisOptions>(patchAnalysis, {
+        onSuccess: (newAnalysis, changes) => {
             const oldAnalysis: AnalysisDetailed | undefined = queryClient.getQueryData([
                 "analyses",
                 newAnalysis.analysis_id,

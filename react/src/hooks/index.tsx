@@ -11,6 +11,7 @@ export { useAnalysisQuery } from "./analyses/useAnalysisQuery";
 export { useAnalysesQuery } from "./analyses/useAnalysesQuery";
 export { useAnalysisCreateMutation } from "./analyses/useAnalysisCreateMutation";
 export { useAnalysisUpdateMutation } from "./analyses/useAnalysisUpdateMutation";
+export type { AnalysisOptions } from "./analyses/useAnalysisUpdateMutation";
 export { useAnalysisDeleteMutation } from "./analyses/useAnalysisDeleteMutation";
 
 export { useGroupQuery } from "./groups/useGroupQuery";

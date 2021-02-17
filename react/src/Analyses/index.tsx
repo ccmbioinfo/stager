@@ -15,9 +15,9 @@ import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
 import { isRowSelected, exportCSV, jsonToAnalyses } from "../functions";
-import { Analysis, AnalysisChange, PipelineStatus } from "../typings";
+import { Analysis, PipelineStatus } from "../typings";
 import { AnalysisInfoDialog, Note, DateTimeText } from "../components";
-import { useAnalysesQuery, useAnalysisUpdateMutation } from "../hooks";
+import { AnalysisOptions, useAnalysesQuery, useAnalysisUpdateMutation } from "../hooks";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
@@ -111,7 +111,7 @@ function runFilter(row: Analysis) {
 async function _changeStateForSelectedRows(
     oldRows: Analysis[],
     filter: (row: Analysis) => boolean,
-    mutation: UseMutationResult<Analysis, Response, AnalysisChange>,
+    mutation: UseMutationResult<Analysis, Response, AnalysisOptions>,
     newState: PipelineStatus
 ) {
     const newRows = [...oldRows];
@@ -127,6 +127,7 @@ async function _changeStateForSelectedRows(
                 await mutation.mutateAsync({
                     analysis_id: row.analysis_id,
                     analysis_state: newRow.analysis_state,
+                    source: "selection",
                 });
                 newRows[i] = newRow;
                 changed++;
