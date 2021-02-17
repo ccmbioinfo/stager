@@ -51,7 +51,7 @@ jobs:
       - name: Check version
         run: |
           docker-compose up -d mysql minio
-          docker-compose exec minio minio --version
+          docker-compose exec -T minio minio --version
       - name: Pytest
         run: docker-compose run --rm app
       - name: Black
