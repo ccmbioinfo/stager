@@ -1,5 +1,5 @@
 # Production image. Runs a Guicorn WSGI server.
-FROM minio/mc:latest AS mc
+FROM minio/mc:RELEASE.2021-02-07T02-02-05Z AS mc
 FROM python:3.7-slim
 WORKDIR /usr/src/stager
 # Install PyPI prod-only packages first and then copy the MinIO client as the latter updates more frequently
