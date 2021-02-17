@@ -21,11 +21,11 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { Analysis, Dataset, Pipeline } from "../../typings";
+import { Analysis, Dataset } from "../../typings";
+import { usePipelinesQuery } from "../../hooks";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[];
-    pipelines: Pipeline[];
     open: boolean;
     onClose: () => void;
 }
@@ -40,11 +40,12 @@ export default function AnalysisRunnerDialog({
     open,
     onClose,
     datasets,
-    pipelines,
 }: AnalysisRunnerDialogProps) {
     const classes = useStyles();
     const titleId = "analysis-runner-alert-dialog-slide-title";
     const descriptionId = "analysis-runner-alert-dialog-slide-description";
+    const pipelineQuery = usePipelinesQuery();
+    const pipelines = pipelineQuery.data || [];
     const [pipeline, setPipeline] = useState(NaN);
 
     const { enqueueSnackbar } = useSnackbar();
@@ -119,7 +120,7 @@ export default function AnalysisRunnerDialog({
                 </TableContainer>
             </DialogContent>
             <DialogActions>
-                <Button variant="outlined" onClick={onClose} color="primary">
+                <Button variant="outlined" onClick={onClose}>
                     Cancel
                 </Button>
                 <Button
