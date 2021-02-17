@@ -20,6 +20,8 @@ async function fetchParticipants(query: Query<Participant>) {
 
 /**
  * Return a function for paging participant data.
+ *
+ * Used with material-table's remote data feature.
  */
 export function useParticipantsPage() {
     const queryClient = useQueryClient();
