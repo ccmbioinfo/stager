@@ -1,18 +1,23 @@
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Union
 from dataclasses import asdict
 
-from .extensions import db, login
+from flask_login import current_user, login_required
+from sqlalchemy import distinct, func
+from sqlalchemy.orm import contains_eager, joinedload
+
+from flask import Blueprint, Response, abort
+from flask import current_app as app
+from flask import jsonify, request
+
 from . import models
-
-from flask import abort, jsonify, request, Response, Blueprint, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
-from sqlalchemy import exc, asc, desc
-from sqlalchemy.orm import aliased, contains_eager, joinedload
-from werkzeug.exceptions import HTTPException
-
-from .utils import check_admin, transaction_or_abort, mixin, enum_validate, filter_bool
-
+from .extensions import db
+from .utils import (
+    check_admin,
+    enum_validate,
+    filter_in_enum_or_abort,
+    filter_nullable_bool_or_abort,
+    mixin,
+    transaction_or_abort,
+)
 
 editable_columns = [
     "participant_codename",
@@ -33,75 +38,103 @@ participants_blueprint = Blueprint(
 
 @participants_blueprint.route("/api/participants", methods=["GET"])
 @login_required
-def list_participants():
-
-    # parsing query parameters
-    limit = request.args.get("limit", default=10)
-    page = request.args.get("page", default=0)
-    order_by_col = request.args.get("order_by", default="participant_id", type=str)
-    order_dir = request.args.get("order_dir", default="asc", type=str)
-    # parsing filters to reduce overfetch
-    participant_codename = request.args.get(
-        "participant_codename", default=None, type=str
-    )
-    participant_codename = f"%{participant_codename}%" if participant_codename else "%"
-    notes = request.args.get("notes", default=None, type=str)
-    notes = f"%{notes}%" if notes else None
-    participant_type = request.args.get(
-        "participant_type", default="Proband,Parent,Sibling,Other", type=str
-    ).split(",")
-    sex = request.args.get("sex", default="Male,Female,Unknown,Other", type=str).split(
-        ","
-    )
-    affected = request.args.get("affected", default=None, type=str)
-    solved = request.args.get("solved", default=None, type=str)
-    family_codename = request.args.get("family_codename", default=None, type=str)
-    family_codename = f"%{family_codename}%" if family_codename else "%"
-
-    # for some reason type=int doesn't catch non-integer queries
+def list_participants() -> Response:
+    # General paged query parameters
+    # for some reason type=int doesn't catch non-integer queries, only returning None
     try:
-        int(limit)
+        page = int(request.args.get("page", default=0))
+        if page < 0:  # zero-indexed pages
+            raise ValueError
     except:
-        abort(400, description="Limit must be a valid integer")
-
+        abort(400, description="page must be a non-negative integer")
     try:
-        int(page)
+        limit = request.args.get("limit")
+        if limit is not None:  # unspecified limit means return everything
+            limit = int(limit)
+            if limit <= 0:  # MySQL accepts 0 but that's just a waste of time
+                raise ValueError
     except:
-        abort(400, description="Page must be a valid integer")
+        abort(400, description="limit must be a positive integer")
 
-    offset = int(page) * int(limit)
-
-    columns = models.Participant.__table__.columns.keys()
-
-    if order_by_col == "family_codename":
-        order_column = getattr(models.Family, order_by_col)
+    order_by = request.args.get("order_by", type=str)
+    allowed_columns = [
+        "family_codename",
+        "participant_codename",
+        "notes",
+        "participant_type",
+        "sex",
+        "affected",
+        "solved",
+    ]
+    if order_by is None:
+        order = None  # system default, likely participant_id
+    elif order_by == "family_codename":
+        order = models.Family.family_codename
+    elif order_by in allowed_columns:
+        # Since this is an elif clause, we know family_codename is already handled above.
+        # order_by has been restricted to a known list, so we can safely use getattr
+        order = getattr(models.Participant, order_by)
     else:
-        try:
-            order_column = getattr(models.Participant, order_by_col)
-        except AttributeError:
-            abort(400, description=f"Column name must be one of {columns}")
+        abort(400, description=f"order_by must be one of {allowed_columns}")
 
-    try:
-        order = getattr(order_column, order_dir)
-    except AttributeError:
-        abort(400, description=f"Column name must be 'asc' or 'desc'")
+    if order:
+        order_dir = request.args.get("order_dir", type=str)
+        if order_dir == "desc":
+            order = order.desc()
+        elif order_dir == "asc":
+            order = order.asc()
+        else:
+            abort(400, description="order_dir must be either 'asc' or 'desc'")
+
+    filters = []
+    family_codename = request.args.get("family_codename", type=str)
+    if family_codename:
+        filters.append(func.instr(models.Family.family_codename, family_codename))
+    participant_codename = request.args.get("participant_codename", type=str)
+    if participant_codename:
+        filters.append(
+            func.instr(models.Participant.participant_codename, participant_codename)
+        )
+    notes = request.args.get("notes", type=str)
+    if notes:
+        filters.append(func.instr(models.Participant.notes, notes))
+    participant_type = request.args.get("participant_type", type=str)
+    if participant_type:
+        filters.append(
+            filter_in_enum_or_abort(
+                models.Participant.participant_type,
+                models.ParticipantType,
+                participant_type,
+            )
+        )
+    sex = request.args.get("sex", type=str)
+    if sex:
+        filters.append(filter_in_enum_or_abort(models.Participant.sex, models.Sex, sex))
+    affected = request.args.get("affected", type=str)
+    if affected:
+        filters.append(
+            filter_nullable_bool_or_abort(models.Participant.affected, affected)
+        )
+    solved = request.args.get("solved", type=str)
+    if solved:
+        filters.append(filter_nullable_bool_or_abort(models.Participant.solved, solved))
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-
-    if user_id:
-        participants = models.Participant.query.options(
-            joinedload(models.Participant.family),
-            contains_eager(models.Participant.tissue_samples).contains_eager(
-                models.TissueSample.datasets
-            ),
-        )
-        participants = (
-            participants.join(models.Participant.family)
-            .join(models.TissueSample)
-            .join(models.Dataset)
+    if user_id:  # Regular user or assumed identity, return only permitted participants
+        query = (
+            models.Participant.query.options(
+                joinedload(models.Participant.institution),
+                contains_eager(models.Participant.family),
+                contains_eager(models.Participant.tissue_samples).contains_eager(
+                    models.TissueSample.datasets
+                ),
+            )
+            .join(models.Participant.family)
+            .outerjoin(models.Participant.tissue_samples)
+            .outerjoin(models.TissueSample.datasets)
             .join(
                 models.groups_datasets_table,
                 models.Dataset.dataset_id
@@ -112,48 +145,30 @@ def list_participants():
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(
-                models.users_groups_table.columns.user_id == user_id,
-                models.Participant.participant_codename.like(participant_codename),
-                models.Family.family_codename.like(family_codename),
-                models.Participant.participant_type.in_(participant_type),
-                models.Participant.sex.in_(sex),
+            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
+        )
+    else:  # Admin or LOGIN_DISABLED, authorized to query all participants
+        query = (
+            models.Participant.query.options(
+                joinedload(models.Participant.institution),
+                contains_eager(models.Participant.family),
+                joinedload(models.Participant.tissue_samples).joinedload(
+                    models.TissueSample.datasets
+                ),
             )
+            .join(models.Participant.family)
+            .filter(*filters)
         )
-
-    else:
-        participants = (
-            models.Participant.query.join(models.Family)
-            .options(contains_eager(models.Participant.family))
-            .join(models.TissueSample)
-            .options(contains_eager(models.Participant.tissue_samples))
-            .filter(
-                models.Participant.participant_codename.like(participant_codename),
-                models.Family.family_codename.like(family_codename),
-                models.Participant.participant_type.in_(participant_type),
-                models.Participant.sex.in_(sex),
-            )
-        )
-
-    if notes:
-        if notes != "%null%":
-            participants = participants.filter(models.Participant.notes.like(notes))
-        else:
-            participants = participants.filter(models.Participant.notes == None)
-    if affected:
-        participants = filter_bool(
-            models.Participant, participants, "affected", affected
-        )
-        if type(participants) is str:
-            abort(400, description=participants)
-
-    if solved:
-        participants = filter_bool(models.Participant, participants, "solved", solved)
-        if type(participants) is str:
-            abort(400, description=participants)
-
-    total_count = participants.count()
-    participants = participants.order_by(order()).limit(limit).offset(offset)
+    # .count() returns the number of rows in the SQL response. When we join across a one-to-many
+    # relationship, each parent row is multiplied by the number of children it has. This causes
+    # .count() to disagree with len() as SQLAlchemy reroutes the duplicated rows back into their
+    # mapped objects. In addition, .count() just wraps the main query in a subquery, so it can be
+    # inefficient. Luckily, we can sidestep this whole problem efficiently by having the database
+    # count the number of distinct parent primary keys returned. https://gist.github.com/hest/8798884
+    total_count = query.with_entities(
+        func.count(distinct(models.Participant.participant_id))
+    ).scalar()
+    participants = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
     return jsonify(
         {
@@ -173,7 +188,7 @@ def list_participants():
                 }
                 for participant in participants
             ],
-            "page": int(page),
+            "page": page if limit else 0,
             "total_count": total_count,
         }
     )

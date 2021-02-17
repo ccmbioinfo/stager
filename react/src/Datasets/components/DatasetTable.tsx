@@ -12,11 +12,13 @@ import { DateTimeText, Note, FileLinkingComponent } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
     useDatasetUpdateMutation,
+    useDatasetsQuery,
     useEnumsQuery,
     useMetadatasetTypesQuery,
-    useDatasetsQuery,
+    useUnlinkedFilesQuery,
 } from "../../hooks";
 import { useUserContext } from "../../contexts";
+import { useQueryClient } from "react-query";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -33,6 +35,7 @@ const useStyles = makeStyles(theme => ({
 export default function DatasetTable() {
     const classes = useStyles();
     const { user: currentUser } = useUserContext();
+    const queryClient = useQueryClient();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
@@ -51,7 +54,8 @@ export default function DatasetTable() {
     const tissueSampleTypes = useMemo(() => enums?.TissueSampleType, [enums]);
     const conditions = useMemo(() => enums?.DatasetCondition, [enums]);
 
-    const [files, setFiles] = useState<string[]>([]);
+    const filesQuery = useUnlinkedFilesQuery();
+    const files = filesQuery.data || [];
 
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
@@ -67,15 +71,6 @@ export default function DatasetTable() {
             } else {
                 console.error(
                     `GET /api/pipelines failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-        fetch("/api/unlinked").then(async response => {
-            if (response.ok) {
-                setFiles(((await response.json()) as string[]).sort());
-            } else {
-                console.error(
-                    `GET /api/unlinked failed with ${response.status}: ${response.statusText}`
                 );
             }
         });
@@ -195,7 +190,8 @@ export default function DatasetTable() {
                                         const removeUsed = files.filter(
                                             file => !receivedDataset.linked_files.includes(file)
                                         );
-                                        setFiles(
+                                        queryClient.setQueryData(
+                                            "unlinked",
                                             oldDataset && oldDataset.linked_files.length > 0
                                                 ? [...oldDataset.linked_files, ...removeUsed].sort()
                                                 : removeUsed

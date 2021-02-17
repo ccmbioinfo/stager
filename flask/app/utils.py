@@ -75,19 +75,22 @@ def enum_validate(
                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
 
-def filter_bool(
-    entity: db.Model, query: db.Model.query, column: str, value: str
-) -> Union[db.Model.query, str]:
-    value = value.lower()
+def filter_in_enum_or_abort(column: db.Column, Allowed: Enum, values: str):
+    try:
+        return column.in_([Allowed(e) for e in values.split(",")])
+    except ValueError as err:  # Invalid enum value
+        abort(400, description=err)
+
+
+def filter_nullable_bool_or_abort(column: db.Column, value: str):
     if value == "null":
-        query = query.filter(getattr(entity, column) == None)
+        return column == None
     elif value == "true":
-        query = query.filter(getattr(entity, column) == True)
+        return column == True
     elif value == "false":
-        query = query.filter(getattr(entity, column) == False)
+        return column == False
     else:
-        query = f"{column} must be true, false, or null"
-    return query
+        abort(400, description=f"{column.name} must be true, false, or null")
 
 
 class DateTimeEncoder(JSONEncoder):

@@ -2,6 +2,7 @@ export { useEnumsQuery } from "./useEnumsQuery";
 export { useFamiliesQuery } from "./useFamiliesQuery";
 export { useInstitutionsQuery } from "./useInstitutionsQuery";
 export { useMetadatasetTypesQuery } from "./useMetadatasetTypesQuery";
+export { useUnlinkedFilesQuery } from "./unlinked/useUnlinkedFilesQuery";
 
 export { useBulkCreateMutation } from "./bulk/useBulkCreateMutation";
 
