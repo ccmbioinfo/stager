@@ -112,7 +112,9 @@ def list_participants() -> Response:
         filters.append(filter_in_enum_or_abort(models.Participant.sex, models.Sex, sex))
     affected = request.args.get("affected", type=str)
     if affected:
-        filters.append(filter_nullable_bool_or_abort(models.Participant.affected, affected))
+        filters.append(
+            filter_nullable_bool_or_abort(models.Participant.affected, affected)
+        )
     solved = request.args.get("solved", type=str)
     if solved:
         filters.append(filter_nullable_bool_or_abort(models.Participant.solved, solved))
