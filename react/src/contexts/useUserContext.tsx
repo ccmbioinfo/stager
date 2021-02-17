@@ -8,8 +8,16 @@ export const emptyUser: CurrentUser = {
     groups: [],
 };
 
+interface UserClient {
+    user: CurrentUser;
+    updateUser: (newUser: Partial<CurrentUser>) => void;
+}
+
 // Stores info about the currently signed-in user
-export const UserContext = React.createContext<CurrentUser>(emptyUser);
+export const UserContext = React.createContext<UserClient>({
+    user: emptyUser,
+    updateUser: () => {},
+});
 
 /**
  * Return information about the current signed-in user.

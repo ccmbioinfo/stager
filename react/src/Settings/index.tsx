@@ -64,7 +64,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function Settings() {
     const classes = useStyles();
-    const currentUser = useUserContext();
+    const { user: currentUser } = useUserContext();
     const { data: user, isFetching: loading } = useUserQuery(currentUser.username);
     const passwordMutation = useUsersUpdateMutation();
 

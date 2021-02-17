@@ -27,6 +27,11 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 
     const [currentUser, setCurrentUser] = useState<CurrentUser>(emptyUser);
 
+    function updateUser(newUser: Partial<CurrentUser>) {
+        // Only groups can be changed
+        setCurrentUser(oldUser => ({ ...oldUser, groups: newUser.groups || oldUser.groups }));
+    }
+
     async function signout() {
         const result = await fetch("/api/logout", {
             method: "POST",
@@ -52,7 +57,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <UserContext.Provider value={currentUser}>
+            <UserContext.Provider value={{ user: currentUser, updateUser: updateUser }}>
                 <QueryClientProvider client={queryClient}>
                     <SnackbarProvider
                         ref={notistackRef}
