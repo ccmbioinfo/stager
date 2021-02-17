@@ -143,7 +143,6 @@ async function _changeStateForSelectedRows(
 
 export default function Analyses() {
     const classes = useStyles();
-    const [rows, setRows] = useState<Analysis[]>([]);
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
@@ -187,7 +186,6 @@ export default function Analyses() {
                     onAccept={() => {
                         changeAnalysisState(cancelFilter, PipelineStatus.CANCELLED).then(
                             ({ newRows, changed, skipped, failed }) => {
-                                setRows(newRows);
                                 setCancel(false);
                                 if (changed > 0)
                                     enqueueSnackbar(
@@ -249,35 +247,20 @@ export default function Analyses() {
                         setAssignment(false);
                     }}
                     onSubmit={async username => {
-                        let editedRows = new Map<number, Analysis>();
                         let count = 0;
                         let failed = 0;
                         for (const row of activeRows) {
                             try {
-                                const updatedAnalysis = await analysisUpdateMutation.mutateAsync({
+                                await analysisUpdateMutation.mutateAsync({
                                     analysis_id: row.analysis_id,
                                     assignee: username,
                                 });
-                                const index = rows.findIndex(
-                                    row => row.analysis_id === updatedAnalysis.analysis_id
-                                );
-                                editedRows.set(index, updatedAnalysis);
                                 count++;
                             } catch (res) {
                                 failed++;
                                 console.error(res);
                             }
                         }
-                        setRows(
-                            rows.map((row, index) => {
-                                const newRow = editedRows.get(index);
-                                if (newRow !== undefined) {
-                                    return { ...row, ...newRow };
-                                } else {
-                                    return row;
-                                }
-                            })
-                        );
                         setAssignment(false);
                         if (count > 0) {
                             enqueueSnackbar(
@@ -412,7 +395,6 @@ export default function Analyses() {
                                 setActiveRows(rowData as Analysis[]);
                                 changeAnalysisState(runFilter, PipelineStatus.RUNNING).then(
                                     ({ newRows, changed, skipped, failed }) => {
-                                        setRows(newRows);
                                         if (changed > 0)
                                             enqueueSnackbar(
                                                 `${changed} ${
@@ -447,7 +429,6 @@ export default function Analyses() {
                                 setActiveRows(rowData as Analysis[]);
                                 changeAnalysisState(completeFilter, PipelineStatus.COMPLETED).then(
                                     ({ newRows, changed, skipped, failed }) => {
-                                        setRows(newRows);
                                         if (changed > 0)
                                             enqueueSnackbar(
                                                 `${changed} ${
@@ -484,7 +465,6 @@ export default function Analyses() {
                                 setActiveRows(rowData as Analysis[]);
                                 changeAnalysisState(errorFilter, PipelineStatus.ERROR).then(
                                     ({ newRows, changed, skipped, failed }) => {
-                                        setRows(newRows);
                                         if (changed > 0)
                                             enqueueSnackbar(
                                                 `${changed} ${
@@ -533,13 +513,6 @@ export default function Analyses() {
                                 },
                                 {
                                     onSuccess: newRow => {
-                                        setRows(
-                                            rows.map(row =>
-                                                row.analysis_id === newRow.analysis_id
-                                                    ? { ...row, ...newRow }
-                                                    : row
-                                            )
-                                        );
                                         enqueueSnackbar(
                                             `Analysis ID ${oldData?.analysis_id} edited successfully`,
                                             { variant: "success" }
