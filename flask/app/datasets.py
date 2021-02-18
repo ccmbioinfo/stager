@@ -104,11 +104,7 @@ def list_datasets(page: int, limit: int) -> Response:
         filters.append(func.instr(models.Family.family_codename, family_codename))
     dataset_type = request.args.get("dataset_type", type=str)
     if dataset_type:
-        filters.append(
-            filter_in_enum_or_abort(
-                models.Dataset.dataset_type, models.DatasetType, dataset_type
-            )
-        )
+        filters.append(models.Dataset.dataset_type.in_(dataset_type.split(",")))
     condition = request.args.get("condition", type=str)
     if condition:
         filters.append(
