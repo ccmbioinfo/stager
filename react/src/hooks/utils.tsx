@@ -46,15 +46,13 @@ export async function queryTableData<RowData extends object>(
     // add filters
     for (let filter of query.filters) {
         const isBoolean = ["affected", "solved"].includes("" + filter.column.field);
-        let operator = "like";
         let value = filter.value;
         // booleans use "eq" as operator
         if (isBoolean) {
-            operator = "eq";
             value = stringToBoolean(filter.value);
         }
-        if (filter.value || isBoolean) {
-            searchParams.append("filter", `${filter.column.field};${operator};${value}`);
+        if (filter.column.field && (filter.value || isBoolean)) {
+            searchParams.append(`${filter.column.field}`, `${value}`);
         }
     }
     // order by
