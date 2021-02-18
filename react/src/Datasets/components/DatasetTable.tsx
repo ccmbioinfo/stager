@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { toKeyValue, exportCSV, rowDiff } from "../../functions";
-import { Dataset, Pipeline } from "../../typings";
+import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import { DateTimeText, Note, FileLinkingComponent } from "../../components";
@@ -42,9 +42,6 @@ export default function DatasetTable() {
 
     const { data: datasets } = useDatasetsQuery();
     const datasetUpdateMutation = useDatasetUpdateMutation();
-
-    const [pipelines, setPipelines] = useState<Pipeline[]>([]);
-
     const { data: enums } = useEnumsQuery();
     const { data: metadatasetTypes } = useMetadatasetTypesQuery();
     const datasetTypes = useMemo(
@@ -64,23 +61,10 @@ export default function DatasetTable() {
 
     const { id: paramID } = useParams<{ id?: string }>();
 
-    useEffect(() => {
-        fetch("/api/pipelines").then(async response => {
-            if (response.ok) {
-                setPipelines(await response.json());
-            } else {
-                console.error(
-                    `GET /api/pipelines failed with ${response.status}: ${response.statusText}`
-                );
-            }
-        });
-    }, []);
-
     return (
         <div>
             <AnalysisRunnerDialog
                 datasets={selectedDatasets}
-                pipelines={pipelines}
                 open={showRunner}
                 onClose={() => setRunner(false)}
             />

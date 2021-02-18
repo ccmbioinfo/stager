@@ -3,6 +3,7 @@ export { useFamiliesQuery } from "./useFamiliesQuery";
 export { useInstitutionsQuery } from "./useInstitutionsQuery";
 export { useMetadatasetTypesQuery } from "./useMetadatasetTypesQuery";
 export { useUnlinkedFilesQuery } from "./unlinked/useUnlinkedFilesQuery";
+export { usePipelinesQuery } from "./usePipelinesQuery";
 
 export { useBulkCreateMutation } from "./bulk/useBulkCreateMutation";
 
