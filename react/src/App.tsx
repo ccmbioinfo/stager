@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
 import { CurrentUser } from "./typings";
-import { UserContext, emptyUser } from "./contexts";
+import { UserContext, emptyUser, UserClient } from "./contexts";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -25,11 +25,24 @@ const queryClient = new QueryClient({
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
 
-    const [currentUser, setCurrentUser] = useState<CurrentUser>(emptyUser);
+    // React Context needs the provider value to be a complete package in a state var
+    // or else extra re-renders will happen apparently
+    const [userClient, setUserClient] = useState<UserClient>({
+        user: emptyUser,
+        updateUser: (newUser: Partial<CurrentUser>) => {
+            // Only groups can be changed
+            setUserClient(oldClient => ({
+                updateUser: oldClient.updateUser,
+                user: { ...oldClient.user, groups: newUser.groups || oldClient.user.groups },
+            }));
+        },
+    });
 
-    function updateUser(newUser: Partial<CurrentUser>) {
-        // Only groups can be changed
-        setCurrentUser(oldUser => ({ ...oldUser, groups: newUser.groups || oldUser.groups }));
+    function setCurrentUser(user: CurrentUser) {
+        setUserClient(oldClient => ({
+            updateUser: oldClient.updateUser,
+            user: user,
+        }));
     }
 
     async function signout() {
@@ -57,7 +70,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return <></>;
     } else if (authenticated) {
         return (
-            <UserContext.Provider value={{ user: currentUser, updateUser: updateUser }}>
+            <UserContext.Provider value={userClient}>
                 <QueryClientProvider client={queryClient}>
                     <SnackbarProvider
                         ref={notistackRef}

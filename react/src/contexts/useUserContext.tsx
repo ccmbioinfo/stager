@@ -8,7 +8,7 @@ export const emptyUser: CurrentUser = {
     groups: [],
 };
 
-interface UserClient {
+export interface UserClient {
     user: CurrentUser;
     updateUser: (newUser: Partial<CurrentUser>) => void;
 }
