@@ -200,7 +200,7 @@ export interface NavigationProps {
 export default function Navigation({ signout, darkMode, toggleDarkMode }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
-    const currentUser = useUserContext();
+    const { user: currentUser } = useUserContext();
 
     const handleDrawerOpen = () => {
         setOpen(true);

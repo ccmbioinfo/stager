@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 export default function AddParticipants() {
     const classes = useStyles();
     const history = useHistory();
-    const currentUser = useUserContext();
+    const { user: currentUser } = useUserContext();
     const datasetsMutation = useBulkCreateMutation();
     const [data, setData] = useState<DataEntryRow[]>([]);
     const [open, setOpen] = useState(false);

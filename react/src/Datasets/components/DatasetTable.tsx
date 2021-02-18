@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function DatasetTable() {
     const classes = useStyles();
-    const currentUser = useUserContext();
+    const { user: currentUser } = useUserContext();
     const queryClient = useQueryClient();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
