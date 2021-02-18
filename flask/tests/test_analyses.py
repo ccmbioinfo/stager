@@ -12,7 +12,7 @@ def test_no_analyses(test_database, client, login_as):
 
     response = client.get("/api/analyses?user=5")
     assert response.status_code == 200
-    assert len(response.get_json()) == 0
+    assert len(response.get_json()["data"]) == 0
 
 
 def test_list_analyses_admin(test_database, client, login_as):
@@ -20,7 +20,7 @@ def test_list_analyses_admin(test_database, client, login_as):
 
     response = client.get("/api/analyses")
     assert response.status_code == 200
-    assert len(response.get_json()) == 3
+    assert len(response.get_json()["data"]) == 3
 
 
 def test_list_analyses_user(test_database, client, login_as):
@@ -29,7 +29,7 @@ def test_list_analyses_user(test_database, client, login_as):
     response = client.get("/api/analyses")
     assert response.status_code == 200
     # Check number of analyses
-    assert len(response.get_json()) == 2
+    assert len(response.get_json()["data"]) == 2
 
 
 def test_list_analyses_user_from_admin(test_database, client, login_as):
@@ -39,7 +39,7 @@ def test_list_analyses_user_from_admin(test_database, client, login_as):
     response = client.get("/api/analyses?user=2")
     assert response.status_code == 200
     # Check number of analyses
-    assert len(response.get_json()) == 2
+    assert len(response.get_json()["data"]) == 2
 
 
 # GET /api/analyses/:id
@@ -89,7 +89,7 @@ def test_delete_analysis(test_database, client, login_as):
     # Make sure it's gone
     response2 = client.get("/api/analyses")
     assert response2.status_code == 200
-    assert len(response2.get_json()) == 2
+    assert len(response2.get_json()["data"]) == 2
 
 
 # PATCH /api/analyses/:id
@@ -217,7 +217,7 @@ def test_create_analysis(test_database, client, login_as):
     assert len(dataset_3.analyses) == 3
 
     login_as("admin")
-    assert len(client.get("/api/analyses").get_json()) == 4
+    assert len(client.get("/api/analyses").get_json()["data"]) == 4
 
     # test compatible metadataset types - may need to expand on these after more pipelines are introduced
 
