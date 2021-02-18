@@ -1,27 +1,44 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
+import { ListItem, ListItemIcon, ListItemText, Tooltip } from "@material-ui/core";
 
 export interface ListItemRouterLinkProps {
-    primary: React.ReactNode;
+    primary: string;
     to: string;
     children: React.ReactNode;
+    hideTooltip: boolean;
 }
 
 // https://material-ui.com/guides/composition/#caveat-with-inlining
-export default function ListItemRouterLink({ primary, to, children }: ListItemRouterLinkProps) {
+// https://material-ui.com/components/tooltips/#custom-child-element
+export default function ListItemRouterLink(props: ListItemRouterLinkProps) {
+    const [openTooltip, setOpenTooltip] = useState(false);
+
     const ForwardedRouterLink = React.useMemo(
         () =>
-            React.forwardRef<HTMLAnchorElement>((linkProps, ref) => (
-                <Link ref={ref} to={to} {...linkProps} />
+            React.forwardRef<HTMLAnchorElement>((linkProps, linkRef) => (
+                <Link
+                    ref={linkRef}
+                    to={props.to}
+                    {...linkProps}
+                    onMouseEnter={() => setOpenTooltip(true)}
+                    onMouseLeave={() => setOpenTooltip(false)}
+                />
             )),
-        [to]
+        [props.to]
     );
 
     return (
-        <ListItem button component={ForwardedRouterLink}>
-            <ListItemIcon>{children}</ListItemIcon>
-            <ListItemText primary={primary} />
-        </ListItem>
+        <Tooltip
+            arrow
+            title={props.primary}
+            placement="right"
+            open={openTooltip && !props.hideTooltip}
+        >
+            <ListItem button component={ForwardedRouterLink}>
+                <ListItemIcon>{props.children}</ListItemIcon>
+                <ListItemText primary={props.primary} />
+            </ListItem>
+        </Tooltip>
     );
 }

@@ -289,6 +289,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                                     to={route.linkTo ? route.linkTo : "" + route.path}
                                     primary={route.pageName}
                                     children={route.icon}
+                                    hideTooltip={open}
                                 />
                             ) : (
                                 <React.Fragment key={index} />
