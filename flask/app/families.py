@@ -17,21 +17,21 @@ family_blueprint = Blueprint(
 @login_required
 def list_families():
 
-    app.logger.info("Parsing query parameters..")
+    app.logger.debug("Parsing query parameters..")
 
     starts_with = request.args.get("starts_with", default="", type=str)
     starts_with = f"{starts_with}%"
     max_rows = request.args.get("max_rows", default=100)
     order_by_col = request.args.get("order", default="family_id", type=str)
 
-    app.logger.info(
+    app.logger.debug(
         "Query parameters: \n\tstarts_with %s \n\tmax_rows %s, \n\torder_by_col %s",
         starts_with,
         max_rows,
         order_by_col,
     )
 
-    app.logger.info("Validating max rows..")
+    app.logger.debug("Validating max rows..")
     try:
         int(max_rows)
     except:
@@ -40,7 +40,7 @@ def list_families():
 
     columns = models.Family.__table__.columns.keys()
 
-    app.logger.info("Validating 'order_by' column..")
+    app.logger.debug("Validating 'order_by' column..")
     if order_by_col not in columns:
         app.logger.error(
             "Column name %s is not valid, it must be one of %s", order_by_col, columns
@@ -48,18 +48,18 @@ def list_families():
         abort(400, description=f"Column name for ordering must be one of {columns}")
     column = getattr(models.Family, order_by_col)
 
-    app.logger.info("Query parameters successfully parsed.")
+    app.logger.debug("Query parameters successfully parsed.")
 
-    app.logger.info("Retrieving user id..")
+    app.logger.debug("Retrieving user id..")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
-        app.logger.info("User is admin with ID '%s'", user_id)
+        app.logger.debug("User is admin with ID '%s'", user_id)
         app.logger.warning("LOGIN_DISABLED = TRUE may also be set.")
     else:
         user_id = current_user.user_id
-        app.logger.info("User is regular with ID '%s'", user_id)
+        app.logger.debug("User is regular with ID '%s'", user_id)
     if user_id:
-        app.logger.info("Processing query - restricted based on user id.")
+        app.logger.debug("Processing query - restricted based on user id.")
         families = (
             models.Family.query.options(contains_eager(models.Family.participants))
             .filter(models.Family.family_codename.like(starts_with))
@@ -81,7 +81,7 @@ def list_families():
             .limit(max_rows)
         )
     else:
-        app.logger.info("Processing query - unrestricted based on user id.")
+        app.logger.debug("Processing query - unrestricted based on user id.")
         families = (
             models.Family.query.options(
                 joinedload(models.Family.participants),
@@ -92,7 +92,7 @@ def list_families():
             .order_by(column)
             .limit(max_rows)
         )
-    app.logger.info("Query successful, returning JSON...")
+    app.logger.debug("Query successful, returning JSON...")
     return jsonify(
         [
             {
@@ -117,17 +117,17 @@ def list_families():
 @family_blueprint.route("/api/families/<int:id>", methods=["GET"])
 @login_required
 def get_family(id: int):
-    app.logger.info("Retrieving user id..")
+    app.logger.debug("Retrieving user id..")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
-        app.logger.info("User is admin with ID '%s'", user_id)
+        app.logger.debug("User is admin with ID '%s'", user_id)
         app.logger.warning("LOGIN_DISABLED = TRUE may also be set.")
     else:
         user_id = current_user.user_id
-        app.logger.info("User is regular with ID '%s'", user_id)
+        app.logger.debug("User is regular with ID '%s'", user_id)
 
     if user_id:
-        app.logger.info("Processing query - restricted based on user id.")
+        app.logger.debug("Processing query - restricted based on user id.")
         family = (
             models.Family.query.filter_by(family_id=id)
             .options(
@@ -152,7 +152,7 @@ def get_family(id: int):
             .one_or_none()
         )
     else:
-        app.logger.info("Processing query - unrestricted based on user id.")
+        app.logger.debug("Processing query - unrestricted based on user id.")
         family = (
             models.Family.query.filter_by(family_id=id)
             .options(
@@ -166,10 +166,10 @@ def get_family(id: int):
         )
 
     if not family:
-        app.logger.info("Query did not return any records.")
+        app.logger.debug("Query did not return any records.")
         abort(404)
 
-    app.logger.info("Query successful, returning JSON...")
+    app.logger.debug("Query successful, returning JSON...")
     return jsonify(
         [
             {
@@ -205,7 +205,7 @@ def get_family(id: int):
 @login_required
 @check_admin
 def delete_family(id: int):
-    app.logger.info("DELETE request for family id '%s'", id)
+    app.logger.debug("DELETE request for family id '%s'", id)
     family = models.Family.query.filter_by(family_id=id).options(
         joinedload(models.Family.participants)
     )
@@ -213,11 +213,11 @@ def delete_family(id: int):
     fam_entity = family.first_or_404()
 
     if len(fam_entity.participants) == 0:
-        app.logger.info("Family has no participants")
+        app.logger.debug("Family has no participants")
         try:
             family.delete()
             db.session.commit()
-            app.logger.info("DELETE request for family id '%s' succeeded", id)
+            app.logger.debug("DELETE request for family id '%s' succeeded", id)
             return "Deletion successful", 204
         except:
             db.session.rollback()
@@ -234,31 +234,31 @@ def delete_family(id: int):
 @login_required
 def update_family(id: int):
 
-    app.logger.info("Checking request body")
+    app.logger.debug("Checking request body")
     if not request.json:
         app.logger.error("Request body is not JSON")
         abort(415, description="Request body must be JSON")
-    app.logger.info("Request body is JSON")
+    app.logger.debug("Request body is JSON")
 
-    app.logger.info("Checking family codename is supplied in body")
+    app.logger.debug("Checking family codename is supplied in body")
     try:
         fam_codename = request.json["family_codename"]
     except KeyError:
         app.logger.error("No family codename was provided in the request body")
         abort(400, description="No family codename provided")
-    app.logger.info("Family codename is in request body and is '%s'", fam_codename)
+    app.logger.debug("Family codename is in request body and is '%s'", fam_codename)
 
-    app.logger.info("Retrieving user id..")
+    app.logger.debug("Retrieving user id..")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
-        app.logger.info("User is admin with ID '%s'", user_id)
+        app.logger.debug("User is admin with ID '%s'", user_id)
         app.logger.warning("LOGIN_DISABLED = TRUE may also be set.")
     else:
         user_id = current_user.user_id
-        app.logger.info("User is regular with ID '%s'", user_id)
+        app.logger.debug("User is regular with ID '%s'", user_id)
 
     if user_id:
-        app.logger.info("Processing query - restricted based on user id.")
+        app.logger.debug("Processing query - restricted based on user id.")
         family = (
             models.Family.query.filter_by(family_id=id)
             .join(models.Participant)
@@ -278,24 +278,24 @@ def update_family(id: int):
             .first_or_404()
         )
     else:
-        app.logger.info("Processing query - unrestricted based on user id.")
+        app.logger.debug("Processing query - unrestricted based on user id.")
         family = models.Family.query.filter_by(family_id=id).first_or_404()
 
-    app.logger.info(
+    app.logger.debug(
         "Family codename is being changed from '%s' to '%s'",
         family.family_codename,
         fam_codename,
     )
     family.family_codename = fam_codename
 
-    app.logger.info("Family code update is peformed by user: '%s'", user_id)
+    app.logger.debug("Family code update is peformed by user: '%s'", user_id)
     if user_id:
         family.updated_by_id = user_id
 
     try:
 
         db.session.commit()
-        app.logger.info("Update successful, returning JSON...")
+        app.logger.debug("Update successful, returning JSON...")
         return jsonify(
             {
                 **asdict(family),
@@ -304,7 +304,7 @@ def update_family(id: int):
             }
         )
     except:
-        app.logger.info("Update unsuccessful")  # under what cases would this fail
+        app.logger.debug("Update unsuccessful")  # under what cases would this fail
         db.session.rollback()
         abort(500)
 
@@ -314,34 +314,34 @@ def update_family(id: int):
 @check_admin
 def create_family():
 
-    app.logger.info("Checking request body")
+    app.logger.debug("Checking request body")
     if not request.json:
         app.logger.error("Request body is not JSON")
         abort(415, description="Request body must be JSON")
-    app.logger.info("Request body is JSON")
+    app.logger.debug("Request body is JSON")
 
     try:
-        app.logger.info(
+        app.logger.debug(
             "Assigning updated and created by IDs to user ID '%s'", current_user.user_id
         )
         updated_by_id = current_user.user_id
         created_by_id = current_user.user_id
     except:  # LOGIN_DISABLED
-        app.logger.info(
+        app.logger.debug(
             "LOGIN_DISABLED = True so updated and created by IDs are defaulting to 1."
         )
         updated_by_id = 1
         created_by_id = 1
 
-    app.logger.info("Checking family codename is supplied in body")
+    app.logger.debug("Checking family codename is supplied in body")
     try:
         fam_codename = request.json["family_codename"]
     except KeyError:
         app.logger.error("No family codename was provided in the request body")
         abort(400, description="No family codename provided")
-    app.logger.info("Family codename is in request body and is '%s'", fam_codename)
+    app.logger.debug("Family codename is in request body and is '%s'", fam_codename)
 
-    app.logger.info(
+    app.logger.debug(
         "Checking the requested family codenam, '%s', is not already in use.",
         fam_codename,
     )
@@ -356,24 +356,24 @@ def create_family():
             family_exists_id,
         )
         abort(422, description="Family Codename already in use")
-    app.logger.info(
+    app.logger.debug(
         "The requested family codename '%s' is not already in use.", fam_codename
     )
 
-    app.logger.info("Creating an instance of the family model")
+    app.logger.debug("Creating an instance of the family model")
     fam_objs = models.Family(
         family_codename=fam_codename,
         created_by_id=created_by_id,
         updated_by_id=updated_by_id,
     )
 
-    app.logger.info("Adding the family instance to the database")
+    app.logger.debug("Adding the family instance to the database")
     db.session.add(fam_objs)
     transaction_or_abort(db.session.commit)
 
     location_header = "/api/families/{}".format(fam_objs.family_id)
 
-    app.logger.info("Family successfully added to the database. Returning json..")
+    app.logger.debug("Family successfully added to the database. Returning json..")
     return (
         jsonify(
             {
