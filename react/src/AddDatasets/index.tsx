@@ -44,8 +44,18 @@ export default function AddParticipants() {
 
     useEffect(() => {
         document.title = `Add Datasets | ${process.env.REACT_APP_NAME}`;
-        handleDataChange(createEmptyRows(1)); // sets errorMessage on initial render
+        const savedProgress = sessionStorage.getItem("add-datasets-progress");
+        if (savedProgress !== null) {
+            const savedData = JSON.parse(savedProgress) as DataEntryRow[];
+            setData(savedData);
+        } else {
+            setData(createEmptyRows(1));
+        }
     }, []);
+
+    useEffect(() => {
+        sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
+    }, [data]);
 
     useEffect(() => {
         if (currentUser.groups.length === 1) {
