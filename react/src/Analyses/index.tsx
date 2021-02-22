@@ -15,7 +15,7 @@ import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { jsonToAnalyses, isRowSelected, exportCSV } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
-import { AnalysisInfoDialog, Note, DateTimeText } from "../components";
+import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
@@ -337,6 +337,7 @@ export default function Analyses() {
                             type: "string",
                             editable: "never",
                             render: rowData => <DateTimeText datetime={rowData.updated} />,
+                            filterComponent: props => <DateFilterComponent {...props} />,
                         },
                         {
                             title: "Path Prefix",

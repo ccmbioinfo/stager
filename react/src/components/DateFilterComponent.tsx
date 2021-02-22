@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
  * A filter component for material-table for sorting before or after
  * a specific date. Passes up a value of the format "{before,after},yyyy-mm-dd".
  */
-export default function DateTimeFilter<RowData extends object>(props: {
+export default function DateFilterComponent<RowData extends object>(props: {
     columnDef: Column<RowData>;
     onFilterChanged: (rowId: string, value: any) => void;
 }) {
