@@ -54,7 +54,6 @@ def list_families():
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
         app.logger.debug("User is admin with ID '%s'", user_id)
-        app.logger.warning("LOGIN_DISABLED = TRUE may also be set.")
     else:
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
@@ -121,7 +120,6 @@ def get_family(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
         app.logger.debug("User is admin with ID '%s'", user_id)
-        app.logger.warning("LOGIN_DISABLED = TRUE may also be set.")
     else:
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
@@ -252,7 +250,6 @@ def update_family(id: int):
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
         app.logger.debug("User is admin with ID '%s'", user_id)
-        app.logger.warning("LOGIN_DISABLED = TRUE may also be set.")
     else:
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
@@ -304,7 +301,7 @@ def update_family(id: int):
             }
         )
     except:
-        app.logger.debug("Update unsuccessful")  # under what cases would this fail
+        app.logger.error("Update unsuccessful")  # under what cases would this fail
         db.session.rollback()
         abort(500)
 
