@@ -507,11 +507,7 @@ export default function Analyses() {
                     editable={{
                         onRowUpdate: async (newData, oldData) => {
                             analysisUpdateMutation.mutate(
-                                {
-                                    analysis_id: newData.analysis_id,
-                                    notes: newData.notes,
-                                    result_path: newData.result_path,
-                                },
+                                { ...newData, source: "row-edit" },
                                 {
                                     onSuccess: newRow => {
                                         enqueueSnackbar(
