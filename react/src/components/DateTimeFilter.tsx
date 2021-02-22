@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Column } from "material-table";
 import { IconButton, InputAdornment, makeStyles, TextField, Tooltip } from "@material-ui/core";
-import { NavigateBefore, NavigateNext } from "@material-ui/icons";
+import { NavigateBefore } from "@material-ui/icons";
 import clsx from "clsx";
 
 const useStyles = makeStyles(theme => ({
