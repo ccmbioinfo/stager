@@ -103,33 +103,29 @@ function runFilter(row: Analysis) {
  * Returns a new list of Analyses, as well as the number of rows that changed, were skipped, or failed to change.
  * TODO: Revisit after overfetch #283
  *
- * @param oldRows
+ * @param selectedRows
  * @param filter A function which returns true for a row that is allowed to be changed to newState, false otherwise.
  * @param mutation The mutation object to use to update the analyses.
  * @param newState The new state to apply to rows which pass the filter.
  */
 async function _changeStateForSelectedRows(
-    oldRows: Analysis[],
+    selectedRows: Analysis[],
     filter: (row: Analysis) => boolean,
     mutation: UseMutationResult<Analysis, Response, AnalysisOptions>,
     newState: PipelineStatus
 ) {
-    const newRows = [...oldRows];
     let changed = 0;
     let skipped = 0;
     let failed = 0;
-    for (let i = 0; i < newRows.length; i++) {
-        let row = newRows[i];
-        if (isRowSelected(row) && filter(row)) {
-            const newRow: Analysis = { ...newRows[i] };
-            newRow.analysis_state = newState;
+    for (let i = 0; i < selectedRows.length; i++) {
+        let row = selectedRows[i];
+        if (filter(row)) {
             try {
                 await mutation.mutateAsync({
                     analysis_id: row.analysis_id,
-                    analysis_state: newRow.analysis_state,
+                    analysis_state: newState,
                     source: "selection",
                 });
-                newRows[i] = newRow;
                 changed++;
             } catch (res) {
                 failed++;
@@ -139,7 +135,7 @@ async function _changeStateForSelectedRows(
             skipped++;
         }
     }
-    return { newRows, changed, skipped, failed };
+    return { changed, skipped, failed };
 }
 
 export default function Analyses() {
@@ -166,7 +162,7 @@ export default function Analyses() {
     const { id: paramID } = useParams<{ id: string }>();
 
     function changeAnalysisState(filter: (row: Analysis) => boolean, newState: PipelineStatus) {
-        return _changeStateForSelectedRows(analyses, filter, analysisUpdateMutation, newState);
+        return _changeStateForSelectedRows(activeRows, filter, analysisUpdateMutation, newState);
     }
 
     useEffect(() => {
@@ -186,7 +182,7 @@ export default function Analyses() {
                     }}
                     onAccept={() => {
                         changeAnalysisState(cancelFilter, PipelineStatus.CANCELLED).then(
-                            ({ newRows, changed, skipped, failed }) => {
+                            ({ changed, skipped, failed }) => {
                                 setCancel(false);
                                 if (changed > 0)
                                     enqueueSnackbar(
@@ -349,6 +345,7 @@ export default function Analyses() {
                             ),
                         },
                     ]}
+                    isLoading={analysisUpdateMutation.isLoading}
                     data={analyses || []}
                     title="Analyses"
                     options={{
@@ -395,7 +392,7 @@ export default function Analyses() {
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
                                 changeAnalysisState(runFilter, PipelineStatus.RUNNING).then(
-                                    ({ newRows, changed, skipped, failed }) => {
+                                    ({ changed, skipped, failed }) => {
                                         if (changed > 0)
                                             enqueueSnackbar(
                                                 `${changed} ${
@@ -429,7 +426,7 @@ export default function Analyses() {
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
                                 changeAnalysisState(completeFilter, PipelineStatus.COMPLETED).then(
-                                    ({ newRows, changed, skipped, failed }) => {
+                                    ({ changed, skipped, failed }) => {
                                         if (changed > 0)
                                             enqueueSnackbar(
                                                 `${changed} ${
@@ -465,7 +462,7 @@ export default function Analyses() {
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
                                 changeAnalysisState(errorFilter, PipelineStatus.ERROR).then(
-                                    ({ newRows, changed, skipped, failed }) => {
+                                    ({ changed, skipped, failed }) => {
                                         if (changed > 0)
                                             enqueueSnackbar(
                                                 `${changed} ${
