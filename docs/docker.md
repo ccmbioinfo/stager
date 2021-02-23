@@ -16,8 +16,8 @@ docker-compose up --build
 ```
 
 Optionally, you can pass the `-d` or `--detach` flag so this does not occupy an entire terminal.
-This builds a `ccmbio/st2020` image with the Python dependencies and mounts the `flask` directory
-to watch for live changes.
+This builds the `ghcr.io/ccmbioinfo/stager:dev` image with the Python dependencies, pulls other
+dependent images the first time, and mounts the `flask` directory to watch for live changes.
 
 You can also specify only the services you want to bring up. For example, if you want to develop the
 backend outside of Docker, you can just bring up the supporting containers instead:
@@ -36,10 +36,10 @@ docker-compose down
 
 Generally in development, because the entire `flask` source code directory is bind mounted into the
 `app` container, you do not need to rebuild the image on every startup or switching between
-branches. That is, the `--build` flag can frequently be foregone. Docker uses a build cache unless
-instructed otherwise so this doesn't concern time-to-live. The only time when the image must be
-rebuilt is if dependencies change, i.e. the `requirements*` or `Dockerfile` in the `flask` tree
-are modified.
+branches. That is, the `docker-compose up --build` flag can frequently be foregone. Docker uses a
+build cache unless instructed otherwise so this doesn't concern time-to-live. The only time when the
+image must be rebuilt is if dependencies change, i.e. the `requirements*` or `Dockerfile` in the
+`flask` tree are modified.
 
 If the base `python:3.7-slim` or `minio/mc` images are updated, `docker-compose up --build` will not
 check for updates and will continue to use your local tags. To use the latest base image from Docker
@@ -56,6 +56,30 @@ docker-compose pull
 ```
 
 To update your running containers, run `docker-compose up` again.
+
+## [GitHub Container Registry](https://docs.github.com/en/packages/guides/about-github-container-registry)
+
+This is a registry for Docker images like Docker Hub but associated with GitHub, currently in beta.
+We use GitHub Actions to automatically build development and production images for Stager and push
+them to this registry at [ghcr.io/ccmbioinfo/stager](ghcr.io/ccmbioinfo/stager).
+
+To make use of these, you will need to enable "Improved container support" in the "Feature preview"
+menu item, accessible by clicking on your profile picture in the top-right of GitHub. Then, in your
+[Developer settings](https://github.com/settings/tokens), create a personal access token with access
+to `read:packages` (and optionally `write:packages` if you want to do this from your machine too).
+
+Login to registry on your command-line and paste in the generated token when prompted.
+
+```bash
+docker login -u GITHUB_USERNAME --password-stdin
+```
+
+Now, the first time you run `docker-compose up`, a development image will be pulled from GitHub
+instead of being built locally, and you no longer need to rebuild the application image yourself
+unless your work specifically relates to modifying dependencies or how the image is built itself.
+You can always get the latest development image with `docker-compose pull`.
+
+This information is also available in the GitHub Container Registry documentation linked above".
 
 ## Resetting bind mounts
 
