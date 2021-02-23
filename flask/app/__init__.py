@@ -65,9 +65,12 @@ def register_commands(app):
 
 
 def config_logger(app):
+    logging.basicConfig(
+        format="[%(levelname)s] %(asctime)s %(name)s (%(funcName)s, line %(lineno)s): %(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S %p",
+    )
 
     if app.config["SQLALCHEMY_LOG"]:
-        logging.basicConfig()
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
 
