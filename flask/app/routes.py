@@ -309,7 +309,7 @@ def bulk_update():
         app.logger.debug("\tChecking sequencing date is provided")
         sequencing_date = row.get("sequencing_date")
         if not sequencing_date:
-            app.logger.debug("\tNo sequencing date provided.")
+            app.logger.error("\tNo sequencing date provided.")
             abort(400, description="A sequencing date must be provided")
         else:
             app.logger.debug("\tSequencing date provided: '%s'", sequencing_date)
