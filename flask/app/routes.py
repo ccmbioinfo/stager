@@ -220,7 +220,7 @@ def bulk_update():
     elif request.content_type == "application/json":
         app.logger.debug("Content type is JSON..")
         if not request.json:
-            app.logger.debug("Content type is JSON, but request body isn't JSON..")
+            app.logger.error("Content type is JSON, but request body isn't JSON..")
             abort(415, description="Request body must be JSON")
 
         # the jsons must be in a list, even if it is a single json object
