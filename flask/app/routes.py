@@ -65,7 +65,7 @@ def login():
         user.last_login = datetime.now()
         db.session.commit()
     except:
-        app.logger.warning("Failed to updated last_login for '%s'", user.username)
+        app.logger.warning("Failed to update last_login for '%s'", user.username)
 
     login_user(user)
     app.logger.info(
