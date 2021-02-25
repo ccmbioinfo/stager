@@ -275,7 +275,7 @@ def bulk_update():
             .all()
         )
         if len(requested_groups) != len(groups):
-            app.logger.debug(
+            app.logger.error(
                 "User supplied groups and permission groups do not match up."
             )
             abort(404, description="Invalid group code provided")
