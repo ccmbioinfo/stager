@@ -63,8 +63,8 @@ def list_participants() -> Response:
         abort(400, description="limit must be a positive integer")
 
     app.logger.debug("Parsing order query parameters")
-    app.logger.debug("Validating order_by")
     order_by = request.args.get("order_by", type=str)
+    app.logger.debug("Validating order_by: %s", order_by)
     allowed_columns = [
         "family_codename",
         "participant_codename",
@@ -86,9 +86,9 @@ def list_participants() -> Response:
         app.logger.error("order_by must be one of %s", allowed_columns)
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
-    app.logger.debug("Validating order_dir")
     if order:
         order_dir = request.args.get("order_dir", type=str)
+        app.logger.debug("Validating order_dir: %s", order_dir)
         if order_dir == "desc":
             order = order.desc()
         elif order_dir == "asc":
@@ -339,7 +339,10 @@ def create_participant():
         created_by_id = 1
 
     # check if the participant exists under a given family
-    app.logger.debug("Checking if participant already exists under family")
+    app.logger.debug(
+        "Checking if participant %s already exists under family",
+        request.json.get("participant_codename"),
+    )
     ptp_query = models.Participant.query.filter(
         models.Participant.family_id == request.json.get("family_id"),
         models.Participant.participant_codename
@@ -347,11 +350,14 @@ def create_participant():
     )
 
     if ptp_query.first() is not None:
-        app.logger.error("Participant codename already exists under family")
+        app.logger.error(
+            "Participant codename %s already exists under family",
+            request.json.get("participant_codename"),
+        )
         abort(422, description="Participant codename already exists under family")
 
     # check if family exists
-    app.logger.debug("Checking if family exists")
+    app.logger.debug("Checking if family %s exists", request.json.get("family_id"))
     models.Family.query.filter(
         models.Family.family_id == request.json.get("family_id")
     ).first_or_404()
@@ -364,7 +370,7 @@ def create_participant():
         abort(400, description=enum_error)
 
     # get institution id
-    app.logger.debug("Check if institution exists")
+    app.logger.debug("Check if institution %s exists", request.json.get("institution"))
     institution = request.json.get("institution")
     if institution:
         institution_obj = models.Institution.query.filter(
