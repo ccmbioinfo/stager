@@ -225,7 +225,7 @@ def bulk_update():
 
         # the jsons must be in a list, even if it is a single json object
         if not isinstance(request.json, list):
-            app.logger.debug(
+            app.logger.error(
                 "Content type is JSON and request body is JSON, but JSON isn't in an array.."
             )
             abort(422, description="JSON must be in an array")
