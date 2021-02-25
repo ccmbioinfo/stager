@@ -41,12 +41,16 @@ datasets_blueprint = Blueprint(
 @datasets_blueprint.route("/api/datasets", methods=["GET"])
 @login_required
 def list_datasets():
+    app.logger.debug("Retrieving user id...")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
+        app.logger.debug("User is admin with ID '%s'", user_id)
     else:
         user_id = current_user.user_id
+        app.logger.debug("User is regular with ID '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Processing query - restricted based on user id")
         query = (
             models.Dataset.query.join(models.groups_datasets_table)
             .join(
@@ -57,14 +61,19 @@ def list_datasets():
             .filter(models.users_groups_table.columns.user_id == user_id)
         )
     else:
+        app.logger.debug("Processing query - unrestricted based on user id")
         query = models.Dataset.query
 
+    app.logger.debug(
+        "Joining dataset query with tissue sample, participant, and family tables"
+    )
     datasets = query.options(
         joinedload(models.Dataset.tissue_sample)
         .joinedload(models.TissueSample.participant)
         .joinedload(models.Participant.family)
     ).all()
 
+    app.logger.debug("Query successful, returning JSON...")
     return jsonify(
         [
             {
@@ -88,12 +97,16 @@ def list_datasets():
 @datasets_blueprint.route("/api/datasets/<int:id>", methods=["GET"])
 @login_required
 def get_dataset(id: int):
+    app.logger.debug("Retrieving user id...")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
+        app.logger.debug("User is admin with ID '%s'", user_id)
     else:
         user_id = current_user.user_id
+        app.logger.debug("User is regular with ID '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Processing query - restricted based on user id")
         dataset = (
             models.Dataset.query.filter_by(dataset_id=id)
             .options(
@@ -114,6 +127,7 @@ def get_dataset(id: int):
             .first_or_404()
         )
     else:
+        app.logger.debug("Processing query - unrestricted based on user id")
         dataset = (
             models.Dataset.query.filter_by(dataset_id=id)
             .options(
@@ -126,7 +140,7 @@ def get_dataset(id: int):
             )
             .first_or_404()
         )
-
+    app.logger.debug("Query successful, returning JSON...")
     return jsonify(
         {
             **asdict(dataset),
@@ -156,15 +170,21 @@ def get_dataset(id: int):
 @datasets_blueprint.route("/api/datasets/<int:id>", methods=["PATCH"])
 @login_required
 def update_dataset(id: int):
+    app.logger.debug("Checking request body...")
     if not request.json:
+        app.logger.error("Request body is not JSON")
         abort(415, description="Request body must be JSON")
 
+    app.logger.debug("Retrieving user id...")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
+        app.logger.debug("User is admin with ID '%s'", user_id)
     else:
         user_id = current_user.user_id
+        app.logger.debug("User is regular with ID '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Processing query - restricted based on user id")
         dataset = (
             models.Dataset.query.filter_by(dataset_id=id)
             .join(models.groups_datasets_table)
@@ -177,14 +197,17 @@ def update_dataset(id: int):
             .first_or_404()
         )
     else:
+        app.logger.debug("Processing query - unrestricted based on user id")
         dataset = models.Dataset.query.filter_by(dataset_id=id).first_or_404()
 
     enum_error = mixin(dataset, request.json, editable_columns)
 
     if enum_error:
+        app.logger.error("%s", enum_error)
         abort(400, description=enum_error)
 
     if "linked_files" in request.json:
+        app.logger.debug("Adding linked files %s...", request.json["linked_files"])
         for existing in dataset.files:
             if existing.path not in request.json["linked_files"]:
                 db.session.delete(existing)
@@ -192,11 +215,14 @@ def update_dataset(id: int):
             if path not in dataset.linked_files:
                 dataset.files.append(models.DatasetFile(path=path))
 
+    app.logger.debug("Dataset update is peformed by user: '%s'", user_id)
     if user_id:
         dataset.updated_by_id = user_id
 
+    app.logger.debug("Updating dataset id '%s'", id)
     transaction_or_abort(db.session.commit)
 
+    app.logger.debug("Update successful, returning JSON...")
     return jsonify(
         {
             **asdict(dataset),
@@ -210,6 +236,7 @@ def update_dataset(id: int):
 @login_required
 @check_admin
 def delete_dataset(id: int):
+    app.logger.debug("DELETE request for dataset id '%s'", id)
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
         .options(joinedload(models.Dataset.analyses))
@@ -219,52 +246,72 @@ def delete_dataset(id: int):
         try:
             db.session.delete(dataset)
             db.session.commit()
+            app.logger.debug("DELETE request for dataset id '%s' succeeded", id)
             return "Updated", 204
         except:
             db.session.rollback()
+            app.logger.error("DELETE request for dataset id '%s' failed", id)
             abort(500, description="Server error")
     else:
+        app.logger.error("Dataset id '%s' has analyses and cannot be deleted", id)
         abort(422, description="Dataset has analyses, cannot delete")
 
 
 @datasets_blueprint.route("/api/datasets", methods=["POST"])
 @login_required
 def create_dataset():
+    app.logger.debug("Checking request body...")
     if not request.json:
+        app.logger.error("Request body is not JSON")
         abort(415, description="Request body must be JSON")
+    app.logger.debug("Request body is JSON")
 
     dataset_type = request.json.get("dataset_type")
     if not dataset_type:
+        app.logger.error("A dataset type must be provided")
         abort(400, description="A dataset type must be provided")
 
     tissue_sample_id = request.json.get("tissue_sample_id")
     if not tissue_sample_id:
+        app.logger.error("A tissue sample id must be provided")
         abort(400, description="A tissue sample id must be provided")
 
     sequencing_date = request.json.get("sequencing_date")
     if not sequencing_date:
+        app.logger.error("A sequencing date must be provided")
         abort(400, description="A sequencing date must be provided")
 
+    condition = request.json.get("condition")
+    if not sequencing_date:
+        app.logger.error("Condition must be provided")
+        abort(400, description="Condition must be provided")
+
+    app.logger.debug("Checking that tissue sample exists")
     models.TissueSample.query.filter_by(
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
+    app.logger.debug("Validating enums")
     enum_error = enum_validate(models.Dataset, request.json, editable_columns)
 
     if enum_error:
+        app.logger.error("%s", enum_error)
         abort(400, description=enum_error)
 
     try:
         created_by_id = updated_by_id = current_user.user_id
+        app.logger.debug("Dataset posting is peformed by user: '%s'", user_id)
     except:  # LOGIN DISABLED
         created_by_id = updated_by_id = 1
+        app.logger.debug("Dataset posting is peformed by user: admin")
 
+    app.logger.debug("Creating an instance of the dataset model")
     dataset = models.Dataset(
         **{
             "tissue_sample_id": tissue_sample_id,
             "dataset_type": dataset_type,
             "notes": request.json.get("notes"),
-            "condition": request.json.get("condition"),
+            "condition": condition,
             "extraction_protocol": request.json.get("extraction_protocol"),
             "capture_kit": request.json.get("capture_kit"),
             "library_prep_method": request.json.get("library_prep_method"),
@@ -282,13 +329,19 @@ def create_dataset():
     )
     # TODO: add stricter checks?
     if request.json.get("linked_files"):
+        app.logger.debug("Adding linked files")
         for path in request.json["linked_files"]:
             dataset.files.append(models.DatasetFile(path=path))
+
+    app.logger.debug("Adding the dataset instance to the database")
     db.session.add(dataset)
     transaction_or_abort(db.session.commit)
     ds_id = dataset.dataset_id
     location_header = "/api/datasets/{}".format(ds_id)
 
+    app.logger.debug(
+        "Dataset %s successfully added to the database. Returning JSON..", ds_id
+    )
     return (
         jsonify(
             {
