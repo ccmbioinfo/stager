@@ -288,7 +288,7 @@ def bulk_update():
         )
         app.logger.debug("User is part of '%s'", [x.group_name for x in groups])
         if len(groups) != 1:
-            app.logger.debug(
+            app.logger.error(
                 "User belongs to multiple permission groups but no group was specified. User needs to specifiy group(s) they would like to add data in."
             )
             abort(
