@@ -133,7 +133,7 @@ def get_metadataset_types():
     d = {e.metadataset_type: [] for e in metadataset_dataset_types}
     app.logger.debug("Appending dataset types to each unique metadataset type")
     for k in metadataset_dataset_types:
-        app.logger.debug("Appending %s to %s", k.dataset_type, k.metadataset_type)
+        app.logger.debug("Appending '%s' to '%s'", k.dataset_type, k.metadataset_type)
         d[k.metadataset_type].append(k.dataset_type)
     app.logger.info("Returning JSON..")
     return jsonify(d)
@@ -146,10 +146,10 @@ def get_enums():
     app.logger.info("Retrieving all enums..")
     for name, obj in inspect.getmembers(models, inspect.isclass):
         if issubclass(obj, Enum) and name != "Enum":
-            app.logger.debug("%s is an enum", name)
+            app.logger.debug("'%s' is an enum", name)
             enums[name] = [e.value for e in getattr(models, name)]
         else:
-            app.logger.debug("%s is NOT an enum", name)
+            app.logger.debug("'%s' is NOT an enum", name)
         # cheat to also return the DatasetType and MetaDatasetType
         if name == "DatasetType":
             enums[name] = [
@@ -265,7 +265,7 @@ def bulk_update():
 
     if requested_groups:
         requested_groups = requested_groups.split(",")
-        app.logger.debug("User's groups are %s", requested_groups)
+        app.logger.debug("User's groups are '%s'", requested_groups)
         groups = (
             models.Group.query.join(models.Group.users)
             .filter(
@@ -339,7 +339,7 @@ def bulk_update():
             family_id = family.family_id
         else:
             app.logger.debug(
-                "\tFamily ID %s already exists and won't be created.", family_id
+                "\tFamily ID '%s' already exists and won't be created.", family_id
             )
 
         # Fail if we have any invalid values
