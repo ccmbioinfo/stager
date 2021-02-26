@@ -64,7 +64,7 @@ def list_participants() -> Response:
 
     app.logger.debug("Parsing order query parameters")
     order_by = request.args.get("order_by", type=str)
-    app.logger.debug("Validating order_by: %s", order_by)
+    app.logger.debug("Validating order_by: '%s'", order_by)
     allowed_columns = [
         "family_codename",
         "participant_codename",
@@ -83,12 +83,12 @@ def list_participants() -> Response:
         # order_by has been restricted to a known list, so we can safely use getattr
         order = getattr(models.Participant, order_by)
     else:
-        app.logger.error("order_by must be one of %s", allowed_columns)
+        app.logger.error("order_by must be one of '%s'", allowed_columns)
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
     if order:
         order_dir = request.args.get("order_dir", type=str)
-        app.logger.debug("Validating order_dir: %s", order_dir)
+        app.logger.debug("Validating order_dir: '%s'", order_dir)
         if order_dir == "desc":
             order = order.desc()
         elif order_dir == "asc":
@@ -100,21 +100,21 @@ def list_participants() -> Response:
     app.logger.debug("Parsing filter query parameters")
     filters = []
     family_codename = request.args.get("family_codename", type=str)
-    app.logger.debug("Parsing family_codename: %s", family_codename)
+    app.logger.debug("Parsing family_codename: '%s'", family_codename)
     if family_codename:
         filters.append(func.instr(models.Family.family_codename, family_codename))
     participant_codename = request.args.get("participant_codename", type=str)
-    app.logger.debug("Parsing participant_codename: %s", participant_codename)
+    app.logger.debug("Parsing participant_codename: '%s'", participant_codename)
     if participant_codename:
         filters.append(
             func.instr(models.Participant.participant_codename, participant_codename)
         )
     notes = request.args.get("notes", type=str)
-    app.logger.debug("Parsing notes: %s", notes)
+    app.logger.debug("Parsing notes: '%s'", notes)
     if notes:
         filters.append(func.instr(models.Participant.notes, notes))
     participant_type = request.args.get("participant_type", type=str)
-    app.logger.debug("Parsing participant_type: %s", participant_type)
+    app.logger.debug("Parsing participant_type: '%s'", participant_type)
     if participant_type:
         filters.append(
             filter_in_enum_or_abort(
@@ -124,17 +124,17 @@ def list_participants() -> Response:
             )
         )
     sex = request.args.get("sex", type=str)
-    app.logger.debug("Parsing sex: %s", sex)
+    app.logger.debug("Parsing sex: '%s'", sex)
     if sex:
         filters.append(filter_in_enum_or_abort(models.Participant.sex, models.Sex, sex))
     affected = request.args.get("affected", type=str)
-    app.logger.debug("Parsing affected: %s", affected)
+    app.logger.debug("Parsing affected: '%s'", affected)
     if affected:
         filters.append(
             filter_nullable_bool_or_abort(models.Participant.affected, affected)
         )
     solved = request.args.get("solved", type=str)
-    app.logger.debug("Parsing solved: %s", solved)
+    app.logger.debug("Parsing solved: '%s'", solved)
     if solved:
         filters.append(filter_nullable_bool_or_abort(models.Participant.solved, solved))
 
@@ -147,7 +147,7 @@ def list_participants() -> Response:
         app.logger.debug("User is regular with ID '%s'", user_id)
 
     if user_id:  # Regular user or assumed identity, return only permitted participants
-        app.logger.debug("Processing query - restricted based on user id %s.", user_id)
+        app.logger.debug("Processing query - restricted based on user id '%s'.", user_id)
         query = (
             models.Participant.query.options(
                 joinedload(models.Participant.institution),
@@ -340,7 +340,7 @@ def create_participant():
 
     # check if the participant exists under a given family
     app.logger.debug(
-        "Checking if participant %s already exists under family",
+        "Checking if participant '%s' already exists under family",
         request.json.get("participant_codename"),
     )
     ptp_query = models.Participant.query.filter(
@@ -351,13 +351,13 @@ def create_participant():
 
     if ptp_query.first() is not None:
         app.logger.error(
-            "Participant codename %s already exists under family",
+            "Participant codename '%s' already exists under family",
             request.json.get("participant_codename"),
         )
         abort(422, description="Participant codename already exists under family")
 
     # check if family exists
-    app.logger.debug("Checking if family %s exists", request.json.get("family_id"))
+    app.logger.debug("Checking if family '%s' exists", request.json.get("family_id"))
     models.Family.query.filter(
         models.Family.family_id == request.json.get("family_id")
     ).first_or_404()
@@ -370,7 +370,7 @@ def create_participant():
         abort(400, description=enum_error)
 
     # get institution id
-    app.logger.debug("Check if institution %s exists", request.json.get("institution"))
+    app.logger.debug("Check if institution '%s' exists", request.json.get("institution"))
     institution = request.json.get("institution")
     if institution:
         institution_obj = models.Institution.query.filter(
