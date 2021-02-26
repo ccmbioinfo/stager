@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useHistory, useParams } from "react-router";
 import { makeStyles } from "@material-ui/core/styles";
 import { Chip, IconButton, TextField, Container } from "@material-ui/core";
@@ -13,9 +13,11 @@ import {
 } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
-import { jsonToAnalyses, isRowSelected, exportCSV } from "../functions";
+import { UseMutationResult } from "react-query";
+import { isRowSelected, exportCSV, jsonToAnalyses } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
 import { AnalysisInfoDialog, Note, DateTimeText } from "../components";
+import { AnalysisOptions, useAnalysesQuery, useAnalysisUpdateMutation } from "../hooks";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
@@ -97,57 +99,58 @@ function runFilter(row: Analysis) {
 }
 
 /**
- * Sends a PATCH request to /api/analyses/:id to update the state of all selected rows.
+ * Updates the state of all selected rows.
  * Returns a new list of Analyses, as well as the number of rows that changed, were skipped, or failed to change.
+ * TODO: Revisit after overfetch #283
  *
- * @param oldRows
+ * @param selectedRows
  * @param filter A function which returns true for a row that is allowed to be changed to newState, false otherwise.
+ * @param mutation The mutation object to use to update the analyses.
  * @param newState The new state to apply to rows which pass the filter.
  */
-async function changeStateForSelectedRows(
-    oldRows: Analysis[],
+async function _changeStateForSelectedRows(
+    selectedRows: Analysis[],
     filter: (row: Analysis) => boolean,
+    mutation: UseMutationResult<Analysis, Response, AnalysisOptions>,
     newState: PipelineStatus
 ) {
-    const newRows = [...oldRows];
     let changed = 0;
     let skipped = 0;
     let failed = 0;
-    for (let i = 0; i < newRows.length; i++) {
-        let row = newRows[i];
-        if (isRowSelected(row) && filter(row)) {
-            const newRow: Analysis = { ...newRows[i] };
-            newRow.analysis_state = newState;
-
-            const response = await fetch("/api/analyses/" + row.analysis_id, {
-                method: "PATCH",
-                body: JSON.stringify({ analysis_state: newRow.analysis_state }),
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-            if (response.ok) {
-                newRows[i] = newRow;
+    for (let i = 0; i < selectedRows.length; i++) {
+        let row = selectedRows[i];
+        if (filter(row)) {
+            try {
+                await mutation.mutateAsync({
+                    analysis_id: row.analysis_id,
+                    analysis_state: newState,
+                    source: "selection",
+                });
                 changed++;
-            } else {
+            } catch (res) {
                 failed++;
-                console.error(response);
+                console.error(res);
             }
         } else if (isRowSelected(row)) {
-            // skipped
             skipped++;
         }
     }
-    return { newRows, changed, skipped, failed };
+    return { changed, skipped, failed };
 }
 
 export default function Analyses() {
     const classes = useStyles();
-    const [rows, setRows] = useState<Analysis[]>([]);
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
+
+    const analysesQuery = useAnalysesQuery();
+    const analyses = useMemo(
+        () => (analysesQuery.isSuccess ? jsonToAnalyses(analysesQuery.data) : []),
+        [analysesQuery]
+    );
+    const analysisUpdateMutation = useAnalysisUpdateMutation();
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
@@ -158,16 +161,12 @@ export default function Analyses() {
     const { enqueueSnackbar } = useSnackbar();
     const { id: paramID } = useParams<{ id: string }>();
 
+    function changeAnalysisState(filter: (row: Analysis) => boolean, newState: PipelineStatus) {
+        return _changeStateForSelectedRows(activeRows, filter, analysisUpdateMutation, newState);
+    }
+
     useEffect(() => {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
-
-        // Fetch data here
-        fetch("/api/analyses", { method: "GET" })
-            .then(response => response.json())
-            .then(data => {
-                const rows = jsonToAnalyses(data);
-                setRows(rows);
-            });
     }, []);
 
     return (
@@ -182,34 +181,33 @@ export default function Analyses() {
                         setCancel(false);
                     }}
                     onAccept={() => {
-                        changeStateForSelectedRows(
-                            rows,
-                            cancelFilter,
-                            PipelineStatus.CANCELLED
-                        ).then(({ newRows, changed, skipped, failed }) => {
-                            setRows(newRows);
-                            setCancel(false);
-                            if (changed > 0)
-                                enqueueSnackbar(
-                                    `${changed} ${
-                                        changed !== 1 ? "analyses" : "analysis"
-                                    } cancelled successfully`,
-                                    { variant: "success" }
-                                );
-                            if (skipped > 0)
-                                enqueueSnackbar(
-                                    `${skipped} ${
-                                        skipped !== 1 ? "analyses were" : "analysis was"
-                                    } not running, and ${skipped !== 1 ? "were" : "was"} skipped`
-                                );
-                            if (failed > 0)
-                                enqueueSnackbar(
-                                    `Failed to cancel ${failed} ${
-                                        failed !== 1 ? "analyses" : "analysis"
-                                    }`,
-                                    { variant: "error" }
-                                );
-                        });
+                        changeAnalysisState(cancelFilter, PipelineStatus.CANCELLED).then(
+                            ({ changed, skipped, failed }) => {
+                                setCancel(false);
+                                if (changed > 0)
+                                    enqueueSnackbar(
+                                        `${changed} ${
+                                            changed !== 1 ? "analyses" : "analysis"
+                                        } cancelled successfully`,
+                                        { variant: "success" }
+                                    );
+                                if (skipped > 0)
+                                    enqueueSnackbar(
+                                        `${skipped} ${
+                                            skipped !== 1 ? "analyses were" : "analysis was"
+                                        } not running, and ${
+                                            skipped !== 1 ? "were" : "was"
+                                        } skipped`
+                                    );
+                                if (failed > 0)
+                                    enqueueSnackbar(
+                                        `Failed to cancel ${failed} ${
+                                            failed !== 1 ? "analyses" : "analysis"
+                                        }`,
+                                        { variant: "error" }
+                                    );
+                            }
+                        );
                     }}
                     cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
@@ -246,39 +244,20 @@ export default function Analyses() {
                         setAssignment(false);
                     }}
                     onSubmit={async username => {
-                        let editedRows = new Map<number, Analysis>();
                         let count = 0;
                         let failed = 0;
                         for (const row of activeRows) {
-                            const response = await fetch("/api/analyses/" + row.analysis_id, {
-                                method: "PATCH",
-                                body: JSON.stringify({ assignee: username }),
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                            });
-                            if (response.ok) {
-                                const newRow = await response.json();
-                                const index = rows.findIndex(
-                                    row => row.analysis_id === newRow.analysis_id
-                                );
-                                editedRows.set(index, newRow);
+                            try {
+                                await analysisUpdateMutation.mutateAsync({
+                                    analysis_id: row.analysis_id,
+                                    assignee: username,
+                                });
                                 count++;
-                            } else {
+                            } catch (res) {
                                 failed++;
-                                console.error(response);
+                                console.error(res);
                             }
                         }
-                        setRows(
-                            rows.map((row, index) => {
-                                const newRow = editedRows.get(index);
-                                if (newRow !== undefined) {
-                                    return { ...row, ...newRow };
-                                } else {
-                                    return row;
-                                }
-                            })
-                        );
                         setAssignment(false);
                         if (count > 0) {
                             enqueueSnackbar(
@@ -366,7 +345,8 @@ export default function Analyses() {
                             ),
                         },
                     ]}
-                    data={rows}
+                    isLoading={analysisUpdateMutation.isLoading}
+                    data={analyses || []}
                     title="Analyses"
                     options={{
                         pageSize: 10,
@@ -411,35 +391,32 @@ export default function Analyses() {
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                changeStateForSelectedRows(
-                                    rows,
-                                    runFilter,
-                                    PipelineStatus.RUNNING
-                                ).then(({ newRows, changed, skipped, failed }) => {
-                                    setRows(newRows);
-                                    if (changed > 0)
-                                        enqueueSnackbar(
-                                            `${changed} ${
-                                                changed !== 1 ? "analyses" : "analysis"
-                                            } started successfully`,
-                                            { variant: "success" }
-                                        );
-                                    if (skipped > 0)
-                                        enqueueSnackbar(
-                                            `${skipped} ${
-                                                skipped !== 1 ? "analyses were" : "analysis was"
-                                            } already queued or cancelled, and ${
-                                                skipped !== 1 ? "were" : "was"
-                                            } skipped`
-                                        );
-                                    if (failed > 0)
-                                        enqueueSnackbar(
-                                            `Failed to start ${failed} ${
-                                                failed !== 1 ? "analyses" : "analysis"
-                                            }`,
-                                            { variant: "error" }
-                                        );
-                                });
+                                changeAnalysisState(runFilter, PipelineStatus.RUNNING).then(
+                                    ({ changed, skipped, failed }) => {
+                                        if (changed > 0)
+                                            enqueueSnackbar(
+                                                `${changed} ${
+                                                    changed !== 1 ? "analyses" : "analysis"
+                                                } started successfully`,
+                                                { variant: "success" }
+                                            );
+                                        if (skipped > 0)
+                                            enqueueSnackbar(
+                                                `${skipped} ${
+                                                    skipped !== 1 ? "analyses were" : "analysis was"
+                                                } already queued or cancelled, and ${
+                                                    skipped !== 1 ? "were" : "was"
+                                                } skipped`
+                                            );
+                                        if (failed > 0)
+                                            enqueueSnackbar(
+                                                `Failed to start ${failed} ${
+                                                    failed !== 1 ? "analyses" : "analysis"
+                                                }`,
+                                                { variant: "error" }
+                                            );
+                                    }
+                                );
                             },
                         },
                         {
@@ -448,35 +425,34 @@ export default function Analyses() {
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                changeStateForSelectedRows(
-                                    rows,
-                                    completeFilter,
-                                    PipelineStatus.COMPLETED
-                                ).then(({ newRows, changed, skipped, failed }) => {
-                                    setRows(newRows);
-                                    if (changed > 0)
-                                        enqueueSnackbar(
-                                            `${changed} ${
-                                                changed !== 1 ? "analyses" : "analysis"
-                                            } completed successfully`,
-                                            { variant: "success" }
-                                        );
-                                    if (skipped > 0)
-                                        enqueueSnackbar(
-                                            `${skipped} ${
-                                                skipped !== 1 ? "analyses" : "analysis"
-                                            } ${skipped !== 1 ? "were" : "was"} not running, and ${
-                                                skipped !== 1 ? "were" : "was"
-                                            } skipped`
-                                        );
-                                    if (failed > 0)
-                                        enqueueSnackbar(
-                                            `Failed to complete ${failed} ${
-                                                failed !== 1 ? "analyses" : "analysis"
-                                            }`,
-                                            { variant: "error" }
-                                        );
-                                });
+                                changeAnalysisState(completeFilter, PipelineStatus.COMPLETED).then(
+                                    ({ changed, skipped, failed }) => {
+                                        if (changed > 0)
+                                            enqueueSnackbar(
+                                                `${changed} ${
+                                                    changed !== 1 ? "analyses" : "analysis"
+                                                } completed successfully`,
+                                                { variant: "success" }
+                                            );
+                                        if (skipped > 0)
+                                            enqueueSnackbar(
+                                                `${skipped} ${
+                                                    skipped !== 1 ? "analyses" : "analysis"
+                                                } ${
+                                                    skipped !== 1 ? "were" : "was"
+                                                } not running, and ${
+                                                    skipped !== 1 ? "were" : "was"
+                                                } skipped`
+                                            );
+                                        if (failed > 0)
+                                            enqueueSnackbar(
+                                                `Failed to complete ${failed} ${
+                                                    failed !== 1 ? "analyses" : "analysis"
+                                                }`,
+                                                { variant: "error" }
+                                            );
+                                    }
+                                );
                             },
                         },
                         {
@@ -485,37 +461,34 @@ export default function Analyses() {
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                changeStateForSelectedRows(
-                                    rows,
-                                    errorFilter,
-                                    PipelineStatus.ERROR
-                                ).then(({ newRows, changed, skipped, failed }) => {
-                                    setRows(newRows);
-                                    if (changed > 0)
-                                        enqueueSnackbar(
-                                            `${changed} ${
-                                                changed !== 1 ? "analyses" : "analysis"
-                                            } errored successfully`,
-                                            { variant: "success" }
-                                        );
-                                    if (skipped > 0)
-                                        enqueueSnackbar(
-                                            `${skipped} ${
-                                                skipped !== 1 ? "analyses" : "analysis"
-                                            } ${
-                                                skipped !== 1 ? "were" : "was"
-                                            } not running or queued, and ${
-                                                skipped !== 1 ? "were" : "was"
-                                            } skipped`
-                                        );
-                                    if (failed > 0)
-                                        enqueueSnackbar(
-                                            `Failed to error ${failed} ${
-                                                failed !== 1 ? "analyses" : "analysis"
-                                            }`,
-                                            { variant: "error" }
-                                        );
-                                });
+                                changeAnalysisState(errorFilter, PipelineStatus.ERROR).then(
+                                    ({ changed, skipped, failed }) => {
+                                        if (changed > 0)
+                                            enqueueSnackbar(
+                                                `${changed} ${
+                                                    changed !== 1 ? "analyses" : "analysis"
+                                                } errored successfully`,
+                                                { variant: "success" }
+                                            );
+                                        if (skipped > 0)
+                                            enqueueSnackbar(
+                                                `${skipped} ${
+                                                    skipped !== 1 ? "analyses" : "analysis"
+                                                } ${
+                                                    skipped !== 1 ? "were" : "was"
+                                                } not running or queued, and ${
+                                                    skipped !== 1 ? "were" : "was"
+                                                } skipped`
+                                            );
+                                        if (failed > 0)
+                                            enqueueSnackbar(
+                                                `Failed to error ${failed} ${
+                                                    failed !== 1 ? "analyses" : "analysis"
+                                                }`,
+                                                { variant: "error" }
+                                            );
+                                    }
+                                );
                             },
                         },
                         {
@@ -530,36 +503,24 @@ export default function Analyses() {
                     ]}
                     editable={{
                         onRowUpdate: async (newData, oldData) => {
-                            const response = await fetch("/api/analyses/" + newData.analysis_id, {
-                                method: "PATCH",
-                                body: JSON.stringify({
-                                    notes: newData.notes,
-                                    result_path: newData.result_path,
-                                }),
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                            });
-                            if (response.ok) {
-                                const newRow = await response.json();
-                                setRows(
-                                    rows.map(row =>
-                                        row.analysis_id === newRow.analysis_id
-                                            ? { ...row, ...newRow }
-                                            : row
-                                    )
-                                );
-                                enqueueSnackbar(
-                                    `Analysis ID ${oldData?.analysis_id} edited successfully`,
-                                    { variant: "success" }
-                                );
-                            } else {
-                                enqueueSnackbar(
-                                    `Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`,
-                                    { variant: "error" }
-                                );
-                                console.error(response);
-                            }
+                            analysisUpdateMutation.mutate(
+                                { ...newData, source: "row-edit" },
+                                {
+                                    onSuccess: newRow => {
+                                        enqueueSnackbar(
+                                            `Analysis ID ${oldData?.analysis_id} edited successfully`,
+                                            { variant: "success" }
+                                        );
+                                    },
+                                    onError: response => {
+                                        enqueueSnackbar(
+                                            `Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`,
+                                            { variant: "error" }
+                                        );
+                                        console.error(response);
+                                    },
+                                }
+                            );
                         },
                     }}
                     components={{
