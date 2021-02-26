@@ -35,6 +35,8 @@ services:
     build:
       context: flask
       dockerfile: ../Dockerfile
+      args:
+        GIT_SHA: "${GIT_SHA}"
     image: "ghcr.io/ccmbioinfo/stager:${STAGER_VERSION:-latest}"
     user: "${FLASK_UIDGID:-www-data}"
     environment:
