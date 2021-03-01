@@ -11,8 +11,8 @@ Docker, first ensure that it is running and then access its shell:
 ```bash
 mysql -uroot
 create user 'admin'@'localhost' identified by 'admin';
-create database st2020;
-grant all privileges on st2020.* to 'admin'@'localhost';
+create database stager;
+grant all privileges on stager.* to 'admin'@'localhost';
 ```
 
 Change the database and username appropriately and then update your `ST_DATABASE_URI` environment

@@ -1,12 +1,9 @@
 from dataclasses import asdict
 
+from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload
-
-from flask import Blueprint, Response, abort
-from flask import current_app as app
-from flask import jsonify, request
 
 from . import models
 from .extensions import db
@@ -16,6 +13,7 @@ from .utils import (
     filter_in_enum_or_abort,
     filter_nullable_bool_or_abort,
     mixin,
+    paged,
     transaction_or_abort,
 )
 
@@ -38,24 +36,8 @@ participants_blueprint = Blueprint(
 
 @participants_blueprint.route("/api/participants", methods=["GET"])
 @login_required
-def list_participants() -> Response:
-    # General paged query parameters
-    # for some reason type=int doesn't catch non-integer queries, only returning None
-    try:
-        page = int(request.args.get("page", default=0))
-        if page < 0:  # zero-indexed pages
-            raise ValueError
-    except:
-        abort(400, description="page must be a non-negative integer")
-    try:
-        limit = request.args.get("limit")
-        if limit is not None:  # unspecified limit means return everything
-            limit = int(limit)
-            if limit <= 0:  # MySQL accepts 0 but that's just a waste of time
-                raise ValueError
-    except:
-        abort(400, description="limit must be a positive integer")
-
+@paged
+def list_participants(page: int, limit: int) -> Response:
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
         "family_codename",

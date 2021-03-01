@@ -1,18 +1,15 @@
-from functools import wraps
+from datetime import date, datetime, time
 from enum import Enum
+from functools import wraps
 from typing import Any, Callable, Dict, List, Union
-from datetime import date, time, datetime
-from json import loads
 
-from flask import abort, jsonify
+from flask import abort, current_app as app, jsonify, request
 from flask.json import JSONEncoder
 from flask_login import current_user
 from sqlalchemy import exc
-
-
-from flask import current_app as app
-from .extensions import db
 from werkzeug.exceptions import HTTPException
+
+from .extensions import db
 
 
 def handle_error(e):
@@ -43,6 +40,31 @@ def check_admin(handler):
             if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
                 return handler(*args, **kwargs)
         return "Unauthorized", 401
+
+    return decorated_handler
+
+
+# Support general paged query parameters
+def paged(handler):
+    @wraps(handler)
+    def decorated_handler(*args, **kwargs):
+        with app.app_context():
+            # for some reason type=int doesn't catch non-integer queries, only returning None
+            try:
+                page = int(request.args.get("page", default=0))
+                if page < 0:  # zero-indexed pages
+                    raise ValueError
+            except:
+                abort(400, description="page must be a non-negative integer")
+            try:
+                limit = request.args.get("limit")
+                if limit is not None:  # unspecified limit means return everything
+                    limit = int(limit)
+                    if limit <= 0:  # MySQL accepts 0 but that's just a waste of time
+                        raise ValueError
+            except:
+                abort(400, description="limit must be a positive integer")
+            return handler(*args, **kwargs, page=page, limit=limit)
 
     return decorated_handler
 
@@ -91,6 +113,23 @@ def filter_nullable_bool_or_abort(column: db.Column, value: str):
         return column == False
     else:
         abort(400, description=f"{column.name} must be true, false, or null")
+
+
+def filter_updated_or_abort(column: db.Column, value: str):
+    description = "updated must be of the form before/after,iso-datetime"
+    updated = value.split(",")
+    if len(updated) != 2:
+        abort(400, description=description)
+    try:
+        updated[1] = datetime.fromisoformat(updated[1])
+    except ValueError as err:  # bad datetime format
+        abort(400, description=err)
+    if updated[0] == "before":
+        return column <= updated[1]
+    elif updated[0] == "after":
+        return column >= updated[1]
+    else:
+        abort(400, description=description)
 
 
 class DateTimeEncoder(JSONEncoder):

@@ -105,6 +105,28 @@ export interface Analysis {
     updated_by: number;
     pipeline: Pipeline;
 }
+
+export interface AnalysisDetails {
+    datasets: Dataset[];
+}
+
+export type AnalysisDetailed = Analysis & AnalysisDetails;
+
+// Fields that can be changed
+export type AnalysisChange = Pick<Analysis, "analysis_id"> &
+    Partial<
+        Pick<
+            Analysis,
+            | "analysis_state"
+            | "pipeline_id"
+            | "qsubID"
+            | "result_path"
+            | "assignee"
+            | "requested"
+            | "notes"
+        >
+    >;
+
 export interface Pipeline {
     pipeline_id: number;
     pipeline_name: string;
