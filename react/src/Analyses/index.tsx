@@ -16,7 +16,7 @@ import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
 import { isRowSelected, exportCSV, jsonToAnalyses } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
-import { AnalysisInfoDialog, Note, DateTimeText } from "../components";
+import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
 import { AnalysisOptions, useAnalysesQuery, useAnalysisUpdateMutation } from "../hooks";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
@@ -316,6 +316,7 @@ export default function Analyses() {
                             type: "string",
                             editable: "never",
                             render: rowData => <DateTimeText datetime={rowData.updated} />,
+                            filterComponent: props => <DateFilterComponent {...props} />,
                         },
                         {
                             title: "Path Prefix",

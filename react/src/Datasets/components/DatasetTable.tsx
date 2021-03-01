@@ -8,7 +8,7 @@ import { toKeyValue, exportCSV, rowDiff } from "../../functions";
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import { DateTimeText, Note, FileLinkingComponent } from "../../components";
+import { DateTimeText, DateFilterComponent, Note, FileLinkingComponent } from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
     useDatasetUpdateMutation,
@@ -138,6 +138,7 @@ export default function DatasetTable() {
                         type: "string",
                         editable: "never",
                         render: rowData => <DateTimeText datetime={rowData.updated} />,
+                        filterComponent: props => <DateFilterComponent {...props} />,
                     },
                     { title: "Updated By", field: "updated_by", editable: "never" },
                     {

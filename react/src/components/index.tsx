@@ -12,6 +12,7 @@ export { default as ChipGroup } from "./ChipGroup";
 export { default as ChipSelect } from "./ChipSelect";
 export { default as ChipTransferList } from "./ChipTransferList";
 export { default as ConfirmModal } from "./ConfirmModal";
+export { default as DateFilterComponent } from "./DateFilterComponent";
 export { default as DateTimeText } from "./DateTimeText";
 export { default as DetailSection } from "./DetailSection";
 export { default as DialogHeader } from "./DialogHeader";
