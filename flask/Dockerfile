@@ -10,6 +10,7 @@ WORKDIR /usr/src/stager
 COPY requirements-dev.txt .
 RUN pip3 install -r requirements-dev.txt
 COPY --from=mc /usr/bin/mc /usr/bin/mc
+ENV FLASK_ENV development
 # Prevent accidentally running this image in production.
 # Must mount the source code in the working directory to run this image.
 EXPOSE 5000

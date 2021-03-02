@@ -11,6 +11,7 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 COPY --from=mc /usr/bin/mc /usr/bin/mc
 COPY . .
+ENV FLASK_ENV production
 EXPOSE 5000
 # Prevent accidentally using this image for development by adding the prod server arguments in the entrypoint
 ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./utils/run.sh", "prod", "--bind", "0.0.0.0:5000"]
