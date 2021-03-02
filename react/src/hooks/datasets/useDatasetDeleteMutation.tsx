@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Dataset } from "../../typings";
-import { changeFetch, deleteFromCachedList } from "../utils";
+import { changeFetch } from "../utils";
 
 async function deleteDataset(id: string) {
     return changeFetch("/api/datasets/" + id, "DELETE", null, {
@@ -17,9 +16,8 @@ export function useDatasetDeleteMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Response, Response, string>(deleteDataset, {
         onSuccess: (res, id) => {
+            queryClient.invalidateQueries("datasets");
             queryClient.removeQueries(["datasets", id]);
-            // TODO: Replace below with invalidate queries after #283
-            deleteFromCachedList<Dataset>("datasets", queryClient, id, "dataset_id");
         },
     });
     return mutation;

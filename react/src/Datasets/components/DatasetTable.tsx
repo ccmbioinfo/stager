@@ -12,10 +12,10 @@ import { DateTimeText, DateFilterComponent, Note, FileLinkingComponent } from ".
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
     useDatasetUpdateMutation,
-    useDatasetsQuery,
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useUnlinkedFilesQuery,
+    useDatasetsPage,
 } from "../../hooks";
 import { useUserContext } from "../../contexts";
 import { useQueryClient } from "react-query";
@@ -40,7 +40,7 @@ export default function DatasetTable() {
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
-    const { data: datasets } = useDatasetsQuery();
+    const dataFetch = useDatasetsPage();
     const datasetUpdateMutation = useDatasetUpdateMutation();
     const { data: enums } = useEnumsQuery();
     const { data: metadatasetTypes } = useMetadatasetTypesQuery();
@@ -148,7 +148,7 @@ export default function DatasetTable() {
                         defaultFilter: paramID,
                     },
                 ]}
-                data={datasets || []}
+                data={dataFetch}
                 title="Datasets"
                 options={{
                     pageSize: 10,
