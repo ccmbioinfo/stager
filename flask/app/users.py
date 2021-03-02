@@ -20,7 +20,9 @@ users_blueprint = Blueprint(
 @login_required
 @check_admin
 def list_users():
+    app.logger.info("Retrieving all users and groups.")
     users = models.User.query.options(joinedload(models.User.groups)).all()
+    app.logger.info("Success, returning JSON..")
     return jsonify(
         [
             {
@@ -54,19 +56,26 @@ def jsonify_user(user: models.User):
 @users_blueprint.route("/api/users/<string:username>", methods=["GET"])
 @login_required
 def get_user(username: str):
+
+    app.logger.debug(
+        "User is '%s' requesting info on %s", current_user.username, username
+    )
+    app.logger.info("Verifying user is authorized to access requested information.")
     if (
         not app.config.get("LOGIN_DISABLED")
         and not current_user.is_admin
         and username != current_user.username
     ):
+        app.logger.error("User is not authorized")
         abort(401)
 
+    app.logger.debug("Querying database..")
     user = (
         models.User.query.options(joinedload(models.User.groups))
         .filter(models.User.username == username)
         .first_or_404()
     )
-
+    app.logger.debug("Success, returning JSON")
     return jsonify_user(user)
 
 
@@ -111,22 +120,31 @@ def reset_minio_credentials(user: models.User) -> None:
 @users_blueprint.route("/api/users/<string:username>", methods=["POST"])
 @login_required
 def reset_minio_user(username: str):
+    app.logger.debug("Verifying current user '%s' is authorized", current_user.username)
     if (
         not app.config.get("LOGIN_DISABLED")
         and not current_user.is_admin
         and username != current_user.username
     ):
+        app.logger.error("User is unauthorized")
         abort(401)
+
+    app.logger.debug("Checking request body")
     if not request.json:
+        app.logger.error("Request body is not JSON")
         abort(415, description="Request body must be JSON")
+    app.logger.debug("Request body is JSON")
+    app.logger.debug("Verifying username exists in database..")
     user = (
         models.User.query.options(joinedload(models.User.groups))
         .filter(models.User.username == username)
         .first_or_404()
     )
     # TODO: maybe rate limit this API because generating these is expensive
+    app.logger.debug("Reseting minio credentials..")
     reset_minio_credentials(user)
     transaction_or_abort(db.session.commit)
+    app.logger.debug("Success, returning JSON..")
     return jsonify(
         {
             "minio_access_key": user.minio_access_key,
@@ -158,19 +176,38 @@ def verify_email(email: str) -> bool:
 @login_required
 @check_admin
 def create_user():
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
+    app.logger.debug("Checking request body")
+    if not request.json:
+        app.logger.error("Request body is not JSON")
+        abort(415, description="Request body must be JSON")
+    app.logger.debug("Request body is JSON")
+
+    app.logger.debug(
+        "Validating username: '%s', email: '%s', and password: '%s'",
+        request.json.get("username"),
+        request.json.get("email"),
+        request.json.get("password"),
+    )
     if not valid_strings(request.json, "username", "email", "password"):
         abort(400, description="Missing fields")
     if (
         len(request.json["username"]) > models.User.username.type.length
         or len(request.json["email"]) >= models.User.email.type.length
     ):
+        app.logger.error(
+            "Username is longer than %s characters OR e-mail is longer than %s characters",
+            models.User.username.type.length,
+            models.User.email.type.length,
+        )
         abort(400, description="Username or email too long")
     if not verify_email(request.json["email"]):
+        app.logger.error("Email is not valid")
         abort(400, description="Bad email")
 
+    app.logger.debug(
+        "Checking whether supplied username or email is found in the database."
+    )
     user = models.User.query.filter(
         (models.User.username == request.json["username"])
         | (models.User.email == request.json["email"])
@@ -182,25 +219,36 @@ def create_user():
             msg = "Email already in use"
         return abort(422, description=msg), {"location": f"/api/users/{user.username}"}
 
+    app.logger.debug(
+        "User is not found in database through username or email, begin adding user."
+    )
     user = models.User(
         username=request.json["username"],
         email=request.json["email"],
         is_admin=request.json.get("is_admin"),
     )
+    app.logger.debug("Setting password to user..")
     user.set_password(request.json["password"])
 
+    app.logger.debug("Retrieving requested groups.")
     requested_groups = request.json.get("groups")
     if requested_groups:
+        app.logger.debug("Requested groups are '%s'", requested_groups)
         groups = models.Group.query.filter(
             models.Group.group_code.in_(requested_groups)
         ).all()
+
         if len(requested_groups) != len(groups):
+            app.logger.error("The requested groups are invalid.")
             abort(404, description="Invalid group code provided")
         user.groups += groups
-
+    app.logger.debug(
+        "Resetting minio credentials for user and adding user to database.."
+    )
     reset_minio_credentials(user)
     db.session.add(user)
     transaction_or_abort(db.session.commit)
+    app.logger.debug("Success, returning JSON.")
     return jsonify_user(user), 201, {"location": f"/api/users/{user.username}"}
 
 
@@ -208,16 +256,20 @@ def create_user():
 @login_required
 @check_admin
 def delete_user(username: str):
+    app.logger.debug("Checking whether requested username '%s' exists", username)
     user = models.User.query.filter_by(username=username).first_or_404()
     try:
+        app.logger.debug("Deleting user..")
         db.session.delete(user)
         db.session.commit()
     except:
+        app.logger.error("Error in deleting user")
         db.session.rollback()
         # Assume user foreign key required elsewhere and not other error
         abort(422, description="This user can only be deactivated")
 
     safe_remove(user)
+    app.logger.debug("Success")
 
     return "Deleted", 204
 
@@ -225,53 +277,77 @@ def delete_user(username: str):
 @users_blueprint.route("/api/users/<string:username>", methods=["PATCH"])
 @login_required
 def update_user(username: str):
+    app.logger.debug("Checking request body")
     if not request.json:
+        app.logger.error("Request body is not JSON")
         abort(415, description="Request body must be JSON")
+    app.logger.debug("Request body is JSON")
 
+    app.logger.debug("Verifying current user '%s' is admin..", current_user.username)
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        app.logger.debug("User is admin")
         minio_admin = get_minio_admin()
+        app.logger.debug("Retrieving username..")
         user = (
             models.User.query.filter_by(username=username)
             .options(joinedload(models.User.groups))
             .first_or_404()
         )
+        app.logger.debug("Storing username")
         old_username = user.username
 
+        app.logger.debug("Retrieving requested groups.")
         requested_groups = request.json.get("groups")
         if requested_groups is not None:  # TODO: list is assumed here
+            app.logger.debug("Requested groups are '%s'", requested_groups)
             groups = models.Group.query.filter(
                 models.Group.group_code.in_(requested_groups)
             ).all()
             if len(requested_groups) != len(groups):
+                app.logger.error("The requested groups are invalid.")
                 abort(404, description="Invalid group code provided")
             if user.minio_access_key:
                 for group in user.groups:
+                    app.logger.debug("Reset current group memberships")
                     # Reset existing group memberships
                     minio_admin.group_remove(group.group_code, user.minio_access_key)
 
                 for group_code in requested_groups:
+                    app.logger.debug("Adding membership to requested groups")
                     # Add to group
                     minio_admin.group_add(group_code, user.minio_access_key)
                     # Reset policy for group in case the group did not exist
                     minio_admin.set_policy(group_code, group=group_code)
             user.groups = groups
 
+        app.logger.debug(
+            "Validating username: '%s', email: '%s', and password: '%s'",
+            request.json.get("username"),
+            request.json.get("email"),
+            request.json.get("password"),
+        )
         if valid_strings(request.json, "username"):
+            app.logger.debug("Username is valid, assigning..")
             user.username = request.json["username"]
         if valid_strings(request.json, "email") and verify_email(request.json["email"]):
+            app.logger.debug("Email is valid, assigning")
             user.email = request.json["email"]
         if validate(request.json, "is_admin", kind=bool):
+            app.logger.debug("User is admin, assigning..")
             user.is_admin = request.json["is_admin"]
         if validate(request.json, "deactivated", kind=bool):
+            app.logger.debug("User is to be deactivated, deactivating..")
             user.deactivated = request.json["deactivated"]
             if user.deactivated and user.minio_access_key:
                 safe_remove(user, minio_admin)
                 user.minio_access_key = None
                 user.minio_secret_key = None
         if valid_strings(request.json, "password"):
+            app.logger.debug("Password is valid, assigning..")
             user.set_password(request.json["password"])
-
+        app.logger.debug("Committing changes to the database..")
         transaction_or_abort(db.session.commit)
+        app.logger.debug("Success")
         if old_username != user.username:
             return jsonify_user(user), {"location": f"/api/users/{user.username}"}
         else:
@@ -279,17 +355,24 @@ def update_user(username: str):
 
     # Update the current user's password given the existing password
     elif username == current_user.username:
+        app.logger.debug("Updating password for user '%s'", current_user.username)
         if "current" not in request.json or "password" not in request.json:
+            app.logger.error("Current or new password not supplied")
             abort(400, description="Bad request")
         if not current_user.check_password(request.json["current"]):
+            app.logger.error("Invalid current password")
             abort(401, description="Incorrect password")
+        app.logger.debug("Assigning new password..")
         current_user.set_password(request.json["password"])
         try:
             db.session.commit()
+            app.logger.debug("Password successfully updated")
             return "Updated", 204
         except:
+            app.logger.error("Password unable to be updated")
             db.session.rollback()
             abort(500)
 
     else:
+        app.logger.error("Request unable to be processed.")
         abort(403)
