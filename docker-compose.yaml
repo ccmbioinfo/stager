@@ -31,7 +31,7 @@ services:
     image: ghcr.io/ccmbioinfo/stager:dev
     user: "${FLASK_UIDGID:-www-data}"
     environment:
-      FLASK_ENV: development
+      ST_SECRET_KEY: "${ST_SECRET_KEY}"
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
