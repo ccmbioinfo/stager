@@ -35,6 +35,7 @@ def list_analyses(page: int, limit: int) -> Response:
         "result_path",
         "notes",
         "analysis_state",
+        "pipeline_id",
         "assignee",
         "requester",
     ]
@@ -87,6 +88,16 @@ def list_analyses(page: int, limit: int) -> Response:
                 analysis_state,
             )
         )
+    pipeline_id = request.args.get("pipeline_id", type=str)
+    if pipeline_id:
+        try:
+            filters.append(
+                models.Analysis.pipeline_id.in_(
+                    [int(pk) for pk in pipeline_id.split(",")]
+                )
+            )
+        except ValueError as err:
+            abort(400, description=err)
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
