@@ -48,8 +48,8 @@ export default function DatasetTable() {
         () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
         [metadatasetTypes]
     );
-    const tissueSampleTypes = useMemo(() => enums?.TissueSampleType, [enums]);
-    const conditions = useMemo(() => enums?.DatasetCondition, [enums]);
+    const tissueSampleTypes = useMemo(() => enums && toKeyValue(enums.TissueSampleType), [enums]);
+    const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
 
     const filesQuery = useUnlinkedFilesQuery();
     const files = filesQuery.data || [];
