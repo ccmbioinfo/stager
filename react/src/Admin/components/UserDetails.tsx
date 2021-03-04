@@ -15,6 +15,7 @@ import { User, ConfirmPasswordAction } from "../../typings";
 import { NewPasswordForm, ConfirmModal, MinioResetButton, MinioKeyDisplay } from "../../components";
 import GroupSelect from "./GroupSelect";
 import { useGroupsQuery, useUserQuery } from "../../hooks";
+import { useUserContext } from "../../contexts";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -70,6 +71,7 @@ export default function UserDetails(props: {
 }) {
     const classes = useDetailStyles();
     const groupsResult = useGroupsQuery();
+    const { user: currentUser } = useUserContext();
     const groups = groupsResult.data;
     const userResult = useUserQuery(props.user.username);
     const user = userResult.data;
@@ -86,6 +88,8 @@ export default function UserDetails(props: {
     const [confirmSave, setConfirmSave] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
+
+    const disableDelete = currentUser.username === props.user.username;
 
     function onCancelChanges() {
         dispatch({ type: "set", payload: oldState });
@@ -114,7 +118,9 @@ export default function UserDetails(props: {
                 id="confirm-modal-delete"
                 open={confirmDelete}
                 onClose={() => setConfirmDelete(false)}
-                onConfirm={() => props.onDelete(oldState)}
+                onConfirm={() => {
+                    if (!disableDelete) props.onDelete(oldState);
+                }}
                 title="Delete user"
                 colors={{ cancel: "secondary" }}
             >
@@ -197,7 +203,10 @@ export default function UserDetails(props: {
                         variant="contained"
                         startIcon={<Delete />}
                         className={classes.button}
-                        onClick={() => setConfirmDelete(true)}
+                        onClick={() => {
+                            if (!disableDelete) setConfirmDelete(true);
+                        }}
+                        disabled={disableDelete}
                     >
                         Delete
                     </Button>
