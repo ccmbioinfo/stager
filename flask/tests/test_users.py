@@ -291,6 +291,7 @@ def test_delete_user(test_database, minio_policy, client, login_as):
     db.session.commit()
 
     login_as("admin")
+    assert client.delete(f"/api/users/admin").status_code == 422
     assert client.delete(f"/api/users/user").status_code == 204
     with pytest.raises(RuntimeError) as exc:
         deleted = minio_admin.get_user("user")
