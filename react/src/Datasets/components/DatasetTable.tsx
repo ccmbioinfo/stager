@@ -4,6 +4,7 @@ import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
+import { useQueryClient } from "react-query";
 import { toKeyValue, exportCSV, rowDiff } from "../../functions";
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
@@ -18,7 +19,6 @@ import {
     useDatasetsPage,
 } from "../../hooks";
 import { useUserContext } from "../../contexts";
-import { useQueryClient } from "react-query";
 
 const useStyles = makeStyles(theme => ({
     chip: {
