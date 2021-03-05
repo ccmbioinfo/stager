@@ -4,6 +4,7 @@ import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
+import { useQueryClient } from "react-query";
 import { toKeyValue, exportCSV, rowDiff } from "../../functions";
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
@@ -12,13 +13,12 @@ import { DateTimeText, DateFilterComponent, Note, FileLinkingComponent } from ".
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
     useDatasetUpdateMutation,
-    useDatasetsQuery,
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useUnlinkedFilesQuery,
+    useDatasetsPage,
 } from "../../hooks";
 import { useUserContext } from "../../contexts";
-import { useQueryClient } from "react-query";
 
 const useStyles = makeStyles(theme => ({
     chip: {
@@ -40,7 +40,7 @@ export default function DatasetTable() {
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
     const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
-    const { data: datasets } = useDatasetsQuery();
+    const dataFetch = useDatasetsPage();
     const datasetUpdateMutation = useDatasetUpdateMutation();
     const { data: enums } = useEnumsQuery();
     const { data: metadatasetTypes } = useMetadatasetTypesQuery();
@@ -48,8 +48,8 @@ export default function DatasetTable() {
         () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
         [metadatasetTypes]
     );
-    const tissueSampleTypes = useMemo(() => enums?.TissueSampleType, [enums]);
-    const conditions = useMemo(() => enums?.DatasetCondition, [enums]);
+    const tissueSampleTypes = useMemo(() => enums && toKeyValue(enums.TissueSampleType), [enums]);
+    const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
 
     const filesQuery = useUnlinkedFilesQuery();
     const files = filesQuery.data || [];
@@ -148,7 +148,7 @@ export default function DatasetTable() {
                         defaultFilter: paramID,
                     },
                 ]}
-                data={datasets || []}
+                data={dataFetch}
                 title="Datasets"
                 options={{
                     pageSize: 10,

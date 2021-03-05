@@ -93,7 +93,7 @@ def list_datasets(page: int, limit: int) -> Response:
         filters.append(func.instr(models.User.username, updated_by))
     linked_files = request.args.get("linked_files", type=str)
     if linked_files:
-        filters.append(func.instr(models.Dataset.path, linked_files))
+        filters.append(func.instr(models.DatasetFile.path, linked_files))
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
         filters.append(
