@@ -24,3 +24,16 @@ class Config(object):
     )
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
     TESTING = False
+    OIDC_PROVIDER = os.getenv("OIDC_PROVIDER", "keycloak")
+    # needed for authlib (dynamically named keys)
+    vars()[f"{OIDC_PROVIDER.capitalize()}_CLIENT_ID"] = os.getenv(
+        "OIDC_CLIENT_ID", "stager"
+    )
+    vars()[f"{OIDC_PROVIDER.capitalize()}_CLIENT_SECRET"] = (
+        os.getenv("OIDC_CLIENT_SECRET", "$not_a_secret!"),
+    )
+
+    OIDC_WELL_KNOWN = os.getenv(
+        "OIDC_WELL_KNOWN",
+        "http://localhost:8080/auth/realms/ccm/.well-known/openid-configuration",
+    )
