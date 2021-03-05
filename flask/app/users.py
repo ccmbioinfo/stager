@@ -258,6 +258,10 @@ def create_user():
 def delete_user(username: str):
     app.logger.debug("Checking whether requested username '%s' exists", username)
     user = models.User.query.filter_by(username=username).first_or_404()
+    if not app.config.get("LOGIN_DISABLED"):
+        if current_user.is_admin and user == current_user:
+            abort(422, description="Admin cannot delete self")
+
     try:
         app.logger.debug("Deleting user..")
         db.session.delete(user)
