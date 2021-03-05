@@ -7,7 +7,7 @@ from flask_login import UserMixin
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import db
+from . import db, login
 
 users_groups_table = db.Table(
     "users_groups",
@@ -40,6 +40,11 @@ class User(UserMixin, db.Model):
 
     def get_id(self):
         return self.user_id
+
+
+@login.user_loader
+def load_user(uid: int):
+    return User.query.get(uid)
 
 
 @dataclass

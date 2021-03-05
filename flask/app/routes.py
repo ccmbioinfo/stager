@@ -1,25 +1,24 @@
-import inspect
 from dataclasses import asdict
 from datetime import datetime
 from enum import Enum
+import inspect
 from io import StringIO
 
-import pandas as pd
-from flask import abort, current_app as app, jsonify, request, Blueprint
+from flask import Blueprint, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
-from sqlalchemy.orm import aliased, contains_eager, joinedload
+import pandas as pd
+from sqlalchemy.orm import joinedload
 
-from .extensions import db, login
 from . import models
-
-from .utils import check_admin, transaction_or_abort, enum_validate
+from .extensions import db
+from .utils import enum_validate, transaction_or_abort
 
 routes = Blueprint("routes", __name__)
 
 
-@login.user_loader
-def load_user(uid: int):
-    return models.User.query.get(uid)
+@routes.route("/api")
+def version():
+    return jsonify({"sha": app.config.get("GIT_SHA")})
 
 
 @routes.route("/api/login", methods=["POST"])
