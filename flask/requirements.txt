@@ -16,6 +16,8 @@ cryptography==3.3.2
     # via pymysql
 flask-login==0.5.0
     # via -r requirements.in
+flask-migrate==2.7.0
+    # via -r requirements.in
 flask-sqlalchemy==2.4.4
     # via
     #   -r requirements.in
@@ -29,8 +31,6 @@ flask==1.1.2
     #   flask-migrate
     #   flask-sqlalchemy
     #   flask-wtf
-flask_migrate==2.7.0
-    # via -r requirements.in
 gunicorn==20.0.4
     # via -r requirements.in
 itsdangerous==1.1.0
@@ -50,7 +50,7 @@ minio==7.0.2
     # via -r requirements.in
 numpy==1.19.4
     # via pandas
-pandas==1.2.2
+pandas==1.2.3
     # via -r requirements.in
 pycparser==2.20
     # via cffi
