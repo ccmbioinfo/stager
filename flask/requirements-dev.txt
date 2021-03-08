@@ -72,7 +72,7 @@ numpy==1.19.4
     # via pandas
 packaging==20.8
     # via pytest
-pandas==1.2.2
+pandas==1.2.3
     # via -r requirements.in
 pathspec==0.8.1
     # via black
