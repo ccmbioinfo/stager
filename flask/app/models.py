@@ -342,7 +342,7 @@ class AnalysisState(str, Enum):
 class Analysis(db.Model):
     analysis_id: int = db.Column(db.Integer, primary_key=True)
     analysis_state: AnalysisState = db.Column(db.Enum(AnalysisState), nullable=False)
-    pipeline = db.relationship("Pipeline")
+    pipeline = db.relationship("Pipeline", lazy="joined")
     pipeline_id: int = db.Column(
         db.Integer,
         db.ForeignKey("pipeline.pipeline_id", onupdate="cascade", ondelete="restrict"),
@@ -376,7 +376,7 @@ class Pipeline(db.Model):
     pipeline_id: int = db.Column(db.Integer, primary_key=True)
     pipeline_name: str = db.Column(db.String(50), nullable=False)
     pipeline_version: str = db.Column(db.String(50), nullable=False)
-    supported = db.relationship("PipelineDatasets", backref="pipeline")
+    supported = db.relationship("PipelineDatasets", backref="pipeline", lazy="joined")
 
     supported_types: List[MetaDatasetType]
 
