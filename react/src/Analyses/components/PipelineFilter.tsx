@@ -1,10 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { Column } from "material-table";
-import { Analysis } from "../../typings";
+import { Analysis, Pipeline } from "../../typings";
 import { Checkbox, ListItemText, MenuItem, Select } from "@material-ui/core";
 import { usePipelinesQuery } from "../../hooks";
 
 type FilterProps = Parameters<Required<Column<Analysis>>["filterComponent"]>[0];
+
+function pipelineName(p: Pipeline) {
+    return `${p.pipeline_name} ${p.pipeline_version}`;
+}
 
 /**
  * Dropdown filter for pipeline ids. Displays name + version.
@@ -13,28 +17,48 @@ type FilterProps = Parameters<Required<Column<Analysis>>["filterComponent"]>[0];
  */
 export default function PipelineFilter(props: FilterProps) {
     const pipelinesQuery = usePipelinesQuery();
-    const pipelines = useMemo(() => (pipelinesQuery.isSuccess ? pipelinesQuery.data : []), [
-        pipelinesQuery,
-    ]);
+    const pipelines = useMemo(() => {
+        if (pipelinesQuery.isSuccess) {
+            const obj: { [key: number]: Pipeline } = {};
+            pipelinesQuery.data.forEach(p => {
+                obj[p.pipeline_id] = p;
+            });
+            return obj;
+        }
+        return undefined;
+    }, [pipelinesQuery]);
     // Selected pipeline_ids
     const [selected, setSelected] = useState<number[]>([]);
 
     function onFilterChange(event: React.ChangeEvent<{ value: unknown }>) {
-        console.log(event.target.value);
-        const newIds = event.target.value as number[];
-        setSelected(newIds);
+        setSelected(event.target.value as number[]);
+    }
+
+    function onClose() {
         const rowId = (props.columnDef as any).tableData.id;
-        props.onFilterChanged(rowId, newIds.join(","));
+        props.onFilterChanged(rowId, selected.join(","));
     }
 
     return (
-        <Select multiple value={selected} onChange={onFilterChange}>
-            {pipelines.map(p => (
-                <MenuItem key={p.pipeline_id} value={p.pipeline_id}>
-                    <Checkbox checked={selected.indexOf(p.pipeline_id) > -1} />
-                    <ListItemText primary={`${p.pipeline_name} ${p.pipeline_version}`} />
-                </MenuItem>
-            ))}
-        </Select>
+        <>
+            {pipelines && (
+                <Select
+                    multiple
+                    value={selected}
+                    onChange={onFilterChange}
+                    onClose={onClose}
+                    renderValue={selected =>
+                        (selected as number[]).map(id => pipelineName(pipelines[id])).join(", ")
+                    }
+                >
+                    {Object.values(pipelines).map(p => (
+                        <MenuItem key={p.pipeline_id} value={p.pipeline_id}>
+                            <Checkbox checked={selected.indexOf(p.pipeline_id) > -1} />
+                            <ListItemText primary={pipelineName(p)} />
+                        </MenuItem>
+                    ))}
+                </Select>
+            )}
+        </>
     );
 }
