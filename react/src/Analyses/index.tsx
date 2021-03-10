@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router";
 import { makeStyles } from "@material-ui/core/styles";
 import { Chip, IconButton, TextField, Container } from "@material-ui/core";
@@ -14,13 +14,14 @@ import {
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV, jsonToAnalyses } from "../functions";
+import { isRowSelected, exportCSV } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
 import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
-import { AnalysisOptions, useAnalysesQuery, useAnalysisUpdateMutation } from "../hooks";
+import { AnalysisOptions, useAnalysesPage, useAnalysisUpdateMutation } from "../hooks";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
+import PipelineFilter from "./components/PipelineFilter";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -145,11 +146,8 @@ export default function Analyses() {
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
 
-    const analysesQuery = useAnalysesQuery();
-    const analyses = useMemo(
-        () => (analysesQuery.isSuccess ? jsonToAnalyses(analysesQuery.data) : []),
-        [analysesQuery]
-    );
+    const dataFetch = useAnalysesPage();
+
     const analysisUpdateMutation = useAnalysisUpdateMutation();
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
@@ -288,13 +286,12 @@ export default function Analyses() {
                         },
                         {
                             title: "Pipeline",
-                            field: "pipeline_name",
+                            field: "pipeline_id",
                             type: "string",
                             width: "8%",
                             editable: "never",
                             render: (row, type) => pipeName(row),
-                            customFilterAndSearch: (term: string, row) =>
-                                pipeName(row).toLowerCase().includes(term.toLowerCase()),
+                            filterComponent: props => <PipelineFilter {...props} />,
                         },
                         {
                             title: "Assignee",
@@ -347,7 +344,7 @@ export default function Analyses() {
                         },
                     ]}
                     isLoading={analysisUpdateMutation.isLoading}
-                    data={analyses || []}
+                    data={dataFetch}
                     title="Analyses"
                     options={{
                         pageSize: 10,
