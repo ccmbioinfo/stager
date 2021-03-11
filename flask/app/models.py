@@ -370,8 +370,6 @@ class Analysis(db.Model):
     assignee = db.relationship("User", foreign_keys=[assignee_id], lazy="joined")
     requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
 
-    variants = db.relationship("Variants_Analyses_Association", backref="Analysis")
-
 
 @dataclass
 class Pipeline(db.Model):
