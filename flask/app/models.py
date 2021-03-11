@@ -453,9 +453,10 @@ class Variant(db.Model):
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
 
+    analyses = db.relationship("AnalyzedVariant", backref="analysis")
 
-class Variants_Analyses_Association(db.Model):
-    "variants_analyses",
+
+class AnalyzedVariant(db.Model):
     variant_id: int = db.Column(
         db.Integer, db.ForeignKey("variant.variant_id"), primary_key=True
     )
