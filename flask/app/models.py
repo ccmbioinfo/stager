@@ -451,8 +451,6 @@ class Variant(db.Model):
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
 
-    analyses = db.relationship("AnalyzedVariant", backref="analysis")
-
 
 class AnalyzedVariant(db.Model):
     variant_id: int = db.Column(
@@ -461,6 +459,8 @@ class AnalyzedVariant(db.Model):
     analysis_id: int = db.Column(
         db.Integer, db.ForeignKey("analysis.analysis_id"), primary_key=True
     )
+    analyses = db.relationship("Analysis", backref="variant")
+    variant = db.relationship("Variant", backref="analysis")
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
     alt_depths: int = db.Column(db.Integer)
