@@ -17,7 +17,7 @@ function pipelineName(p: Pipeline) {
  */
 export default function PipelineFilter(props: FilterProps) {
     const pipelinesQuery = usePipelinesQuery();
-    const pipelines = useMemo(() => {
+    const pipelinesObj = useMemo(() => {
         if (pipelinesQuery.isSuccess) {
             const obj: { [key: number]: Pipeline } = {};
             pipelinesQuery.data.forEach(p => {
@@ -27,6 +27,11 @@ export default function PipelineFilter(props: FilterProps) {
         }
         return undefined;
     }, [pipelinesQuery]);
+
+    const pipelineList = useMemo(() => (pipelinesQuery.isSuccess ? pipelinesQuery.data : []), [
+        pipelinesQuery,
+    ]);
+
     // Selected pipeline_ids
     const [selected, setSelected] = useState<number[]>([]);
 
@@ -41,17 +46,17 @@ export default function PipelineFilter(props: FilterProps) {
 
     return (
         <>
-            {pipelines && (
+            {pipelinesObj && pipelineList && (
                 <Select
                     multiple
                     value={selected}
                     onChange={onFilterChange}
                     onClose={onClose}
                     renderValue={selected =>
-                        (selected as number[]).map(id => pipelineName(pipelines[id])).join(", ")
+                        (selected as number[]).map(id => pipelineName(pipelinesObj[id])).join(", ")
                     }
                 >
-                    {Object.values(pipelines).map(p => (
+                    {pipelineList.map(p => (
                         <MenuItem key={p.pipeline_id} value={p.pipeline_id}>
                             <Checkbox checked={selected.indexOf(p.pipeline_id) > -1} />
                             <ListItemText primary={pipelineName(p)} />
