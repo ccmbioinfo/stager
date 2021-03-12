@@ -1,13 +1,5 @@
-import React, { useEffect, useState } from "react";
-import {
-    Box,
-    Button,
-    Container,
-    makeStyles,
-    Paper,
-    TextField,
-    Typography,
-} from "@material-ui/core";
+import React, { useEffect } from "react";
+import { Box, Button, Container, makeStyles, Paper, Typography } from "@material-ui/core";
 import { CurrentUser } from "./typings";
 
 const useStyles = makeStyles(theme => ({
@@ -33,33 +25,17 @@ export default function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
 }) {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    function bind(set: typeof setUsername) {
-        // @ts-ignore
-        return e => set(e.target.value);
-    }
-    async function authenticate(e: React.MouseEvent) {
+    const classes = useStyles();
+
+    async function handleClick(e: React.MouseEvent) {
         e.preventDefault();
-        const result = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
-        if (result.ok) {
-            const data = await result.json();
-            setCurrentUser(data);
-            setError("");
-        } else {
-            setError(await result.text());
-        }
-        setAuthenticated(result.ok);
+        window.location.assign("http://localhost:5000/login");
     }
+
     useEffect(() => {
         document.title = `Sign in | ${process.env.REACT_APP_NAME}`;
     }, []);
-    const classes = useStyles();
+
     return (
         <Box className={classes.root}>
             <Container maxWidth="sm">
@@ -67,39 +43,14 @@ export default function LoginForm({
                     <Typography variant="h5" component="h2" gutterBottom>
                         Sign in to {process.env.REACT_APP_NAME}
                     </Typography>
-                    {error && (
-                        <Typography component="p" color="secondary">
-                            {error}
-                        </Typography>
-                    )}
-                    <TextField
-                        required
-                        variant="filled"
-                        fullWidth
-                        margin="normal"
-                        className={classes.textField}
-                        label="Username"
-                        onChange={bind(setUsername)}
-                    />
-                    <TextField
-                        required
-                        variant="filled"
-                        fullWidth
-                        margin="normal"
-                        className={classes.textField}
-                        type="password"
-                        label="Password"
-                        onChange={bind(setPassword)}
-                        autoComplete="current-password"
-                    />
                     <Button
                         variant="contained"
                         color="primary"
                         className={classes.button}
                         type="submit"
-                        onClick={authenticate}
+                        onClick={handleClick}
                     >
-                        Sign in
+                        Sign in using Keycloak
                     </Button>
                 </Paper>
             </Container>

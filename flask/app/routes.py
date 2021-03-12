@@ -4,13 +4,22 @@ from enum import Enum
 import inspect
 from io import StringIO
 
-from flask import Blueprint, abort, current_app as app, jsonify, request
+from flask import (
+    Blueprint,
+    abort,
+    current_app as app,
+    jsonify,
+    request,
+    session,
+    redirect,
+)
+from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
 
 from . import models
-from .extensions import db
+from .extensions import db, oauth
 from .utils import enum_validate, transaction_or_abort, validate_json
 
 routes = Blueprint("routes", __name__)
@@ -78,6 +87,30 @@ def login():
             "groups": [group.group_code for group in current_user.groups],
         }
     )
+
+
+@routes.route("/login")
+def oidc_login():
+    provider = app.config.get("OIDC_PROVIDER")
+    app.logger.debug(f"Creating client with {provider}...")
+    client = oauth.create_client(provider)
+    app.logger.debug("Building redirect url...")
+    redirect_uri = url_for("routes.authorize", _external=True)
+    app.logger.debug(f"Redirect url built: {redirect_uri}")
+    app.logger.debug("Getting authorize url...")
+    resp = client.authorize_redirect(redirect_uri)
+    app.logger.debug(f"auth response: {resp}")
+    return resp
+
+
+@routes.route("/api/authorize")
+def authorize():
+    client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+    token = client.authorize_access_token()
+    user = client.parse_id_token(token)
+    app.logger.debug(f"User logged in: {user}")
+    session["user"] = user
+    return redirect("http://localhost:3000/")
 
 
 @routes.route("/api/logout", methods=["POST"])
