@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { QueryResult } from "material-table";
 import { QueryObserverResult, useQuery } from "react-query";
 import { jsonToAnalyses } from "../../functions";
 import { Analysis } from "../../typings";
@@ -6,7 +7,7 @@ import { basicFetch } from "../utils";
 
 async function fetchAnalyses(since?: string) {
     let params = "";
-    if (since) params = "?since=" + since;
+    if (since) params = "?updated=after," + since;
     return await basicFetch("/api/analyses" + params);
 }
 
@@ -28,7 +29,13 @@ export function useAnalysesQuery(since?: Date) {
     }
     if (queryKey.length === 1) queryKey = queryKey[0];
 
-    const result = useQuery<any[], Response>(queryKey, () => fetchAnalyses(dateString));
-    if (result.isSuccess) result.data = jsonToAnalyses(result.data);
-    return result as QueryObserverResult<Analysis[], Response>;
+    const result = useQuery<QueryResult<Analysis>, Response>(queryKey, () =>
+        fetchAnalyses(dateString)
+    );
+    if (result.isSuccess)
+        result.data = {
+            ...result.data,
+            data: jsonToAnalyses(result.data.data),
+        };
+    return result as QueryObserverResult<QueryResult<Analysis>, Response>;
 }

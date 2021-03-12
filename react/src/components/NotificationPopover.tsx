@@ -51,7 +51,8 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const lastLoginDate = useMemo(() => new Date(lastLoginTime), [lastLoginTime]);
-    const { data: analyses } = useAnalysesQuery(lastLoginDate);
+    const { data: analysisQuery } = useAnalysesQuery(lastLoginDate);
+    const analyses = useMemo(() => analysisQuery?.data || [], [analysisQuery]);
     const popoverOpen = Boolean(anchorEl);
     const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
