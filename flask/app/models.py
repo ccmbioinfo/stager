@@ -398,3 +398,69 @@ class PipelineDatasets(db.Model):
         primary_key=True,
         nullable=False,
     )
+
+
+class Variation(str, Enum):
+    Missense_Variant = "Missense_Variant"
+    Splice_Region_Variant = "Splice_Region_Variant"
+    Intergenic_Variant = "Intergenic_Variant"
+    Intron_Variant = "Intron_Variant"
+    Frameshift_Variant = "Frameshift_Variant"
+    Upstream_Gene_Variant = "Upstream_Gene_Variant"
+    Inframe_Deletion = "Inframe_Deletion"
+    Stop_Gained = "Stop_Gained"
+    Inframe_Insertion = "Inframe_Insertion"
+    Downstream_Gene_Variant = "Downstream_Gene_Variant"
+    Synonymous_Variant = "Synonymous_Variant"
+    Non_Coding_Transcript_Exon_Variant = "Non_Coding_Transcript_Exon_Variant"
+    Splice_Acceptor_Variant = "Splice_Acceptor_Variant"
+    Splice_Donor_Variant = "Splice_Donor_Variant"
+    Three_prime_UTR_Variant = "3_prime_UTR_Variant"
+    Five_prime_UTR_Variant = "5_prime_UTR_Variant"
+    Regultory_Region_Variant = "Regultory_Region_Variant"
+    Stop_Lost = "Stop_Lost"
+    Start_lost = "Start_lost"
+    Protein_Altering_Variant = "Protein_Altering_Variant"
+    Start_Retrained_Variant = "Start_Retrained_Variant"
+    Mature_miRNA_Variant = "Mature_miRNA_Variant"
+    Stop_Retained_Variant = "Stop_Retained_Variant"
+
+
+class Gene(db.Model):
+    gene_id: int = db.Column(db.Integer, primary_key=True)
+    hgnc_gene_id: int = db.Column(db.Integer)
+    ensembl_id: int = db.Column(db.Integer)
+    hgnc_gene_name: str = db.Column(db.String(50))
+
+
+class Variant(db.Model):
+    variant_id: int = db.Column(db.Integer, primary_key=True)
+    position: str = db.Column(db.String(20), nullable=False)
+    reference_allele: str = db.Column(db.String(50), nullable=False)
+    alt_allele: str = db.Column(db.String(50), nullable=False)
+    variation: Variation = db.Column(db.Enum(Variation), nullable=False)
+    refseq_change = db.Column(db.String(150), nullable=False)
+    depth: int = db.Column(db.Integer, nullable=False)
+    gene_id: int = db.Column(
+        db.Integer,
+        db.ForeignKey("gene.gene_id", onupdate="cascade", ondelete="restrict"),
+    )
+    conserved_in_20_mammals: int = db.Column(db.Float, nullable=True)
+    sift_score: int = db.Column(db.Float, nullable=True)
+    polyphen_score: int = db.Column(db.Float, nullable=True)
+    cadd_score: int = db.Column(db.Float, nullable=True)
+    gnomad_af: int = db.Column(db.Float, nullable=True)
+
+
+class AnalyzedVariant(db.Model):
+    variant_id: int = db.Column(
+        db.Integer, db.ForeignKey("variant.variant_id"), primary_key=True
+    )
+    analysis_id: int = db.Column(
+        db.Integer, db.ForeignKey("analysis.analysis_id"), primary_key=True
+    )
+    analyses = db.relationship("Analysis", backref="variant")
+    variant = db.relationship("Variant", backref="analysis")
+    zygosity: str = db.Column(db.String(50))
+    burden: int = db.Column(db.Integer)
+    alt_depths: int = db.Column(db.Integer)
