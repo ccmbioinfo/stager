@@ -3,7 +3,7 @@ import random
 
 import click
 
-from flask import current_app as app
+from flask import Flask, current_app as app
 from flask.cli import with_appcontext
 from minio import Minio
 
@@ -12,121 +12,84 @@ from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
 
 
-@click.command("add-default-admin")
+def register_commands(app: Flask) -> None:
+    app.cli.add_command(seed_database)
+    app.cli.add_command(seed_database_for_development)
+
+
+@click.command("db-seed")
+@click.option("--force", is_flag=True, default=False)
 @with_appcontext
-def add_default_admin():
-    if len(db.session.query(User).all()) == 0:
+def seed_database(force: bool) -> None:
+    seed_default_admin(force)
+    seed_institutions(force)
+    seed_dataset_types(force)
+    seed_pipelines(force)
+    db.session.commit()
+
+
+@click.command("db-seed-dev")
+@click.option("--force", is_flag=True, default=False)
+@with_appcontext
+def seed_database_for_development(force: bool) -> None:
+    seed_default_admin(force)
+    seed_institutions(force)
+    seed_dataset_types(force)
+    seed_pipelines(force)
+    db.session.flush()
+    seed_dev_groups_and_users(force)
+    seed_dev_data(force)
+    db.session.commit()
+
+
+def seed_default_admin(force: bool) -> None:
+    if force or User.query.count() == 0:
         default_admin = User(
             username=app.config.get("DEFAULT_ADMIN"),
             email=app.config.get("DEFAULT_ADMIN_EMAIL"),
-            last_login=datetime.now(),
             is_admin=True,
             deactivated=False,
         )
         default_admin.set_password(app.config.get("DEFAULT_PASSWORD"))
         db.session.add(default_admin)
-        db.session.commit()
-        print(
-            'Created default user "{}" with email "{}"'.format(
-                default_admin.username, default_admin.email
-            )
+        app.logger.info(
+            f'Created default admin "{default_admin.username}" with email "{default_admin.email}"'
         )
 
 
-def add_groups():
-    if len(db.session.query(Group).all()) != 0:
-        return
-    minio_client = Minio(
-        app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-        secure=False,
-    )
-    minio_admin = MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
-    # group code/name pairs
-    default_groups = {
-        "c4r": "Care4Rare",
-        "cheo": "Children's Hospital of Eastern Ontario",
-        "bcch": "BC Children's Hospital",
-        "ach": "Alberta Children's Hospital",
-        "sch": "The Hospital for Sick Children",
-    }
-
-    for default_code, default_name in default_groups.items():
-        policy = stager_buckets_policy(default_code)
-        minio_admin.add_policy(default_code, policy)
-        try:
-            minio_client.make_bucket(default_code)
-        except:
-            print(f"MinIO bucket `{default_code}` already exists.")
-        group = Group(group_code=default_code, group_name=default_name)
-        db.session.add(group)
-
-    db.session.commit()
-    print("Created default groups with codes: {}".format(", ".join(default_groups)))
+def seed_institutions(force: bool) -> None:
+    if force or Institution.query.count() == 0:
+        for institution in [
+            "Alberta Children's Hospital",
+            "BC Children's Hospital",
+            "Children's Hospital of Eastern Ontario",
+            "CHU Ste-Justine",
+            "Credit Valley Hospital",
+            "Hamilton Health Sciences Centre",
+            "Health Sciences North",
+            "International",
+            "IWK Health Centre",
+            "Kingston Health Sciences Centre",
+            "London Health Sciences Centre",
+            "Montreal Children's Hospital",
+            "Mount Sinai Hospital",
+            "North York General Hospital",
+            "Saskatoon Health Region",
+            "Stollery Children's Hospital",
+            "The Hospital for Sick Children",
+            "The Ottawa Hospital",
+            "University Health Network",
+            "Winnipeg Regional Health",
+        ]:
+            db.session.add(Institution(institution=institution))
+        app.logger.info("Inserted institutions")
 
 
-def add_default_users():
-    if len(db.session.query(User).all()) != 1:  # existing default admin
-        return
-    for group in db.session.query(Group).all():
-        default_user = User(
-            username=f"{group.group_code}-user",
-            email=f"user@test.{group.group_code}",
-            last_login=datetime.now(),
-            is_admin=False,
-            deactivated=False,
-        )
-        default_user.set_password(app.config.get("DEFAULT_PASSWORD"))
-        default_user.minio_access_key = default_user.username
-        default_user.groups.append(group)
-        db.session.add(default_user)
-        print(
-            f"Created default user {default_user.username} in group {group.group_code}"
-        )
-
-    db.session.commit()
-
-
-def add_institutions():
-    if len(db.session.query(Institution).all()) != 0:
-        return
-    institutions = [
-        "Alberta Children's Hospital",
-        "BC Children's Hospital",
-        "Children's Hospital of Eastern Ontario",
-        "CHU Ste-Justine",
-        "Credit Valley Hospital",
-        "Hamilton Health Sciences Centre",
-        "Health Sciences North",
-        "International",
-        "IWK Health Centre",
-        "Kingston Health Sciences Centre",
-        "London Health Sciences Centre",
-        "Montreal Children's Hospital",
-        "Mount Sinai Hospital",
-        "North York General Hospital",
-        "Saskatoon Health Region",
-        "Stollery Children's Hospital",
-        "The Hospital for Sick Children",
-        "The Ottawa Hospital",
-        "University Health Network",
-        "Winnipeg Regional Health",
-        "Unknown",
-    ]
-    for i in institutions:
-        db.session.add(Institution(institution=i))
-
-    db.session.commit()
-
-
-def add_dataset_types():
-    if len(db.session.query(DatasetType).all()) == 0:
-        dataset_types = [
+def seed_dataset_types(force: bool) -> None:
+    app.logger.error("HELLO")
+    if force or (DatasetType.query.count() == 0 and MetaDatasetType.query.count() == 0):
+        app.logger.error("HELLO")
+        for dataset_type in [
             "RES",  # Research Exome Sequencing
             "CES",  # Clinical Exome Sequencing
             "WES",  # Whole Exome Sequencing
@@ -141,78 +104,96 @@ def add_dataset_types():
             "RLM",  # Research Lipidomics Mass Spectrometry
             "RMM",  # Research Metabolomics Mass Spectrometry
             "RTA",  # Research DNA Methylation array
-        ]
-        for d in dataset_types:
-            db.session.add(DatasetType(dataset_type=d))
+        ]:
+            db.session.add(DatasetType(dataset_type=dataset_type))
 
-        db.session.commit()
+        for metadataset_type in ["Genome", "Exome", "RNA", "Other"]:
+            db.session.add(MetaDatasetType(metadataset_type=metadataset_type))
+        db.session.flush()
 
-    # add metadataset type
-    if len(db.session.query(MetaDatasetType).all()) == 0:
-        metadataset_types = ["Genome", "Exome", "RNA", "Other"]
-        for m in metadataset_types:
-            db.session.add(MetaDatasetType(metadataset_type=m))
-
-        db.session.commit()
-
-
-def add_pipelines():
-    if len(db.session.query(Pipeline).all()) != 0:
-        return
-    default_pipelines = [
-        {"pipeline_name": "CRG", "pipeline_version": "1.2"},
-        {"pipeline_name": "CRE", "pipeline_version": "4.3"},
-    ]
-    for p in default_pipelines:
-        pipeline = Pipeline(
-            pipeline_name=p["pipeline_name"], pipeline_version=p["pipeline_version"]
-        )
-        db.session.add(pipeline)
-
-    db.session.commit()
-    print(
-        "Created default pipelines: {}".format(
-            ", ".join([p["pipeline_version"] for p in default_pipelines])
-        )
-    )
-
-
-def add_supported_datasets():
-    if len(db.session.query(PipelineDatasets).all()) != 0:
-        return
-    # genomic datasets map to pipeline_id 1 (CRG)
-    db.session.add(PipelineDatasets(pipeline_id=1, supported_metadataset_type="Genome"))
-    # exomic datasets map to pipeline_id 2 (CRE)
-    db.session.add(PipelineDatasets(pipeline_id=2, supported_metadataset_type="Exome"))
-    db.session.commit()
-    print("Added dataset support info for pipelines")
-
-
-def add_metadataset():
-    if len(db.session.query(MetaDatasetType_DatasetType).all()) != 0:
-        return
-    for e in ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"]:
+        for e in ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"]:
+            db.session.add(
+                MetaDatasetType_DatasetType(metadataset_type="Exome", dataset_type=e)
+            )
+        for g in ["RGS", "CGS", "WGS"]:
+            db.session.add(
+                MetaDatasetType_DatasetType(metadataset_type="Genome", dataset_type=g)
+            )
+        for o in ["RLM", "RMM", "RTA"]:
+            db.session.add(
+                MetaDatasetType_DatasetType(metadataset_type="Other", dataset_type=o)
+            )
         db.session.add(
-            MetaDatasetType_DatasetType(metadataset_type="Exome", dataset_type=e)
+            MetaDatasetType_DatasetType(metadataset_type="RNA", dataset_type="RRS")
         )
-    for g in ["RGS", "CGS", "WGS"]:
+        app.logger.info("Inserted dataset types and meta-dataset types")
+
+
+def seed_pipelines(force: bool) -> None:
+    if force or Pipeline.query.count() == 0:
+        crg2 = Pipeline(pipeline_name="crg2", pipeline_version="latest")
+        db.session.add(crg2)
+        cre = Pipeline(pipeline_name="cre", pipeline_version="latest")
+        db.session.add(cre)
+        db.session.flush()
+        app.logger.info("Inserted pipelines")
         db.session.add(
-            MetaDatasetType_DatasetType(metadataset_type="Genome", dataset_type=g)
+            PipelineDatasets(
+                pipeline_id=crg2.pipeline_id, supported_metadataset_type="Genome"
+            )
         )
-    for o in ["RLM", "RMM", "RTA"]:
         db.session.add(
-            MetaDatasetType_DatasetType(metadataset_type="Other", dataset_type=o)
+            PipelineDatasets(
+                pipeline_id=cre.pipeline_id, supported_metadataset_type="Exome"
+            )
         )
-
-    db.session.add(
-        MetaDatasetType_DatasetType(metadataset_type="RNA", dataset_type="RRS")
-    )
-    db.session.commit()
-    print("Added metadataset_dataset information")
+        app.logger.info("Inserted supported meta-dataset types for pipelines")
 
 
-def add_data_hierarchies():
-    if len(db.session.query(Family).all()) != 0:
+def seed_dev_groups_and_users(force: bool) -> None:
+    if force or (Group.query.count() == 0 and User.query.count() == 1):  # default admin
+        minio_client = Minio(
+            app.config["MINIO_ENDPOINT"],
+            access_key=app.config["MINIO_ACCESS_KEY"],
+            secret_key=app.config["MINIO_SECRET_KEY"],
+            secure=False,
+        )
+        minio_admin = MinioAdmin(
+            endpoint=app.config["MINIO_ENDPOINT"],
+            access_key=app.config["MINIO_ACCESS_KEY"],
+            secret_key=app.config["MINIO_SECRET_KEY"],
+        )
+        groups = {
+            "c4r": "Care4Rare",
+            "cheo": "Children's Hospital of Eastern Ontario",
+            "bcch": "BC Children's Hospital",
+            "ach": "Alberta Children's Hospital",
+            "sch": "The Hospital for Sick Children",
+        }
+        for code, name in groups.items():
+            policy = stager_buckets_policy(code)
+            minio_admin.add_policy(code, policy)
+            try:
+                minio_client.make_bucket(code)
+            except:
+                app.logger.warn(f"MinIO bucket `{code}` already exists.")
+            group = Group(group_code=code, group_name=name)
+            db.session.add(group)
+
+            user = User(
+                username=f"{code}-user",
+                email=f"user@test.{code}",
+                is_admin=False,
+                deactivated=False,
+            )
+            user.set_password(code + "-" + app.config.get("DEFAULT_PASSWORD"))
+            user.groups.append(group)
+            db.session.add(user)
+            app.logger.info(f"Created user {user.username} in group {code}")
+
+
+def seed_dev_data(force: bool) -> None:
+    if not force and Family.query.count() != 0:
         return
     family_code_iter = 2000
     participant_code_iter = 1
@@ -283,18 +264,4 @@ def add_data_hierarchies():
             gdataset.analyses.append(analysis)
 
         db.session.add(default_family)
-        db.session.commit()
         family_code_iter += 1
-
-
-@click.command("add-default-data")
-@with_appcontext
-def add_default_data():
-    add_groups()
-    add_default_users()
-    add_institutions()
-    add_dataset_types()
-    add_pipelines()
-    add_supported_datasets()
-    add_metadataset()
-    add_data_hierarchies()
