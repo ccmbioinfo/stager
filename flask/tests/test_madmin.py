@@ -84,7 +84,7 @@ def test_enable_disable_group(mc: MinioAdmin):
 
 def test_read_policy(mc: MinioAdmin):
     policies = mc.list_policies()
-    assert len(policies) == 4
+    assert len(policies) == 5
     for item in policies:
         policy = mc.get_policy(item["policy"])
         assert policy["policy"] == item["policy"]
@@ -110,11 +110,11 @@ def test_apply_policy(mc: MinioAdmin):
         mc.set_policy("too", "many", "arguments")
 
     mc.add_policy("reader", readonly)
-    assert len(mc.list_policies()) == 5
-    mc.add_policy("fullaccess", readwrite)
     assert len(mc.list_policies()) == 6
-    mc.add_policy("rw", readwrite_buckets)
+    mc.add_policy("fullaccess", readwrite)
     assert len(mc.list_policies()) == 7
+    mc.add_policy("rw", readwrite_buckets)
+    assert len(mc.list_policies()) == 8
 
     mc.add_user("foo", "barbarbar")
     mc.group_add("yeet", "foo")
@@ -133,4 +133,4 @@ def test_apply_policy(mc: MinioAdmin):
     mc.remove_policy("rw")
     mc.remove_user("foo")
     mc.group_remove("yeet")
-    assert len(mc.list_policies()) == 4
+    assert len(mc.list_policies()) == 5
