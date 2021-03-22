@@ -67,7 +67,7 @@ def register_extensions(app):
         client_id=app.config["OIDC_CLIENT_ID"],
         client_secret=app.config["OIDC_CLIENT_SECRET"],
         server_metadata_url=app.config["OIDC_WELL_KNOWN"],
-        client_kwargs={"scope": "openid profile"},
+        client_kwargs={"scope": "openid"},
     )
 
 

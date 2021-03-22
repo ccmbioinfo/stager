@@ -24,10 +24,11 @@ class Config(object):
     )
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
     TESTING = False
+    ENABLE_OIDC = True
     OIDC_PROVIDER = os.getenv("OIDC_PROVIDER", "keycloak")
     # needed for authlib (dynamically named keys)
     OIDC_CLIENT_ID = os.getenv("OIDC_CLIENT_ID", "ccm-stager")
-    OIDC_CLIENT_SECRET = (os.getenv("OIDC_CLIENT_SECRET", "$not_a_secret!"),)
+    OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET", "$not_a_secret!")
 
     OIDC_WELL_KNOWN = os.getenv(
         "OIDC_WELL_KNOWN",
