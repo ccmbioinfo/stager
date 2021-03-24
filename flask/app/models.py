@@ -7,7 +7,7 @@ from flask_login import UserMixin
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import db, login
+from .extensions import db, login
 
 users_groups_table = db.Table(
     "users_groups",
@@ -237,6 +237,9 @@ datasets_analyses_table = db.Table(
     db.Model.metadata,
     db.Column("dataset_id", db.Integer, db.ForeignKey("dataset.dataset_id")),
     db.Column("analysis_id", db.Integer, db.ForeignKey("analysis.analysis_id")),
+    db.Column("zygosity", db.String(50)),
+    db.Column("burden", db.Integer),
+    db.Column("alt_depths", db.Integer),
 )
 
 
@@ -369,6 +372,7 @@ class Analysis(db.Model):
     updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
     assignee = db.relationship("User", foreign_keys=[assignee_id], lazy="joined")
     requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
+    variant = db.relationship("Variant", backref="analysis")
 
 
 @dataclass
@@ -435,9 +439,12 @@ class Gene(db.Model):
 
 class Variant(db.Model):
     variant_id: int = db.Column(db.Integer, primary_key=True)
+    analysis_id: int = db.Column(
+        db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
+    )
     position: str = db.Column(db.String(20), nullable=False)
-    reference_allele: str = db.Column(db.String(50), nullable=False)
-    alt_allele: str = db.Column(db.String(50), nullable=False)
+    reference_allele: str = db.Column(db.String(150), nullable=False)
+    alt_allele: str = db.Column(db.String(150), nullable=False)
     variation: Variation = db.Column(db.Enum(Variation), nullable=False)
     refseq_change = db.Column(db.String(150), nullable=False)
     depth: int = db.Column(db.Integer, nullable=False)
@@ -450,17 +457,3 @@ class Variant(db.Model):
     polyphen_score: int = db.Column(db.Float, nullable=True)
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
-
-
-class AnalyzedVariant(db.Model):
-    variant_id: int = db.Column(
-        db.Integer, db.ForeignKey("variant.variant_id"), primary_key=True
-    )
-    analysis_id: int = db.Column(
-        db.Integer, db.ForeignKey("analysis.analysis_id"), primary_key=True
-    )
-    analyses = db.relationship("Analysis", backref="variant")
-    variant = db.relationship("Variant", backref="analysis")
-    zygosity: str = db.Column(db.String(50))
-    burden: int = db.Column(db.Integer)
-    alt_depths: int = db.Column(db.Integer)
