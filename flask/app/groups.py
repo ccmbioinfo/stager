@@ -143,10 +143,14 @@ def create_group():
     if not group_code:
         abort(400, description="A group codename must be provided")
 
-    if models.Group.query.filter(
-        (models.Group.group_code == group_code)
-        | (models.Group.group_name == group_name)
-    ).value("group_id"):
+    if (
+        db.session.query(models.Group.group_id)
+        .filter(
+            (models.Group.group_code == group_code)
+            | (models.Group.group_name == group_name)
+        )
+        .scalar()
+    ):
         abort(422, description="Group already exists")
 
     minio_client = Minio(
