@@ -27,6 +27,8 @@ def get_host():
 def set_g(name: str, default: Any = None):
     """
     Helper function. Overwrite the given key name in g with default.
+
+    Requires an application context.
     """
     # Flask's g object is like a dict in every way except this
     if name in g:
@@ -38,6 +40,8 @@ def fetch_admin_well_known():
     """
     Fetch and return the openid-configuration json object from
     the Keycloak admin realm.
+
+    Requires an application context.
     """
     # we can cache it in app context to reuse in other functions
     cached = g.get("_admin_well_known")
@@ -54,8 +58,8 @@ def fetch_admin_well_known():
         endpoints = dict(response.json())
         set_g("_admin_well_known", default=(endpoints))
         return endpoints
-    print(
-        f"ERROR: Well-known endpoint fetch failed: {response.status_code} - {response.text}"
+    app.logger.error(
+        f"Well-known endpoint fetch failed: {response.status_code} - {response.text}"
     )
     g.setdefault("_admin_well_known", default=(None))
     return None
@@ -65,6 +69,8 @@ def obtain_admin_token():
     """
     Sign into the Token Endpoint for the Keycloak Admin-CLI client,
     and return the response object.
+
+    Requires an application context.
     """
     # Check if we still have a fresh access token
     if g.get("_access_token") and time.time() < g.get("_access_expire_time"):
@@ -108,7 +114,7 @@ def obtain_admin_token():
             set_g("_refresh_expire_time", default=(time.time() + expires_in))
             print("Access token successfully obtained from token endpoint.")
             return access_token
-        print(
+        app.logger.error(
             f"ERROR: Failed to fetch access token: {response.status_code} - {response.text}"
         )
         return None
@@ -134,7 +140,7 @@ def add_keycloak_realm(access_token: str):
     elif response.status_code == 409:
         print("CCM realm already exists. Skipping...")
         return True
-    print(
+    app.logger.error(
         f"ERROR: Failed to create CCM realm: {response.status_code} - {response.text}"
     )
     return False
@@ -144,6 +150,8 @@ def add_keycloak_client(access_token: str):
     """
     Using the given admin access token, create the "ccm-stager" client in
     the "ccm" realm in Keycloak, if it does not already exist.
+
+    Requires an application context.
     """
     print("Adding Stager client to Keycloak...")
     app_url = "http://app:5000"
@@ -166,7 +174,7 @@ def add_keycloak_client(access_token: str):
     elif response.status_code == 409:
         print("Stager client already exists. Skipping...")
         return True
-    print(
+    app.logger.error(
         f"ERROR: Failed to add Stager client: {response.status_code} - {response.text}"
     )
     return False
@@ -206,7 +214,7 @@ def add_keycloak_user(access_token: str, user: User):
             # Returns array of UserRepresentations
             found_users = get_response.json()
             if len(found_users) != 1:
-                print(f"ERROR: Added user {user.username} not found ???")
+                app.logger.error(f"ERROR: Added user {user.username} not found ???")
                 return False
 
             added_user = found_users[0]
@@ -215,11 +223,11 @@ def add_keycloak_user(access_token: str, user: User):
             user.subject = added_user["id"]
             print(f"User {user.username} successfully updated with OIDC fields.")
             return True
-        print(
+        app.logger.error(
             f"ERROR: Failed to find {user.username}: {get_response.status_code} - {get_response.text}"
         )
         return False
-    print(
+    app.logger.error(
         f"ERROR: Failed to add user {user.username} to Keycloak: {post_response.status_code} - {post_response.text}"
     )
     return False
@@ -248,7 +256,7 @@ def setup_keycloak():
             if success:
                 print("Keycloak successfully set up.")
             else:
-                print("Failed to setup Keycloak.")
+                app.logger.error("Failed to setup Keycloak.")
             return success
         return False
     return False

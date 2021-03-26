@@ -19,6 +19,8 @@ The following `.env` variables must be set for `authlib` to register properly:
 
 -   `User with username 'admin' already added to '/opt/jboss/keycloak/standalone/configuration/keycloak-add-user.json'`
 
+This error occurs when building the Keycloak container with `docker-compose up --build` after having built it once already. Keycloak errors and closes if you attempt to add admin credentials that are already present.
+
 Steps for dealing with this (taken from [this StackOverflow thread](https://stackoverflow.com/questions/59599620/keycloak-8-user-with-username-admin-already-added))
 
 1. Stop all containers (`docker-compose down`, or CTRL-C if attached to shell)
@@ -50,5 +52,7 @@ services:
 ```
 
 7. Start all containers
+
+Alternatively, if you intend to rebuild the whole project, then you can delete the keycloak container with `docker rm keycloak`, and rebuild the project with `docker-compose up --build`. This clears everything in the keycloak container including stored admin credentials, thus resolving the issue.
 
 ###
