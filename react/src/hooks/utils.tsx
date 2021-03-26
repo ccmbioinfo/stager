@@ -215,3 +215,22 @@ export function useQueriesTyped<TQueries extends readonly UseQueryOptions[]>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return useQueries(queries as UseQueryOptions<unknown, unknown, unknown>[]) as any;
 }
+
+/**
+ * Remove all queries from cache, with optional preservation whitelist
+ * @param queryClient The react-query client.
+ * @param preserve Optional array of string keys to preserve
+ */
+export function clearQueryCache(queryClient: QueryClient, preserve: string[] = []): void {
+    return queryClient
+        .getQueryCache()
+        .getAll()
+        .forEach(query => {
+            const key = Array.isArray(query.queryKey)
+                ? (query.queryKey[0] as string)
+                : (query.queryKey as string);
+            if (!preserve.includes(key)) {
+                queryClient.removeQueries(key);
+            }
+        });
+}

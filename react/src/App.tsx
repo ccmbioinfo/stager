@@ -8,6 +8,7 @@ import LoginForm from "./Login";
 import Navigation from "./Navigation";
 import { CurrentUser } from "./typings";
 import { UserContext, emptyUser, UserClient } from "./contexts";
+import { clearQueryCache } from "./hooks/utils";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -53,6 +54,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         });
         if (result.ok) {
             setAuthenticated(false);
+            clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
         }
     }
     // Check if already signed in
