@@ -110,6 +110,13 @@ export default function App() {
             ? prefersDarkMode
             : localStorage.getItem("darkMode") === "true"
     );
+
+    useEffect(() => {
+        if (process.env.NODE_ENV === "production") {
+            console.log(`Latest Commit: ${process.env.REACT_APP_GIT_SHA}`);
+        }
+    }, []);
+
     const globalTheme = useMemo(
         () =>
             createMuiTheme({
