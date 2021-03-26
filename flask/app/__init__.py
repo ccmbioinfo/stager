@@ -16,6 +16,7 @@ from app import (
     groups,
     users,
     manage,
+    manage_oidc,
     error_handler,
 )
 
