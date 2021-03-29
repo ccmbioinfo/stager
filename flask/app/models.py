@@ -44,6 +44,10 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return self.user_id
 
+    def set_oidc_fields(self, issuer: str, subject: str):
+        self.issuer = issuer
+        self.subject = subject
+
 
 @login.user_loader
 def load_user(uid: int):

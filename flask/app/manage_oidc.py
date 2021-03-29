@@ -36,32 +36,36 @@ def set_g(name: str, default: Any = None):
     g.setdefault(name, default=default)
 
 
-def fetch_admin_well_known():
+def fetch_admin_well_known(realm: str = "master"):
     """
     Fetch and return the openid-configuration json object from
-    the Keycloak admin realm.
+    the Keycloak admin realm. Can also specify a different realm.
 
     Requires an application context.
     """
     # we can cache it in app context to reuse in other functions
-    cached = g.get("_admin_well_known")
+    cache_key = f"_{realm}_well_known"
+    cached = g.get(cache_key)
     if cached is not None:
         return cached
-    url = os.getenv(
-        "KEYCLOAK_ADMIN_WELL_KNOWN",
-        "http://keycloak:8080/auth/realms/master/.well-known/openid-configuration",
+    url = (
+        os.getenv(
+            "KEYCLOAK_AUTH_URL",
+            "http://keycloak:8080/auth",
+        )
+        + f"/realms/{realm}/.well-known/openid-configuration"
     )
     response = requests.get(url)
     print(f"Well-known endpoint fetched at {url}")
     if response.ok:
         # https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
         endpoints = dict(response.json())
-        set_g("_admin_well_known", default=(endpoints))
+        set_g(cache_key, default=(endpoints))
         return endpoints
     app.logger.error(
         f"Well-known endpoint fetch failed: {response.status_code} - {response.text}"
     )
-    g.setdefault("_admin_well_known", default=(None))
+    g.setdefault(cache_key, default=(None))
     return None
 
 
@@ -130,7 +134,10 @@ def add_keycloak_realm(access_token: str):
     print("Creating CCM realm in Keycloak...")
     url = get_host() + "/"
     # https://www.keycloak.org/docs-api/12.0/rest-api/index.html#_realmrepresentation
-    new_realm = {"realm": "ccm"}
+    new_realm = {
+        "realm": "ccm",
+        "enabled": True,
+    }
     response = requests.post(
         url, json=new_realm, headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -164,6 +171,7 @@ def add_keycloak_client(access_token: str):
         "name": "Stager",
         # We set our own client secret instead of letting Keycloak make one
         "secret": app.config.get("OIDC_CLIENT_SECRET"),
+        "redirectUris": [app_url + "/*", "http://localhost:5000/*"],
     }
     response = requests.post(
         url, json=new_client, headers={"Authorization": f"Bearer {access_token}"}
@@ -180,7 +188,7 @@ def add_keycloak_client(access_token: str):
     return False
 
 
-def add_keycloak_user(access_token: str, user: User):
+def add_keycloak_user(access_token: str, user: User, password: str = None):
     """
     Using the given admin access token, create a new user based on the
     given user object.
@@ -190,12 +198,25 @@ def add_keycloak_user(access_token: str, user: User):
     """
     print(f"Adding user {user.username} to Keycloak...")
     url = get_host() + "/ccm/users"
+    # If a password is provided, then we create a user with that password
+    # Otherwise, we specify that this user must set a password themselves
+    # and they login the first time with their username
+    if password:
+        user_credentials = {"type": "password", "value": password, "temporary": False}
+    else:
+        user_credentials = {
+            "type": "password",
+            "value": user.username,
+            "temporary": True,
+        }
+
     # https://www.keycloak.org/docs-api/12.0/rest-api/index.html#_userrepresentation
     new_user = {
         "email": user.email,
         "emailVerified": True,
         "enabled": not user.deactivated,
         "username": user.username,
+        "credentials": [user_credentials],
     }
     post_response = requests.post(
         url, json=new_user, headers={"Authorization": f"Bearer {access_token}"}
@@ -218,9 +239,11 @@ def add_keycloak_user(access_token: str, user: User):
                 return False
 
             added_user = found_users[0]
-            endpoints = fetch_admin_well_known()
-            user.issuer = endpoints["issuer"]
-            user.subject = added_user["id"]
+            print(f"Found user in Keycloak: {added_user}")
+            endpoints = fetch_admin_well_known("ccm")
+            issuer = endpoints["issuer"]
+            subject = added_user["id"]
+            user.set_oidc_fields(issuer, subject)
             print(f"User {user.username} successfully updated with OIDC fields.")
             return True
         app.logger.error(

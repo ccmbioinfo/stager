@@ -55,6 +55,11 @@ def login():
                 "groups": [group.group_code for group in current_user.groups],
             }
         )
+
+    if app.config.get("ENABLE_OIDC"):
+        # Current user has to authenticate through /login -> /api/authorize flow
+        abort(401, description="Unauthorized")
+
     app.logger.debug("Checking request body")
     body = request.json
     if not body or "username" not in body or "password" not in body:
@@ -107,9 +112,23 @@ def oidc_login():
 def authorize():
     client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
     token = client.authorize_access_token()
-    user = client.parse_id_token(token)
-    app.logger.debug(f"User logged in: {user}")
-    session["user"] = user
+    userinfo = client.parse_id_token(token)
+
+    issuer = userinfo["iss"]
+    subject = userinfo["sub"]
+    username = userinfo["preferred_username"]
+
+    # Only way to uniquely identify an End-User with OpenID
+    user = models.User.query.filter_by(subject=subject, issuer=issuer).first()
+    if user is None:
+        # TODO: Figure out what to do if user exists in OpenID provider but not Stager
+        app.logger.error(f"OIDC user {username} is not tracked by Stager.")
+    elif user.deactivated:
+        app.logger.error("Unauthorized OIDC user")
+    else:
+        app.logger.info(f"OIDC user {user.username} logged in successfully.")
+        login_user(user)
+
     return redirect("http://localhost:3000/")
 
 

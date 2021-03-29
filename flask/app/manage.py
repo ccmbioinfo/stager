@@ -62,11 +62,12 @@ def seed_default_admin(force: bool) -> None:
             is_admin=True,
             deactivated=False,
         )
-        default_admin.set_password(app.config.get("DEFAULT_PASSWORD"))
+        password = app.config.get("DEFAULT_PASSWORD")
+        default_admin.set_password(password)
         if app.config.get("ENABLE_OIDC"):
             access_token = obtain_admin_token()
             if access_token:
-                add_keycloak_user(access_token, default_admin)
+                add_keycloak_user(access_token, default_admin, password)
         db.session.add(default_admin)
         app.logger.info(
             f'Created default admin "{default_admin.username}" with email "{default_admin.email}"'
