@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
-import MaterialTable, { MTableToolbar } from "material-table";
+import MaterialTable, { EditComponentProps, MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
 import { toKeyValue, exportCSV, rowDiff } from "../../functions";
@@ -31,6 +31,49 @@ const useStyles = makeStyles(theme => ({
         marginTop: "6px",
     },
 }));
+
+const customFileFilterAndSearch = (filter: string, rowData: Dataset) => {
+    return (
+        filter === "" + rowData.linked_files.length ||
+        rowData.linked_files.some(name => name.includes(filter))
+    );
+};
+
+const EditNotesComponent = (props: EditComponentProps<Dataset>) => (
+    <TextField
+        multiline
+        value={props.value}
+        onChange={event => props.onChange(event.target.value)}
+        rows={4}
+        fullWidth
+    />
+);
+
+const EditFilesComponent = (props: EditComponentProps<Dataset>) => {
+    const filesQuery = useUnlinkedFilesQuery();
+    const files = filesQuery.data || [];
+    return (
+        <FileLinkingComponent
+            values={props.rowData.linked_files}
+            options={files.map(file => ({ title: file, inputValue: file }))}
+            onEdit={(newValue: string[]) => props.onChange(newValue)}
+            disableTooltip
+        />
+    );
+};
+
+const linkedFileSort = (a: { linked_files: string[] }, b: { linked_files: string[] }) =>
+    a.linked_files.length - b.linked_files.length;
+
+const RenderDatePicker = (rowData: Dataset) => <DateTimeText datetime={rowData.updated} />;
+
+const RenderLinkedFilesButton = (props: Dataset) => (
+    <LinkedFilesButton fileNames={props.linked_files} />
+);
+
+const RenderNotes = (rowData: Dataset) => <Note>{rowData.notes}</Note>;
+
+const wrappedExportCsv = (columns: any[], data: any[]) => exportCSV(columns, data, "Datasets");
 
 export default function DatasetTable() {
     const classes = useStyles();
@@ -102,43 +145,26 @@ export default function DatasetTable() {
                         title: "Notes",
                         field: "notes",
                         grouping: false,
-                        render: rowData => <Note>{rowData.notes}</Note>,
-                        editComponent: props => (
-                            <TextField
-                                multiline
-                                value={props.value}
-                                onChange={event => props.onChange(event.target.value)}
-                                rows={4}
-                                fullWidth
-                            />
-                        ),
+                        render: RenderNotes,
+                        editComponent: EditNotesComponent,
                     },
                     {
                         title: "Files",
                         field: "linked_files",
                         grouping: false,
                         // can search by number of files, or by file name
-                        customFilterAndSearch: (filter: string, rowData) =>
-                            filter === "" + rowData.linked_files.length ||
-                            rowData.linked_files.some(name => name.includes(filter)),
-                        customSort: (a, b) => a.linked_files.length - b.linked_files.length,
-                        render: data => <LinkedFilesButton fileNames={data.linked_files} />,
-                        editComponent: props => (
-                            <FileLinkingComponent
-                                values={props.rowData.linked_files}
-                                options={files.map(file => ({ title: file, inputValue: file }))}
-                                onEdit={(newValue: string[]) => props.onChange(newValue)}
-                                disableTooltip
-                            />
-                        ),
+                        customFilterAndSearch: customFileFilterAndSearch,
+                        customSort: linkedFileSort,
+                        render: RenderLinkedFilesButton,
+                        editComponent: EditFilesComponent,
                     },
                     {
                         title: "Updated",
                         field: "updated",
                         type: "string",
                         editable: "never",
-                        render: rowData => <DateTimeText datetime={rowData.updated} />,
-                        filterComponent: props => <DateFilterComponent {...props} />,
+                        render: RenderDatePicker,
+                        filterComponent: DateFilterComponent,
                     },
                     { title: "Updated By", field: "updated_by", editable: "never" },
                     {
@@ -159,7 +185,7 @@ export default function DatasetTable() {
                     grouping: true,
                     exportAllData: true,
                     exportButton: { csv: true, pdf: false },
-                    exportCsv: (columns, data) => exportCSV(columns, data, "Datasets"),
+                    exportCsv: wrappedExportCsv,
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {
