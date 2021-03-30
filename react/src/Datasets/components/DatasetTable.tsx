@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
@@ -81,7 +81,6 @@ export default function DatasetTable() {
     const queryClient = useQueryClient();
     const [showRunner, setRunner] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
-    const [datasetTypeFilter, setDatasetTypeFilter] = useState<string[]>([]);
 
     const dataFetch = useDatasetsPage();
     const datasetUpdateMutation = useDatasetUpdateMutation();
@@ -104,6 +103,26 @@ export default function DatasetTable() {
 
     const { id: paramID } = useParams<{ id?: string }>();
 
+    //setting to `any` b/c MTable typing doesn't include dataManager
+    const MTRef = useRef<any>();
+
+    /**
+     * Update a table filter from outside the table
+     * MaterialTable holds its own state, so to avoid a rerender and state flush we need to get a handle \
+     * on the instance, make imperative updates, and force an internal state change
+     */
+    const updateFilter = (column: string, filterVal: string | string[]) => {
+        if (MTRef.current) {
+            const col = MTRef.current.dataManager.columns.find((c: any) => c.field === column);
+            if (col) {
+                col.tableData.filterValue = filterVal;
+                MTRef.current.dataManager.changeApplyFilters(true);
+                MTRef.current.dataManager.filterData();
+                MTRef.current.onQueryChange();
+            }
+        }
+    };
+
     return (
         <div>
             <AnalysisRunnerDialog
@@ -121,6 +140,7 @@ export default function DatasetTable() {
                 />
             )}
             <MaterialTable
+                tableRef={MTRef}
                 columns={[
                     { title: "Participant", field: "participant_codename", editable: "never" },
                     { title: "Family", field: "family_codename", editable: "never" },
@@ -133,7 +153,6 @@ export default function DatasetTable() {
                     {
                         title: "Type",
                         field: "dataset_type",
-                        defaultFilter: datasetTypeFilter,
                         lookup: datasetTypes,
                     },
                     {
@@ -238,13 +257,15 @@ export default function DatasetTable() {
                                         <Chip
                                             key={metatype}
                                             label={metatype}
-                                            onClick={() => setDatasetTypeFilter(datasetTypes)}
+                                            onClick={() =>
+                                                updateFilter("dataset_type", datasetTypes)
+                                            }
                                             clickable
                                             className={classes.chip}
                                         />
                                     ))}
                                 <IconButton
-                                    onClick={() => setDatasetTypeFilter([])}
+                                    onClick={() => updateFilter("dataset_type", "")}
                                     className={classes.chip}
                                 >
                                     <Cancel />
