@@ -41,7 +41,7 @@ flask==1.1.2
     #   flask-migrate
     #   flask-sqlalchemy
     #   flask-wtf
-gunicorn==20.0.4
+gunicorn==20.1.0
     # via -r requirements.in
 iniconfig==1.1.1
     # via pytest
