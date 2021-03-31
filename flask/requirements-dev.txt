@@ -28,7 +28,7 @@ flask-login==0.5.0
     # via -r requirements.in
 flask-migrate==2.7.0
     # via -r requirements.in
-flask-sqlalchemy==2.4.4
+flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
     #   flask-migrate
@@ -41,7 +41,7 @@ flask==1.1.2
     #   flask-migrate
     #   flask-sqlalchemy
     #   flask-wtf
-gunicorn==20.0.4
+gunicorn==20.1.0
     # via -r requirements.in
 iniconfig==1.1.1
     # via pytest
@@ -51,7 +51,7 @@ itsdangerous==1.1.0
     # via
     #   flask
     #   flask-wtf
-jinja2==2.11.2
+jinja2==2.11.3
     # via flask
 lazy-object-proxy==1.4.3
     # via astroid
@@ -118,7 +118,7 @@ typed-ast==1.4.1
     # via black
 typing-extensions==3.7.4.3
     # via black
-urllib3==1.26.2
+urllib3==1.26.3
     # via minio
 werkzeug==1.0.1
     # via
