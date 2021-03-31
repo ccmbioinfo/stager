@@ -50,7 +50,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         const result = await fetch("/api/logout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ dummy: true }),
+            body: JSON.stringify({}),
         });
         if (result.ok) {
             setAuthenticated(false);

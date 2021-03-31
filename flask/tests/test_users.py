@@ -156,9 +156,9 @@ def assert_reset(username: str, client):
 
 def test_reset_minio_admin(test_database, minio_policy, client, login_as):
     login_as("admin")
-    assert client.post("/api/users/foo").status_code == 415
+    assert client.post("/api/users/foo", headers={'Content-Type': 'not-json'}).status_code == 415
     assert (
-        client.post("/api/users/foo", json={"oh love me": "mister"}).status_code == 404
+        client.post("/api/users/foo",  headers={'Content-Type': 'application/json'}).status_code == 404
     )
 
     assert_reset("admin", client)

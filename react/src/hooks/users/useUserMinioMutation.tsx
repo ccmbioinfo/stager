@@ -4,7 +4,7 @@ import { User } from "../../typings";
 import { changeFetch } from "../utils";
 
 async function resetMinioCredentials(username: string) {
-    return changeFetch("/api/users/" + username, "POST", { dummy: true });
+    return changeFetch("/api/users/" + username, "POST", {});
 }
 
 /**

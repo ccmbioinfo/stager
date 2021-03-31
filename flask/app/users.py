@@ -130,9 +130,9 @@ def reset_minio_user(username: str):
         abort(401)
 
     app.logger.debug("Checking request body")
-    if not request.json:
-        app.logger.error("Request body is not JSON")
-        abort(415, description="Request body must be JSON")
+    if request.headers.get('Content-Type') != 'application/json':
+        app.logger.error("Content-Type is not application/json")
+        abort(415, description="Content-Type must be application/json")
     app.logger.debug("Request body is JSON")
     app.logger.debug("Verifying username exists in database..")
     user = (
