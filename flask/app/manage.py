@@ -86,9 +86,7 @@ def seed_institutions(force: bool) -> None:
 
 
 def seed_dataset_types(force: bool) -> None:
-    app.logger.error("HELLO")
     if force or (DatasetType.query.count() == 0 and MetaDatasetType.query.count() == 0):
-        app.logger.error("HELLO")
         for dataset_type in [
             "RES",  # Research Exome Sequencing
             "CES",  # Clinical Exome Sequencing
