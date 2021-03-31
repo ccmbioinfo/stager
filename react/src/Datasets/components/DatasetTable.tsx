@@ -118,6 +118,7 @@ export default function DatasetTable() {
                 col.tableData.filterValue = filterVal;
                 MTRef.current.dataManager.changeApplyFilters(true);
                 MTRef.current.dataManager.filterData();
+                MTRef.current.onFilterChangeDebounce();
                 MTRef.current.onQueryChange();
             }
         }
