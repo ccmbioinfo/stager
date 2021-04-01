@@ -155,9 +155,7 @@ def assert_reset(username: str, client):
 
 def test_reset_minio_admin(test_database, minio_policy, client, login_as):
     login_as("admin")
-    assert (
-        client.post_json("/api/users/foo").status_code == 404
-    )
+    assert client.post_json("/api/users/foo").status_code == 404
 
     assert_reset("admin", client)
     assert_reset("user", client)
@@ -197,7 +195,9 @@ def test_create_user(test_database, client, login_as):
 
     login_as("admin")
     assert client.post_json("/api/users", json={"xml": "bad"}).status_code == 400
-    assert client.post_json("/api/users", json={"username": "dormammu"}).status_code == 400
+    assert (
+        client.post_json("/api/users", json={"username": "dormammu"}).status_code == 400
+    )
     assert (
         client.post_json(
             "/api/users",
@@ -307,7 +307,9 @@ def test_change_password_unauthorized(test_database, client, login_as):
     login_as("user")
     for user in users:
         assert (
-            client.patch_json(f"/api/users/{user}", json={"password": "hunter2"}).status_code
+            client.patch_json(
+                f"/api/users/{user}", json={"password": "hunter2"}
+            ).status_code
             == 403
         )
 

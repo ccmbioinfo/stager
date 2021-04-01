@@ -83,7 +83,7 @@ def login():
 @routes.route("/api/logout", methods=["POST"])
 @login_required
 def logout():
-    if request.headers.get('Content-Type') != 'application/json':
+    if request.headers.get("Content-Type") != "application/json":
         app.logger.error("Logout failed as Content-Type is not JSON")
         abort(400, description="Content-Type must be JSON!")
     logout_user()

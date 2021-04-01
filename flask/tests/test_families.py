@@ -76,12 +76,10 @@ def test_get_family(test_database, client, login_as):
     )
     # Check number of datasets in response
     assert (
-        len(response.get_json()[0]["participants"]
-            [0]["tissue_samples"][0]["datasets"])
+        len(response.get_json()[0]["participants"][0]["tissue_samples"][0]["datasets"])
         == 1
         and len(
-            response.get_json()[
-                0]["participants"][1]["tissue_samples"][0]["datasets"]
+            response.get_json()[0]["participants"][1]["tissue_samples"][0]["datasets"]
         )
         == 1
     )
@@ -143,15 +141,13 @@ def test_update_family(test_database, client, login_as):
     login_as("user")
     # Test existence
     assert (
-        client.patch("/api/families/4",
-                     json={"family_codename": "C"}).status_code
+        client.patch("/api/families/4", json={"family_codename": "C"}).status_code
         == 404
     )
 
     # Test permission
     assert (
-        client.patch("/api/families/2",
-                     json={"family_codename": "C"}).status_code
+        client.patch("/api/families/2", json={"family_codename": "C"}).status_code
         == 404
     )
 
@@ -166,13 +162,11 @@ def test_update_family(test_database, client, login_as):
 
     # Test success
     assert (
-        client.patch("/api/families/1",
-                     json={"family_codename": "C"}).status_code
+        client.patch("/api/families/1", json={"family_codename": "C"}).status_code
         == 200
     )
     # Make sure it updated
-    family = models.Family.query.filter(
-        models.Family.family_id == 1).one_or_none()
+    family = models.Family.query.filter(models.Family.family_id == 1).one_or_none()
     assert family.family_codename == "C"
 
 
