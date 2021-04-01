@@ -237,10 +237,9 @@ datasets_analyses_table = db.Table(
     db.Model.metadata,
     db.Column("dataset_id", db.Integer, db.ForeignKey("dataset.dataset_id")),
     db.Column("analysis_id", db.Integer, db.ForeignKey("analysis.analysis_id")),
-    db.Column("zygosity", db.String(50)),
-    db.Column("burden", db.Integer),
-    db.Column("alt_depths", db.Integer),
+    db.UniqueConstraint("dataset_id", "analysis_id"),
 )
+# can't use ForeignKeyConstraint if you reference more than a single remote table
 
 
 @dataclass
@@ -255,7 +254,7 @@ class Dataset(db.Model):
     )
     notes: str = db.Column(db.Text)
     condition: DatasetCondition = db.Column(db.Enum(DatasetCondition), nullable=False)
-    extraction_protocol: str = db.Column(db.String(100))
+    extraction_protocol: str = db.Column(db.String(150))
     capture_kit: str = db.Column(db.String(50))
     library_prep_method: str = db.Column(db.String(50))
     library_prep_date: datetime = db.Column(db.Date)
@@ -425,18 +424,21 @@ class Variation(str, Enum):
     Stop_Lost = "Stop_Lost"
     Start_lost = "Start_lost"
     Protein_Altering_Variant = "Protein_Altering_Variant"
-    Start_Retrained_Variant = "Start_Retrained_Variant"
+    Start_Retained_Variant = "Start_Retained_Variant"
     Mature_miRNA_Variant = "Mature_miRNA_Variant"
-    Stop_Retained_Variant = "Stop_Retained_Variant"
 
 
+@dataclass
 class Gene(db.Model):
     gene_id: int = db.Column(db.Integer, primary_key=True)
-    hgnc_gene_id: int = db.Column(db.Integer)
+    hgnc_gene_id: int = db.Column(db.Integer, unique=True)
     ensembl_id: int = db.Column(db.Integer)
+    gene: str = db.Column(db.String(50))
     hgnc_gene_name: str = db.Column(db.String(50))
+    variant = db.relationship("Variant", back_populates="gene")
 
 
+@dataclass
 class Variant(db.Model):
     variant_id: int = db.Column(db.Integer, primary_key=True)
     analysis_id: int = db.Column(
@@ -446,7 +448,7 @@ class Variant(db.Model):
     reference_allele: str = db.Column(db.String(150), nullable=False)
     alt_allele: str = db.Column(db.String(150), nullable=False)
     variation: Variation = db.Column(db.Enum(Variation), nullable=False)
-    refseq_change = db.Column(db.String(150), nullable=False)
+    refseq_change = db.Column(db.String(250), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
     gene_id: int = db.Column(
         db.Integer,
@@ -457,3 +459,30 @@ class Variant(db.Model):
     polyphen_score: int = db.Column(db.Float, nullable=True)
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
+    gene = db.relationship("Gene", back_populates="variant")
+    __table_args__ = (db.UniqueConstraint("variant_id", "analysis_id"),)
+
+
+@dataclass
+class Genotype(db.Model):
+    variant_id: int = db.Column(
+        db.Integer, db.ForeignKey("variant.variant_id"), primary_key=True
+    )
+    analysis_id: int = db.Column(
+        db.Integer,
+        db.ForeignKey("analysis.analysis_id"),
+        primary_key=True,
+    )
+    dataset_id: int = db.Column(
+        db.Integer,
+        db.ForeignKey("dataset.dataset_id"),
+        primary_key=True,
+    )
+
+    variants = db.relationship("Variant", backref="variant_dataset_analysis")
+    analyses = db.relationship("Analysis", backref="variant_dataset_analysis")
+    datasets = db.relationship("Dataset", backref="variant_dataset_analysis")
+
+    zygosity: str = db.Column(db.String(50))
+    burden: int = db.Column(db.Integer)
+    alt_depths: int = db.Column(db.Integer)
