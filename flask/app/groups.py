@@ -4,6 +4,7 @@ from .extensions import db, login
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
 from .utils import check_admin, transaction_or_abort, mixin
+from .decorators import validate_json
 
 from minio import Minio
 from .madmin import MinioAdmin, stager_buckets_policy
@@ -77,10 +78,8 @@ def get_group(group_code):
 @groups_blueprint.route("/api/groups/<string:group_code>", methods=["PATCH"])
 @login_required
 @check_admin
+@validate_json()
 def update_group(group_code):
-
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
@@ -134,9 +133,8 @@ def update_group(group_code):
 @groups_blueprint.route("/api/groups", methods=["POST"])
 @login_required
 @check_admin
+@validate_json()
 def create_group():
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
     group_name = request.json.get("group_name")
     group_code = request.json.get("group_code")

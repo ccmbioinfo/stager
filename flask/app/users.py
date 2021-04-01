@@ -9,6 +9,7 @@ from . import models
 from .extensions import db
 from .madmin import MinioAdmin
 from .utils import check_admin, transaction_or_abort
+from .decorators import validate_json
 
 users_blueprint = Blueprint(
     "users",
@@ -119,6 +120,7 @@ def reset_minio_credentials(user: models.User) -> None:
 
 @users_blueprint.route("/api/users/<string:username>", methods=["POST"])
 @login_required
+@validate_json()
 def reset_minio_user(username: str):
     app.logger.debug("Verifying current user '%s' is authorized", current_user.username)
     if (
@@ -129,11 +131,6 @@ def reset_minio_user(username: str):
         app.logger.error("User is unauthorized")
         abort(401)
 
-    app.logger.debug("Checking request body")
-    if request.headers.get('Content-Type') != 'application/json':
-        app.logger.error("Content-Type is not application/json")
-        abort(415, description="Content-Type must be application/json")
-    app.logger.debug("Request body is JSON")
     app.logger.debug("Verifying username exists in database..")
     user = (
         models.User.query.options(joinedload(models.User.groups))
@@ -175,13 +172,8 @@ def verify_email(email: str) -> bool:
 @users_blueprint.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
+@validate_json()
 def create_user():
-
-    app.logger.debug("Checking request body")
-    if not request.json:
-        app.logger.error("Request body is not JSON")
-        abort(415, description="Request body must be JSON")
-    app.logger.debug("Request body is JSON")
 
     app.logger.debug(
         "Validating username: '%s', email: '%s', and password: '%s'",
@@ -280,12 +272,8 @@ def delete_user(username: str):
 
 @users_blueprint.route("/api/users/<string:username>", methods=["PATCH"])
 @login_required
+@validate_json()
 def update_user(username: str):
-    app.logger.debug("Checking request body")
-    if not request.json:
-        app.logger.error("Request body is not JSON")
-        abort(415, description="Request body must be JSON")
-    app.logger.debug("Request body is JSON")
 
     app.logger.debug("Verifying current user '%s' is admin..", current_user.username)
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:

@@ -9,6 +9,7 @@ from sqlalchemy.orm import aliased, contains_eager
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 
 from . import models
+from .decorators import validate_json
 from .extensions import db
 from .utils import (
     check_admin,
@@ -221,9 +222,8 @@ def get_analysis(id: int):
 
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
+@validate_json()
 def create_analysis():
-    if not request.json:
-        abort(415, description="Request body must be JSON!")
 
     pipeline_id = request.json.get("pipeline_id")
     if not isinstance(pipeline_id, int):
@@ -356,9 +356,8 @@ def delete_analysis(id: int):
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["PATCH"])
 @login_required
+@validate_json()
 def update_analysis(id: int):
-    if not request.json:
-        abort(415, description="Request body must be JSON!")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")

@@ -7,6 +7,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from . import models
 from .extensions import db
+from .decorators import validate_json
 from .utils import (
     check_admin,
     enum_validate,
@@ -199,10 +200,8 @@ def delete_participant(id: int):
 
 @participants_blueprint.route("/api/participants/<int:id>", methods=["PATCH"])
 @login_required
+@validate_json()
 def update_participant(id: int):
-
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -259,9 +258,8 @@ def update_participant(id: int):
 @participants_blueprint.route("/api/participants", methods=["POST"])
 @login_required
 @check_admin
+@validate_json()
 def create_participant():
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
     try:
         updated_by_id = current_user.user_id
