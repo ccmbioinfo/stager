@@ -4,6 +4,7 @@ import pytest
 from app import create_app, db
 from app.config import Config
 from app.models import *
+from flask.testing import FlaskClient
 
 
 class TestConfig(Config):
@@ -37,6 +38,26 @@ def application():
     yield test_app
 
 
+def add_json_content_header(kwargs: dict):
+    """helper method for injecting content-type: json into headers"""
+    headers = kwargs.pop("headers", {})
+    headers["Content-Type"] = "application/json"
+    kwargs["headers"] = headers
+    return kwargs
+
+
+class TestClient(FlaskClient):
+    """ Class that adds 2 convenience methods for testing routes constrained by json content-type """
+
+    def patch_json(self, *args, **kwargs):
+        """ add content-type: json to patch request """
+        return super().patch(*args, **add_json_content_header(kwargs))
+
+    def post_json(self, *args, **kwargs):
+        """ add content-type: json to post request """
+        return super().post(*args, **add_json_content_header(kwargs))
+
+
 @pytest.fixture
 def client(application):
     """
@@ -49,6 +70,7 @@ def client(application):
         db.create_all()
 
     # Do the things
+    application.test_client_class = TestClient
     with application.test_client() as test_client:
         with application.app_context():
             yield test_client
