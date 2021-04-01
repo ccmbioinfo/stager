@@ -266,7 +266,7 @@ def upgrade():
         ),
         sa.Column(
             "extraction_protocol",
-            sa.String(length=150),
+            sa.String(length=100),
             nullable=True,
         ),
         sa.Column("capture_kit", sa.String(length=50), nullable=True),

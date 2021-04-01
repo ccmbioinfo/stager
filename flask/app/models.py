@@ -254,7 +254,7 @@ class Dataset(db.Model):
     )
     notes: str = db.Column(db.Text)
     condition: DatasetCondition = db.Column(db.Enum(DatasetCondition), nullable=False)
-    extraction_protocol: str = db.Column(db.String(150))
+    extraction_protocol: str = db.Column(db.String(100))
     capture_kit: str = db.Column(db.String(50))
     library_prep_method: str = db.Column(db.String(50))
     library_prep_date: datetime = db.Column(db.Date)
@@ -432,10 +432,10 @@ class Variation(str, Enum):
 class Gene(db.Model):
     gene_id: int = db.Column(db.Integer, primary_key=True)
     hgnc_gene_id: int = db.Column(db.Integer, unique=True)
-    ensembl_id: int = db.Column(db.Integer)
+    ensembl_id: int = db.Column(db.Integer, unique=True)
     gene: str = db.Column(db.String(50))
     hgnc_gene_name: str = db.Column(db.String(50))
-    variant = db.relationship("Variant", back_populates="gene")
+    variant = db.relationship("Variant", uselist=False, backref="gene")
 
 
 @dataclass
@@ -459,7 +459,6 @@ class Variant(db.Model):
     polyphen_score: int = db.Column(db.Float, nullable=True)
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
-    gene = db.relationship("Gene", back_populates="variant")
     __table_args__ = (db.UniqueConstraint("variant_id", "analysis_id"),)
 
 
@@ -479,9 +478,9 @@ class Genotype(db.Model):
         primary_key=True,
     )
 
-    variants = db.relationship("Variant", backref="variant_dataset_analysis")
-    analyses = db.relationship("Analysis", backref="variant_dataset_analysis")
-    datasets = db.relationship("Dataset", backref="variant_dataset_analysis")
+    variants = db.relationship("Variant", backref="genotype")
+    analyses = db.relationship("Analysis", backref="genotype")
+    datasets = db.relationship("Dataset", backref="genotype")
 
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
