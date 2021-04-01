@@ -21,8 +21,6 @@ else
         $COMMAND db migrate -m "Initial migration."
     fi
     $COMMAND db upgrade
-    $COMMAND add-default-admin
-    $COMMAND add-default-data
-    export FLASK_ENV=development
+    $COMMAND db-seed-dev
     $COMMAND run "$@"
 fi

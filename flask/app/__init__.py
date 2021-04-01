@@ -30,7 +30,7 @@ def create_app(config):
 
     config_logger(app)
     register_extensions(app)
-    register_commands(app)
+    manage.register_commands(app)
     register_blueprints(app)
 
     return app
@@ -57,11 +57,6 @@ def register_extensions(app):
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
-
-
-def register_commands(app):
-    app.cli.add_command(manage.add_default_data)
-    app.cli.add_command(manage.add_default_admin)
 
 
 def config_logger(app):
