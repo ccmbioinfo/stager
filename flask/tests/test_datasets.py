@@ -124,17 +124,19 @@ def test_update_dataset_admin(client, test_database, login_as):
     """
     login_as("admin")
 
-    assert client.patch("/api/datasets/2").status_code == 415
     # Nonexistent
-    assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
+    assert client.patch_json(
+        "/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # Assume user identity that does not have permission
     assert (
-        client.patch("/api/datasets/2?user=1", json={"foo": "bar"}).status_code == 404
+        client.patch_json("/api/datasets/2?user=1",
+                          json={"foo": "bar"}).status_code == 404
     )
 
     # Bad dataset_type
     assert (
-        client.patch("/api/datasets/2", json={"dataset_type": "foo"}).status_code == 400
+        client.patch_json("/api/datasets/2",
+                          json={"dataset_type": "foo"}).status_code == 400
     )
 
     unaffected = [{"tissue_sample_id": 12}, {"analyses": []}]
@@ -163,11 +165,12 @@ def test_update_dataset_user(client, test_database, login_as):
     """
     login_as("user")
 
-    assert client.patch("/api/datasets/2").status_code == 415
     # Nonexistent
-    assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
+    assert client.patch_json(
+        "/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # No permission
-    assert client.patch("/api/datasets/2", json={"foo": "bar"}).status_code == 404
+    assert client.patch_json(
+        "/api/datasets/2", json={"foo": "bar"}).status_code == 404
 
     changes = [
         {"notes": "stop the count"},
@@ -226,7 +229,6 @@ def test_create_dataset(client, test_database, login_as):
     """
     login_as("admin")
 
-    assert client.post("/api/datasets").status_code == 415
     invalid_requests = [
         {"wait it's all 400 bad request": "always has been"},
         # Missing fields
@@ -237,7 +239,7 @@ def test_create_dataset(client, test_database, login_as):
         {"dataset_type": "foo", "tissue_sample_id": 1},
     ]
     for body in invalid_requests:
-        assert client.post("/api/datasets", json=body).status_code == 400
+        assert client.post_json("/api/datasets", json=body).status_code == 400
 
     # Nonexistent tissue sample
     assert (

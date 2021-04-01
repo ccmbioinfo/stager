@@ -147,20 +147,19 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
     """
     login_as("admin")
 
-    assert client.patch("/api/tissue_samples/2").status_code == 415
     # Nonexistent
     assert (
-        client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
+        client.patch_json("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
     )
     # Assume user identity that does not have permission
     assert (
-        client.patch("/api/tissue_samples/2?user=1", json={"foo": "bar"}).status_code
+        client.patch_json("/api/tissue_samples/2?user=1", json={"foo": "bar"}).status_code
         == 404
     )
 
     # Bad tissue_sample_type
     assert (
-        client.patch(
+        client.patch_json(
             "/api/tissue_samples/2", json={"tissue_sample_type": "foo"}
         ).status_code
         == 400
@@ -169,7 +168,7 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
     # test that non-editable columns do not change tissue_sample
     unaffected = [{"particpant_id": 12}, {"datasets": []}]
     for body in unaffected:
-        response = client.patch("/api/tissue_samples/2", json=body)
+        response = client.patch_json("/api/tissue_samples/2", json=body)
         assert response.status_code == 200
         tissue_sample = response.get_json()
         for key, value in body.items():
@@ -180,7 +179,7 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
         {"tissue_sample_type": "Saliva", "notes": "hello"},
     ]
     for body in changes:
-        response = client.patch("/api/tissue_samples/2", json=body)
+        response = client.patch_json("/api/tissue_samples/2", json=body)
         assert response.status_code == 200
         tissue_sample = response.get_json()
         for key, value in body.items():
@@ -193,13 +192,12 @@ def test_update_tissue_sample_user(client, test_database, login_as):
     """
     login_as("user")
 
-    assert client.patch("/api/tissue_samples/1").status_code == 415
     # Nonexistent
     assert (
-        client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
+        client.patch_json("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
     )
     # No permission
-    assert client.patch("/api/tissue_samples/3", json={"foo": "bar"}).status_code == 404
+    assert client.patch_json("/api/tissue_samples/3", json={"foo": "bar"}).status_code == 404
 
     # test that patch request is implemented
     changes = [
@@ -207,7 +205,7 @@ def test_update_tissue_sample_user(client, test_database, login_as):
         {"tissue_sample_type": "Saliva", "notes": "hello"},
     ]
     for body in changes:
-        response = client.patch("/api/tissue_samples/1", json=body)
+        response = client.patch_json("/api/tissue_samples/1", json=body)
         assert response.status_code == 200
         tissue_sample = response.get_json()
         assert tissue_sample["updated_by"] == "user"
