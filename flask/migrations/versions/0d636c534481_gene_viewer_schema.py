@@ -1,8 +1,8 @@
 """gene viewer schema
 
-Revision ID: fbb2516d8ed9
+Revision ID: 0d636c534481
 Revises: 2a2bc309568d
-Create Date: 2021-04-01 13:11:43.460048
+Create Date: 2021-04-05 18:02:53.459994
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "fbb2516d8ed9"
+revision = "0d636c534481"
 down_revision = "2a2bc309568d"
 branch_labels = None
 depends_on = None
@@ -26,6 +26,7 @@ def upgrade():
         sa.Column("gene", sa.String(length=50), nullable=True),
         sa.Column("hgnc_gene_name", sa.String(length=50), nullable=True),
         sa.PrimaryKeyConstraint("gene_id"),
+        sa.UniqueConstraint("ensembl_id"),
         sa.UniqueConstraint("hgnc_gene_id"),
     )
     op.create_table(
@@ -35,35 +36,7 @@ def upgrade():
         sa.Column("position", sa.String(length=20), nullable=False),
         sa.Column("reference_allele", sa.String(length=150), nullable=False),
         sa.Column("alt_allele", sa.String(length=150), nullable=False),
-        sa.Column(
-            "variation",
-            sa.Enum(
-                "Missense_Variant",
-                "Splice_Region_Variant",
-                "Intergenic_Variant",
-                "Intron_Variant",
-                "Frameshift_Variant",
-                "Upstream_Gene_Variant",
-                "Inframe_Deletion",
-                "Stop_Gained",
-                "Inframe_Insertion",
-                "Downstream_Gene_Variant",
-                "Synonymous_Variant",
-                "Non_Coding_Transcript_Exon_Variant",
-                "Splice_Acceptor_Variant",
-                "Splice_Donor_Variant",
-                "Three_prime_UTR_Variant",
-                "Five_prime_UTR_Variant",
-                "Regultory_Region_Variant",
-                "Stop_Lost",
-                "Start_lost",
-                "Protein_Altering_Variant",
-                "Start_Retained_Variant",
-                "Mature_miRNA_Variant",
-                name="variation",
-            ),
-            nullable=False,
-        ),
+        sa.Column("variation", sa.String(length=50), nullable=False),
         sa.Column("refseq_change", sa.String(length=250), nullable=True),
         sa.Column("depth", sa.Integer(), nullable=False),
         sa.Column("gene_id", sa.Integer(), nullable=True),
@@ -80,7 +53,6 @@ def upgrade():
             ["gene_id"], ["gene.gene_id"], onupdate="cascade", ondelete="restrict"
         ),
         sa.PrimaryKeyConstraint("variant_id"),
-        sa.UniqueConstraint("variant_id", "analysis_id"),
     )
     op.create_table(
         "genotype",
@@ -103,7 +75,6 @@ def upgrade():
             ["variant.variant_id"],
         ),
         sa.PrimaryKeyConstraint("variant_id", "analysis_id", "dataset_id"),
-        sa.UniqueConstraint("variant_id", "analysis_id", "dataset_id"),
     )
     op.create_unique_constraint(
         "datasets_analyses_composite_fk",

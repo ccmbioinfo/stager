@@ -371,7 +371,7 @@ class Analysis(db.Model):
     updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
     assignee = db.relationship("User", foreign_keys=[assignee_id], lazy="joined")
     requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
-    variant = db.relationship("Variant", backref="analysis")
+    variants = db.relationship("Variant", backref="analysis")
 
 
 @dataclass
@@ -403,36 +403,6 @@ class PipelineDatasets(db.Model):
     )
 
 
-class Variation(str, Enum):
-    Missense_Variant = "Missense_Variant"
-    Splice_Region_Variant = "Splice_Region_Variant"
-    Intergenic_Variant = "Intergenic_Variant"
-    Intron_Variant = "Intron_Variant"
-    Frameshift_Variant = "Frameshift_Variant"
-    Upstream_Gene_Variant = "Upstream_Gene_Variant"
-    Inframe_Deletion = "Inframe_Deletion"
-    Stop_Gained = "Stop_Gained"
-    Inframe_Insertion = "Inframe_Insertion"
-    Downstream_Gene_Variant = "Downstream_Gene_Variant"
-    Synonymous_Variant = "Synonymous_Variant"
-    Non_Coding_Transcript_Exon_Variant = "Non_Coding_Transcript_Exon_Variant"
-    Splice_Acceptor_Variant = "Splice_Acceptor_Variant"
-    Splice_Donor_Variant = "Splice_Donor_Variant"
-    Three_prime_UTR_Variant = "3_prime_UTR_Variant"
-    Five_prime_UTR_Variant = "5_prime_UTR_Variant"
-    Regultory_Region_Variant = "Regultory_Region_Variant"
-    Stop_Lost = "Stop_Lost"
-    Start_lost = "Start_lost"
-    Protein_Altering_Variant = "Protein_Altering_Variant"
-    Start_Retained_Variant = "Start_Retained_Variant"
-    Mature_miRNA_Variant = "Mature_miRNA_Variant"
-
-
-# gene can have many variants
-# one to many
-#
-
-
 @dataclass
 class Gene(db.Model):
     gene_id: int = db.Column(db.Integer, primary_key=True)
@@ -440,7 +410,7 @@ class Gene(db.Model):
     ensembl_id: int = db.Column(db.Integer, unique=True)
     gene: str = db.Column(db.String(50))
     hgnc_gene_name: str = db.Column(db.String(50))
-    variant = db.relationship("Variant", backref="gene")
+    variants = db.relationship("Variant", backref="gene")
 
 
 @dataclass
@@ -452,7 +422,7 @@ class Variant(db.Model):
     position: str = db.Column(db.String(20), nullable=False)
     reference_allele: str = db.Column(db.String(150), nullable=False)
     alt_allele: str = db.Column(db.String(150), nullable=False)
-    variation: Variation = db.Column(db.Enum(Variation), nullable=False)
+    variation: str = db.Column(db.String(50), nullable=False)
     refseq_change = db.Column(db.String(250), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
     gene_id: int = db.Column(
@@ -464,7 +434,6 @@ class Variant(db.Model):
     polyphen_score: int = db.Column(db.Float, nullable=True)
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
-    __table_args__ = (db.UniqueConstraint("variant_id", "analysis_id"),)
 
 
 @dataclass
@@ -483,9 +452,9 @@ class Genotype(db.Model):
         primary_key=True,
     )
 
-    variants = db.relationship("Variant", backref="genotype")
-    analyses = db.relationship("Analysis", backref="genotype")
-    datasets = db.relationship("Dataset", backref="genotype")
+    variant = db.relationship("Variant", backref="genotype")
+    analysis = db.relationship("Analysis", backref="genotype")
+    dataset = db.relationship("Dataset", backref="genotype")
 
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
