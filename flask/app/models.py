@@ -428,6 +428,11 @@ class Variation(str, Enum):
     Mature_miRNA_Variant = "Mature_miRNA_Variant"
 
 
+# gene can have many variants
+# one to many
+#
+
+
 @dataclass
 class Gene(db.Model):
     gene_id: int = db.Column(db.Integer, primary_key=True)
@@ -435,7 +440,7 @@ class Gene(db.Model):
     ensembl_id: int = db.Column(db.Integer, unique=True)
     gene: str = db.Column(db.String(50))
     hgnc_gene_name: str = db.Column(db.String(50))
-    variant = db.relationship("Variant", uselist=False, backref="gene")
+    variant = db.relationship("Variant", backref="gene")
 
 
 @dataclass
