@@ -44,6 +44,18 @@ def check_admin(handler):
     return decorated_handler
 
 
+def validate_json(handler):
+    @wraps(handler)
+    def decorated_handler(*args, **kwargs):
+        """ validate content-type header and run optional Validator on input """
+        if request.headers.get("Content-Type") != "application/json":
+            abort(415, description="Content-Type must be application/json")
+        return handler(*args, **kwargs)
+
+    return decorated_handler
+
+
+
 # Support general paged query parameters
 def paged(handler):
     @wraps(handler)

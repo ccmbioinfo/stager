@@ -5,8 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from .extensions import db, login
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
-from .utils import check_admin, transaction_or_abort
-from .decorators import validate_json
+from .utils import check_admin, validate_json, transaction_or_abort
 
 family_blueprint = Blueprint(
     "families",
@@ -231,7 +230,7 @@ def delete_family(id: int):
 
 @family_blueprint.route("/api/families/<int:id>", methods=["PATCH"])
 @login_required
-@validate_json()
+@validate_json
 def update_family(id: int):
 
     app.logger.debug("Checking family codename is supplied in body")
@@ -305,7 +304,7 @@ def update_family(id: int):
 @family_blueprint.route("/api/families", methods=["POST"])
 @login_required
 @check_admin
-@validate_json()
+@validate_json
 def create_family():
 
     try:

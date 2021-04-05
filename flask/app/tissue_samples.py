@@ -5,8 +5,13 @@ from flask_login import login_user, logout_user, current_user, login_required
 from .extensions import db, login
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
-from .utils import check_admin, transaction_or_abort, mixin, enum_validate
-from .decorators import validate_json
+from .utils import (
+    check_admin,
+    transaction_or_abort,
+    mixin,
+    enum_validate,
+    validate_json,
+)
 
 
 tissue_blueprint = Blueprint(
@@ -125,7 +130,7 @@ def delete_tissue_sample(id: int):
 @tissue_blueprint.route("/api/tissue_samples", methods=["POST"])
 @login_required
 @check_admin
-@validate_json()
+@validate_json
 def create_tissue_sample():
 
     app.logger.debug("Checking tissue sample is supplied in body")
@@ -206,7 +211,7 @@ def create_tissue_sample():
 
 @tissue_blueprint.route("/api/tissue_samples/<int:id>", methods=["PATCH"])
 @login_required
-@validate_json()
+@validate_json
 def update_tissue_sample(id: int):
 
     app.logger.debug("Retrieving user id..")

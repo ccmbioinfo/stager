@@ -8,8 +8,7 @@ from sqlalchemy.orm import joinedload
 from . import models
 from .extensions import db
 from .madmin import MinioAdmin
-from .utils import check_admin, transaction_or_abort
-from .decorators import validate_json
+from .utils import check_admin, transaction_or_abort, validate_json
 
 users_blueprint = Blueprint(
     "users",
@@ -120,7 +119,7 @@ def reset_minio_credentials(user: models.User) -> None:
 
 @users_blueprint.route("/api/users/<string:username>", methods=["POST"])
 @login_required
-@validate_json()
+@validate_json
 def reset_minio_user(username: str):
     app.logger.debug("Verifying current user '%s' is authorized", current_user.username)
     if (
@@ -172,7 +171,7 @@ def verify_email(email: str) -> bool:
 @users_blueprint.route("/api/users", methods=["POST"])
 @login_required
 @check_admin
-@validate_json()
+@validate_json
 def create_user():
 
     app.logger.debug(
@@ -272,7 +271,7 @@ def delete_user(username: str):
 
 @users_blueprint.route("/api/users/<string:username>", methods=["PATCH"])
 @login_required
-@validate_json()
+@validate_json
 def update_user(username: str):
 
     app.logger.debug("Verifying current user '%s' is admin..", current_user.username)

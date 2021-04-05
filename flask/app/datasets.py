@@ -7,7 +7,6 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from . import models
 from .extensions import db
-from .decorators import validate_json
 from .utils import (
     check_admin,
     enum_validate,
@@ -16,6 +15,7 @@ from .utils import (
     mixin,
     paged,
     transaction_or_abort,
+    validate_json,
 )
 
 editable_columns = [
@@ -273,7 +273,7 @@ def get_dataset(id: int):
 
 @datasets_blueprint.route("/api/datasets/<int:id>", methods=["PATCH"])
 @login_required
-@validate_json()
+@validate_json
 def update_dataset(id: int):
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -346,7 +346,7 @@ def delete_dataset(id: int):
 
 @datasets_blueprint.route("/api/datasets", methods=["POST"])
 @login_required
-@validate_json()
+@validate_json
 def create_dataset():
 
     dataset_type = request.json.get("dataset_type")
