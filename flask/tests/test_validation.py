@@ -4,6 +4,7 @@ from unittest import TestCase
 from werkzeug.exceptions import UnsupportedMediaType
 from app.utils import validate_json
 
+
 class ValidationTest(TestCase):
     """ test class for validation """
 

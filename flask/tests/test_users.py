@@ -182,7 +182,12 @@ def test_reset_minio_user(test_database, minio_policy, client, login_as):
         ).status_code
         == 401
     )
-    assert client.post("/api/users/admin", headers={"Content-Type": "application/json"}).status_code == 401
+    assert (
+        client.post(
+            "/api/users/admin", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 401
+    )
 
     assert_reset("user", client)
 
@@ -299,7 +304,12 @@ def test_delete_unauthorized(test_database, client, login_as):
 
 def test_delete_user_with_datasets(test_database, client, login_as):
     login_as("admin")
-    assert client.delete(f"/api/users/admin", headers={"Content-Type": "application/json"}).status_code == 422
+    assert (
+        client.delete(
+            f"/api/users/admin", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 422
+    )
 
 
 def test_delete_user(test_database, minio_policy, client, login_as):

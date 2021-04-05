@@ -85,7 +85,7 @@ def login():
 def logout():
     if request.headers.get("Content-Type") != "application/json":
         app.logger.error("Logout failed as Content-Type is not JSON")
-        abort(400, description="Content-Type must be JSON!")
+        abort(415, description="Content-Type must be JSON!")
     logout_user()
     return "", 204
 

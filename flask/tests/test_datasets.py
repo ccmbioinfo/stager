@@ -125,19 +125,15 @@ def test_update_dataset_admin(client, test_database, login_as):
     login_as("admin")
 
     # Nonexistent
-    assert (
-        client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
-    )
+    assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # Assume user identity that does not have permission
     assert (
-        client.patch("/api/datasets/2?user=1", json={"foo": "bar"}).status_code
-        == 404
+        client.patch("/api/datasets/2?user=1", json={"foo": "bar"}).status_code == 404
     )
 
     # Bad dataset_type
     assert (
-        client.patch("/api/datasets/2", json={"dataset_type": "foo"}).status_code
-        == 400
+        client.patch("/api/datasets/2", json={"dataset_type": "foo"}).status_code == 400
     )
 
     unaffected = [{"tissue_sample_id": 12}, {"analyses": []}]
@@ -167,9 +163,7 @@ def test_update_dataset_user(client, test_database, login_as):
     login_as("user")
 
     # Nonexistent
-    assert (
-        client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
-    )
+    assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # No permission
     assert client.patch("/api/datasets/2", json={"foo": "bar"}).status_code == 404
 

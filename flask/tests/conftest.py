@@ -45,6 +45,7 @@ def add_json_content_header(kwargs: dict):
     kwargs["headers"] = headers
     return kwargs
 
+
 @pytest.fixture
 def client(application):
     """

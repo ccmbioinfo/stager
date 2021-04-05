@@ -15,7 +15,7 @@ from .utils import (
     mixin,
     paged,
     transaction_or_abort,
-    validate_json
+    validate_json,
 )
 
 editable_columns = [

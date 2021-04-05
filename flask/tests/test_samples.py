@@ -149,14 +149,11 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
 
     # Nonexistent
     assert (
-        client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code
-        == 404
+        client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
     )
     # Assume user identity that does not have permission
     assert (
-        client.patch(
-            "/api/tissue_samples/2?user=1", json={"foo": "bar"}
-        ).status_code
+        client.patch("/api/tissue_samples/2?user=1", json={"foo": "bar"}).status_code
         == 404
     )
 
@@ -197,14 +194,10 @@ def test_update_tissue_sample_user(client, test_database, login_as):
 
     # Nonexistent
     assert (
-        client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code
-        == 404
+        client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
     )
     # No permission
-    assert (
-        client.patch("/api/tissue_samples/3", json={"foo": "bar"}).status_code
-        == 404
-    )
+    assert client.patch("/api/tissue_samples/3", json={"foo": "bar"}).status_code == 404
 
     # test that patch request is implemented
     changes = [

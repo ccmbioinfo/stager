@@ -55,7 +55,6 @@ def validate_json(handler):
     return decorated_handler
 
 
-
 # Support general paged query parameters
 def paged(handler):
     @wraps(handler)
