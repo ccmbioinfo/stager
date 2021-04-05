@@ -57,6 +57,8 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
 
+    const DISPLAY_MAX = 50;
+
     const handlePopoverOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -68,7 +70,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
         <>
             <Tooltip title="See notifications" arrow>
                 <IconButton onClick={handlePopoverOpen} className={classes.icon}>
-                    <Badge badgeContent={analyses?.length} color="secondary">
+                    <Badge badgeContent={analyses?.length} max={DISPLAY_MAX} color="secondary">
                         <NotificationsActive fontSize="large" style={{ fill: "white" }} />
                     </Badge>
                 </IconButton>
@@ -104,15 +106,19 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                         <Box>
                             <div className={classes.notifications}>
                                 {analyses &&
-                                    analyses.map(analysis => (
-                                        <Notification
-                                            analysis={analysis}
-                                            onClick={() => {
-                                                setClickedAnalysis(analysis);
-                                                setOpenDialog(true);
-                                            }}
-                                        />
-                                    ))}
+                                    analyses
+                                        .sort((a, b) => (a.updated > b.updated ? -1 : 1))
+                                        .slice(0, DISPLAY_MAX)
+                                        .map(analysis => (
+                                            <Notification
+                                                key={analysis.analysis_id}
+                                                analysis={analysis}
+                                                onClick={() => {
+                                                    setClickedAnalysis(analysis);
+                                                    setOpenDialog(true);
+                                                }}
+                                            />
+                                        ))}
                             </div>
                         </Box>
                     </Paper>
