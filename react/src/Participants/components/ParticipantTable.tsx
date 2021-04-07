@@ -111,7 +111,6 @@ export default function ParticipantTable() {
                     {
                         title: "Notes",
                         field: "notes",
-                        grouping: false,
                         render: rowData => <Note>{rowData.notes}</Note>,
                         editComponent: props => (
                             <TextField
@@ -129,7 +128,6 @@ export default function ParticipantTable() {
                         editable: "never",
                         lookup: datasetTypes,
                         filtering: false,
-                        grouping: false,
                         render: rowData => (
                             <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
                         ),
@@ -143,7 +141,6 @@ export default function ParticipantTable() {
                     filtering: true,
                     search: false,
                     padding: "dense",
-                    grouping: true,
                     exportAllData: true,
                     exportButton: { csv: true, pdf: false },
                     exportCsv: (columns, data) => exportCSV(columns, data, "Participants"),

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useHistory, useParams } from "react-router";
 import { makeStyles } from "@material-ui/core/styles";
 import { Chip, IconButton, TextField, Container } from "@material-ui/core";
@@ -14,7 +14,7 @@ import {
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV } from "../functions";
+import { isRowSelected, exportCSV, updateTableFilter, toTitleCase } from "../functions";
 import { Analysis, PipelineStatus } from "../typings";
 import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
 import { AnalysisOptions, useAnalysesPage, useAnalysisUpdateMutation } from "../hooks";
@@ -152,12 +152,12 @@ export default function Analyses() {
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
-    const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
-
     const history = useHistory();
 
     const { enqueueSnackbar } = useSnackbar();
     const { id: paramID } = useParams<{ id: string }>();
+
+    const tableRef = useRef<any>();
 
     function changeAnalysisState(filter: (row: Analysis) => boolean, newState: PipelineStatus) {
         return _changeStateForSelectedRows(activeRows, filter, analysisUpdateMutation, newState);
@@ -275,6 +275,7 @@ export default function Analyses() {
 
             <Container maxWidth={false} className={classes.container}>
                 <MaterialTable
+                    tableRef={tableRef}
                     columns={[
                         {
                             title: "Analysis ID",
@@ -325,7 +326,6 @@ export default function Analyses() {
                             field: "analysis_state",
                             type: "string",
                             editable: "never",
-                            defaultFilter: chipFilter,
                         },
                         {
                             title: "Notes",
@@ -526,37 +526,22 @@ export default function Analyses() {
                             <div>
                                 <MTableToolbar {...props} />
                                 <div style={{ marginLeft: "24px" }}>
-                                    <Chip
-                                        label="Completed"
-                                        clickable
-                                        className={classes.chip}
-                                        onClick={() => setChipFilter(PipelineStatus.COMPLETED)}
-                                    />
-                                    <Chip
-                                        label="Running"
-                                        clickable
-                                        className={classes.chip}
-                                        onClick={() => setChipFilter(PipelineStatus.RUNNING)}
-                                    />
-                                    <Chip
-                                        label="Pending"
-                                        clickable
-                                        className={classes.chip}
-                                        onClick={() => setChipFilter(PipelineStatus.PENDING)}
-                                    />
-                                    <Chip
-                                        label="Error"
-                                        clickable
-                                        className={classes.chip}
-                                        onClick={() => setChipFilter(PipelineStatus.ERROR)}
-                                    />
-                                    <Chip
-                                        label="Cancelled"
-                                        clickable
-                                        className={classes.chip}
-                                        onClick={() => setChipFilter(PipelineStatus.CANCELLED)}
-                                    />
-                                    <IconButton onClick={() => setChipFilter("")}>
+                                    {Object.entries(PipelineStatus).map(([k, v]) => (
+                                        <Chip
+                                            key={k}
+                                            label={toTitleCase(k)}
+                                            clickable
+                                            className={classes.chip}
+                                            onClick={() =>
+                                                updateTableFilter(tableRef, "analysis_state", v)
+                                            }
+                                        />
+                                    ))}
+                                    <IconButton
+                                        onClick={() =>
+                                            updateTableFilter(tableRef, "analysis_state", "")
+                                        }
+                                    >
                                         <Cancel />
                                     </IconButton>
                                 </div>
