@@ -164,14 +164,12 @@ export default function DatasetTable() {
                     {
                         title: "Notes",
                         field: "notes",
-                        grouping: false,
                         render: RenderNotes,
                         editComponent: EditNotesComponent,
                     },
                     {
                         title: "Files",
                         field: "linked_files",
-                        grouping: false,
                         // can search by number of files, or by file name
                         customFilterAndSearch: customFileFilterAndSearch,
                         customSort: linkedFileSort,
@@ -202,7 +200,6 @@ export default function DatasetTable() {
                     filtering: true,
                     search: false,
                     padding: "dense",
-                    grouping: true,
                     exportAllData: true,
                     exportButton: { csv: true, pdf: false },
                     exportCsv: wrappedExportCsv,
