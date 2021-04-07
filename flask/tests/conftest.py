@@ -38,14 +38,6 @@ def application():
     yield test_app
 
 
-def add_json_content_header(kwargs: dict):
-    """helper method for injecting content-type: json into headers"""
-    headers = kwargs.pop("headers", {})
-    headers["Content-Type"] = "application/json"
-    kwargs["headers"] = headers
-    return kwargs
-
-
 @pytest.fixture
 def client(application):
     """
