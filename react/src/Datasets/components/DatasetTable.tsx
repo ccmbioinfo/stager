@@ -5,7 +5,7 @@ import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
 import MaterialTable, { EditComponentProps, MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
-import { toKeyValue, exportCSV, rowDiff } from "../../functions";
+import { toKeyValue, exportCSV, rowDiff, updateTableFilter } from "../../functions";
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
@@ -105,24 +105,6 @@ export default function DatasetTable() {
 
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
-
-    /**
-     * Update a table filter from outside the table
-     * MaterialTable holds its own state, so to avoid a rerender and state flush we need to get a handle \
-     * on the instance, make imperative updates, and force an internal state change
-     */
-    const updateFilter = (column: string, filterVal: string | string[]) => {
-        if (MTRef.current) {
-            const col = MTRef.current.dataManager.columns.find((c: any) => c.field === column);
-            if (col) {
-                col.tableData.filterValue = filterVal;
-                MTRef.current.dataManager.changeApplyFilters(true);
-                MTRef.current.dataManager.filterData();
-                MTRef.current.onFilterChangeDebounce();
-                MTRef.current.onQueryChange();
-            }
-        }
-    };
 
     return (
         <div>
@@ -256,14 +238,18 @@ export default function DatasetTable() {
                                             key={metatype}
                                             label={metatype}
                                             onClick={() =>
-                                                updateFilter("dataset_type", datasetTypes)
+                                                updateTableFilter(
+                                                    MTRef,
+                                                    "dataset_type",
+                                                    datasetTypes
+                                                )
                                             }
                                             clickable
                                             className={classes.chip}
                                         />
                                     ))}
                                 <IconButton
-                                    onClick={() => updateFilter("dataset_type", "")}
+                                    onClick={() => updateTableFilter(MTRef, "dataset_type", "")}
                                     className={classes.chip}
                                 >
                                     <Cancel />

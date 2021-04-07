@@ -218,10 +218,14 @@ export function getDataEntryHeaders() {
  * Assume that input string is alphanumeric with underscores.
  */
 export function snakeCaseToTitle(str: string): string {
-    return str
-        .split("_")
-        .join(" ")
-        .replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1));
+    return str.split("_").map(toTitleCase).join(" ");
+}
+
+/**
+ * Given a string, returns the string with first word capitalized
+ */
+export function toTitleCase(str: string): string {
+    return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 }
 
 export function createFieldObj(
@@ -350,3 +354,25 @@ export function strIsEmpty(str?: string): boolean {
     const testRegex = /\S/g;
     return str ? !testRegex.test(str) : true;
 }
+
+/**
+ * Update a material-table filter from outside the table
+ * MaterialTable holds its own state, so to avoid a rerender and state flush we need to get a handle \
+ * on the instance, make imperative updates, and force an internal state change
+ */
+export const updateTableFilter = (
+    tableRef: React.MutableRefObject<any>,
+    column: string,
+    filterVal: string | string[]
+) => {
+    if (tableRef.current) {
+        const col = tableRef.current.dataManager.columns.find((c: any) => c.field === column);
+        if (col) {
+            col.tableData.filterValue = filterVal;
+            tableRef.current.dataManager.changeApplyFilters(true);
+            tableRef.current.dataManager.filterData();
+            tableRef.current.onFilterChangeDebounce();
+            tableRef.current.onQueryChange();
+        }
+    }
+};
