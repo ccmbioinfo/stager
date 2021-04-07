@@ -152,8 +152,6 @@ export default function Analyses() {
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
-    const [chipFilter, setChipFilter] = useState<string>(""); // filter by state
-
     const history = useHistory();
 
     const { enqueueSnackbar } = useSnackbar();
@@ -328,7 +326,6 @@ export default function Analyses() {
                             field: "analysis_state",
                             type: "string",
                             editable: "never",
-                            defaultFilter: chipFilter,
                         },
                         {
                             title: "Notes",
