@@ -66,8 +66,8 @@ function OIDCRedirectHandler(props: LoginProps) {
                         if (loginResponse.ok) {
                             const currentUser = await loginResponse.json();
                             setCurrentUser(currentUser);
+                            history.push("/");
                             setAuthenticated(true);
-                            history.push("/participants");
                         } else {
                             setError("Failed to authorize. Please try again.");
                         }
@@ -94,8 +94,8 @@ function OIDCRedirectHandler(props: LoginProps) {
                             : `Hello ${message}! Redirecting...`}
                     </Typography>
                     {(isLoading || !error) && (
-                        <Container>
-                            <CircularProgress />
+                        <Container className={classes.center}>
+                            <CircularProgress className={classes.center} />
                         </Container>
                     )}
                     {!isLoading && error && (
@@ -115,11 +115,12 @@ const useStyles = makeStyles(theme => ({
         height: "100%",
         backgroundColor: theme.palette.background.default,
     },
+    title: {
+        display: "flex",
+        justifyContent: "center",
+    },
     form: {
         padding: theme.spacing(2),
-    },
-    textField: {
-        display: "block",
     },
     button: {
         display: "block",
@@ -144,17 +145,19 @@ export default function LoginForm(props: LoginProps) {
     return (
         <BrowserRouter>
             <Switch>
-                <Route
-                    path="/oidc_callback"
-                    render={renderProps => <OIDCRedirectHandler {...props} {...renderProps} />}
-                />
+                <Route path="/oidc_callback" render={() => <OIDCRedirectHandler {...props} />} />
                 <Route
                     path="/"
-                    render={renderProps => (
+                    render={() => (
                         <Box className={classes.root}>
                             <Container maxWidth="sm">
                                 <Paper component="form" className={classes.form}>
-                                    <Typography variant="h5" component="h2" gutterBottom>
+                                    <Typography
+                                        variant="h5"
+                                        component="h2"
+                                        gutterBottom
+                                        className={classes.title}
+                                    >
                                         Sign in to {process.env.REACT_APP_NAME}
                                     </Typography>
                                     <Button
