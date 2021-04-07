@@ -22,8 +22,13 @@ interface FetchOptions {
  * Fetch the provided url. Return the JSON response if successful.
  * Throw the response if unsuccessful.
  */
-export async function basicFetch(url: string, options?: FetchOptions) {
-    const response = await fetch(url);
+export async function basicFetch(
+    url: string,
+    params: Record<string, string> = {},
+    options?: FetchOptions
+) {
+    const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
+    const response = await fetch(`${url}${paramString}`);
     if (response.ok) {
         return response.json();
     } else {
