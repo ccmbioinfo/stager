@@ -10,7 +10,6 @@ from flask import (
     current_app as app,
     jsonify,
     request,
-    session,
     redirect,
 )
 from flask.helpers import url_for
@@ -94,23 +93,35 @@ def login():
     )
 
 
-@routes.route("/login")
+@routes.route("/api/login", methods=["GET"])
 def oidc_login():
+    """
+    Return a curated login URL for the frontend to use.
+    """
     provider = app.config.get("OIDC_PROVIDER")
     app.logger.debug(f"Creating client with {provider}...")
     client = oauth.create_client(provider)
     app.logger.debug("Building redirect url...")
-    redirect_uri = url_for("routes.authorize", _external=True)
+    # It's safe to take redirect_uris from the client since
+    # the OAuth provider maintains a list of valid redirect_uris
+    redirect_uri = request.args.get(
+        "redirect_uri", url_for("routes.authorize", _external=True)
+    )
     app.logger.debug(f"Redirect url built: {redirect_uri}")
     app.logger.debug("Getting authorize url...")
-    resp = client.authorize_redirect(redirect_uri)
-    app.logger.debug(f"auth response: {resp}")
-    return resp
+    return client.authorize_redirect(redirect_uri)
 
 
 @routes.route("/api/authorize")
 def authorize():
+    """
+    Make a token request using the following request args:
+    code: The Authorization Code from the Authorization Endpoint
+    state: Used for CSRF mitigation, returned by Auth. Endpoint
+    session_state: Used for CSRF mitigation, returned by Auth. Endpoint
+    """
     client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+    # Exchange authorization code for token
     token = client.authorize_access_token()
     userinfo = client.parse_id_token(token)
 
@@ -118,18 +129,22 @@ def authorize():
     subject = userinfo["sub"]
     username = userinfo["preferred_username"]
 
-    # Only way to uniquely identify an End-User with OpenID
+    # Use issuer, subject to uniquely identify End-User
     user = models.User.query.filter_by(subject=subject, issuer=issuer).first()
     if user is None:
-        # TODO: Figure out what to do if user exists in OpenID provider but not Stager
+        # TODO: Figure out what to do if user exists in OpenID provider but not in Stager
         app.logger.error(f"OIDC user {username} is not tracked by Stager.")
+        abort(404, description="User not found")
     elif user.deactivated:
         app.logger.error("Unauthorized OIDC user")
+        abort(401, "Unauthorized")
     else:
         app.logger.info(f"OIDC user {user.username} logged in successfully.")
         login_user(user)
+        app.logger.debug(f"current_user: {current_user}")
 
-    return redirect("http://localhost:3000/")
+    # User details are fetched at /api/login
+    return jsonify({"username": user.username})
 
 
 @routes.route("/api/logout", methods=["POST"])

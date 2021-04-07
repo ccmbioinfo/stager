@@ -171,7 +171,12 @@ def add_keycloak_client(access_token: str):
         "name": "Stager",
         # We set our own client secret instead of letting Keycloak make one
         "secret": app.config.get("OIDC_CLIENT_SECRET"),
-        "redirectUris": [app_url + "/*", "http://localhost:5000/*"],
+        "redirectUris": [
+            app_url + "/*",
+            "http://localhost:5000/*",
+            "http://localhost:3000/*",
+        ],
+        "webOrigins": ["+"],
     }
     response = requests.post(
         url, json=new_client, headers={"Authorization": f"Bearer {access_token}"}

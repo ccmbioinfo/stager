@@ -40,12 +40,12 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         },
     });
 
-    function setCurrentUser(user: CurrentUser) {
+    const setCurrentUser = (user: CurrentUser) => {
         setUserClient(oldClient => ({
             updateUser: oldClient.updateUser,
             user: user,
         }));
-    }
+    };
 
     async function signout() {
         const result = await fetch("/api/logout", {
