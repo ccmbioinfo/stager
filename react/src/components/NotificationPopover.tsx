@@ -51,7 +51,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const lastLoginDate = useMemo(() => new Date(lastLoginTime), [lastLoginTime]);
-    const { data: analysisQuery } = useAnalysesQuery(lastLoginDate);
+    const { data: analysisQuery } = useAnalysesQuery({ limit: 50, since: lastLoginDate });
     const analyses = useMemo(() => analysisQuery?.data || [], [analysisQuery]);
     const popoverOpen = Boolean(anchorEl);
     const [clickedAnalysis, setClickedAnalysis] = useState<Analysis | null>(null);
@@ -106,6 +106,7 @@ export default function NotificationPopover({ lastLoginTime }: NotificationPopov
                                 {analyses &&
                                     analyses.map(analysis => (
                                         <Notification
+                                            key={analysis.analysis_id}
                                             analysis={analysis}
                                             onClick={() => {
                                                 setClickedAnalysis(analysis);

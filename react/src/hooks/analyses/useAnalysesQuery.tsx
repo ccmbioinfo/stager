@@ -5,10 +5,8 @@ import { jsonToAnalyses } from "../../functions";
 import { Analysis } from "../../typings";
 import { basicFetch } from "../utils";
 
-async function fetchAnalyses(since?: string) {
-    let params = "";
-    if (since) params = "?updated=after," + since;
-    return await basicFetch("/api/analyses" + params);
+async function fetchAnalyses(params: Record<string, string> = {}) {
+    return await basicFetch("/api/analyses", params);
 }
 
 /**
@@ -19,19 +17,19 @@ async function fetchAnalyses(since?: string) {
  * Can take a parameter to limit returned analyses to
  * those that changed state after the provided date.
  */
-export function useAnalysesQuery(since?: Date) {
+export function useAnalysesQuery(params: Record<string, any> = {}) {
     // Construct the query key based on whether 'since' is defined
     let queryKey: any[] | string = ["analyses"];
     let dateString: string | undefined;
+    const { since, ...rest } = params;
     if (since) {
-        dateString = dayjs(since).format("YYYY-MM-DDTHH:mm:ssZ");
+        dateString = dayjs(params.since).format("YYYY-MM-DDTHH:mm:ssZ");
         queryKey.push({ since: dateString });
+        rest.updated = `after,${dateString}`;
     }
     if (queryKey.length === 1) queryKey = queryKey[0];
 
-    const result = useQuery<QueryResult<Analysis>, Response>(queryKey, () =>
-        fetchAnalyses(dateString)
-    );
+    const result = useQuery<QueryResult<Analysis>, Response>(queryKey, () => fetchAnalyses(rest));
     if (result.isSuccess)
         result.data = {
             ...result.data,
