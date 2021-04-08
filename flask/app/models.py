@@ -237,9 +237,10 @@ datasets_analyses_table = db.Table(
     db.Model.metadata,
     db.Column("dataset_id", db.Integer, db.ForeignKey("dataset.dataset_id")),
     db.Column("analysis_id", db.Integer, db.ForeignKey("analysis.analysis_id")),
-    db.UniqueConstraint("dataset_id", "analysis_id"),
+    db.PrimaryKeyConstraint(
+        "dataset_id", "analysis_id"
+    ),  # for our composite FK on genotype
 )
-# can't use ForeignKeyConstraint if you reference more than a single remote table
 
 
 @dataclass
@@ -438,8 +439,11 @@ class Variant(db.Model):
 
 @dataclass
 class Genotype(db.Model):
+
     variant_id: int = db.Column(
-        db.Integer, db.ForeignKey("variant.variant_id"), primary_key=True
+        db.Integer,
+        db.ForeignKey("variant.variant_id"),
+        primary_key=True,
     )
     analysis_id: int = db.Column(
         db.Integer,
@@ -452,10 +456,30 @@ class Genotype(db.Model):
         primary_key=True,
     )
 
-    variant = db.relationship("Variant", backref="genotype")
-    analysis = db.relationship("Analysis", backref="genotype")
-    dataset = db.relationship("Dataset", backref="genotype")
+    variant = db.relationship("Variant", backref="genotype", foreign_keys=[variant_id])
+
+    analysis = db.relationship(
+        "Analysis",
+        backref="genotype",
+        foreign_keys=[analysis_id],
+    )
+    dataset = db.relationship(
+        "Dataset",
+        backref="genotype",
+        foreign_keys=[dataset_id],
+    )
 
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
     alt_depths: int = db.Column(db.Integer)
+
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            [analysis_id, dataset_id],
+            ["datasets_analyses.analysis_id", "datasets_analyses.dataset_id"],
+        ),
+        db.ForeignKeyConstraint(
+            [analysis_id, variant_id],
+            ["variant.analysis_id", "variant.variant_id"],
+        ),
+    )

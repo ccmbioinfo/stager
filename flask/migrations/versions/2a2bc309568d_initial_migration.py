@@ -321,6 +321,7 @@ def upgrade():
         "datasets_analyses",
         sa.Column("dataset_id", sa.Integer(), nullable=True),
         sa.Column("analysis_id", sa.Integer(), nullable=True),
+        sa.PrimaryKeyConstraint("dataset_id", "analysis_id"),
         sa.ForeignKeyConstraint(
             ["analysis_id"],
             ["analysis.analysis_id"],
