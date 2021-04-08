@@ -142,7 +142,6 @@ def test_get_user_user(test_database, client, login_as):
 
 
 def assert_reset(username: str, client):
-    assert client.post(f"/api/users/{username}").status_code == 415
     response = client.post(f"/api/users/{username}", json={"no": "html forms"})
     assert response.status_code == 200
     credentials = response.get_json()
@@ -156,9 +155,11 @@ def assert_reset(username: str, client):
 
 def test_reset_minio_admin(test_database, minio_policy, client, login_as):
     login_as("admin")
-    assert client.post("/api/users/foo").status_code == 415
     assert (
-        client.post("/api/users/foo", json={"oh love me": "mister"}).status_code == 404
+        client.post(
+            "/api/users/foo", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 404
     )
 
     assert_reset("admin", client)
@@ -166,12 +167,27 @@ def test_reset_minio_admin(test_database, minio_policy, client, login_as):
 
 
 def test_reset_minio_user(test_database, minio_policy, client, login_as):
-    assert client.post("/api/users/foo").status_code == 401
+    assert (
+        client.post(
+            "/api/users/foo", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 401
+    )
     assert client.get("/api/users/user").status_code == 401
 
     login_as("user")
-    assert client.post("/api/users/foo").status_code == 401
-    assert client.post("/api/users/admin").status_code == 401
+    assert (
+        client.post(
+            "/api/users/foo", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            "/api/users/admin", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 401
+    )
 
     assert_reset("user", client)
 
@@ -192,13 +208,22 @@ def assert_new_user(body, client, login_as):
 
 
 def test_create_user(test_database, client, login_as):
-    assert client.post("/api/users").status_code == 401
+    assert (
+        client.post(
+            "/api/users", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 401
+    )
     login_as("user")
-    assert client.post("/api/users").status_code == 401
+    assert (
+        client.post(
+            "/api/users", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 401
+    )
     assert client.post("/api/users", json={"xml": "bad"}).status_code == 401
 
     login_as("admin")
-    assert client.post("/api/users").status_code == 415
     assert client.post("/api/users", json={"xml": "bad"}).status_code == 400
     assert client.post("/api/users", json={"username": "dormammu"}).status_code == 400
     assert (
@@ -279,7 +304,12 @@ def test_delete_unauthorized(test_database, client, login_as):
 
 def test_delete_user_with_datasets(test_database, client, login_as):
     login_as("admin")
-    assert client.delete(f"/api/users/admin").status_code == 422
+    assert (
+        client.delete(
+            f"/api/users/admin", headers={"Content-Type": "application/json"}
+        ).status_code
+        == 422
+    )
 
 
 def test_delete_user(test_database, minio_policy, client, login_as):
@@ -309,7 +339,6 @@ def test_change_password_unauthorized(test_database, client, login_as):
     users = ["admin", "doesnotexist"]
     login_as("user")
     for user in users:
-        assert client.patch(f"/api/users/{user}").status_code == 415
         assert (
             client.patch(f"/api/users/{user}", json={"password": "hunter2"}).status_code
             == 403

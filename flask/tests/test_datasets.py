@@ -124,7 +124,6 @@ def test_update_dataset_admin(client, test_database, login_as):
     """
     login_as("admin")
 
-    assert client.patch("/api/datasets/2").status_code == 415
     # Nonexistent
     assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # Assume user identity that does not have permission
@@ -163,7 +162,6 @@ def test_update_dataset_user(client, test_database, login_as):
     """
     login_as("user")
 
-    assert client.patch("/api/datasets/2").status_code == 415
     # Nonexistent
     assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # No permission
@@ -226,7 +224,6 @@ def test_create_dataset(client, test_database, login_as):
     """
     login_as("admin")
 
-    assert client.post("/api/datasets").status_code == 415
     invalid_requests = [
         {"wait it's all 400 bad request": "always has been"},
         # Missing fields

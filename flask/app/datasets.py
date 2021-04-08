@@ -15,6 +15,7 @@ from .utils import (
     mixin,
     paged,
     transaction_or_abort,
+    validate_json,
 )
 
 editable_columns = [
@@ -272,9 +273,8 @@ def get_dataset(id: int):
 
 @datasets_blueprint.route("/api/datasets/<int:id>", methods=["PATCH"])
 @login_required
+@validate_json
 def update_dataset(id: int):
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -346,9 +346,8 @@ def delete_dataset(id: int):
 
 @datasets_blueprint.route("/api/datasets", methods=["POST"])
 @login_required
+@validate_json
 def create_dataset():
-    if not request.json:
-        abort(415, description="Request body must be JSON")
 
     dataset_type = request.json.get("dataset_type")
     if not dataset_type:

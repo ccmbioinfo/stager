@@ -147,7 +147,6 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
     """
     login_as("admin")
 
-    assert client.patch("/api/tissue_samples/2").status_code == 415
     # Nonexistent
     assert (
         client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404
@@ -193,7 +192,6 @@ def test_update_tissue_sample_user(client, test_database, login_as):
     """
     login_as("user")
 
-    assert client.patch("/api/tissue_samples/1").status_code == 415
     # Nonexistent
     assert (
         client.patch("/api/tissue_samples/400", json={"foo": "bar"}).status_code == 404

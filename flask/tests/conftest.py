@@ -4,6 +4,7 @@ import pytest
 from app import create_app, db
 from app.config import Config
 from app.models import *
+from flask.testing import FlaskClient
 
 
 class TestConfig(Config):

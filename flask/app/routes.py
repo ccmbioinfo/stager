@@ -11,7 +11,7 @@ from sqlalchemy.orm import joinedload
 
 from . import models
 from .extensions import db
-from .utils import enum_validate, transaction_or_abort
+from .utils import enum_validate, transaction_or_abort, validate_json
 
 routes = Blueprint("routes", __name__)
 
@@ -82,10 +82,8 @@ def login():
 
 @routes.route("/api/logout", methods=["POST"])
 @login_required
+@validate_json
 def logout():
-    if not request.json:
-        app.logger.error("Logout failed as request body is not JSON")
-        abort(400, description="Request body must be JSON!")
     logout_user()
     return "", 204
 

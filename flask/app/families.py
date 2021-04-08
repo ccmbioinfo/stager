@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from .extensions import db, login
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
-from .utils import check_admin, transaction_or_abort
+from .utils import check_admin, validate_json, transaction_or_abort
 
 family_blueprint = Blueprint(
     "families",
@@ -230,13 +230,8 @@ def delete_family(id: int):
 
 @family_blueprint.route("/api/families/<int:id>", methods=["PATCH"])
 @login_required
+@validate_json
 def update_family(id: int):
-
-    app.logger.debug("Checking request body")
-    if not request.json:
-        app.logger.error("Request body is not JSON")
-        abort(415, description="Request body must be JSON")
-    app.logger.debug("Request body is JSON")
 
     app.logger.debug("Checking family codename is supplied in body")
     try:
@@ -309,13 +304,8 @@ def update_family(id: int):
 @family_blueprint.route("/api/families", methods=["POST"])
 @login_required
 @check_admin
+@validate_json
 def create_family():
-
-    app.logger.debug("Checking request body")
-    if not request.json:
-        app.logger.error("Request body is not JSON")
-        abort(415, description="Request body must be JSON")
-    app.logger.debug("Request body is JSON")
 
     try:
         app.logger.debug(
