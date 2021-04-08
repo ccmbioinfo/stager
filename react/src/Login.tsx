@@ -123,7 +123,7 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(2),
     },
     button: {
-        display: "block",
+        marginTop: theme.spacing(1),
     },
 }));
 
@@ -167,6 +167,7 @@ export default function LoginForm(props: LoginProps) {
                                         type="submit"
                                         disabled={!loginUrl}
                                         href={loginUrl}
+                                        fullWidth
                                     >
                                         Sign in using Keycloak
                                     </Button>
