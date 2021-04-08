@@ -1,8 +1,8 @@
 """Initial migration.
 
 Revision ID: 2a2bc309568d
-Revises: 
-Create Date: 2020-12-22 21:31:27.469232
+Revises:
+Create Date: 2021-03-25 21:31:27.469232
 
 """
 from alembic import op
@@ -35,8 +35,9 @@ def upgrade():
     op.create_table(
         "institution",
         sa.Column("institution_id", sa.Integer(), nullable=False),
-        sa.Column("institution", sa.String(length=100), nullable=True),
+        sa.Column("institution", sa.String(length=100), nullable=False),
         sa.PrimaryKeyConstraint("institution_id"),
+        sa.UniqueConstraint("institution", "institution"),
     )
     op.create_table(
         "metadataset_type",
@@ -265,7 +266,7 @@ def upgrade():
         ),
         sa.Column(
             "extraction_protocol",
-            sa.Enum("Something", name="datasetextractionprotocol"),
+            sa.String(length=100),
             nullable=True,
         ),
         sa.Column("capture_kit", sa.String(length=50), nullable=True),
@@ -320,6 +321,7 @@ def upgrade():
         "datasets_analyses",
         sa.Column("dataset_id", sa.Integer(), nullable=True),
         sa.Column("analysis_id", sa.Integer(), nullable=True),
+        sa.PrimaryKeyConstraint("dataset_id", "analysis_id"),
         sa.ForeignKeyConstraint(
             ["analysis_id"],
             ["analysis.analysis_id"],
@@ -358,6 +360,10 @@ def upgrade():
         ),
         sa.PrimaryKeyConstraint("dataset_id"),
     )
+    op.execute(
+        "ALTER TABLE `group` ADD CHECK (LENGTH(group_code) > 2 AND group_code REGEXP '^[a-z,0-9,-]*$' AND BINARY group_code = LOWER(group_code))"
+    )
+    op.execute("ALTER TABLE participant ADD CHECK (DAY(month_of_birth) = 1);")
     # ### end Alembic commands ###
 
 
