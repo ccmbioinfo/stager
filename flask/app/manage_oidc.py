@@ -16,12 +16,7 @@ from flask.cli import with_appcontext
 
 from .models import User
 
-
-def get_host():
-    """
-    Helper function. Return Keycloak admin host url.
-    """
-    return os.getenv("KEYCLOAK_ADMIN_URL", "http://keycloak:8080/auth/admin/realms")
+keycloak_host = os.getenv("KEYCLOAK_HOST", "http://keycloak:8080")
 
 
 def set_g(name: str, default: Any = None):
@@ -48,13 +43,7 @@ def fetch_admin_well_known(realm: str = "master"):
     cached = g.get(cache_key)
     if cached is not None:
         return cached
-    url = (
-        os.getenv(
-            "KEYCLOAK_AUTH_URL",
-            "http://keycloak:8080/auth",
-        )
-        + f"/realms/{realm}/.well-known/openid-configuration"
-    )
+    url = keycloak_host + f"/auth/realms/{realm}/.well-known/openid-configuration"
     response = requests.get(url)
     print(f"Well-known endpoint fetched at {url}")
     if response.ok:
@@ -132,7 +121,7 @@ def add_keycloak_realm(access_token: str):
     Keycloak, if it does not already exist.
     """
     print("Creating CCM realm in Keycloak...")
-    url = get_host() + "/"
+    url = keycloak_host + "/auth/admin/realms/"
     # https://www.keycloak.org/docs-api/12.0/rest-api/index.html#_realmrepresentation
     new_realm = {
         "realm": "ccm",
@@ -162,7 +151,7 @@ def add_keycloak_client(access_token: str):
     """
     print("Adding Stager client to Keycloak...")
     app_url = "http://app:5000"
-    url = get_host() + "/ccm/clients"
+    url = keycloak_host + "/auth/admin/realms/ccm/clients"
     # https://www.keycloak.org/docs-api/12.0/rest-api/index.html#_clientrepresentation
     new_client = {
         "adminUrl": app_url,
@@ -202,7 +191,7 @@ def add_keycloak_user(access_token: str, user: User, password: str = None):
     Return False if unsuccessful.
     """
     print(f"Adding user {user.username} to Keycloak...")
-    url = get_host() + "/ccm/users"
+    url = keycloak_host + "/auth/admin/realms/ccm/users"
     # If a password is provided, then we create a user with that password
     # Otherwise, we specify that this user must set a password themselves
     # and they login the first time with their username
@@ -272,7 +261,7 @@ def setup_keycloak():
     if access_token:
         # Check if it's already setup
         client_id = app.config.get("OIDC_CLIENT_ID")
-        url = get_host() + f"/ccm/clients/{client_id}"
+        url = keycloak_host + f"/auth/admin/realms/ccm/clients/{client_id}"
         response = requests.get(
             url, headers={"Authorization": f"Bearer {access_token}"}
         )
