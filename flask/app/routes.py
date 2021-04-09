@@ -19,7 +19,7 @@ from sqlalchemy.orm import joinedload
 
 from . import models
 from .extensions import db, oauth
-from .utils import enum_validate, transaction_or_abort, validate_json
+from .utils import enum_validate, transaction_or_abort, validate_json, update_last_login
 
 routes = Blueprint("routes", __name__)
 
@@ -31,29 +31,11 @@ def version():
 
 @routes.route("/api/login", methods=["POST"])
 def login():
-    last_login = None
     app.logger.info("Checking whether user is authenticated")
     if current_user.is_authenticated:
         # get/update last login
         app.logger.info("User is authenticated, updating last login..")
-        try:
-            last_login = current_user.last_login
-            current_user.last_login = datetime.now()
-            db.session.commit()
-            app.logger.info("Last login for '%s' updated..", current_user.username)
-        except:
-            app.logger.warning(
-                "Failed to updated last_login for '%s'", current_user.username
-            )
-
-        return jsonify(
-            {
-                "username": current_user.username,
-                "last_login": last_login,
-                "is_admin": current_user.is_admin,
-                "groups": [group.group_code for group in current_user.groups],
-            }
-        )
+        return update_last_login()
 
     if app.config.get("ENABLE_OIDC"):
         # Current user has to authenticate through /login -> /api/authorize flow
@@ -71,26 +53,13 @@ def login():
         app.logger.error("Unauthorized user")
         abort(401, description="Unauthorized")
 
-    # get/update last login
-    try:
-        last_login = user.last_login
-        user.last_login = datetime.now()
-        db.session.commit()
-    except:
-        app.logger.warning("Failed to update last_login for '%s'", user.username)
-
+    user_details = update_last_login(user)
     login_user(user)
+
     app.logger.info(
         "User '%s' has successfully logged in, returning JSON.", user.username
     )
-    return jsonify(
-        {
-            "username": user.username,
-            "last_login": last_login,
-            "is_admin": current_user.is_admin,
-            "groups": [group.group_code for group in current_user.groups],
-        }
-    )
+    return user_details
 
 
 @routes.route("/api/login", methods=["GET"])
@@ -143,8 +112,7 @@ def authorize():
         login_user(user)
         app.logger.debug(f"current_user: {current_user}")
 
-    # User details are fetched at /api/login
-    return jsonify({"username": user.username})
+    return update_last_login(user)
 
 
 @routes.route("/api/logout", methods=["POST"])

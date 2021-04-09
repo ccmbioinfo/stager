@@ -61,16 +61,9 @@ function OIDCRedirectHandler(props: LoginProps) {
                     setIsLoading(false);
                     if (user.username) {
                         setMessage(user.username);
-                        // Try to login and redirect
-                        const loginResponse = await fetch("/api/login", { method: "POST" });
-                        if (loginResponse.ok) {
-                            const currentUser = await loginResponse.json();
-                            setCurrentUser(currentUser);
-                            history.push("/");
-                            setAuthenticated(true);
-                        } else {
-                            setError("Failed to authorize. Please try again.");
-                        }
+                        setCurrentUser(user);
+                        history.push("/");
+                        setAuthenticated(true);
                     } else {
                         setError("Failed to authorize. Please try again.");
                     }

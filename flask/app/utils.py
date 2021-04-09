@@ -11,6 +11,7 @@ from werkzeug.exceptions import HTTPException
 
 from .extensions import db
 from .madmin import MinioAdmin
+from .models import User
 
 
 def handle_error(e):
@@ -151,6 +152,33 @@ def get_minio_admin() -> MinioAdmin:
         endpoint=app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
+    )
+
+
+def update_last_login(user: User = None):
+    """
+    Update last login for given user and return login details.
+    Use current_user if no user is specified.
+    """
+    if not user:
+        user = current_user  # type: ignore
+
+    last_login = None
+    try:
+        last_login = user.last_login
+        user.last_login = datetime.now()
+        db.session.commit()
+        app.logger.info("Last login for '%s' updated..", user.username)
+    except:
+        app.logger.warning("Failed to updated last_login for '%s'", user.username)
+
+    return jsonify(
+        {
+            "username": user.username,
+            "last_login": last_login,
+            "is_admin": user.is_admin,
+            "groups": [group.group_code for group in user.groups],
+        }
     )
 
 
