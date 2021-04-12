@@ -3,7 +3,7 @@ import { Gene } from "../../typings";
 import { basicFetch } from "../utils";
 
 async function fetchGenes(params: Record<string, any>) {
-    return await basicFetch("/api/genes", params);
+    return await basicFetch("/api/summary/genes", params);
 }
 
 /**

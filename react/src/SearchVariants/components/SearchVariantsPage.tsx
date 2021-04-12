@@ -22,6 +22,8 @@ const useStyles = makeStyles(theme => ({
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGene, setSelectedGene] = useState<Gene>();
 
+    // currently a dummy endpoint
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const { data: variants } = useVariantsQuery({ search: selectedGene }, "csv", !!selectedGene);
 
     useEffect(() => {

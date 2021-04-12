@@ -5,6 +5,7 @@ from .utils import DateTimeEncoder
 
 from app import (
     buckets,
+    genes,
     routes,
     families,
     datasets,
@@ -45,6 +46,7 @@ def register_blueprints(app):
     app.register_blueprint(participants.participants_blueprint)
     app.register_blueprint(tissue_samples.tissue_blueprint)
     app.register_blueprint(analyses.analyses_blueprint)
+    app.register_blueprint(genes.genes_blueprint)
 
     app.register_blueprint(buckets.bucket_blueprint)
     app.register_blueprint(groups.groups_blueprint)
