@@ -13,22 +13,17 @@ import {
 } from "react-query";
 import { SetDataOptions } from "react-query/types/core/query";
 
-interface FetchOptions {
-    onSuccess?: (res: Response) => any;
-    onError?: (res: Response) => any;
-}
-
 /**
  * Fetch the provided url. Return the JSON response if successful.
  * Throw the response if unsuccessful.
  */
 export async function basicFetch(
     url: string,
-    params: Record<string, string> = {},
-    options?: FetchOptions
+    params: Record<string, any> = {},
+    options: RequestInit | undefined = undefined
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await fetch(`${url}${paramString}`);
+    const response = await fetch(`${url}${paramString}`, options);
     if (response.ok) {
         return response.json();
     } else {

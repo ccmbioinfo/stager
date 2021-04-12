@@ -19,6 +19,7 @@ import {
     ChevronLeft as ChevronLeftIcon,
     Dns as DnsIcon,
     People as PeopleIcon,
+    Search as SearchIcon,
     Settings as SettingsIcon,
     ShowChart as ShowChartIcon,
     MeetingRoom as MeetingRoomIcon,
@@ -37,6 +38,7 @@ import AddDatasets from "./AddDatasets";
 import Settings from "./Settings";
 import Groups from "./Groups";
 import Admin from "./Admin";
+import SearchVariants from "./SearchVariants";
 import { ListItemRouterLink, NotificationPopover } from "./components";
 import logo from "./assets/logo.png";
 import { useUserContext } from "./contexts";
@@ -128,7 +130,7 @@ const useStyles = (darkMode: boolean) =>
 interface RouteItem extends RouteProps {
     pageName: string; // Displays in AppBar
     linkTo?: string; // Used as path for links
-    main: (props: any) => JSX.Element; // The page itself
+    main: React.ComponentType; // The page itself
     icon?: React.ReactElement; // Icon for menu links
     requiresAdmin?: boolean; // If the route requires admin
 }
@@ -188,6 +190,12 @@ const routes: RouteItem[] = [
         main: Groups,
         icon: <SupervisedUserCircle />,
         requiresAdmin: true,
+    },
+    {
+        pageName: "Search Variants",
+        path: "/search-variants",
+        main: SearchVariants,
+        icon: <SearchIcon />,
     },
 ];
 
