@@ -256,7 +256,11 @@ def setup_keycloak():
     Must be called before adding default data so that
     the Stager client exists to add users to.
     """
-    print("Setting up Keycloak...")
+    if not app.config.get("ENABLE_OIDC"):
+        print("OIDC support disabled. Keycloak setup skipped.")
+        return
+
+    print("OIDC support enabled. Setting up Keycloak...")
     access_token = obtain_admin_token()
     if access_token:
         # Check if it's already setup

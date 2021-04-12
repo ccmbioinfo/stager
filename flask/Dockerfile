@@ -14,6 +14,6 @@ ENV FLASK_ENV development
 # Prevent accidentally running this image in production.
 # Must mount the source code in the working directory to run this image.
 EXPOSE 5000
-ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./utils/wait-for-it.sh", "keycloak:8080", "--timeout=0", "--", "./utils/run.sh"]
+ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./utils/run.sh"]
 # Allows us to replace the parameters to run tests or formatters instead of the app.
 CMD ["--host=0.0.0.0"]
