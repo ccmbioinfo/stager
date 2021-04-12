@@ -124,9 +124,10 @@ def variant_summary():
 
     app.logger.debug("Parsing query parameters..")
 
-    genes = request.args.getlist("genes")
+    genes = request.args.get("panel")
+    genes = genes.split(";")
 
-    app.logger.info("Requested genes are %s", genes)
+    app.logger.info("Requested gene panel: %s", genes)
 
     if len(genes) == 0:
 
