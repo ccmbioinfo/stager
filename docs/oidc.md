@@ -14,6 +14,7 @@ Additionally, the following `.env` variables must be set after registering Stage
 -   `OIDC_CLIENT_SECRET` - The client_secret provided by the Identity Provider.
 -   `OIDC_WELL_KNOWN` - The URL for the .well-known/openid-configuration endpoint.
 -   `OIDC_PROVIDER` - Name of the Identity Provider (eg. keycloak, auth0), for internal use.
+-   `REACT_APP_API_ENDPOINT` - Full URL of backend API. Should match the proxy in `react/package.json`
 
 ## Testing OIDC in development
 
@@ -28,6 +29,8 @@ This launches the same backend stack as `docker-compose.yaml`, but with a dedica
 -   The entrypoint script for the `mysql` container is overwritten by `./init`, which sets up two distinct databases in the same `mysql` container; one for Stager and one for Keycloak.
 -   The entrypoint for the `app` container is replaced by a longer entrypoint that waits for both `mysql` and `keycloak` services to become ready before running Flask.
 -   Hard-coded OIDC-specific environment variables (like those above) are passed to `app` which are needed for setting up Keycloak with default data on build.
+
+OIDC Support is enabled if and only if the backend stack is run using the `docker-compose.oidc.yaml` compose file, or if environment variable `ENABLE_OIDC` is set and non-empty.
 
 ### Possible issues
 

@@ -7,7 +7,7 @@ import { ReactQueryDevtools } from "react-query/devtools";
 
 import { emptyUser, UserClient, UserContext } from "./contexts";
 import { clearQueryCache } from "./hooks/utils";
-import LoginForm from "./Login";
+import LoginPage from "./Login";
 import Navigation from "./Navigation";
 import { CurrentUser } from "./typings";
 
@@ -26,6 +26,7 @@ const queryClient = new QueryClient({
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+    const [oauthEnabled, setOauthEnabled] = useState<boolean | null>(null);
 
     // React Context needs the provider value to be a complete package in a state var
     // or else extra re-renders will happen apparently
@@ -68,8 +69,15 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             }
             setAuthenticated(result.ok);
         })();
+        (async () => {
+            const result = await fetch("/api");
+            if (result.ok) {
+                const apiInfo = await result.json();
+                setOauthEnabled(apiInfo.oauth);
+            }
+        })();
     }, []);
-    if (authenticated === null) {
+    if (authenticated === null || oauthEnabled === null) {
         return <></>;
     } else if (authenticated) {
         return (
@@ -103,7 +111,13 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             </UserContext.Provider>
         );
     } else {
-        return <LoginForm setAuthenticated={setAuthenticated} setCurrentUser={setCurrentUser} />;
+        return (
+            <LoginPage
+                setAuthenticated={setAuthenticated}
+                setCurrentUser={setCurrentUser}
+                oauth={oauthEnabled}
+            />
+        );
     }
 }
 

@@ -26,7 +26,9 @@ routes = Blueprint("routes", __name__)
 
 @routes.route("/api", strict_slashes=False)
 def version():
-    return jsonify({"sha": app.config.get("GIT_SHA")})
+    return jsonify(
+        {"sha": app.config.get("GIT_SHA"), "oauth": app.config.get("ENABLE_OIDC")}
+    )
 
 
 @routes.route("/api/login", methods=["POST"])
@@ -67,6 +69,8 @@ def oidc_login():
     """
     Return a curated login URL for the frontend to use.
     """
+    if not app.config.get("ENABLE_OIDC"):
+        abort(405)
     provider = app.config.get("OIDC_PROVIDER")
     app.logger.debug(f"Creating client with {provider}...")
     client = oauth.create_client(provider)
@@ -89,6 +93,8 @@ def authorize():
     state: Used for CSRF mitigation, returned by Auth. Endpoint
     session_state: Used for CSRF mitigation, returned by Auth. Endpoint
     """
+    if not app.config.get("ENABLE_OIDC"):
+        abort(404)
     client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
     # Exchange authorization code for token
     token = client.authorize_access_token()

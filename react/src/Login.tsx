@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Box,
     Button,
@@ -6,17 +6,19 @@ import {
     Container,
     makeStyles,
     Paper,
+    TextField,
     Typography,
 } from "@material-ui/core";
-import { BrowserRouter, Route, Switch, useHistory, useLocation } from "react-router-dom";
+import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
 import { CurrentUser } from "./typings";
 
 interface LoginProps {
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
+    oauth: boolean;
 }
 
-const useCallbackStyles = makeStyles(theme => ({
+const useStyles = makeStyles(theme => ({
     root: {
         display: "flex",
         flexDirection: "column",
@@ -31,6 +33,12 @@ const useCallbackStyles = makeStyles(theme => ({
         display: "flex",
         justifyContent: "center",
     },
+    textField: {
+        display: "block",
+    },
+    button: {
+        marginTop: theme.spacing(1),
+    },
 }));
 
 /**
@@ -41,7 +49,7 @@ const useCallbackStyles = makeStyles(theme => ({
  */
 function OIDCRedirectHandler(props: LoginProps) {
     const { setCurrentUser, setAuthenticated } = props;
-    const classes = useCallbackStyles();
+    const classes = useStyles();
     const location = useLocation();
     const history = useHistory();
     const [isLoading, setIsLoading] = useState(true);
@@ -100,32 +108,91 @@ function OIDCRedirectHandler(props: LoginProps) {
     );
 }
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        height: "100%",
-        backgroundColor: theme.palette.background.default,
-    },
-    title: {
-        display: "flex",
-        justifyContent: "center",
-    },
-    form: {
-        padding: theme.spacing(2),
-    },
-    button: {
-        marginTop: theme.spacing(1),
-    },
-}));
+/**
+ * Original login form. Used when OAuth is not enabled.
+ */
+function LoginForm({
+    setAuthenticated = (auth: boolean) => {},
+    setCurrentUser = (user: CurrentUser) => {},
+}) {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    function bind(set: typeof setUsername) {
+        // @ts-ignore
+        return e => set(e.target.value);
+    }
+    async function authenticate(e: React.MouseEvent) {
+        e.preventDefault();
+        const result = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+        if (result.ok) {
+            const data = await result.json();
+            setCurrentUser(data);
+            setError("");
+        } else {
+            setError(await result.text());
+        }
+        setAuthenticated(result.ok);
+    }
+    const classes = useStyles();
+    return (
+        <>
+            <Typography variant="h5" component="h2" gutterBottom className={classes.center}>
+                Sign in to {process.env.REACT_APP_NAME}
+            </Typography>
+            {error && (
+                <Typography component="p" color="error">
+                    {error}
+                </Typography>
+            )}
+            <form>
+                <TextField
+                    required
+                    variant="filled"
+                    fullWidth
+                    margin="normal"
+                    className={classes.textField}
+                    label="Username"
+                    onChange={bind(setUsername)}
+                />
+                <TextField
+                    required
+                    variant="filled"
+                    fullWidth
+                    margin="normal"
+                    className={classes.textField}
+                    type="password"
+                    label="Password"
+                    onChange={bind(setPassword)}
+                    autoComplete="current-password"
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className={classes.button}
+                    type="submit"
+                    onClick={authenticate}
+                >
+                    Sign in
+                </Button>
+            </form>
+        </>
+    );
+}
 
-export default function LoginForm(props: LoginProps) {
+/**
+ * A button whose href is derived from the backend API endpoint.
+ * Used for redirecting to OAuth login.
+ */
+function OauthLoginForm() {
     const classes = useStyles();
     const [loginUrl, setLoginUrl] = useState("");
 
     useEffect(() => {
-        document.title = `Sign in | ${process.env.REACT_APP_NAME}`;
         if (process.env.REACT_APP_API_ENDPOINT) {
             // Build login link with redirect route
             const redirect = new URL(`${window.location.origin}/oidc_callback`);
@@ -136,34 +203,61 @@ export default function LoginForm(props: LoginProps) {
     }, []);
 
     return (
+        <>
+            <Typography variant="h5" component="h2" gutterBottom className={classes.center}>
+                Sign in to {process.env.REACT_APP_NAME}
+            </Typography>
+            <form>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className={classes.button}
+                    type="submit"
+                    disabled={!loginUrl}
+                    href={loginUrl}
+                    fullWidth
+                >
+                    Sign in using Keycloak
+                </Button>
+            </form>
+        </>
+    );
+}
+
+/**
+ * Wrapper component for rendering all possible login forms,
+ * based on whether OAuth / OIDC is enabled or disabled.
+ */
+export default function LoginPage(props: LoginProps) {
+    const classes = useStyles();
+
+    useEffect(() => {
+        document.title = `Sign in | ${process.env.REACT_APP_NAME}`;
+    }, []);
+
+    const OAuthCallback = useMemo(
+        () => (props.oauth ? <OIDCRedirectHandler {...props} /> : <Redirect to="/" />),
+        [props]
+    );
+
+    const FormDisplay: JSX.Element = useMemo(() => {
+        if (props.oauth === true) {
+            return <OauthLoginForm />;
+        }
+        return <LoginForm {...props} />;
+    }, [props.oauth]);
+
+    return (
         <BrowserRouter>
             <Switch>
-                <Route path="/oidc_callback" render={() => <OIDCRedirectHandler {...props} />} />
+                <Route path="/oidc_callback" render={() => OAuthCallback} />
                 <Route
                     path="/"
                     render={() => (
                         <Box className={classes.root}>
                             <Container maxWidth="sm">
                                 <Paper component="form" className={classes.form}>
-                                    <Typography
-                                        variant="h5"
-                                        component="h2"
-                                        gutterBottom
-                                        className={classes.title}
-                                    >
-                                        Sign in to {process.env.REACT_APP_NAME}
-                                    </Typography>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        className={classes.button}
-                                        type="submit"
-                                        disabled={!loginUrl}
-                                        href={loginUrl}
-                                        fullWidth
-                                    >
-                                        Sign in using Keycloak
-                                    </Button>
+                                    {FormDisplay}
                                 </Paper>
                             </Container>
                         </Box>
