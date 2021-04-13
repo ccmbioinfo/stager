@@ -1,4 +1,5 @@
 """ test gene api endpoings """
+from csv import reader
 from app import db
 from app.models import Gene
 
@@ -15,14 +16,32 @@ def setup_db():
     db.session.commit()
 
 
-def test_fetch_genes(test_database, client, login_as):
-    """ can we fetch genes? """
+def test_fetch_genes_json(test_database, client, login_as):
+    """ can we fetch genes as json? """
     setup_db()
     login_as("user")
-    response = client.get("/api/summary/genes", headers={"Accept": "application/json"})
+    response = client.get("/api/summary/genes", headers={"Accept": "*/*"})
     assert response.status_code == 200
     assert len(response.get_json()["data"]) == 1
     assert response.get_json()["total_count"] == 1
+
+
+def test_fetch_genes_csv(test_database, client, login_as):
+    """ can we fetch genes as csv? """
+    setup_db()
+    login_as("user")
+    response = client.get("/api/summary/genes", headers={"Accept": "text/csv"})
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "text/csv"
+    rows = []
+
+    gene_reader = reader(response.data.decode().split("\n"))
+    for row in gene_reader:
+        rows.append(row)
+    dct = dict(zip(rows[0], rows[1]))
+    assert dct["gene_id"] == "1"
+    assert dct["hgnc_gene_name"] == "FOOBAR"
+    assert dct["ensembl_id"] == "1000"
 
 
 def test_search_genes(client, test_database, login_as):

@@ -1,10 +1,12 @@
-from flask import abort, jsonify, request, Blueprint, Response
+from csv import DictWriter, QUOTE_MINIMAL
+from io import StringIO
+import traceback
+from flask import abort, jsonify, request, Blueprint, Response, send_file
 from flask_login import login_required
 from sqlalchemy import func
 from .extensions import db
 from .models import Gene
 from .utils import paged
-import traceback
 
 genes_blueprint = Blueprint(
     "genes",
@@ -29,7 +31,7 @@ def genes(page, limit):
         gene_query.limit(limit).offset(page * limit)
     results = gene_query.all()
 
-    # deault to json is accept = */*
+    # default to json if accept = */*
     if request.accept_mimetypes["application/json"]:
         return jsonify(
             {
@@ -40,9 +42,25 @@ def genes(page, limit):
         )
 
     if request.accept_mimetypes["text/csv"]:
-        # TODO
-        csv_data = []
-        return Response(csv_data, mimetype="text/csv")
+        colnames = [col.key for col in Gene.__table__.columns]
+        csv_data = StringIO()
+        writer = DictWriter(
+            csv_data,
+            fieldnames=colnames,
+            quoting=QUOTE_MINIMAL,
+        )
+        writer.writeheader()
+        for row in results:
+            dct = row.__dict__
+            dct.pop("_sa_instance_state")
+            writer.writerow(dct)
+
+        response = Response(csv_data.getvalue())
+
+        response.headers["Content-Disposition"] = "attachment;filename=gene_report.csv"
+        response.headers["Content-Type"] = "text/csv"
+
+        return response
 
     abort(415, "Mime-Type must be text/csv or application/json!")
 
