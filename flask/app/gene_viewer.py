@@ -4,8 +4,6 @@ from flask import Blueprint, Response, abort, current_app as app, jsonify, reque
 from flask_login import current_user, login_required
 from sqlalchemy.orm import contains_eager
 from sqlalchemy.sql import or_
-from sqlalchemy.sql.selectable import Select
-from sqlalchemy.engine.base import Engine
 
 import pandas as pd
 from . import models
@@ -29,9 +27,7 @@ gene_viewer_blueprint = Blueprint(
 )
 
 
-def get_variant_wise_df(statement: Select, session: Engine):
-
-    df = pd.read_sql(statement, session)
+def get_variant_wise_df(df: pd.DataFrame):
 
     app.logger.debug(df.head(3))
 
@@ -118,21 +114,17 @@ def variant_summary():
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
 
-    if request.headers["Accept"] not in ["application/json", "text/csv"]:
-        app.logger.error("Unsupported HTTP accept")
-        abort(406, description="Unsupported HTTP accept")
-
     app.logger.debug("Parsing query parameters..")
 
     genes = request.args.get("panel")
+
+    if genes is None or len(genes) == 0:
+        app.logger.error("No gene(s) provided in the request body")
+        abort(400, description="No gene(s) provided")
+
     genes = genes.split(";")
 
     app.logger.info("Requested gene panel: %s", genes)
-
-    if len(genes) == 0:
-
-        app.logger.error("No gene(s) provided in the request body")
-        abort(400, description="No gene(s) provided")
 
     filters = [models.Gene.gene == gene for gene in genes]
 
@@ -188,18 +180,22 @@ def variant_summary():
             .filter(or_(*filters))
         )
 
-    q = query.all()
-
-    if len(q) == 0:
-        app.logger.error("No requested genes were found.")
-        abort(400, description="No requested genes were found.")
-    elif len(q) < len(genes):
-        app.logger.error("Not all requested genes were found.")
-        abort(400, description="Not all requested genes were found.")
+    # defaults to json unless otherwise specified
+    app.logger.info(request.accept_mimetypes)
 
     if request.accept_mimetypes["application/json"]:
 
-        app.logger.info("Application/json Accept header requested")
+        app.logger.info("Defaulting to json response")
+
+        q = query.all()
+
+        if len(q) == 0:
+            app.logger.error("No requested genes were found.")
+            abort(400, description="No requested genes were found.")
+        elif len(q) < len(genes):
+            app.logger.error("Not all requested genes were found.")
+            abort(400, description="Not all requested genes were found.")
+
         return jsonify(
             [
                 {
@@ -207,35 +203,41 @@ def variant_summary():
                     "variants": [
                         {
                             **asdict(variant),
-                            "zygosity": [
-                                genotype.zygosity for genotype in variant.genotype
-                            ],
-                            "alt_depths": [
-                                genotype.alt_depths for genotype in variant.genotype
-                            ],
-                            "burden": [
-                                genotype.burden for genotype in variant.genotype
-                            ],
-                            "participant_codenames": [
-                                dataset.tissue_sample.participant.participant_codename
-                                for dataset in variant.analysis.datasets
+                            "genotype": [
+                                {
+                                    **asdict(genotype),
+                                    "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
+                                }
+                                for genotype in variant.genotype
                             ],
                         }
                         for variant in gene.variants
                     ],
                 }
                 for gene in q
-            ]
+            ],
         )
-
     elif request.accept_mimetypes["text/csv"]:
 
         app.logger.info("text/csv Accept header requested")
 
         try:
-            agg_df = get_variant_wise_df(query.statement, query.session.bind)
+            sql_df = pd.read_sql(query.statement, query.session.bind)
         except:
             abort(500, "Unexpected error")
+
+        app.logger.info(sql_df["gene"].nunique())
+
+        num_unq_genes = sql_df["gene"].nunique()
+
+        if num_unq_genes == 0:
+            app.logger.error("No requested genes were found.")
+            abort(400, description="No requested genes were found.")
+        elif num_unq_genes < len(genes):
+            app.logger.error("Not all requested genes were found.")
+            abort(400, description="Not all requested genes were found.")
+
+        agg_df = get_variant_wise_df(sql_df)
 
         csv_data = agg_df.to_csv(encoding="utf-8")
 
