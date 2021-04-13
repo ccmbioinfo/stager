@@ -53,12 +53,12 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
-      ENABLE_OIDC: "${ENABLE_OIDC}"
-      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
-      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"
-      OIDC_WELL_KNOWN: "${OIDC_WELL_KNOWN}"
-      OIDC_PROVIDER: "${OIDC_PROVIDER}"
-      KEYCLOAK_HOST: "${KEYCLOAK_HOST}"
+      ENABLE_OIDC: "true"
+      OIDC_CLIENT_ID: "ccm-stager"
+      OIDC_CLIENT_SECRET: "$$not_a_secret"
+      OIDC_WELL_KNOWN: "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration"
+      OIDC_PROVIDER: "keycloak"
+      KEYCLOAK_HOST: "http://keycloak:8080"
     ports:
       - "${FLASK_HOST_PORT}:5000"
     depends_on:
