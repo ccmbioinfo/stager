@@ -1,12 +1,14 @@
 import { useQuery } from "react-query";
 import { Variant } from "../../typings";
-//import { basicFetch } from "../utils";
+import { basicFetch, fetchAndDownloadCsv } from "../utils";
 
 async function fetchVariants(params: Record<string, any>, returnType: "csv" | "json" = "csv") {
-    //const headers = { Accept: returnType === "csv" ? "text/csv" : "application/json" };
-    console.log("fetching variants!");
-    return [(true as unknown) as Variant];
-    //return await basicFetch("/api/variants", params, { headers });
+    const headers = { Accept: returnType === "csv" ? "text/csv" : "application/json" };
+    if (returnType === "csv") {
+        return fetchAndDownloadCsv("/api/summary/variants", {}, { headers });
+    } else {
+        return await basicFetch("/api/summary/variants", params, { headers });
+    }
 }
 
 /**
@@ -19,7 +21,7 @@ export const useVariantsQuery = (
     enabled: boolean
 ) =>
     useQuery<Variant[], Response>(
-        ["variants", params],
+        ["variants", returnType, params],
         fetchVariants.bind(null, params, returnType),
         { enabled }
     );

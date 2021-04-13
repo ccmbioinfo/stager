@@ -25,7 +25,42 @@ export async function basicFetch(
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
     const response = await fetch(`${url}${paramString}`, options);
     if (response.ok) {
-        return response.json();
+        if (response.headers.get("Content-Type") === "text/csv") {
+            return response.text();
+        } else return response.json();
+    } else {
+        throw response;
+    }
+}
+
+/**
+ * Fetch csv from provided url. Download csv if successful.
+ * Throw the response if unsuccessful.
+ */
+export async function fetchAndDownloadCsv(
+    url: string,
+    params: Record<string, any> = {},
+    options: RequestInit | undefined = {}
+) {
+    let headers = { Accept: "text/csv" };
+    if (options.headers) {
+        headers = { ...options.headers, ...headers };
+    }
+    const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
+    const response = await fetch(`${url}${paramString}`, { ...options, headers });
+    if (response.ok) {
+        const csv = await response.text();
+        const downloadLink = document.createElement("a");
+        const filename = (response.headers.get("content-disposition") || "foo=report.csv").replace(
+            /.+=/,
+            ""
+        );
+        const url = URL.createObjectURL(new Blob(["\ufeff", csv]));
+        downloadLink.href = url;
+        downloadLink.download = filename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     } else {
         throw response;
     }

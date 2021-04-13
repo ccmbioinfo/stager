@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import GeneAutocomplete from "./Autocomplete";
 import { Gene } from "../../typings";
-import { useVariantsQuery } from "../../hooks/variants";
+//import { useVariantsQuery } from "../../hooks/variants";
 
 interface SearchVariantsPageProps {}
 
@@ -22,9 +22,10 @@ const useStyles = makeStyles(theme => ({
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGene, setSelectedGene] = useState<Gene>();
 
+    console.log(selectedGene);
     // currently a dummy endpoint
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    const { data: variants } = useVariantsQuery({ search: selectedGene }, "csv", !!selectedGene);
+    //const { data: variants } = useVariantsQuery({ search: selectedGene }, "csv", !!selectedGene);
 
     useEffect(() => {
         document.title = `Search Variants | ${process.env.REACT_APP_NAME}`;
