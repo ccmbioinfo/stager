@@ -65,6 +65,19 @@ def genes(page, limit):
     abort(415, "Mime-Type must be text/csv or application/json!")
 
 
+@genes_blueprint.route("/api/summary/genes/<string:hgnc_gene_name>", methods=["GET"])
+@login_required
+def get_gene_hgnc_name(hgnc_gene_name):
+    """ return a gene based on ghnc gene name """
+    gene_query = db.session.query(Gene)
+    result = gene_query.filter(Gene.hgnc_gene_name == hgnc_gene_name).first()
+
+    if not result:
+        abort(404, f"No gene found with hgnc name {hgnc_name}")
+
+    return jsonify(result)
+
+
 @genes_blueprint.route("/api/summary/genes/hgnc/<int:hgnc_id>", methods=["GET"])
 @login_required
 def get_gene_hgnc_id(hgnc_id):

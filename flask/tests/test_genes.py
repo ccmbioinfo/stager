@@ -74,6 +74,18 @@ def test_fetch_gene_by_hgnc_id(client, test_database, login_as):
     assert no_response.status_code == 404
 
 
+def test_fetch_gene_by_hgnc_name(client, test_database, login_as):
+    """ can we fetch a gene by hgnc gene name """
+    setup_db()
+    login_as("user")
+    response = client.get("/api/summary/genes/FOOBAR")
+    assert response.status_code == 200
+    assert response.get_json()["hgnc_gene_id"] == 1
+
+    no_response = client.get("/api/summary/genes/hgnc/BARBAR")
+    assert no_response.status_code == 404
+
+
 def test_fetch_gene_by_ensembl_id(client, test_database, login_as):
     """ can we fetch a gene by ensembl id """
     setup_db()
