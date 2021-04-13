@@ -251,7 +251,6 @@ export interface Option {
     selected?: boolean;
 }
 
-
 export interface Gene {
     gene_id: number;
     hgnc_gene_id: number;

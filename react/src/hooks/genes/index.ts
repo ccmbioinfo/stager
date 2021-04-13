@@ -1,1 +1,1 @@
-export * from './useGenesQuery'
+export * from "./useGenesQuery";
