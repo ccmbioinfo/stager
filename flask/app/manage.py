@@ -15,6 +15,7 @@ from .madmin import MinioAdmin, stager_buckets_policy
 def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
+    app.cli.add_command(seed_database_minio_groups)
 
 
 @click.command("db-seed")
@@ -39,6 +40,14 @@ def seed_database_for_development(force: bool) -> None:
     db.session.flush()
     seed_dev_groups_and_users(force)
     seed_dev_data(force)
+    db.session.commit()
+
+
+@click.command("db-minio-seed-groups")
+@click.option("--force", is_flag=True, default=False)
+@with_appcontext
+def seed_database_minio_groups(force: bool) -> None:
+    seed_dev_groups_and_users(force, True)
     db.session.commit()
 
 
@@ -133,6 +142,8 @@ def seed_pipelines(force: bool) -> None:
         db.session.add(crg2)
         cre = Pipeline(pipeline_name="cre", pipeline_version="latest")
         db.session.add(cre)
+        dig2 = Pipeline(pipeline_name="dig2", pipeline_version="latest")
+        db.session.add(dig2)
         db.session.flush()
         app.logger.info("Inserted pipelines")
         db.session.add(
@@ -145,10 +156,15 @@ def seed_pipelines(force: bool) -> None:
                 pipeline_id=cre.pipeline_id, supported_metadataset_type="Exome"
             )
         )
+        db.session.add(
+            PipelineDatasets(
+                pipeline_id=dig2.pipeline_id, supported_metadataset_type="RNA"
+            )
+        )
         app.logger.info("Inserted supported meta-dataset types for pipelines")
 
 
-def seed_dev_groups_and_users(force: bool) -> None:
+def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
     if force or (Group.query.count() == 0 and User.query.count() == 1):  # default admin
         minio_client = Minio(
             app.config["MINIO_ENDPOINT"],
@@ -178,16 +194,17 @@ def seed_dev_groups_and_users(force: bool) -> None:
             group = Group(group_code=code, group_name=name)
             db.session.add(group)
 
-            user = User(
-                username=f"{code}-user",
-                email=f"user@test.{code}",
-                is_admin=False,
-                deactivated=False,
-            )
-            user.set_password(code + "-" + app.config.get("DEFAULT_PASSWORD"))
-            user.groups.append(group)
-            db.session.add(user)
-            app.logger.info(f"Created user {user.username} in group {code}")
+            if not skip_users:
+                user = User(
+                    username=f"{code}-user",
+                    email=f"user@test.{code}",
+                    is_admin=False,
+                    deactivated=False,
+                )
+                user.set_password(code + "-" + app.config.get("DEFAULT_PASSWORD"))
+                user.groups.append(group)
+                db.session.add(user)
+                app.logger.info(f"Created user {user.username} in group {code}")
 
 
 def seed_dev_data(force: bool) -> None:
