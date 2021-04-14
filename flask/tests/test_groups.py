@@ -85,7 +85,7 @@ def test_list_groups_user_from_admin(test_database, client, login_as):
 def test_get_group(test_database, client, login_as):
     # Test invalid group_code
     login_as("admin")
-    assert client.get("/api/groups/hahah").status_code == 403
+    assert client.get("/api/groups/hahah").status_code == 404
 
     group_2 = models.Group(group_code="alas", group_name="...")
     db.session.add(group_2)
@@ -93,10 +93,9 @@ def test_get_group(test_database, client, login_as):
 
     # Test wrong permissions
     login_as("user")
-    assert client.get("/api/groups/alas").status_code == 403
+    assert client.get("/api/groups/alas").status_code == 404
 
     # Test and validate success based on user's permissions
-    login_as("user")
     response = client.get("/api/groups/ach")
     assert response.status_code == 200
     assert response.get_json()["group_name"] == "Alberta"
