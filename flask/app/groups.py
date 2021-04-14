@@ -103,7 +103,7 @@ def update_group(group_code) -> Response:
 
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
-    if request.json.get("group_name", type=str):
+    if request.json.get("group_name"):
         # Check if display name is in use, 422
         conflicting_group = models.Group.query.filter_by(
             group_name=request.json["group_name"]
@@ -155,8 +155,8 @@ def create_group():
 
     Potential problems: MinIO operations failing result in an inconsistent state.
     """
-    group_name = request.json.get("group_name", type=str)
-    group_code = request.json.get("group_code", type=str)
+    group_name = request.json.get("group_name")
+    group_code = request.json.get("group_code")
     strlist_users = (
         request.json.get("users")  # Ignores the empty list
         and type(request.json["users"]) is list
