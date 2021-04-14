@@ -53,10 +53,9 @@ export async function fetchAndDownloadCsv(
     if (response.ok) {
         const csvBlob = await response.blob();
         const downloadLink = document.createElement("a");
-        const filename = (response.headers.get("content-disposition") || "filename=report.csv").replace(
-            /.+=/,
-            ""
-        );
+        const filename = (
+            response.headers.get("content-disposition") || "filename=report.csv"
+        ).replace(/.+=/, "");
         const url = URL.createObjectURL(csvBlob);
         downloadLink.href = url;
         downloadLink.download = filename;
