@@ -47,20 +47,20 @@ export async function fetchAndDownloadCsv(
         headers = { ...options.headers, ...headers };
     }
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
+
     const response = await fetch(`${url}${paramString}`, { ...options, headers });
+
     if (response.ok) {
-        const csv = await response.text();
+        const csvBlob = await response.blob();
         const downloadLink = document.createElement("a");
-        const filename = (response.headers.get("content-disposition") || "foo=report.csv").replace(
+        const filename = (response.headers.get("content-disposition") || "filename=report.csv").replace(
             /.+=/,
             ""
         );
-        const url = URL.createObjectURL(new Blob(["\ufeff", csv]));
+        const url = URL.createObjectURL(csvBlob);
         downloadLink.href = url;
         downloadLink.download = filename;
-        document.body.appendChild(downloadLink);
         downloadLink.click();
-        document.body.removeChild(downloadLink);
     } else {
         throw response;
     }
