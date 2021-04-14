@@ -218,7 +218,11 @@ def create_group():
 
     db.session.add(group)
     transaction_or_abort(db.session.commit)
-    return request.json, 201, {"location": f"/api/groups/{quote(group.group_code)}"}
+    return (
+        jsonify(request.json),
+        201,
+        {"location": f"/api/groups/{quote(group.group_code)}"},
+    )
 
 
 @groups_blueprint.route("/api/groups/<string:group_code>", methods=["DELETE"])
