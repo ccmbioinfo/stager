@@ -172,6 +172,12 @@ const routes: RouteItem[] = [
         icon: <ShowChartIcon />,
     },
     {
+        pageName: "Variants",
+        path: "/variants",
+        main: SearchVariants,
+        icon: <SearchIcon />,
+    },
+    {
         pageName: "Settings",
         path: "/settings",
         main: Settings,
@@ -190,12 +196,6 @@ const routes: RouteItem[] = [
         main: Groups,
         icon: <SupervisedUserCircle />,
         requiresAdmin: true,
-    },
-    {
-        pageName: "Search Variants",
-        path: "/search-variants",
-        main: SearchVariants,
-        icon: <SearchIcon />,
     },
 ];
 
