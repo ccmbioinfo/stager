@@ -55,7 +55,7 @@ def seed_database_minio_groups(force: bool) -> None:
 
 
 def seed_default_admin(force: bool) -> None:
-    if force or db.session.query(User).count() == 0:
+    if force or User.query.count() == 0:
         default_admin = User(
             username=app.config.get("DEFAULT_ADMIN"),
             email=app.config.get("DEFAULT_ADMIN_EMAIL"),
@@ -75,7 +75,7 @@ def seed_default_admin(force: bool) -> None:
 
 
 def seed_institutions(force: bool) -> None:
-    if force or db.session.query(Institution).count() == 0:
+    if force or Institution.query.count() == 0:
         for institution in [
             "Alberta Children's Hospital",
             "BC Children's Hospital",
@@ -103,10 +103,7 @@ def seed_institutions(force: bool) -> None:
 
 
 def seed_dataset_types(force: bool) -> None:
-    if force or (
-        db.session.query(DatasetType).count() == 0
-        and db.session.query(MetaDatasetType).count() == 0
-    ):
+    if force or (DatasetType.query.count() == 0 and MetaDatasetType.query.count() == 0):
         for dataset_type in [
             "RES",  # Research Exome Sequencing
             "CES",  # Clinical Exome Sequencing
@@ -148,7 +145,7 @@ def seed_dataset_types(force: bool) -> None:
 
 
 def seed_pipelines(force: bool) -> None:
-    if force or db.session.query(Pipeline).count() == 0:
+    if force or Pipeline.query.count() == 0:
         crg2 = Pipeline(pipeline_name="crg2", pipeline_version="latest")
         db.session.add(crg2)
         cre = Pipeline(pipeline_name="cre", pipeline_version="latest")
@@ -176,9 +173,7 @@ def seed_pipelines(force: bool) -> None:
 
 
 def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
-    if force or (
-        db.session.query(Group).count() == 0 and db.session.query(User).count() == 1
-    ):  # default admin
+    if force or (Group.query.count() == 0 and User.query.count() == 1):  # default admin
         minio_client = Minio(
             app.config["MINIO_ENDPOINT"],
             access_key=app.config["MINIO_ACCESS_KEY"],
@@ -225,23 +220,19 @@ def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
 
 
 def seed_dev_data(force: bool) -> None:
-    if not force and db.session.query(Family).count() != 0:
+    if not force and Family.query.count() != 0:
         return
     family_code_iter = 2000
     participant_code_iter = 1
-    c4r_group = db.session.query(Group).filter_by(group_code="c4r").one()
-    for group in db.session.query(Group).filter(Group.group_code != "c4r").all():
-        institution = (
-            db.session.query(Institution)
-            .filter_by(institution=group.group_name)
-            .one_or_none()
-        )
+    c4r_group = Group.query.filter_by(group_code="c4r").one()
+    for group in Group.query.filter(Group.group_code != "c4r").all():
+        institution = Institution.query.filter_by(
+            institution=group.group_name
+        ).one_or_none()
         # default to CHEO for unknown
         if not institution:
             cheo = "Children's Hospital of Eastern Ontario"
-            institution = (
-                db.session.query(Institution).filter_by(institution=cheo).one_or_none()
-            )
+            institution = Institution.query.filter_by(institution=cheo).one_or_none()
 
         # create family per group
         default_family = Family(
