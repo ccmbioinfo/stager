@@ -98,7 +98,7 @@ def update_group(group_code) -> Response:
     )
     if type(request.json) is not dict:
         abort(400, description="Expected object")
-    if "users" in strlist_users and not strlist_users:
+    if "users" in request.json and not strlist_users:
         abort(400, description="users should be a string array")
 
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
@@ -164,7 +164,7 @@ def create_group():
     )
     if type(request.json) is not dict:
         abort(400, description="Expected object")
-    if "users" in strlist_users and not strlist_users:
+    if "users" in request.json and not strlist_users:
         abort(400, description="users should be a string array")
     if not group_name:
         abort(400, description="A group display name must be provided")
