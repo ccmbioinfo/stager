@@ -2,6 +2,7 @@ from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, List, Union
+from os import getenv
 
 from flask import abort, current_app as app, jsonify, request
 from flask.json import JSONEncoder
@@ -180,6 +181,16 @@ def update_last_login(user: User = None):
             "groups": [group.group_code for group in user.groups],
         }
     )
+
+
+def stager_is_keycloak_admin():
+    """
+    Return true if OIDC is enabled and if Stager is using a Keycloak
+    instance with administrative access.
+
+    In other words, return true if Stager has the ability to create users in Keycloak.
+    """
+    return app.config.get("ENABLE_OIDC") and getenv("KEYCLOAK_HOST") is not None
 
 
 class DateTimeEncoder(JSONEncoder):

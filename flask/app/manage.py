@@ -11,6 +11,7 @@ from .models import *
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
 from .manage_oidc import *
+from .utils import stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
@@ -34,7 +35,7 @@ def seed_database(force: bool) -> None:
 @click.option("--force", is_flag=True, default=False)
 @with_appcontext
 def seed_database_for_development(force: bool) -> None:
-    if app.config.get("ENABLE_OIDC"):
+    if stager_is_keycloak_admin():
         setup_keycloak()
     seed_default_admin(force)
     seed_institutions(force)
@@ -64,7 +65,7 @@ def seed_default_admin(force: bool) -> None:
         )
         password = app.config.get("DEFAULT_PASSWORD")
         default_admin.set_password(password)
-        if app.config.get("ENABLE_OIDC"):
+        if stager_is_keycloak_admin():
             access_token = obtain_admin_token()
             if access_token:
                 add_keycloak_user(access_token, default_admin, password)
@@ -209,11 +210,12 @@ def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
                     is_admin=False,
                     deactivated=False,
                 )
-                user.set_password(code + "-" + app.config.get("DEFAULT_PASSWORD"))
-                if app.config.get("ENABLE_OIDC"):
+                password = code + "-" + app.config.get("DEFAULT_PASSWORD")
+                user.set_password(password)
+                if stager_is_keycloak_admin():
                     access_token = obtain_admin_token()
                     if access_token:
-                        add_keycloak_user(access_token, user)
+                        add_keycloak_user(access_token, user, password)
                 user.groups.append(group)
                 db.session.add(user)
                 app.logger.info(f"Created user {user.username} in group {code}")

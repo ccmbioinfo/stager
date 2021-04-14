@@ -15,6 +15,7 @@ from flask import current_app as app, g
 from flask.cli import with_appcontext
 
 from .models import User
+from .utils import stager_is_keycloak_admin
 
 keycloak_host = os.getenv("KEYCLOAK_HOST", "http://keycloak:8080")
 
@@ -256,7 +257,7 @@ def setup_keycloak():
     Must be called before adding default data so that
     the Stager client exists to add users to.
     """
-    if not app.config.get("ENABLE_OIDC"):
+    if not stager_is_keycloak_admin():
         print("OIDC support disabled. Keycloak setup skipped.")
         return
 
