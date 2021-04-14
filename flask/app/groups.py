@@ -86,13 +86,24 @@ def get_group(group_code) -> Response:
 @validate_json
 def update_group(group_code) -> Response:
     """
-    Change the display name or user membership of a group. Administrator-only.
+    Change the display name or user membership of a group. Both request body fields
+    are optional and they will only be changed if provided. Administrator-only.
 
     Potential problems: MinIO operations failing result in an inconsistent state.
     """
+    strlist_users = (
+        request.json.get("users")  # Ignores the empty list
+        and type(request.json["users"]) is list
+        and all([type(user) is str for user in request.json["users"]])
+    )
+    if type(request.json) is not dict:
+        abort(400, description="Expected object")
+    if "users" in strlist_users and not strlist_users:
+        abort(400, description="users should be a string array")
+
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
-    if request.json.get("group_name"):
+    if request.json.get("group_name", type=str):
         # Check if display name is in use, 422
         conflicting_group = models.Group.query.filter_by(
             group_name=request.json["group_name"]
@@ -108,11 +119,7 @@ def update_group(group_code) -> Response:
     )
 
     # Check if a user to be added doesn't exist, 404
-    if (
-        "users" in request.json
-        and type(request.json["users"]) is list
-        and all([type(user) is str for user in request.json["users"]])
-    ):
+    if strlist_users:
         users = models.User.query.filter(
             models.User.username.in_(request.json["users"])
         ).all()
@@ -148,9 +155,17 @@ def create_group():
 
     Potential problems: MinIO operations failing result in an inconsistent state.
     """
-    group_name = request.json.get("group_name")
-    group_code = request.json.get("group_code")
-
+    group_name = request.json.get("group_name", type=str)
+    group_code = request.json.get("group_code", type=str)
+    strlist_users = (
+        request.json.get("users")  # Ignores the empty list
+        and type(request.json["users"]) is list
+        and all([type(user) is str for user in request.json["users"]])
+    )
+    if type(request.json) is not dict:
+        abort(400, description="Expected object")
+    if "users" in strlist_users and not strlist_users:
+        abort(400, description="users should be a string array")
     if not group_name:
         abort(400, description="A group display name must be provided")
     if not group_code:
@@ -190,12 +205,7 @@ def create_group():
     group = models.Group(group_code=group_code, group_name=group_name)
 
     # Add users to the db if they were given
-    have_users = (
-        request.json.get("users")  # Ignores the empty list
-        and type(request.json["users"]) is list
-        and all([type(user) is str for user in request.json["users"]])
-    )
-    if have_users:
+    if strlist_users:
         users = models.User.query.filter(
             models.User.username.in_(request.json["users"])
         ).all()
@@ -209,7 +219,7 @@ def create_group():
     minio_admin.add_policy(group_code, policy)
 
     # Add users to minio group if applicable, creating group as well
-    if have_users:
+    if strlist_users:
         for user in users:
             minio_admin.group_add(group_code, user.minio_access_key)
 
