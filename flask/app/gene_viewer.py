@@ -248,3 +248,10 @@ def variant_summary():
         )
 
         return response
+    else:
+        app.logger.error(
+            "Only 'text/csv' and 'application/json' HTTP accept headers supported"
+        )
+        abort(
+            406, "Only 'text/csv' and 'application/json' HTTP accept headers supported"
+        )
