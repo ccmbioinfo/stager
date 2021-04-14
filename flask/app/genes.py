@@ -1,7 +1,7 @@
 from csv import DictWriter, QUOTE_MINIMAL
+from dataclasses import asdict
 from io import StringIO
-import traceback
-from flask import abort, jsonify, request, Blueprint, Response, send_file
+from flask import abort, jsonify, request, Blueprint, Response
 from flask_login import login_required
 from sqlalchemy import func
 from .extensions import db
@@ -17,7 +17,7 @@ genes_blueprint = Blueprint(
 @genes_blueprint.route("/api/summary/genes", methods=["GET"])
 @paged
 @login_required
-def genes(page, limit):
+def genes(page: int, limit: int):
     """ index route for genes """
     search = request.args.get("search", type=str)
     gene_query = db.session.query(Gene)
@@ -27,9 +27,8 @@ def genes(page, limit):
     total_count = gene_query.with_entities(
         func.count(func.distinct(Gene.gene_id))
     ).scalar()
-    if limit and page:
-        gene_query.limit(limit).offset(page * limit)
-    results = gene_query.all()
+
+    results = gene_query.limit(limit).offset(page * (limit or 0)).all()
 
     # default to json if accept = */*
     if request.accept_mimetypes["application/json"]:
@@ -51,8 +50,8 @@ def genes(page, limit):
         )
         writer.writeheader()
         for row in results:
-            dct = row.__dict__
-            dct.pop("_sa_instance_state")
+            dct = asdict(row)
+            dct.pop("_sa_instance_state", None)
             writer.writerow(dct)
 
         response = Response(csv_data.getvalue())
@@ -67,38 +66,29 @@ def genes(page, limit):
 
 @genes_blueprint.route("/api/summary/genes/<string:hgnc_gene_name>", methods=["GET"])
 @login_required
-def get_gene_hgnc_name(hgnc_gene_name):
+def get_gene_hgnc_name(hgnc_gene_name: str):
     """ return a gene based on ghnc gene name """
     gene_query = db.session.query(Gene)
-    result = gene_query.filter(Gene.hgnc_gene_name == hgnc_gene_name).first()
-
-    if not result:
-        abort(404, f"No gene found with hgnc name {hgnc_name}")
+    result = gene_query.filter(Gene.hgnc_gene_name == hgnc_gene_name).first_or_404()
 
     return jsonify(result)
 
 
 @genes_blueprint.route("/api/summary/genes/hgnc/<int:hgnc_id>", methods=["GET"])
 @login_required
-def get_gene_hgnc_id(hgnc_id):
+def get_gene_hgnc_id(hgnc_id: int):
     """ return a gene based on ghnc gene id """
     gene_query = db.session.query(Gene)
-    result = gene_query.filter(Gene.hgnc_gene_id == hgnc_id).first()
-
-    if not result:
-        abort(404, f"No gene found with hgnc_id {hgnc_id}")
+    result = gene_query.filter(Gene.hgnc_gene_id == hgnc_id).first_or_404()
 
     return jsonify(result)
 
 
 @genes_blueprint.route("/api/summary/genes/ensg/<int:ensg_id>", methods=["GET"])
 @login_required
-def get_gene_ensg_id(ensg_id):
+def get_gene_ensg_id(ensg_id: int):
     """ return a gene based on emsebl id """
     gene_query = db.session.query(Gene)
-    result = gene_query.filter(Gene.ensembl_id == ensg_id).first()
-
-    if not result:
-        abort(404, f"No gene found with emsembl_id {ensg_id}")
+    result = gene_query.filter(Gene.ensembl_id == ensg_id).first_or_404()
 
     return jsonify(result)
