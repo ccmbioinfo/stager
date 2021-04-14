@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Autocomplete } from "@material-ui/lab";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import { useGenesQuery } from "./../../hooks/genes";
-import { OutlinedInput, useTheme } from "@material-ui/core";
+import { CircularProgress, OutlinedInput, useTheme } from "@material-ui/core";
 import { Search } from "@material-ui/icons";
+import { Autocomplete } from "@material-ui/lab";
+
+import { useGenesQuery } from "../../hooks/genes";
 import { Gene } from "../../typings";
 
 interface GeneAutocompleteProps {
@@ -14,7 +14,6 @@ interface GeneAutocompleteProps {
 const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSelect }) => {
     const [search, setSearch] = useState<string>("");
 
-    // todo, wrap in fuction that takes minLength and pass in as prop for reuse
     const { data: results, isFetching } = useGenesQuery(
         {
             search,
@@ -31,11 +30,11 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSelect
             //freeSolo include if we want them to enter anything, meaning we could get a string back if no match
             fullWidth={fullWidth}
             getOptionSelected={(option, value) => option.gene_id === value.gene_id}
-            getOptionLabel={option => option?.hgnc_gene_name}
+            getOptionLabel={option => option?.hgnc_gene_name || ""}
             includeInputInList={true}
-            noOptionsText="No Results"
-            options={results?.data || []}
             loading={isFetching}
+            noOptionsText="No Results"
+            options={results?.data.filter(d => !!d.hgnc_gene_name) || []}
             onInputChange={(event, newInputValue) => {
                 //prevent requery on select
                 if (!(results?.data || []).map(o => o.hgnc_gene_name).includes(newInputValue)) {
