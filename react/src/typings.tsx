@@ -250,3 +250,29 @@ export interface Option {
     disabled?: boolean;
     selected?: boolean;
 }
+
+export interface Gene {
+    gene_id: number;
+    hgnc_gene_id?: number;
+    ensembl_id?: number;
+    gene?: string;
+    hgnc_gene_name?: string;
+    variants?: Variant[];
+}
+
+export interface Variant {
+    variant_id: number;
+    analysis_id: number;
+    position: string;
+    reference_allele: string;
+    alt_allele: string;
+    variation: string;
+    refseq_change?: string;
+    depth: number;
+    gene_id: number;
+    conserved_in_20_mammals?: number;
+    sift_score?: number;
+    polyphen_score?: number;
+    cadd_score?: number;
+    gnomad_af?: number;
+}

@@ -13,24 +13,54 @@ import {
 } from "react-query";
 import { SetDataOptions } from "react-query/types/core/query";
 
-interface FetchOptions {
-    onSuccess?: (res: Response) => any;
-    onError?: (res: Response) => any;
-}
-
 /**
  * Fetch the provided url. Return the JSON response if successful.
  * Throw the response if unsuccessful.
  */
 export async function basicFetch(
     url: string,
-    params: Record<string, string> = {},
-    options?: FetchOptions
+    params: Record<string, any> = {},
+    options: RequestInit | undefined = undefined
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await fetch(`${url}${paramString}`);
+    const response = await fetch(`${url}${paramString}`, options);
     if (response.ok) {
-        return response.json();
+        if (response.headers.get("Content-Type") === "text/csv") {
+            return response.text();
+        } else return response.json();
+    } else {
+        throw response;
+    }
+}
+
+/**
+ * Fetch csv from provided url. Download csv if successful.
+ * Throw the response if unsuccessful.
+ */
+export async function fetchAndDownloadCsv(
+    url: string,
+    params: Record<string, any> = {},
+    options: RequestInit | undefined = {}
+) {
+    let headers = { Accept: "text/csv" };
+    if (options.headers) {
+        headers = { ...options.headers, ...headers };
+    }
+    const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
+
+    const response = await fetch(`${url}${paramString}`, { ...options, headers });
+
+    if (response.ok) {
+        const csvBlob = await response.blob();
+        const downloadLink = document.createElement("a");
+        const filename = (
+            response.headers.get("content-disposition") || "filename=report.csv"
+        ).replace(/.+=/, "");
+        const url = URL.createObjectURL(csvBlob);
+        downloadLink.href = url;
+        downloadLink.download = filename;
+        downloadLink.click();
+        URL.revokeObjectURL(url);
     } else {
         throw response;
     }
