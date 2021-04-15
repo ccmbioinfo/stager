@@ -245,7 +245,7 @@ export default function LoginPage(props: LoginProps) {
             return <OauthLoginForm />;
         }
         return <LoginForm {...props} />;
-    }, [props.oauth]);
+    }, [props]);
 
     return (
         <BrowserRouter>
