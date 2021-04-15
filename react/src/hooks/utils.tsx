@@ -60,6 +60,7 @@ export async function fetchAndDownloadCsv(
         downloadLink.href = url;
         downloadLink.download = filename;
         downloadLink.click();
+        URL.revokeObjectURL(url);
     } else {
         throw response;
     }
