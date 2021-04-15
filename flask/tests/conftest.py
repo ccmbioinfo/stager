@@ -5,8 +5,6 @@ from app import create_app, db
 from app.config import Config
 from app.models import *
 from flask.testing import FlaskClient
-import numpy as np
-from sqlalchemy.sql import insert
 
 
 class TestConfig(Config):

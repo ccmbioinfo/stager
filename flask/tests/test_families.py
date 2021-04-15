@@ -112,6 +112,7 @@ def test_delete_family(test_database, client, login_as):
             .joinedload(models.Participant.tissue_samples)
             .joinedload(models.TissueSample.datasets)
             .joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
         )
         .one_or_none()
     )
@@ -119,6 +120,10 @@ def test_delete_family(test_database, client, login_as):
         for sample in participant.tissue_samples:
             for dataset in sample.datasets:
                 for analysis in dataset.analyses:
+                    for genotype in analysis.genotype:
+                        db.session.delete(genotype.variant)
+                        db.session.delete(genotype)
+                        db.session.commit()
                     db.session.delete(analysis)
                 db.session.delete(dataset)
             db.session.delete(sample)
