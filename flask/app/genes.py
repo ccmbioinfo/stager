@@ -50,9 +50,7 @@ def genes(page: int, limit: int):
         )
         writer.writeheader()
         for row in results:
-            dct = asdict(row)
-            dct.pop("_sa_instance_state", None)
-            writer.writerow(dct)
+            writer.writerow(asdict(row))
 
         response = Response(csv_data.getvalue())
 
