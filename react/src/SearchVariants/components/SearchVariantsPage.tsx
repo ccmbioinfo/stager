@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Box, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import GeneAutocomplete from "./Autocomplete";
 import { Gene } from "../../typings";
-//import { useVariantsQuery } from "../../hooks/variants";
+import { useVariantsQuery } from "../../hooks/variants";
+import { downloadCsvResponse } from "../../hooks/utils";
 
 interface SearchVariantsPageProps {}
 
@@ -21,11 +22,32 @@ const useStyles = makeStyles(theme => ({
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGene, setSelectedGene] = useState<Gene>();
+    const [error, setError] = useState(false);
 
-    console.log(selectedGene);
-    // currently a dummy endpoint
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    //const { data: variants } = useVariantsQuery({ search: selectedGene }, "csv", !!selectedGene);
+    const { data: blob } = useVariantsQuery({ panel: selectedGene?.hgnc_gene_name }, "csv", {
+        enabled: !!selectedGene,
+        onError: e => {
+            //I'm not sure how common this scenario will be
+            if (e.status === 400) {
+                setError(true);
+            } else {
+                throw e;
+            }
+        },
+    });
+
+    const clearError = () => {
+        if (error) {
+            setError(false);
+        }
+    };
+
+    useEffect(() => {
+        if (blob && selectedGene) {
+            downloadCsvResponse(blob);
+            setSelectedGene(undefined);
+        }
+    }, [selectedGene, blob]);
 
     useEffect(() => {
         document.title = `Search Variants | ${process.env.REACT_APP_NAME}`;
@@ -47,9 +69,17 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Box padding={4}>
                             <GeneAutocomplete
                                 fullWidth={true}
+                                onSearch={clearError}
                                 onSelect={gene => setSelectedGene(gene)}
                             />
                         </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                        {error && (
+                            <Typography align="center" color="error">
+                                No variants found for {selectedGene?.hgnc_gene_name}
+                            </Typography>
+                        )}
                     </Grid>
                 </Grid>
             </Container>

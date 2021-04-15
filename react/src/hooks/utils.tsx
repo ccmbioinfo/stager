@@ -34,10 +34,10 @@ export async function basicFetch(
 }
 
 /**
- * Fetch csv from provided url. Download csv if successful.
+ * Fetch csv from provided url. Return blob and filename if successful (both should be included in cached response).
  * Throw the response if unsuccessful.
  */
-export async function fetchAndDownloadCsv(
+export async function fetchCsv(
     url: string,
     params: Record<string, any> = {},
     options: RequestInit | undefined = {}
@@ -51,20 +51,26 @@ export async function fetchAndDownloadCsv(
     const response = await fetch(`${url}${paramString}`, { ...options, headers });
 
     if (response.ok) {
-        const csvBlob = await response.blob();
-        const downloadLink = document.createElement("a");
-        const filename = (
-            response.headers.get("content-disposition") || "filename=report.csv"
-        ).replace(/.+=/, "");
-        const url = URL.createObjectURL(csvBlob);
-        downloadLink.href = url;
-        downloadLink.download = filename;
-        downloadLink.click();
-        URL.revokeObjectURL(url);
+        return {
+            blob: await response.blob(),
+            filename: (
+                response.headers.get("content-disposition") || "filename=report.csv"
+            ).replace(/.+=/, ""),
+        };
     } else {
         throw response;
     }
 }
+
+export const downloadCsvResponse = (args: { filename: string; blob: Blob }) => {
+    const { filename, blob } = args;
+    const downloadLink = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = filename;
+    downloadLink.click();
+    URL.revokeObjectURL(url);
+};
 
 /**
  * Builds a data fetch request and returns a promise that resolves

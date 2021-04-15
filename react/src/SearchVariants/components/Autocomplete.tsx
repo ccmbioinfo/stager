@@ -2,17 +2,18 @@ import React, { useState } from "react";
 import { CircularProgress, OutlinedInput, useTheme } from "@material-ui/core";
 import { Search } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
-
 import { useGenesQuery } from "../../hooks/genes";
 import { Gene } from "../../typings";
 
 interface GeneAutocompleteProps {
     fullWidth?: boolean;
+    onSearch?: () => void;
     onSelect: (result: Gene) => void;
 }
 
-const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSelect }) => {
+const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch, onSelect }) => {
     const [search, setSearch] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<Gene>();
 
     const { data: results, isFetching } = useGenesQuery(
         {
@@ -27,18 +28,25 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSelect
         <Autocomplete
             autoComplete
             clearOnEscape
-            //freeSolo include if we want them to enter anything, meaning we could get a string back if no match
             fullWidth={fullWidth}
             getOptionSelected={(option, value) => option.gene_id === value.gene_id}
             getOptionLabel={option => option?.hgnc_gene_name || ""}
             includeInputInList={true}
+            inputValue={search}
             loading={isFetching}
             noOptionsText="No Results"
             options={results?.data.filter(d => !!d.hgnc_gene_name) || []}
-            onInputChange={(event, newInputValue) => {
-                //prevent requery on select
-                if (!(results?.data || []).map(o => o.hgnc_gene_name).includes(newInputValue)) {
+            onInputChange={(event, newInputValue, reason) => {
+                if (reason === "reset") {
+                    setSearch("");
+                } else if (
+                    //prevent requery on select
+                    !(results?.data || []).map(o => o.hgnc_gene_name).includes(newInputValue)
+                ) {
                     setSearch(newInputValue);
+                    if (onSearch) {
+                        onSearch();
+                    }
                 }
             }}
             onChange={(
@@ -47,8 +55,9 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSelect
                 reason: string
             ) => {
                 if (search && reason !== "clear" && selectedValue) {
-                    setSearch("");
                     onSelect(selectedValue);
+                    //persisting selected value will lead to option mismatch warnings
+                    setSelectedValue(undefined);
                 }
             }}
             renderInput={params => {
@@ -65,6 +74,8 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSelect
                     />
                 );
             }}
+            //we have to control component in order to *prevent* selection persistence
+            value={selectedValue || null}
         />
     );
 };
