@@ -8,7 +8,7 @@ def setup_db():
     """ seed db with minimal data """
     db.session.add(
         Gene(
-            hgnc_gene_id=1,
+            hgnc_gene_id=12345,
             hgnc_gene_name="FOOBAR",
             ensembl_id=1000,
         )
@@ -22,8 +22,9 @@ def test_fetch_genes_json(test_database, client, login_as):
     login_as("user")
     response = client.get("/api/summary/genes", headers={"Accept": "*/*"})
     assert response.status_code == 200
-    assert len(response.get_json()["data"]) == 1
-    assert response.get_json()["total_count"] == 1
+    """ note there may be a variable number of genes in the db from the default seeds """
+    assert len(response.get_json()["data"]) >= 1
+    assert response.get_json()["total_count"] >= 1
 
 
 def test_fetch_genes_csv(test_database, client, login_as):
@@ -33,15 +34,12 @@ def test_fetch_genes_csv(test_database, client, login_as):
     response = client.get("/api/summary/genes", headers={"Accept": "text/csv"})
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/csv"
-    rows = []
-
     gene_reader = reader(response.data.decode().split("\n"))
-    for row in gene_reader:
-        rows.append(row)
-    dct = dict(zip(rows[0], rows[1]))
-    assert dct["gene_id"] == "1"
-    assert dct["hgnc_gene_name"] == "FOOBAR"
-    assert dct["ensembl_id"] == "1000"
+    rows = [row for row in gene_reader if len(row)]
+    for item in rows[0]:
+        assert item in Gene.__table__.columns
+
+    assert (len(rows) - 1) == Gene.query.count()
 
 
 def test_search_genes(client, test_database, login_as):
@@ -66,9 +64,9 @@ def test_fetch_gene_by_hgnc_id(client, test_database, login_as):
     """ can we fetch a gene by hgnc gene id """
     setup_db()
     login_as("user")
-    response = client.get("/api/summary/genes/hgnc/1")
+    response = client.get("/api/summary/genes/hgnc/12345")
     assert response.status_code == 200
-    assert response.get_json()["hgnc_gene_id"] == 1
+    assert response.get_json()["hgnc_gene_id"] == 12345
 
     no_response = client.get("/api/summary/genes/hgnc/2")
     assert no_response.status_code == 404
@@ -80,7 +78,7 @@ def test_fetch_gene_by_hgnc_name(client, test_database, login_as):
     login_as("user")
     response = client.get("/api/summary/genes/FOOBAR")
     assert response.status_code == 200
-    assert response.get_json()["hgnc_gene_id"] == 1
+    assert response.get_json()["hgnc_gene_id"] == 12345
 
     no_response = client.get("/api/summary/genes/hgnc/BARBAR")
     assert no_response.status_code == 404
