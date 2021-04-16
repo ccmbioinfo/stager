@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from . import models
 from .extensions import db
 from .madmin import MinioAdmin
-from .utils import check_admin, transaction_or_abort, validate_json
+from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
 
 
 users_blueprint = Blueprint(
@@ -84,14 +84,6 @@ def get_user(username: str) -> Response:
     )
     app.logger.debug("Success, returning JSON")
     return jsonify_user(user)
-
-
-def get_minio_admin() -> MinioAdmin:
-    return MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
 
 
 def safe_remove(user: models.User, minio_admin: MinioAdmin = None) -> None:

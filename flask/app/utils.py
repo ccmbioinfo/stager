@@ -10,6 +10,7 @@ from sqlalchemy import exc
 from werkzeug.exceptions import HTTPException
 
 from .extensions import db
+from .madmin import MinioAdmin
 
 
 def handle_error(e):
@@ -141,6 +142,14 @@ def filter_updated_or_abort(column: db.Column, value: str):
         return column >= updated[1]
     else:
         abort(400, description=description)
+
+
+def get_minio_admin() -> MinioAdmin:
+    return MinioAdmin(
+        endpoint=app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
+    )
 
 
 class DateTimeEncoder(JSONEncoder):

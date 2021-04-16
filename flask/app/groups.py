@@ -6,8 +6,8 @@ from minio import Minio
 
 from . import models
 from .extensions import db
-from .madmin import MinioAdmin, stager_buckets_policy
-from .utils import check_admin, transaction_or_abort, validate_json
+from .madmin import stager_buckets_policy
+from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
 
 
 groups_blueprint = Blueprint(
@@ -112,11 +112,7 @@ def update_group(group_code) -> Response:
             abort(422, description="Group name in use")
         group.group_name = request.json["group_name"]
 
-    minio_admin = MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
+    minio_admin = get_minio_admin()
 
     # Check if a user to be added doesn't exist, 404
     if strlist_users:
@@ -188,11 +184,7 @@ def create_group():
         secure=False,
     )
 
-    minio_admin = MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
+    minio_admin = get_minio_admin()
 
     try:
         # Create minio bucket via mc, 422 if it already exists
@@ -245,11 +237,7 @@ def delete_group(group_code):
     """
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
-    minio_admin = MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
+    minio_admin = get_minio_admin()
 
     # Check group users in db
     if len(group.users) != 0:
