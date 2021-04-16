@@ -19,12 +19,12 @@ jobs:
       matrix:
         include:
           - REACT_APP_MINIO_URL: https://sampletrackerdev.ccm.sickkids.ca/minio/
-            MC_HOST_minio: ${{ secrets.MINIO_CCM_DEV }}
-            MINIO_BUCKET: ${{ secrets.MINIO_CCM_DEV_BUCKET }}
+            MC_HOST_minio: MINIO_CCM_DEV
+            MINIO_BUCKET: MINIO_CCM_DEV_BUCKET
             if: true
           - REACT_APP_MINIO_URL: https://minio.genomics4rd.ca/
-            MC_HOST_minio: ${{ secrets.MINIO_CHEO_RI_DEV }}
-            MINIO_BUCKET: ${{ secrets.MINIO_CHEO_RI_BUCKET }}
+            MC_HOST_minio: MINIO_CHEO_RI_DEV
+            MINIO_BUCKET: MINIO_CHEO_RI_BUCKET
             if: ${{ github.event_name == 'push' }}
     defaults:
       if: ${{ matrix.if }}
@@ -52,15 +52,15 @@ jobs:
     - run: yarn build
       env:
         REACT_APP_NAME: Stager
-        REACT_APP_MINIO_URL: ${{ matrix.REACT_APP_MINIO_URL }}
+        REACT_APP_MINIO_URL: ${{ secrets[matrix.REACT_APP_MINIO_URL] }}
     - run: yarn lint
     - run: yarn check-format
     # - run: yarn test -- --coverage
     - name: Deploy to MinIO bucket
       if: github.event_name == 'push'
       env:
-        MC_HOST_minio: ${{ matrix.MC_HOST_minio }}
+        MC_HOST_minio: ${{ secrets[matrix.MC_HOST_minio] }}
       run: |
         sudo curl --output /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
         sudo chmod +x /usr/local/bin/mc
-        ./deploy.sh minio ${{ matrix.MINIO_BUCKET }}
+        ./deploy.sh minio ${{ secrets[matrix.MINIO_BUCKET] }}
