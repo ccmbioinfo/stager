@@ -1,7 +1,8 @@
 import os
 from typing import Any, Dict
+from urllib.parse import quote
 
-from flask import abort, Blueprint, current_app as app, jsonify, request
+from flask import abort, Blueprint, current_app as app, jsonify, request, Response
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
@@ -9,6 +10,7 @@ from . import models
 from .extensions import db
 from .madmin import MinioAdmin
 from .utils import check_admin, transaction_or_abort, validate_json
+
 
 users_blueprint = Blueprint(
     "users",
@@ -19,7 +21,10 @@ users_blueprint = Blueprint(
 @users_blueprint.route("/api/users", methods=["GET"])
 @login_required
 @check_admin
-def list_users():
+def list_users() -> Response:
+    """
+    Enumerates all users. Administrator-only.
+    """
     app.logger.info("Retrieving all users and groups.")
     users = models.User.query.options(joinedload(models.User.groups)).all()
     app.logger.info("Success, returning JSON..")
@@ -38,7 +43,11 @@ def list_users():
     )
 
 
-def jsonify_user(user: models.User):
+def jsonify_user(user: models.User) -> Response:
+    """
+    Helper function for serializing individual users with their MinIO credentials
+    for the remaining endpoints.
+    """
     return jsonify(
         {
             "username": user.username,
@@ -53,21 +62,19 @@ def jsonify_user(user: models.User):
     )
 
 
-@users_blueprint.route("/api/users/<string:username>", methods=["GET"])
+@users_blueprint.route("/api/users/<path:username>", methods=["GET"])
 @login_required
-def get_user(username: str):
-
-    app.logger.debug(
-        "User is '%s' requesting info on %s", current_user.username, username
-    )
-    app.logger.info("Verifying user is authorized to access requested information.")
+def get_user(username: str) -> Response:
+    """
+    Retrieve information for one user. Administrators can read all users; regular
+    users can only read themselves to retrieve MinIO credentials.
+    """
     if (
         not app.config.get("LOGIN_DISABLED")
         and not current_user.is_admin
         and username != current_user.username
     ):
-        app.logger.error("User is not authorized")
-        abort(401)
+        abort(403)
 
     app.logger.debug("Querying database..")
     user = (
@@ -96,7 +103,7 @@ def safe_remove(user: models.User, minio_admin: MinioAdmin = None) -> None:
         try:
             minio_admin.remove_user(user.minio_access_key)
         except RuntimeError as err:
-            app.logger.warning(err.args[0])
+            app.logger.warning(err.args[0], exc_info=True)
 
 
 def reset_minio_credentials(user: models.User) -> None:
@@ -117,18 +124,20 @@ def reset_minio_credentials(user: models.User) -> None:
     user.minio_secret_key = secret_key
 
 
-@users_blueprint.route("/api/users/<string:username>", methods=["POST"])
+@users_blueprint.route("/api/users/<path:username>", methods=["POST"])
 @login_required
 @validate_json
-def reset_minio_user(username: str):
-    app.logger.debug("Verifying current user '%s' is authorized", current_user.username)
+def reset_minio_user(username: str) -> Response:
+    """
+    Regenerate MinIO credentials for this user. Administrators can do this for all
+    users; regular users may do this for themselves.
+    """
     if (
         not app.config.get("LOGIN_DISABLED")
         and not current_user.is_admin
         and username != current_user.username
     ):
-        app.logger.error("User is unauthorized")
-        abort(401)
+        abort(403)
 
     app.logger.debug("Verifying username exists in database..")
     user = (
@@ -137,7 +146,7 @@ def reset_minio_user(username: str):
         .first_or_404()
     )
     # TODO: maybe rate limit this API because generating these is expensive
-    app.logger.debug("Reseting minio credentials..")
+    app.logger.debug("Resetting minio credentials..")
     reset_minio_credentials(user)
     transaction_or_abort(db.session.commit)
     app.logger.debug("Success, returning JSON..")
@@ -172,8 +181,13 @@ def verify_email(email: str) -> bool:
 @login_required
 @check_admin
 @validate_json
-def create_user():
-
+def create_user() -> Response:
+    """
+    Creates a new user and assigns them to any permission groups specified.
+    Administrator-only.
+    """
+    if type(request.json) is not dict:
+        abort(400, description="Expected object")
     app.logger.debug(
         "Validating username: '%s', email: '%s', and password: '%s'",
         request.json.get("username"),
@@ -208,7 +222,11 @@ def create_user():
             msg = "User already exists"
         else:
             msg = "Email already in use"
-        return abort(422, description=msg), {"location": f"/api/users/{user.username}"}
+        return (
+            jsonify({"error": msg}),
+            422,
+            {"location": f"/api/users/{quote(user.username)}"},
+        )
 
     app.logger.debug(
         "User is not found in database through username or email, begin adding user."
@@ -240,25 +258,36 @@ def create_user():
     db.session.add(user)
     transaction_or_abort(db.session.commit)
     app.logger.debug("Success, returning JSON.")
-    return jsonify_user(user), 201, {"location": f"/api/users/{user.username}"}
+    return (
+        jsonify_user(user),
+        201,
+        {"location": f"/api/users/{quote(user.username)}"},
+    )
 
 
-@users_blueprint.route("/api/users/<string:username>", methods=["DELETE"])
+@users_blueprint.route("/api/users/<path:username>", methods=["DELETE"])
 @login_required
 @check_admin
-def delete_user(username: str):
+def delete_user(username: str) -> Response:
+    """
+    Removes the user and their MinIO credentials if they are not a foreign key in
+    the database. Administrator-only.
+    """
     app.logger.debug("Checking whether requested username '%s' exists", username)
     user = models.User.query.filter_by(username=username).first_or_404()
-    if not app.config.get("LOGIN_DISABLED"):
-        if current_user.is_admin and user == current_user:
-            abort(422, description="Admin cannot delete self")
+    if (
+        not app.config.get("LOGIN_DISABLED")
+        and current_user.is_admin
+        and user == current_user
+    ):
+        abort(422, description="Admin cannot delete self")
 
     try:
         app.logger.debug("Deleting user..")
         db.session.delete(user)
         db.session.commit()
     except:
-        app.logger.error("Error in deleting user")
+        app.logger.exception("Error in deleting user")
         db.session.rollback()
         # Assume user foreign key required elsewhere and not other error
         abort(422, description="This user can only be deactivated")
@@ -266,15 +295,21 @@ def delete_user(username: str):
     safe_remove(user)
     app.logger.debug("Success")
 
-    return "Deleted", 204
+    return jsonify(), 204
 
 
 @users_blueprint.route("/api/users/<string:username>", methods=["PATCH"])
 @login_required
 @validate_json
-def update_user(username: str):
+def update_user(username: str) -> Response:
+    """
+    Administrator-only: change the username, admin status, activation status,
+    group membership, email, or password for a user.
 
-    app.logger.debug("Verifying current user '%s' is admin..", current_user.username)
+    Regular users may only change their own password.
+    """
+    if type(request.json) is not dict:
+        abort(400, description="Expected object")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         app.logger.debug("User is admin")
         minio_admin = get_minio_admin()
@@ -340,7 +375,9 @@ def update_user(username: str):
         transaction_or_abort(db.session.commit)
         app.logger.debug("Success")
         if old_username != user.username:
-            return jsonify_user(user), {"location": f"/api/users/{user.username}"}
+            return jsonify_user(user), {
+                "location": f"/api/users/{quote(user.username)}"
+            }
         else:
             return jsonify_user(user)
 
@@ -360,7 +397,7 @@ def update_user(username: str):
             app.logger.debug("Password successfully updated")
             return "Updated", 204
         except:
-            app.logger.error("Password unable to be updated")
+            app.logger.exception("Password unable to be updated")
             db.session.rollback()
             abort(500)
 
