@@ -413,7 +413,11 @@ function DataEntryToolbar(props: {
                     </Link>
                 </Tooltip>
             </Toolbar>
-            <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
+            <UploadDialog
+                open={openUpload}
+                onClose={() => setOpenUpload(false)}
+                groups={props.groups}
+            />
         </>
     );
 }
