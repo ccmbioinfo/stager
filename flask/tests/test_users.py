@@ -127,8 +127,8 @@ def test_get_user_user(test_database, client, login_as):
     assert client.get("/api/users/user").status_code == 401
 
     login_as("user")
-    assert client.get("/api/users/foo").status_code == 401
-    assert client.get("/api/users/admin").status_code == 401
+    assert client.get("/api/users/foo").status_code == 403
+    assert client.get("/api/users/admin").status_code == 403
 
     response = client.get("/api/users/user")
     assert response.status_code == 200
@@ -180,13 +180,13 @@ def test_reset_minio_user(test_database, minio_policy, client, login_as):
         client.post(
             "/api/users/foo", headers={"Content-Type": "application/json"}
         ).status_code
-        == 401
+        == 403
     )
     assert (
         client.post(
             "/api/users/admin", headers={"Content-Type": "application/json"}
         ).status_code
-        == 401
+        == 403
     )
 
     assert_reset("user", client)
