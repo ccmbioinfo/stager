@@ -111,6 +111,11 @@ def test_delete_participant(test_database, client, login_as):
     for sample in participant.tissue_samples:
         for dataset in sample.datasets:
             for analysis in dataset.analyses:
+                for genotype in analysis.genotype:
+                    db.session.delete(genotype)
+                db.session.commit()
+                for variant in analysis.variants:
+                    db.session.delete(variant)
                 db.session.delete(analysis)
             db.session.delete(dataset)
         db.session.delete(sample)

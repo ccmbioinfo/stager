@@ -45,12 +45,20 @@ def test_delete_tissue_sample(test_database, client, login_as):
     sample = (
         models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == 1)
         .options(
-            joinedload(models.TissueSample.datasets).joinedload(models.Dataset.analyses)
+            joinedload(models.TissueSample.datasets)
+            .joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
         )
         .one_or_none()
     )
     for dataset in sample.datasets:
         for analysis in dataset.analyses:
+            for genotype in analysis.genotype:
+                db.session.delete(genotype)
+            db.session.commit()
+            for variant in analysis.variants:
+                db.session.delete(variant)
             db.session.delete(analysis)
         db.session.delete(dataset)
 

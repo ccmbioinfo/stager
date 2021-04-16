@@ -113,6 +113,7 @@ def test_delete_family(test_database, client, login_as):
             .joinedload(models.TissueSample.datasets)
             .joinedload(models.Dataset.analyses)
             .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
         )
         .one_or_none()
     )
@@ -120,17 +121,18 @@ def test_delete_family(test_database, client, login_as):
         for sample in participant.tissue_samples:
             for dataset in sample.datasets:
                 for analysis in dataset.analyses:
+                    # first, delete all genotypes and variants associated with an analysis before deleting the analysis
                     for genotype in analysis.genotype:
-                        db.session.delete(genotype.variant)
                         db.session.delete(genotype)
-                        db.session.commit()
+                    db.session.commit()
+                    for variant in analysis.variants:
+                        db.session.delete(variant)
                     db.session.delete(analysis)
                 db.session.delete(dataset)
             db.session.delete(sample)
         db.session.delete(participant)
 
     db.session.commit()
-
     login_as("admin")
     assert client.delete("/api/families/1").status_code == 204
     # Make sure it's gone
