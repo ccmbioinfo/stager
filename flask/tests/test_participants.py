@@ -104,6 +104,8 @@ def test_delete_participant(test_database, client, login_as):
             joinedload(models.Participant.tissue_samples)
             .joinedload(models.TissueSample.datasets)
             .joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
         )
         .one_or_none()
     )
