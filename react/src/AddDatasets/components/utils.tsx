@@ -241,9 +241,7 @@ export function objArrayToCSV(
 ): string {
     if (rows.length === 0 || headers.length === 0) return "";
 
-    // Use first row as reference for keys
     let csv = headers.join(",") + "\n";
-    console.log(csv);
 
     if (onlyHeaders) return csv;
 
@@ -251,8 +249,8 @@ export function objArrayToCSV(
         let values: string[] = [];
         for (const header of headers) {
             let value = row[header];
-            if (Array.isArray(value)) value = value.join(";");
-            else if (!value) value = "null";
+            if (Array.isArray(value)) value = value.join("|");
+            else if (!value) value = "";
             else if (typeof value !== "string") value = "" + value;
             values.push(value as string);
         }
