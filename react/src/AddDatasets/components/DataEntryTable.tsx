@@ -27,7 +27,7 @@ import {
     Add,
     Restore,
     OpenInNew,
-    TableChart,
+    CloudDownload,
 } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
 import { getOptions as _getOptions, getColumns, participantColumns, objArrayToCSV } from "./utils";
@@ -215,9 +215,14 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     function downloadTemplateCSV() {
-        const csv = objArrayToCSV(props.data);
+        const requiredHeaders = columns.map(c => c.field);
+        const optionalHeaders = optionals.filter(c => !c.hidden).map(c => c.field);
+        const rnaseqHeaders = showRNA ? RNASeqCols.map(c => c.field) : [];
+        const headers = requiredHeaders.concat(optionalHeaders).concat(rnaseqHeaders);
+
+        const csv = objArrayToCSV(props.data, headers);
         let hiddenElement = document.createElement("a");
-        hiddenElement.href = "data:text/csv;charset=utf-8" + encodeURI(csv);
+        hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
         hiddenElement.target = "_blank";
         const now = dayjs().format("YYYY-MM-DDThh-mm-ssA");
         hiddenElement.download = `AddDatasets-${now}.csv`;
@@ -407,7 +412,7 @@ function DataEntryToolbar(props: {
                 />
                 <Tooltip title="Download Template CSV">
                     <IconButton onClick={props.handleCSVTemplateAction}>
-                        <TableChart />
+                        <CloudDownload />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Upload CSV">
