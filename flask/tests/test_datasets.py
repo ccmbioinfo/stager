@@ -1,7 +1,6 @@
 import pytest
-from app import db
-from app.models import Dataset
-
+from app import db, models
+from sqlalchemy.orm import joinedload
 
 # TODO: some tests do not precisely verify response structure
 
@@ -190,9 +189,25 @@ def test_delete_dataset_admin(client, test_database, login_as):
     assert client.delete("/api/datasets/1").status_code == 422
     assert client.get("/api/datasets/1").status_code == 200
 
-    # Deleting a dataset with no analyses
-    Dataset.query.get(1).analyses = []
+    dataset = (
+        models.Dataset.query.filter(models.Dataset.dataset_id == 1)
+        .options(
+            joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
+        )
+        .one_or_none()
+    )
+
+    for analysis in dataset.analyses:
+        for genotype in analysis.genotype:
+            db.session.delete(genotype)
+        db.session.commit()
+        for variant in analysis.variants:
+            db.session.delete(variant)
+        db.session.delete(analysis)
     db.session.commit()
+
     assert client.delete("/api/datasets/1").status_code == 204
     assert client.get("/api/datasets/1").status_code == 404
 

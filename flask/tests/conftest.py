@@ -322,6 +322,123 @@ def test_database(client):
     db.session.add(family_b)
     db.session.commit()
 
+    # gene viewer
+
+    positions = {
+        "LOXL4": ["10:100010909", "10:100016572", "10:100016632"],
+        "RTEL1": ["20:62326518", "20:62326938", "20:62327126"],
+    }
+    reference_alleles = {"LOXL4": ["C", "G", "G"], "RTEL1": ["C", "G", "C"]}
+
+    alt_alleles = {"LOXL4": ["T", "C", "A"], "RTEL1": ["A", "C", "G"]}
+    variations = {
+        "LOXL4": ["missense_variant", "missense_variant", "missense_variant"],
+        "RTEL1": ["missense_variant", "missense_variant", "splice_region_variant"],
+    }
+
+    refseq_changes = {
+        "LOXL4": [
+            "NM_032211.6:c.2113G>A:p.Val705Met",
+            "NM_032211.6:c.1393C>G:p.Gln465Glu",
+            "NM_032211.6:c.1333C>T:p.Arg445Cys",
+        ],
+        "RTEL1": [
+            "NM_001283009.1:c.3443C>A:p.Pro1148His",
+            "NM_001283009.2:c.3757G>C:p.Val1253Leu",
+            None,
+        ],
+    }
+
+    depths = {"LOXL4": [377, 634, 295], "RTEL1": [355, 288, 122]}
+    conserved_in_20_mammals = {
+        "LOXL4": [0.935, 0.953, 0.53],
+        "RTEL1": [0.848, 0.953, None],
+    }
+    sift_scores = {
+        "LOXL4": [0.16, 0.02, 0.03],
+        "RTEL1": [0.01, 0.10, None],
+    }
+    polyphen_scores = {
+        "LOXL4": [0.730, 0.998, 0.964],
+        "RTEL1": [0.847, 0.991, None],
+        "RTEL1": [0.847, 0.991, None],
+    }
+
+    cadd_scores = {
+        "LOXL4": [25.2, 27.1, 34.0],
+        "RTEL1": [23.6, 24.5, None],
+    }
+    gnomad_afs = {
+        "LOXL4": [0.000585, 0.000217, 0.000285],
+        "RTEL1": [0.000011, 0, 0.002722],
+    }
+    # ds 1,4, - analysis 3
+    # ds2,3 - analysis 2///ach//user
+    datasets_gt = {
+        dataset_2.dataset_id: {
+            "LOXL4": {
+                "zygosity": ["Het", "Hom", "-"],
+                "burden": [1, 0, 1],
+                "alt_depths": [500, 222, 0],
+            },
+            "RTEL1": {
+                "zygosity": ["Het", "-", "-"],
+                "burden": [1, 0, 1],
+                "alt_depths": [500, 0, 0],
+            },
+        },
+        dataset_3.dataset_id: {
+            "LOXL4": {
+                "zygosity": ["Het", "Het", "Het"],
+                "burden": [1, 0, 1],
+                "alt_depths": [63, 455, 0],
+            },
+            "RTEL1": {
+                "zygosity": ["Het", "Het", "Hom"],
+                "burden": [1, 0, 1],
+                "alt_depths": [88, 655, 111],
+            },
+        },
+    }
+
+    for gene in ["LOXL4", "RTEL1"]:
+
+        gene_obj = Gene(gene=gene)
+        db.session.add(gene_obj)
+        db.session.commit()
+
+        # variant logic for analysis_3
+        for i in range(len(positions["LOXL4"])):
+            variant_obj = Variant(
+                analysis_id=analysis_2.analysis_id,
+                position=positions[gene][i],
+                reference_allele=reference_alleles[gene][i],
+                alt_allele=alt_alleles[gene][i],
+                variation=variations[gene][i],
+                refseq_change=refseq_changes[gene][i],
+                depth=depths[gene][i],
+                gene_id=gene_obj.gene_id,
+                conserved_in_20_mammals=conserved_in_20_mammals[gene][i],
+                sift_score=sift_scores[gene][i],
+                polyphen_score=polyphen_scores[gene][i],
+                cadd_score=cadd_scores[gene][i],
+                gnomad_af=gnomad_afs[gene][i],
+            )
+            db.session.add(variant_obj)
+            db.session.commit()
+
+            for dataset_id in datasets_gt:
+                gt_obj = Genotype(
+                    variant_id=variant_obj.variant_id,
+                    analysis_id=analysis_2.analysis_id,
+                    dataset_id=dataset_id,
+                    zygosity=datasets_gt[dataset_id][gene]["zygosity"][i],
+                    burden=datasets_gt[dataset_id][gene]["burden"][i],
+                    alt_depths=datasets_gt[dataset_id][gene]["alt_depths"][i],
+                )
+                db.session.add(gt_obj)
+                db.session.commit()
+
 
 @pytest.fixture
 def login_as(client):
