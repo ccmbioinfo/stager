@@ -1,4 +1,13 @@
-import { DataEntryHeader, DataEntryRow, Family, Option, Participant } from "../../typings";
+import {
+    DataEntryHeader,
+    DataEntryRow,
+    DataEntryRowBase,
+    DataEntryRowOptional,
+    DataEntryRowRNASeq,
+    Family,
+    Option,
+    Participant,
+} from "../../typings";
 import { getDataEntryHeaders, snakeCaseToTitle, strIsEmpty } from "../../functions";
 
 export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
@@ -223,4 +232,39 @@ function snakeToTitle(str: string): string {
         .split("_")
         .map(word => word.substring(0, 1).toUpperCase() + word.substring(1))
         .join("");
+}
+
+type PureDataEntryRow = DataEntryRowBase & DataEntryRowOptional & DataEntryRowRNASeq;
+
+/**
+ * Convert an array of objects to a CSV string.
+ *
+ * Precondition: all objects in the array have the same keys.
+ *
+ * @param rows An array of objects.
+ * @param onlyHeaders If true, only returns the header row.
+ */
+export function objArrayToCSV(rows: PureDataEntryRow[], onlyHeaders: boolean = false): string {
+    if (rows.length === 0) return "";
+
+    // Use first row as reference for keys
+    const refRow = rows[0];
+    const columns = Object.keys(refRow) as (keyof PureDataEntryRow)[];
+    let csv = "";
+    csv += columns.join(",") + "\n";
+
+    if (onlyHeaders) return csv;
+
+    for (const row of rows) {
+        let values: string[] = [];
+        for (const column of columns) {
+            let value = row[column];
+            if (Array.isArray(value)) value = value.join(";");
+            else if (typeof value !== "string") value = "" + value;
+            values.push(value as string);
+        }
+        csv += values.join(",") + "\n";
+    }
+
+    return csv;
 }
