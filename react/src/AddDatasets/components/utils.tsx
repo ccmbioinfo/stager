@@ -252,7 +252,7 @@ export function objArrayToCSV(
             if (Array.isArray(value)) value = value.join("|");
             else if (!value) value = "";
             else if (typeof value !== "string") value = "" + value;
-            values.push(value as string);
+            values.push(`"${value}"`);
         }
         csv += values.join(",") + "\n";
     }
