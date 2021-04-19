@@ -10,7 +10,7 @@ from minio import Minio
 from .models import *
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
-from .manage_oidc import *
+from .manage_keycloak import *
 from .utils import stager_is_keycloak_admin
 
 
