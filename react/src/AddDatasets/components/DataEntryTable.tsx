@@ -220,7 +220,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         const rnaseqHeaders = showRNA ? RNASeqCols.map(c => c.field) : [];
         const headers = requiredHeaders.concat(optionalHeaders).concat(rnaseqHeaders);
 
-        const csv = objArrayToCSV(props.data, headers);
+        const csv = objArrayToCSV(props.data, headers, true);
         let hiddenElement = document.createElement("a");
         hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
         hiddenElement.target = "_blank";
