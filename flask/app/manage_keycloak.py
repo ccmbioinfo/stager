@@ -152,6 +152,7 @@ def add_keycloak_client(access_token: str):
     """
     print("Adding Stager client to Keycloak...")
     app_url = "http://app:5000"
+    frontend_url = os.getenv("FRONTEND_HOST", "http://localhost:3000")
     url = keycloak_host + "/auth/admin/realms/ccm/clients"
     # https://www.keycloak.org/docs-api/12.0/rest-api/index.html#_clientrepresentation
     new_client = {
@@ -163,8 +164,8 @@ def add_keycloak_client(access_token: str):
         "secret": app.config.get("OIDC_CLIENT_SECRET"),
         "redirectUris": [
             app_url + "/*",
+            frontend_url + "/*",
             "http://localhost:5000/*",
-            "http://localhost:3000/*",
         ],
         "webOrigins": ["+"],
     }

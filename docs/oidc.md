@@ -34,6 +34,16 @@ OIDC Support is enabled if and only if the backend stack is run using the `docke
 
 ### Possible issues
 
+> GET /api/login responds with 500 Internal Server Error with response: `{"error": "Missing \"authorize_url\" value"}`
+
+This is due to the OAuth provider rejecting the redirect_uri provided in the request parameters. When testing with Keycloak, this may be caused by your frontend url or port not matching the default `http://localhost:3000`. To fix this, add the following line to `.env` with your React frontend host and port before building the backend stack.
+
+```
+FRONTEND_HOST=http://{YOUR_FRONTEND_HOST}:{PORT}
+```
+
+If you would prefer not to rebuild the backend stack and the `mysql` directory, and you are testing with Keycloak, then you can instead add your frontend host and port to Keycloak manually through the admin console at `http://localhost:8080/auth/admin`. Navigate to the CCM realm -> Clients -> `ccm-stager` and add `http://{YOUR_FRONTEND_HOST}:{PORT}/*` to "Valid Redirect URIs" with your React frontend host and port.
+
 > `User with username 'admin' already added to '/opt/jboss/keycloak/standalone/configuration/keycloak-add-user.json'`
 
 This error occurs when building the Keycloak container with `docker-compose -f docker-compose.oidc.yaml up --build` after having built it once already. Keycloak errors and closes if you attempt to add default admin credentials that are already present.
