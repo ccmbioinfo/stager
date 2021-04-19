@@ -227,6 +227,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         const now = dayjs().format("YYYY-MM-DDThh-mm-ssA");
         hiddenElement.download = `AddDatasets-${now}.csv`;
         hiddenElement.click();
+        hiddenElement.remove();
     }
 
     return (
