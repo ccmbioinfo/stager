@@ -224,3 +224,39 @@ function snakeToTitle(str: string): string {
         .map(word => word.substring(0, 1).toUpperCase() + word.substring(1))
         .join("");
 }
+
+/**
+ * Convert an array of objects to a CSV string.
+ *
+ * Precondition: all objects in the array have the same keys.
+ *
+ * @param rows An array of DataEntryRows.
+ * @param headers Array of column headers aka. keys of the provided rows to return.
+ * @param onlyHeaders If true, only returns the header row.
+ */
+export function objArrayToCSV(
+    rows: DataEntryRow[],
+    headers: (keyof DataEntryRow)[],
+    onlyHeaders: boolean = false
+): string {
+    if (rows.length === 0 || headers.length === 0) return "";
+
+    let csv = headers.join(",") + "\n";
+
+    if (onlyHeaders) return csv;
+
+    for (const row of rows) {
+        let values: string[] = [];
+        for (const header of headers) {
+            let value = row[header];
+            if (Array.isArray(value)) value = value.join("|");
+            else if (!value) value = "";
+            else if (typeof value !== "string") value = "" + value;
+            value.replaceAll(/"/g, '""');
+            values.push(`"${value}"`);
+        }
+        csv += values.join(",") + "\n";
+    }
+
+    return csv;
+}

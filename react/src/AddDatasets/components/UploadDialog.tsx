@@ -14,6 +14,7 @@ import { InputFileUpload } from "./UploadCSV";
 interface UploadDialogProps {
     open: boolean;
     onClose: () => void;
+    groups: string[];
 }
 
 const useStyles = makeStyles(theme => ({
@@ -44,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function UploadDialog({ open, onClose }: UploadDialogProps) {
+export default function UploadDialog({ open, onClose, groups }: UploadDialogProps) {
     const classes = useStyles();
     const [file, setFile] = React.useState<File | null>(null);
     const { enqueueSnackbar } = useSnackbar();
@@ -62,7 +63,8 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     async function sendFile(file: File | null) {
         if (file !== null) {
             // Upload
-            const response = await fetch("/api/_bulk", {
+            const groupsParam = new URLSearchParams({ groups: groups.join(",") });
+            const response = await fetch("/api/_bulk?" + groupsParam.toString(), {
                 method: "POST",
                 body: file,
                 headers: new Headers({

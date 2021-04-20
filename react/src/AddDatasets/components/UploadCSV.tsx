@@ -12,7 +12,7 @@ const useStyles = makeStyles(theme => ({
         cursor: "pointer",
         p: 2,
         alignItems: "center",
-        backgroundColor: theme.palette.grey[300],
+        backgroundColor: theme.palette.info.dark,
     },
 }));
 

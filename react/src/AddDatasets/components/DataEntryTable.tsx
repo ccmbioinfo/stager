@@ -27,9 +27,10 @@ import {
     Add,
     Restore,
     OpenInNew,
+    CloudDownload,
 } from "@material-ui/icons";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
-import { getOptions as _getOptions, getColumns, participantColumns } from "./utils";
+import { getOptions as _getOptions, getColumns, participantColumns, objArrayToCSV } from "./utils";
 import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
 import UploadDialog from "./UploadDialog";
 import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
@@ -40,6 +41,7 @@ import {
     useInstitutionsQuery,
     useUnlinkedFilesQuery,
 } from "../../hooks";
+import dayjs from "dayjs";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];
@@ -212,6 +214,22 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         );
     }
 
+    function downloadTemplateCSV() {
+        const requiredHeaders = columns.map(c => c.field);
+        const optionalHeaders = optionals.filter(c => !c.hidden).map(c => c.field);
+        const rnaseqHeaders = showRNA ? RNASeqCols.map(c => c.field) : [];
+        const headers = requiredHeaders.concat(optionalHeaders).concat(rnaseqHeaders);
+
+        const csv = objArrayToCSV(props.data, headers, true);
+        let hiddenElement = document.createElement("a");
+        hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+        hiddenElement.target = "_blank";
+        const now = dayjs().format("YYYY-MM-DDThh-mm-ssA");
+        hiddenElement.download = `AddDatasets-${now}.csv`;
+        hiddenElement.click();
+        hiddenElement.remove();
+    }
+
     return (
         <Paper>
             <DataEntryToolbar
@@ -221,6 +239,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     window.localStorage.removeItem("data-entry-default-columns");
                     setOptionals(getOptionalHeaders());
                 }}
+                handleCSVTemplateAction={downloadTemplateCSV}
                 allGroups={props.allGroups}
                 groups={props.groups}
                 setGroups={props.setGroups}
@@ -371,6 +390,7 @@ const useToolbarStyles = makeStyles(theme => ({
 function DataEntryToolbar(props: {
     handleColumnAction: (field: keyof DataEntryRow) => void;
     handleResetAction: () => void;
+    handleCSVTemplateAction: () => void;
     columns: DataEntryHeader[];
     allGroups: string[]; // this user's groups
     groups: string[]; // selected groups
@@ -391,6 +411,11 @@ function DataEntryToolbar(props: {
                     onChange={props.setGroups}
                     disabled={props.allGroups.length <= 1}
                 />
+                <Tooltip title="Download Template CSV">
+                    <IconButton onClick={props.handleCSVTemplateAction}>
+                        <CloudDownload />
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title="Upload CSV">
                     <IconButton onClick={() => setOpenUpload(true)}>
                         <CloudUpload />
@@ -413,7 +438,11 @@ function DataEntryToolbar(props: {
                     </Link>
                 </Tooltip>
             </Toolbar>
-            <UploadDialog open={openUpload} onClose={() => setOpenUpload(false)} />
+            <UploadDialog
+                open={openUpload}
+                onClose={() => setOpenUpload(false)}
+                groups={props.groups}
+            />
         </>
     );
 }
