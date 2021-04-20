@@ -22,7 +22,7 @@ def test_get_enums(test_database, client, login_as):
     login_as("admin")
     response = client.get("/api/enums")
     assert response.status_code == 200
-    assert len(response.get_json()) == 9
+    assert len(response.get_json()) == 10
     for enumType, enums in response.get_json().items():
         assert enumType is not None
 

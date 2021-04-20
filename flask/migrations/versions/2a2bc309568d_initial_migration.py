@@ -95,7 +95,7 @@ def upgrade():
         sa.Column("updated_by_id", sa.Integer(), nullable=False),
         sa.Column(
             "priority",
-            sa.Enum("ClinicalPriority", "ResearchPriority", name="prioritytype"),
+            sa.Enum("Clinical", "Research", name="prioritytype"),
             nullable=True,
         ),
         sa.ForeignKeyConstraint(["assignee_id"], ["user.user_id"], onupdate="cascade"),

@@ -342,8 +342,8 @@ class AnalysisState(str, Enum):
 
 
 class PriorityType(str, Enum):
-    ClinicalPriority = "ClinicalPriority"
-    ResearchPriority = "ResearchPriority"
+    Clinical = "Clinical"
+    Research = "Research"
 
 
 @dataclass
