@@ -341,6 +341,11 @@ class AnalysisState(str, Enum):
     Cancelled = "Cancelled"
 
 
+class PriorityType(str, Enum):
+    Clinical = "Clinical"
+    Research = "Research"
+
+
 @dataclass
 class Analysis(db.Model):
     analysis_id: int = db.Column(db.Integer, primary_key=True)
@@ -373,6 +378,7 @@ class Analysis(db.Model):
     assignee = db.relationship("User", foreign_keys=[assignee_id], lazy="joined")
     requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
     variants = db.relationship("Variant", backref="analysis")
+    priority: PriorityType = db.Column(db.Enum(PriorityType))
 
 
 @dataclass
