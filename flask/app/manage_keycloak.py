@@ -283,3 +283,55 @@ def setup_keycloak():
             return success
         return False
     return False
+
+
+@click.command("create-keycloak-realm")
+@with_appcontext
+def create_realm():
+    token = obtain_admin_token()
+    if token:
+        result = add_keycloak_realm(token)
+        if result:
+            click.echo("Successfully created CCM realm in Keycloak.")
+        else:
+            click.echo("Failed to create CCM realm in Keycloak.")
+    else:
+        click.echo("Failed to obtain access token. CCM realm could not be created.")
+
+
+@click.command("create-stager-client")
+@with_appcontext
+def create_client():
+    token = obtain_admin_token()
+    if token:
+        result = add_keycloak_client(token)
+        if result:
+            click.echo("Successfully added ccm-stager client to Keycloak.")
+        else:
+            click.echo("Failed to add ccm-stager client to Keycloak.")
+    else:
+        click.echo(
+            "Failed to obtain access token. ccm-stager client could not be created."
+        )
+
+
+@click.command("add-keycloak-user")
+@click.argument("username")
+@click.option("-p", "--password", help="Password to assign to USERNAME in Keycloak.")
+@with_appcontext
+def add_user(username: str, password: str):
+    """Add existing user USERNAME to Keycloak."""
+
+    user = User.query.filter_by(username=username).first()
+    if user:
+        token = obtain_admin_token()
+        if token:
+            result = add_keycloak_user(token, user, password)
+            if result:
+                click.echo(f"Added user {user.username} to Keycloak")
+            else:
+                click.echo(f"Failed to add user {user.username} to Keycloak")
+        else:
+            click.echo("Failed to obtain access token. User not added to Keycloak.")
+    else:
+        click.echo(f"Failed to add user {username} to Keycloak: username not found.")

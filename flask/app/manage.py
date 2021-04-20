@@ -18,6 +18,10 @@ def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
     app.cli.add_command(seed_database_minio_groups)
+    if app.config.get("ENABLE_OIDC") and os.getenv("KEYCLOAK_HOST") is not None:
+        app.cli.add_command(create_realm)
+        app.cli.add_command(create_client)
+        app.cli.add_command(add_user)
 
 
 @click.command("db-seed")
