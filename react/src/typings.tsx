@@ -12,6 +12,11 @@ export enum PipelineStatus {
     CANCELLED = "Cancelled",
 }
 
+export enum AnalysisPriority {
+    CLINICAL = "Clinical",
+    RESEARCH = "Research",
+}
+
 /*****   INTERFACES   *****/
 export interface Family {
     family_id: string;
@@ -95,6 +100,7 @@ export interface Analysis {
     assignee: string;
     requester: string;
     analysis_state: PipelineStatus;
+    priority: AnalysisPriority;
     updated: string;
     notes: string;
     dataset_id: string;
@@ -118,6 +124,7 @@ export type AnalysisChange = Pick<Analysis, "analysis_id"> &
         Pick<
             Analysis,
             | "analysis_state"
+            | "priority"
             | "pipeline_id"
             | "qsubID"
             | "result_path"

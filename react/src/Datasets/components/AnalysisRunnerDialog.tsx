@@ -8,6 +8,7 @@ import {
     FormControl,
     FormControlLabel,
     FormLabel,
+    Grid,
     Paper,
     Radio,
     RadioGroup,
@@ -21,8 +22,8 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { Dataset } from "../../typings";
-import { usePipelinesQuery, useAnalysisCreateMutation } from "../../hooks";
+import { AnalysisPriority, Dataset } from "../../typings";
+import { useEnumsQuery, usePipelinesQuery, useAnalysisCreateMutation } from "../../hooks";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[];
@@ -33,6 +34,10 @@ interface AnalysisRunnerDialogProps {
 const useStyles = makeStyles(theme => ({
     text: {
         paddingBottom: theme.spacing(1),
+    },
+    warningText: {
+        paddingBottom: theme.spacing(1),
+        color: theme.palette.error.dark,
     },
 }));
 
@@ -47,7 +52,9 @@ export default function AnalysisRunnerDialog({
     const pipelineQuery = usePipelinesQuery();
     const pipelines = pipelineQuery.data || [];
     const [pipeline, setPipeline] = useState(NaN);
+    const [analysisPriority, setAnalysisPriority] = useState<AnalysisPriority | "None" | "">("");
     const mutation = useAnalysisCreateMutation();
+    const { data: enums } = useEnumsQuery();
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -67,27 +74,63 @@ export default function AnalysisRunnerDialog({
                     Run a pipeline using the selected datasets. A full analysis can take a day to
                     several days depending on the number of datasets and the requested pipeline.
                 </Typography>
-                <FormControl component="fieldset">
-                    <FormLabel component="legend" className={classes.text}>
-                        Pipelines:
-                    </FormLabel>
-                    <RadioGroup
-                        row
-                        aria-label="Pipelines"
-                        name="pipelines"
-                        value={pipeline}
-                        onChange={event => setPipeline(parseInt(event.target.value))}
-                    >
-                        {pipelines.map(({ pipeline_id, pipeline_name, pipeline_version }) => (
-                            <FormControlLabel
-                                key={pipeline_id}
-                                label={`${pipeline_name} ${pipeline_version}`}
-                                value={pipeline_id}
-                                control={<Radio color="primary" />}
-                            />
-                        ))}
-                    </RadioGroup>
-                </FormControl>
+                <Grid container direction="column">
+                    <Grid item>
+                        <FormControl component="fieldset">
+                            <FormLabel
+                                component="legend"
+                                className={pipeline ? classes.text : classes.warningText}
+                            >
+                                Pipelines*:
+                            </FormLabel>
+                            <RadioGroup
+                                row
+                                aria-label="Pipelines"
+                                name="pipelines"
+                                value={pipeline}
+                                onChange={event => setPipeline(parseInt(event.target.value))}
+                            >
+                                {pipelines.map(
+                                    ({ pipeline_id, pipeline_name, pipeline_version }) => (
+                                        <FormControlLabel
+                                            key={pipeline_id}
+                                            label={`${pipeline_name} ${pipeline_version}`}
+                                            value={pipeline_id}
+                                            control={<Radio color="primary" />}
+                                        />
+                                    )
+                                )}
+                            </RadioGroup>
+                        </FormControl>
+                    </Grid>
+                    <Grid item>
+                        <FormControl component="fieldset">
+                            <FormLabel component="legend" className={classes.text}>
+                                Priority:
+                            </FormLabel>
+                            <RadioGroup
+                                row
+                                aria-label="Priorities"
+                                name="priorities"
+                                value={analysisPriority}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                    setAnalysisPriority(
+                                        event.target.value as AnalysisPriority | "None"
+                                    )
+                                }
+                            >
+                                {enums?.PriorityType.concat("None").map(priorityName => (
+                                    <FormControlLabel
+                                        key={priorityName}
+                                        label={priorityName}
+                                        value={priorityName}
+                                        control={<Radio color="primary" />}
+                                    />
+                                ))}
+                            </RadioGroup>
+                        </FormControl>
+                    </Grid>
+                </Grid>
                 <Typography variant="subtitle1" className={classes.text}>
                     Datasets:
                 </Typography>
@@ -125,13 +168,19 @@ export default function AnalysisRunnerDialog({
                     Cancel
                 </Button>
                 <Button
+                    disabled={!pipeline}
                     variant="contained"
                     onClick={async () => {
                         onClose();
+                        const priority =
+                            !analysisPriority || analysisPriority === "None"
+                                ? {}
+                                : { priority: analysisPriority };
                         mutation.mutate(
                             {
                                 datasets: datasets.map(d => d.dataset_id),
                                 pipeline_id: pipeline,
+                                ...priority,
                             },
                             {
                                 onSuccess: analysis => {
