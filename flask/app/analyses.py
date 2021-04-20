@@ -39,6 +39,7 @@ def list_analyses(page: int, limit: int) -> Response:
         "pipeline_id",
         "assignee",
         "requester",
+        "priority",
     ]
     assignee_user = aliased(models.User)
     requester_user = aliased(models.User)
@@ -74,6 +75,15 @@ def list_analyses(page: int, limit: int) -> Response:
     notes = request.args.get("notes", type=str)
     if notes:
         filters.append(func.instr(models.Analysis.notes, notes))
+    priority = request.args.get("priority", type=str)
+    if priority:
+        filters.append(
+            filter_in_enum_or_abort(
+                models.Analysis.priority,
+                models.PriorityType,
+                priority,
+            )
+        )
     result_path = request.args.get("result_path", type=str)
     if result_path:
         filters.append(func.instr(models.Analysis.result_path, result_path))
@@ -236,6 +246,8 @@ def create_analysis():
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
+    priority = request.json.get("priority")
+
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
         requester_id = updated_by_id = user_id or 1
@@ -303,6 +315,12 @@ def create_analysis():
         updated_by_id=updated_by_id,
         datasets=found_datasets,
     )
+
+    enum_error = mixin(analysis, request.json, ["priority"])
+
+    if enum_error:
+        abort(400, description=enum_error)
+
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
@@ -410,6 +428,11 @@ def update_analysis(id: int):
         "notes",
     ]
 
+    if request.json.get("priority") and request.json.get("priority") != "None":
+        editable_columns.append("priority")
+    elif request.json.get("priority") == "None":
+        analysis.priority = None
+
     if "assignee" in request.json:
         if not request.json["assignee"]:
             analysis.assignee = None
@@ -425,7 +448,7 @@ def update_analysis(id: int):
     enum_error = mixin(analysis, request.json, editable_columns)
 
     if enum_error:
-        abort(400, description=enum_error)  # check if this works
+        abort(400, description=enum_error)
 
     if request.json.get("analysis_state") == "Running":
         analysis.started = datetime.now()
