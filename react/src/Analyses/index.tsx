@@ -338,9 +338,9 @@ export default function Analyses() {
                             type: "string",
                             width: "8%",
                             lookup: priorityLookup,
-                            editComponent: ({ onChange }) => (
+                            editComponent: ({ onChange, value }) => (
                                 <Select
-                                    value={props.value || "None"}
+                                    value={value || "None"}
                                     onChange={event => onChange(event.target.value)}
                                     fullWidth
                                 >
