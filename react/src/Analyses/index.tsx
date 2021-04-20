@@ -1,7 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useHistory, useParams } from "react-router";
-import { makeStyles } from "@material-ui/core/styles";
-import { Chip, IconButton, TextField, Container } from "@material-ui/core";
+import {
+    Chip,
+    IconButton,
+    TextField,
+    Container,
+    Select,
+    MenuItem,
+    useTheme,
+} from "@material-ui/core";
 import {
     Cancel,
     Add,
@@ -11,13 +18,19 @@ import {
     AssignmentTurnedIn,
     Error,
 } from "@material-ui/icons";
+import { makeStyles, Theme } from "@material-ui/core/styles";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV, updateTableFilter, toTitleCase } from "../functions";
-import { Analysis, PipelineStatus } from "../typings";
+import { isRowSelected, exportCSV, updateTableFilter, toTitleCase, toKeyValue } from "../functions";
+import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
-import { AnalysisOptions, useAnalysesPage, useAnalysisUpdateMutation } from "../hooks";
+import {
+    AnalysisOptions,
+    useAnalysesPage,
+    useAnalysisUpdateMutation,
+    useEnumsQuery,
+} from "../hooks";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
@@ -139,6 +152,18 @@ async function _changeStateForSelectedRows(
     return { changed, skipped, failed };
 }
 
+const getHighlightColor = (theme: Theme, priority: AnalysisPriority, status: PipelineStatus) => {
+    const statusRelevant = [PipelineStatus.PENDING, PipelineStatus.RUNNING].includes(status);
+
+    if (statusRelevant && priority === "Research") {
+        return { backgroundColor: theme.palette.warning.light };
+    }
+    if (statusRelevant && priority === "Clinical") {
+        return { backgroundColor: theme.palette.error.light };
+    }
+    return {};
+};
+
 export default function Analyses() {
     const classes = useStyles();
     const [detail, setDetail] = useState(false); // for detail dialog
@@ -149,6 +174,12 @@ export default function Analyses() {
     const dataFetch = useAnalysesPage();
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
+
+    const { data: enums } = useEnumsQuery();
+
+    const theme = useTheme();
+
+    const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
@@ -302,6 +333,27 @@ export default function Analyses() {
                             width: "8%",
                         },
                         {
+                            title: "Priority",
+                            field: "priority",
+                            type: "string",
+                            width: "8%",
+                            lookup: priorityLookup,
+                            editComponent: ({ onChange }) => (
+                                <Select
+                                    value={props.value || "None"}
+                                    onChange={event => onChange(event.target.value)}
+                                    fullWidth
+                                >
+                                    {enums?.PriorityType.map(p => (
+                                        <MenuItem key={p} value={p}>
+                                            {p}
+                                        </MenuItem>
+                                    ))}
+                                    <MenuItem value="None">None</MenuItem>
+                                </Select>
+                            ),
+                        },
+                        {
                             title: "Requester",
                             field: "requester",
                             type: "string",
@@ -355,6 +407,8 @@ export default function Analyses() {
                         exportAllData: true,
                         exportButton: { csv: true, pdf: false },
                         exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
+                        rowStyle: data =>
+                            getHighlightColor(theme, data.priority, data.analysis_state),
                     }}
                     actions={[
                         {
@@ -509,6 +563,8 @@ export default function Analyses() {
                                             `Analysis ID ${oldData?.analysis_id} edited successfully`,
                                             { variant: "success" }
                                         );
+                                        //refresh data
+                                        tableRef.current.onQueryChange();
                                     },
                                     onError: response => {
                                         enqueueSnackbar(

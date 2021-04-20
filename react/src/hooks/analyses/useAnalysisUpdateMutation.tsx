@@ -15,6 +15,7 @@ async function patchAnalysis(newAnalysis: AnalysisOptions) {
         // We only allow updating these fields via the MTable row edit feature
         updates = {
             notes: analysis.notes,
+            priority: analysis.priority,
             result_path: analysis.result_path,
         };
     }
