@@ -37,18 +37,30 @@ jobs:
           ${{ runner.os }}-yarn-
     - run: yarn install
       if: steps.restore.outputs.cache-hit != 'true'
-    - run: yarn build
+    - name: Build (CCM-DEV)
+      run: yarn build
       env:
         REACT_APP_NAME: Stager
-        REACT_APP_MINIO_URL: https://sampletrackerdev.ccm.sickkids.ca/minio/
+        REACT_APP_MINIO_URL: ${{ secrets.CCM_DEV_REACT_APP_MINIO_URL }}
     - run: yarn lint
     - run: yarn check-format
     # - run: yarn test -- --coverage
-    - name: Deploy to MinIO bucket
+    - name: Deploy (CCM-DEV)
       if: github.event_name == 'push'
       env:
-        MC_HOST_minio: https://${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_HOST }}
+        MC_HOST_minio: ${{ secrets.CCM_DEV_MC_HOST }}
       run: |
         sudo curl --output /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
         sudo chmod +x /usr/local/bin/mc
-        ./deploy.sh minio ${{ secrets.MINIO_BUCKET }}
+        ./deploy.sh minio ${{ secrets.CCM_DEV_MINIO_BUCKET }}
+    - name: Build (CHEO-RI)
+      if: github.event_name == 'push'
+      run: yarn build
+      env:
+        REACT_APP_NAME: Stager
+        REACT_APP_MINIO_URL: ${{ secrets.CHEO_RI_REACT_APP_MINIO_URL }}
+    - name: Deploy (CHEO-RI)
+      if: github.event_name == 'push'
+      env:
+        MC_HOST_minio: ${{ secrets.CHEO_RI_MC_HOST }}
+      run: ./deploy.sh minio ${{ secrets.CHEO_RI_MINIO_BUCKET }}
