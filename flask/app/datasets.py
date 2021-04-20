@@ -60,7 +60,7 @@ def list_datasets(page: int, limit: int) -> Response:
     if order_by is None:
         order = None  # system default, likely dataset_id
     elif order_by == "updated_by":
-        order = models.Dataset.updated_by.username
+        order = models.User.username
     elif order_by == "linked_files":
         order = models.DatasetFile.path
     elif order_by == "tissue_sample_type":
@@ -192,8 +192,8 @@ def list_datasets(page: int, limit: int) -> Response:
                     and dataset.tissue_sample.participant.institution.institution,
                     "sex": dataset.tissue_sample.participant.sex,
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                    "created_by": dataset.tissue_sample.created_by.username,
-                    "updated_by": dataset.tissue_sample.updated_by.username,
+                    "created_by": dataset.created_by.username,
+                    "updated_by": dataset.updated_by.username,
                 }
                 for dataset in datasets
             ],
@@ -263,7 +263,7 @@ def get_dataset(id: int):
                     **asdict(analysis),
                     "requester": analysis.requester.username,
                     "updated_by": analysis.updated_by.username,
-                    "assignee": analysis.assignee.username,
+                    "assignee": analysis.assignee_id and analysis.assignee.username,
                 }
                 for analysis in dataset.analyses
             ],
