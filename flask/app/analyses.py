@@ -319,6 +319,9 @@ def create_analysis():
         datasets=found_datasets,
     )
 
+    if request.json.get("priority"):
+        analysis.priority = request.json.get("priority")
+
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
