@@ -1,6 +1,5 @@
 from dataclasses import asdict
 from datetime import datetime
-from typing import Container
 
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
@@ -12,6 +11,7 @@ from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    enum_validate,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
     mixin,
@@ -246,7 +246,10 @@ def create_analysis():
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
-    priority = request.json.get("priority")
+    enum_error = enum_validate(models.Analysis, request.json, ["priority"])
+
+    if enum_error:
+        abort(400, description=enum_error)
 
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
@@ -315,11 +318,6 @@ def create_analysis():
         updated_by_id=updated_by_id,
         datasets=found_datasets,
     )
-
-    enum_error = mixin(analysis, request.json, ["priority"])
-
-    if enum_error:
-        abort(400, description=enum_error)
 
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
