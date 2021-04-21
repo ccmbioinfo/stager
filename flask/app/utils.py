@@ -25,10 +25,13 @@ def mixin(
 ) -> Union[None, str]:
     for field in columns:
         if field in json_mixin:
-            column = getattr(entity, field)
+            column = getattr(entity, field)  # will be None if no value for field in db
             value = json_mixin[field]
             if isinstance(column, Enum):
-                if not hasattr(type(column), str(value)):
+                is_valid_null = (
+                    entity.__table__.columns[field].nullable and value is None
+                )
+                if not hasattr(type(column), str(value)) and not is_valid_null:
                     allowed = [e.value for e in type(column)]
                     return f'"{field}" must be one of {allowed}'
             setattr(entity, field, value)
@@ -98,7 +101,6 @@ def transaction_or_abort(callback: Callable) -> None:
 def enum_validate(
     entity: db.Model, json_mixin: Dict[str, any], columns: List[str]
 ) -> Union[None, str]:
-
     for field in columns:
         if field in json_mixin:
             column = getattr(entity, field)  # the column type from the entities

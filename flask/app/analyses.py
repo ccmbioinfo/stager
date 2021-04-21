@@ -312,15 +312,13 @@ def create_analysis():
     analysis = models.Analysis(
         analysis_state="Requested",
         pipeline_id=pipeline_id,
+        priority=request.json.get("priority"),
         requester_id=requester_id,
         requested=now,
         updated=now,
         updated_by_id=updated_by_id,
         datasets=found_datasets,
     )
-
-    if request.json.get("priority"):
-        analysis.priority = request.json.get("priority")
 
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
@@ -427,12 +425,8 @@ def update_analysis(id: int):
         "started",
         "finished",
         "notes",
+        "priority",
     ]
-
-    if request.json.get("priority") and request.json.get("priority") != "None":
-        editable_columns.append("priority")
-    elif request.json.get("priority") == "None":
-        analysis.priority = None
 
     if "assignee" in request.json:
         if not request.json["assignee"]:
@@ -446,10 +440,12 @@ def update_analysis(id: int):
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = mixin(analysis, request.json, editable_columns)
+    enum_error = enum_validate(models.Analysis, request.json, editable_columns)
 
     if enum_error:
         abort(400, description=enum_error)
+
+    mixin(analysis, request.json, editable_columns)
 
     if request.json.get("analysis_state") == "Running":
         analysis.started = datetime.now()
