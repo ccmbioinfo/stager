@@ -114,9 +114,7 @@ export default function AnalysisRunnerDialog({
                                 name="priorities"
                                 value={analysisPriority}
                                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                                    setAnalysisPriority(
-                                        event.target.value as AnalysisPriority | "None"
-                                    )
+                                    setAnalysisPriority(event.target.value as AnalysisPriority)
                                 }
                             >
                                 {enums?.PriorityType.concat("None").map(priorityName => (

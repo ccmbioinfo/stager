@@ -338,20 +338,30 @@ export default function Analyses() {
                             type: "string",
                             width: "8%",
                             lookup: priorityLookup,
-                            editComponent: ({ onChange, value }) => (
-                                <Select
-                                    value={value || "None"}
-                                    onChange={event => onChange(event.target.value)}
-                                    fullWidth
-                                >
-                                    {enums?.PriorityType.map(p => (
-                                        <MenuItem key={p} value={p}>
-                                            {p}
-                                        </MenuItem>
-                                    ))}
-                                    <MenuItem value="None">None</MenuItem>
-                                </Select>
-                            ),
+                            editComponent: ({ onChange, value }) => {
+                                //react doesn't like default null values in forms so we have to workaround
+                                const cast = value ? value : "None";
+                                return (
+                                    <Select
+                                        value={cast}
+                                        onChange={event =>
+                                            onChange(
+                                                event.target.value === "None"
+                                                    ? null
+                                                    : event.target.value
+                                            )
+                                        }
+                                        fullWidth
+                                    >
+                                        {enums?.PriorityType.map(p => (
+                                            <MenuItem key={p} value={p}>
+                                                {p}
+                                            </MenuItem>
+                                        ))}
+                                        <MenuItem value={"None"}>None</MenuItem>
+                                    </Select>
+                                );
+                            },
                         },
                         {
                             title: "Requester",
@@ -558,7 +568,7 @@ export default function Analyses() {
                             analysisUpdateMutation.mutate(
                                 { ...newData, source: "row-edit" },
                                 {
-                                    onSuccess: newRow => {
+                                    onSuccess: () => {
                                         enqueueSnackbar(
                                             `Analysis ID ${oldData?.analysis_id} edited successfully`,
                                             { variant: "success" }
