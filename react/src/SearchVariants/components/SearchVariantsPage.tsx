@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Container, Grid, makeStyles, Typography } from "@material-ui/core";
+import { useSnackbar } from "notistack";
 import GeneAutocomplete from "./Autocomplete";
 import { Gene } from "../../typings";
 import { useVariantsQuery } from "../../hooks/variants";
@@ -24,14 +25,17 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGene, setSelectedGene] = useState<Gene>();
     const [error, setError] = useState(false);
 
+    const { enqueueSnackbar } = useSnackbar();
+
     const { data: blob } = useVariantsQuery({ panel: selectedGene?.hgnc_gene_name }, "csv", {
         enabled: !!selectedGene,
-        onError: e => {
+        onError: response => {
             //I'm not sure how common this scenario will be
-            if (e.status === 400) {
+            if (response.status === 400) {
                 setError(true);
             } else {
-                throw e;
+                const errorText = response.statusText;
+                enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
             }
         },
     });
