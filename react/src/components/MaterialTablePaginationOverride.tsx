@@ -8,11 +8,11 @@ import { TablePagination, TablePaginationProps } from "@material-ui/core";
  * MaterialTable's props.options supports a default pageSize and a list of pageSizeOptions
  * that are used in the select dropdown to switch between sizes. When that code was originally
  * written, the underlying pagination component only supported numbers for pageSizeOptions,
- * so this requirement was harded into material-table's typings and prop types:
+ * so this requirement was hard-coded into material-table's typings and prop types:
  *  https://github.com/mbrn/material-table/blob/b7474ca0f5497f04ff3a3d50e709d86de7c639b0/types/index.d.ts#L334
  *  https://github.com/mbrn/material-table/blob/b7474ca0f5497f04ff3a3d50e709d86de7c639b0/src/prop-types.js#L340
  *
- * However, the pageSizeOptions is directly passed as the rowsPerPageOptions prop to the
+ * However, pageSizeOptions is directly passed as the rowsPerPageOptions prop to the
  * underlying pagination component, which is overridable by the components.Pagination prop.
  *  https://github.com/mbrn/material-table/blob/b7474ca0f5497f04ff3a3d50e709d86de7c639b0/src/material-table.js#L751-L768
  * By default, this is material-ui TablePagination. A year after pageSizeOptions was added to

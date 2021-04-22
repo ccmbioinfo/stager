@@ -4,8 +4,8 @@ import MaterialTablePaginationOverride from "./MaterialTablePaginationOverride";
 /**
  * Some props are shared between our three primary tables for a consistent interface.
  *
- * This appropriate supports setting defaults, even for props that are themselves objects
- * (though not recursively), while still being able to override the defaults.
+ * This component sets some defaults, even for props that are themselves objects
+ * (though not recursively), and supports overriding the defaults.
  *
  * e.g. components.Pagination can still be overridden, but passing a components prop
  * will not override this default by itself
