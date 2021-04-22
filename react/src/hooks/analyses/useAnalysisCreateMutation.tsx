@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Analysis, Dataset, Pipeline } from "../../typings";
+import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
 import { addToCachedList, changeFetch } from "../utils";
 
 interface NewAnalysisParams {
     datasets: Dataset["dataset_id"][];
     pipeline_id: Pipeline["pipeline_id"];
+    priority?: AnalysisPriority;
 }
 
 async function createAnalysis(params: NewAnalysisParams) {

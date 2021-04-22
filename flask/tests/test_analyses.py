@@ -95,7 +95,7 @@ def test_delete_analysis(test_database, client, login_as):
 # PATCH /api/analyses/:id
 
 
-def test_update_participant(test_database, client, login_as):
+def test_update_analysis(test_database, client, login_as):
     login_as("user")
     # Test existence
     assert (
@@ -109,12 +109,11 @@ def test_update_participant(test_database, client, login_as):
     )
     # Test assignee does not exist
     assert client.patch("/api/analyses/1", json={"assignee": "nope"}).status_code == 400
+
     # Test enum error - doesn't really apply anymore if we get check for valid enums separately
     assert (
-        client.patch(
-            "/api/analyses/1", json={"analysis_state": "not_an_enum"}
-        ).status_code
-        == 403
+        client.patch("/api/analyses/1", json={"priority": "not_an_enum"}).status_code
+        == 400
     )
     # test analysis state restriction for users
     for state in ["Requested", "Running", "Done", "Error"]:
@@ -183,6 +182,15 @@ def test_create_analysis(test_database, client, login_as):
     assert (
         client.post(
             "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
+        ).status_code
+        == 400
+    )
+
+    # Test invalid invalid priority given
+    assert (
+        client.post(
+            "/api/analyses",
+            json={"datasets": [3], "pipeline_id": 2, "priority": "FOO"},
         ).status_code
         == 400
     )
