@@ -26,6 +26,7 @@ import {
     AnalysisInfoDialog,
     DateFilterComponent,
     DateTimeText,
+    SelectFilterComponent,
     MaterialTablePrimary,
     Note,
 } from "../components";
@@ -336,7 +337,6 @@ export default function Analyses() {
                             title: "Assignee",
                             field: "assignee",
                             type: "string",
-                            editable: "never",
                             width: "8%",
                         },
                         {
@@ -393,6 +393,12 @@ export default function Analyses() {
                             field: "analysis_state",
                             type: "string",
                             editable: "never",
+                            filterComponent: props => (
+                                <SelectFilterComponent
+                                    {...props}
+                                    options={Object.values(PipelineStatus)}
+                                />
+                            ),
                         },
                         {
                             title: "Notes",

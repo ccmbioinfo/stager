@@ -34,3 +34,4 @@ export { default as Note } from "./Note";
 export { default as Notification } from "./Notification";
 export { default as NotificationPopover } from "./NotificationPopover";
 export { default as SecretDisplay } from "./SecretDisplay";
+export { default as SelectFilterComponent } from "./SelectFilterComponent";
