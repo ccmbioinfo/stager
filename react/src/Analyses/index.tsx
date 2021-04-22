@@ -339,11 +339,9 @@ export default function Analyses() {
                             width: "8%",
                             lookup: priorityLookup,
                             editComponent: ({ onChange, value }) => {
-                                //react doesn't like default null values in forms so we have to workaround
-                                const cast = value ? value : "None";
                                 return (
                                     <Select
-                                        value={cast}
+                                        value={value || "None"}
                                         onChange={event =>
                                             onChange(
                                                 event.target.value === "None"
@@ -358,7 +356,7 @@ export default function Analyses() {
                                                 {p}
                                             </MenuItem>
                                         ))}
-                                        <MenuItem value={"None"}>None</MenuItem>
+                                        <MenuItem value="None">None</MenuItem>
                                     </Select>
                                 );
                             },

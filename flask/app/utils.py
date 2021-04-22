@@ -28,10 +28,10 @@ def mixin(
             column = getattr(entity, field)  # will be None if no value for field in db
             value = json_mixin[field]
             if isinstance(column, Enum):
-                is_valid_null = (
+                is_null_valid = (
                     entity.__table__.columns[field].nullable and value is None
                 )
-                if not hasattr(type(column), str(value)) and not is_valid_null:
+                if not hasattr(type(column), str(value)) and not is_null_valid:
                     allowed = [e.value for e in type(column)]
                     return f'"{field}" must be one of {allowed}'
             setattr(entity, field, value)
