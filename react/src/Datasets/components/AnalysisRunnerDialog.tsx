@@ -35,10 +35,6 @@ const useStyles = makeStyles(theme => ({
     text: {
         paddingBottom: theme.spacing(1),
     },
-    warningText: {
-        paddingBottom: theme.spacing(1),
-        color: theme.palette.error.dark,
-    },
 }));
 
 export default function AnalysisRunnerDialog({
@@ -77,10 +73,7 @@ export default function AnalysisRunnerDialog({
                 <Grid container direction="column">
                     <Grid item>
                         <FormControl component="fieldset">
-                            <FormLabel
-                                component="legend"
-                                className={pipeline ? classes.text : classes.warningText}
-                            >
+                            <FormLabel component="legend" className={classes.text}>
                                 Pipelines*:
                             </FormLabel>
                             <RadioGroup
@@ -166,7 +159,6 @@ export default function AnalysisRunnerDialog({
                     Cancel
                 </Button>
                 <Button
-                    disabled={!pipeline}
                     variant="contained"
                     onClick={async () => {
                         onClose();
