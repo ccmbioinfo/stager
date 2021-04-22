@@ -104,7 +104,7 @@ export async function queryTableData<RowData extends object>(
     // page information
     searchParams.append("page", `${query.page}`);
     // ignore normally invalid sizes that designate retrieving all rows
-    if (query.pageSize > 0) {
+    if (query.pageSize > 0 && query.pageSize < Number.MAX_SAFE_INTEGER) {
         searchParams.append("limit", `${query.pageSize}`);
     }
 

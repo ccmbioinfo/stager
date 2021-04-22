@@ -24,7 +24,16 @@ export default function MaterialTablePrimary<T extends object>(props: MaterialTa
             }}
             options={{
                 pageSize: 20,
-                pageSizeOptions: [20, 50, 100, { value: -1, label: "All" } as any], // see MaterialTablePaginationOverride
+                pageSizeOptions: [
+                    20,
+                    50,
+                    100,
+                    // 0 or -1 cannot be used as MaterialTable still uses this value for rendering rows
+                    // instead of the size of data fetched from the server, which leads to weird effects.
+                    // This value is only safe with emptyRowsWhenPaging: false, or MaterialTable
+                    // will try to render a near-infinite number of empty rows.
+                    { value: Number.MAX_SAFE_INTEGER, label: "All" } as any,
+                ], // see MaterialTablePaginationOverride regarding the cast
                 emptyRowsWhenPaging: false,
                 filtering: true,
                 search: false,
