@@ -13,7 +13,7 @@ family_blueprint = Blueprint(
 )
 
 
-@family_blueprint.route("/api/families", methods=["GET"])
+@family_blueprint.route("/api/families", methods=["GET"], strict_slashes=False)
 @login_required
 def list_families():
 
@@ -301,7 +301,7 @@ def update_family(id: int):
         abort(500)
 
 
-@family_blueprint.route("/api/families", methods=["POST"])
+@family_blueprint.route("/api/families", methods=["POST"], strict_slashes=False)
 @login_required
 @check_admin
 @validate_json

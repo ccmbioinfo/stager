@@ -41,7 +41,7 @@ datasets_blueprint = Blueprint(
 )
 
 
-@datasets_blueprint.route("/api/datasets", methods=["GET"])
+@datasets_blueprint.route("/api/datasets", methods=["GET"], strict_slashes=False)
 @login_required
 @paged
 def list_datasets(page: int, limit: int) -> Response:
@@ -344,7 +344,7 @@ def delete_dataset(id: int):
         abort(422, description="Dataset has analyses, cannot delete")
 
 
-@datasets_blueprint.route("/api/datasets", methods=["POST"])
+@datasets_blueprint.route("/api/datasets", methods=["POST"], strict_slashes=False)
 @login_required
 @validate_json
 def create_dataset():

@@ -127,7 +127,7 @@ def delete_tissue_sample(id: int):
         abort(422, description="Tissue has dataset(s), cannot delete")
 
 
-@tissue_blueprint.route("/api/tissue_samples", methods=["POST"])
+@tissue_blueprint.route("/api/tissue_samples", methods=["POST"], strict_slashes=False)
 @login_required
 @check_admin
 @validate_json
