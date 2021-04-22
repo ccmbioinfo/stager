@@ -74,7 +74,7 @@ export default function AnalysisRunnerDialog({
                     <Grid item>
                         <FormControl component="fieldset">
                             <FormLabel component="legend" className={classes.text}>
-                                Pipelines*:
+                                Pipelines:
                             </FormLabel>
                             <RadioGroup
                                 row
@@ -159,6 +159,7 @@ export default function AnalysisRunnerDialog({
                     Cancel
                 </Button>
                 <Button
+                    disabled={!pipeline}
                     variant="contained"
                     onClick={async () => {
                         onClose();
