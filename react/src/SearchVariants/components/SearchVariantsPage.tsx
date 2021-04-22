@@ -23,6 +23,7 @@ const useStyles = makeStyles(theme => ({
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<string[]>([]);
     const [error, setError] = useState(false);
+    const [csvFetchEnabled, setCsvFetchEnabled] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -34,8 +35,8 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const { data: blob, refetch } = useVariantsQuery({ panel: selectedGenes.join(";") }, "csv", {
-        enabled: false,
+    const { data: blob } = useVariantsQuery({ panel: selectedGenes.join(";") }, "csv", {
+        enabled: csvFetchEnabled,
         onError: response => {
             if (response.status === 400) {
                 setError(true);
@@ -49,16 +50,19 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const clearError = () => {
         if (error) {
             setError(false);
-            setSelectedGenes([]);
         }
     };
 
     useEffect(() => {
-        if (blob && selectedGenes) {
+        /* react-query cache will return a 'new' blob when parameters
+           match a cache key, even if refetch hasn't been called or query is disabled,
+           triggering a download. So we need to explicitly
+           enable/disable the query AND provide flag as a dependency. */
+        if (blob && csvFetchEnabled) {
             downloadCsvResponse(blob);
-            setSelectedGenes([]);
+            setCsvFetchEnabled(false);
         }
-    }, [selectedGenes, blob]);
+    }, [blob, csvFetchEnabled]);
 
     useEffect(() => {
         document.title = `Search Variants | ${process.env.REACT_APP_NAME}`;
@@ -93,7 +97,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 onSelect={gene =>
                                     gene.hgnc_gene_name
                                         ? updateSelectedGenes(gene.hgnc_gene_name)
-                                        : /* this shouldn't happen since we're querying on this field in the first place */
+                                        : /* this shouldn't happen since we're querying on this field (for now) */
                                           console.error(`Gene id ${gene.gene_id} has no gene name`)
                                 }
                             />
@@ -101,7 +105,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item>
                             <Button
                                 disabled={!selectedGenes.length}
-                                onClick={() => refetch()}
+                                onClick={() => setCsvFetchEnabled(true)}
                                 size="large"
                                 variant="contained"
                             >
