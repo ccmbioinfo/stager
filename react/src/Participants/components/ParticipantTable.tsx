@@ -10,6 +10,7 @@ import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
 import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantsPage } from "../../hooks";
+import { MaterialTablePaginationOverride } from "../../components";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -135,8 +136,11 @@ export default function ParticipantTable() {
                 ]}
                 data={dataFetch}
                 title="Participants"
+                components={{ Pagination: MaterialTablePaginationOverride }}
                 options={{
-                    pageSize: 10,
+                    pageSize: 20,
+                    pageSizeOptions: [20, 50, 100, { value: -1, label: "All" } as any], // see MaterialTablePaginationOverride
+                    emptyRowsWhenPaging: false,
                     selection: false,
                     filtering: true,
                     search: false,

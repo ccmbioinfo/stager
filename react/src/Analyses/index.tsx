@@ -24,7 +24,13 @@ import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
 import { isRowSelected, exportCSV, updateTableFilter, toTitleCase, toKeyValue } from "../functions";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
-import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
+import {
+    AnalysisInfoDialog,
+    Note,
+    DateTimeText,
+    DateFilterComponent,
+    MaterialTablePaginationOverride,
+} from "../components";
 import {
     AnalysisOptions,
     useAnalysesPage,
@@ -407,7 +413,9 @@ export default function Analyses() {
                     data={dataFetch}
                     title="Analyses"
                     options={{
-                        pageSize: 10,
+                        pageSize: 20,
+                        pageSizeOptions: [20, 50, 100, { value: -1, label: "All" } as any], // see MaterialTablePaginationOverride
+                        emptyRowsWhenPaging: false,
                         filtering: true,
                         search: false,
                         padding: "dense",
@@ -586,6 +594,7 @@ export default function Analyses() {
                         },
                     }}
                     components={{
+                        Pagination: MaterialTablePaginationOverride,
                         Toolbar: props => (
                             <div>
                                 <MTableToolbar {...props} />

@@ -103,7 +103,10 @@ export async function queryTableData<RowData extends object>(
     }
     // page information
     searchParams.append("page", `${query.page}`);
-    searchParams.append("limit", `${query.pageSize}`);
+    // ignore normally invalid sizes that designate retrieving all rows
+    if (query.pageSize > 0) {
+        searchParams.append("limit", `${query.pageSize}`);
+    }
 
     const response = await fetch(url + "?" + searchParams.toString());
     if (response.ok) {

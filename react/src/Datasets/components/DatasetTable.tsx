@@ -9,7 +9,13 @@ import { toKeyValue, exportCSV, rowDiff, updateTableFilter } from "../../functio
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import { DateTimeText, DateFilterComponent, Note, FileLinkingComponent } from "../../components";
+import {
+    DateTimeText,
+    DateFilterComponent,
+    Note,
+    FileLinkingComponent,
+    MaterialTablePaginationOverride,
+} from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
     useDatasetUpdateMutation,
@@ -177,7 +183,9 @@ export default function DatasetTable() {
                 data={dataFetch}
                 title="Datasets"
                 options={{
-                    pageSize: 10,
+                    pageSize: 20,
+                    pageSizeOptions: [20, 50, 100, { value: 0, label: "All" } as any], // see MaterialTablePaginationOverride
+                    emptyRowsWhenPaging: false,
                     selection: true,
                     filtering: true,
                     search: false,
@@ -226,6 +234,7 @@ export default function DatasetTable() {
                     },
                 }}
                 components={{
+                    Pagination: MaterialTablePaginationOverride,
                     Toolbar: props => (
                         <div>
                             <MTableToolbar {...props} />
