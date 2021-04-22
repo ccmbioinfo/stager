@@ -35,7 +35,9 @@ participants_blueprint = Blueprint(
 )
 
 
-@participants_blueprint.route("/api/participants", methods=["GET"])
+@participants_blueprint.route(
+    "/api/participants", methods=["GET"], strict_slashes=False
+)
 @login_required
 @paged
 def list_participants(page: int, limit: int) -> Response:
@@ -255,7 +257,9 @@ def update_participant(id: int):
     )
 
 
-@participants_blueprint.route("/api/participants", methods=["POST"])
+@participants_blueprint.route(
+    "/api/participants", methods=["POST"], strict_slashes=False
+)
 @login_required
 @check_admin
 @validate_json

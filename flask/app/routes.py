@@ -16,7 +16,7 @@ from .utils import enum_validate, transaction_or_abort, validate_json
 routes = Blueprint("routes", __name__)
 
 
-@routes.route("/api")
+@routes.route("/api", strict_slashes=False)
 def version():
     return jsonify({"sha": app.config.get("GIT_SHA")})
 

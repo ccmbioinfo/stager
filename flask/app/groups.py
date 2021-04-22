@@ -16,7 +16,7 @@ groups_blueprint = Blueprint(
 )
 
 
-@groups_blueprint.route("/api/groups", methods=["GET"])
+@groups_blueprint.route("/api/groups", methods=["GET"], strict_slashes=False)
 @login_required
 def list_groups() -> Response:
     """
@@ -141,7 +141,7 @@ def update_group(group_code) -> Response:
     return jsonify(group)
 
 
-@groups_blueprint.route("/api/groups", methods=["POST"])
+@groups_blueprint.route("/api/groups", methods=["POST"], strict_slashes=False)
 @login_required
 @check_admin
 @validate_json

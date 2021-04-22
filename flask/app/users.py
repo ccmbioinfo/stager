@@ -18,7 +18,7 @@ users_blueprint = Blueprint(
 )
 
 
-@users_blueprint.route("/api/users", methods=["GET"])
+@users_blueprint.route("/api/users", methods=["GET"], strict_slashes=False)
 @login_required
 @check_admin
 def list_users() -> Response:
@@ -169,7 +169,7 @@ def verify_email(email: str) -> bool:
     return space == -1 and at > 0 and dot > at + 1
 
 
-@users_blueprint.route("/api/users", methods=["POST"])
+@users_blueprint.route("/api/users", methods=["POST"], strict_slashes=False)
 @login_required
 @check_admin
 @validate_json
