@@ -18,6 +18,7 @@ async function patchAnalysis(newAnalysis: AnalysisOptions) {
             priority: analysis.priority,
             result_path: analysis.result_path,
             assignee: analysis.assignee,
+            analysis_state: analysis.analysis_state,
         };
     }
     const data = await changeFetch("/api/analyses/" + newAnalysis.analysis_id, "PATCH", updates);

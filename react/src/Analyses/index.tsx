@@ -49,6 +49,7 @@ import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
+import SelectPipelineStatus from "./components/SelectPipelineStatus";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -362,7 +363,7 @@ export default function Analyses() {
                             title: "Status",
                             field: "analysis_state",
                             type: "string",
-                            editable: "never",
+                            editComponent: props => <SelectPipelineStatus {...props} />,
                             filterComponent: props => (
                                 <SelectFilterComponent
                                     {...props}
