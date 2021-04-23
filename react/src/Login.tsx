@@ -217,7 +217,7 @@ function OauthLoginForm() {
                     href={loginUrl}
                     fullWidth
                 >
-                    Sign in using Keycloak
+                    Sign in using OAuth
                 </Button>
             </form>
         </>
