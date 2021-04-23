@@ -2,14 +2,20 @@ import React, { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
 import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
-import MaterialTable, { EditComponentProps, MTableToolbar } from "material-table";
+import { EditComponentProps, MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
 import { toKeyValue, exportCSV, rowDiff, updateTableFilter } from "../../functions";
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
-import { DateTimeText, DateFilterComponent, Note, FileLinkingComponent } from "../../components";
+import {
+    DateTimeText,
+    DateFilterComponent,
+    Note,
+    FileLinkingComponent,
+    MaterialTablePrimary,
+} from "../../components";
 import LinkedFilesButton from "./LinkedFilesButton";
 import {
     useDatasetUpdateMutation,
@@ -122,7 +128,8 @@ export default function DatasetTable() {
                     }}
                 />
             )}
-            <MaterialTable
+            <MaterialTablePrimary
+                title="Datasets"
                 tableRef={MTRef}
                 columns={[
                     { title: "Participant", field: "participant_codename", editable: "never" },
@@ -175,15 +182,8 @@ export default function DatasetTable() {
                     },
                 ]}
                 data={dataFetch}
-                title="Datasets"
                 options={{
-                    pageSize: 10,
                     selection: true,
-                    filtering: true,
-                    search: false,
-                    padding: "dense",
-                    exportAllData: true,
-                    exportButton: { csv: true, pdf: false },
                     exportCsv: wrappedExportCsv,
                 }}
                 editable={{
@@ -295,11 +295,6 @@ export default function DatasetTable() {
                         },
                     },
                 ]}
-                localization={{
-                    header: {
-                        actions: "", //remove action buttons' header
-                    },
-                }}
             />
         </div>
     );

@@ -19,12 +19,18 @@ import {
     Error,
 } from "@material-ui/icons";
 import { makeStyles, Theme } from "@material-ui/core/styles";
-import MaterialTable, { MTableToolbar } from "material-table";
+import { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
 import { isRowSelected, exportCSV, updateTableFilter, toTitleCase, toKeyValue } from "../functions";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
-import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
+import {
+    AnalysisInfoDialog,
+    Note,
+    DateTimeText,
+    DateFilterComponent,
+    MaterialTablePrimary,
+} from "../components";
 import {
     AnalysisOptions,
     useAnalysesPage,
@@ -305,7 +311,8 @@ export default function Analyses() {
             )}
 
             <Container maxWidth={false} className={classes.container}>
-                <MaterialTable
+                <MaterialTablePrimary
+                    title="Analyses"
                     tableRef={tableRef}
                     columns={[
                         {
@@ -405,15 +412,8 @@ export default function Analyses() {
                     ]}
                     isLoading={analysisUpdateMutation.isLoading}
                     data={dataFetch}
-                    title="Analyses"
                     options={{
-                        pageSize: 10,
-                        filtering: true,
-                        search: false,
-                        padding: "dense",
                         selection: true,
-                        exportAllData: true,
-                        exportButton: { csv: true, pdf: false },
                         exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
                         rowStyle: data =>
                             getHighlightColor(theme, data.priority, data.analysis_state),
@@ -611,11 +611,6 @@ export default function Analyses() {
                                 </div>
                             </div>
                         ),
-                    }}
-                    localization={{
-                        header: {
-                            actions: "", //remove action buttons' header
-                        },
                     }}
                 />
             </Container>

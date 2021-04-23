@@ -2,13 +2,18 @@ import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
-import MaterialTable from "material-table";
 import { useSnackbar } from "notistack";
 import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
 import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
-import { Note, BooleanDisplay, BooleanEditComponent, BooleanFilter } from "../../components";
+import {
+    Note,
+    BooleanDisplay,
+    BooleanEditComponent,
+    BooleanFilter,
+    MaterialTablePrimary,
+} from "../../components";
 import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantsPage } from "../../hooks";
 
 export default function ParticipantTable() {
@@ -67,7 +72,7 @@ export default function ParticipantTable() {
                     }}
                 />
             )}
-            <MaterialTable
+            <MaterialTablePrimary
                 columns={[
                     {
                         title: "Participant Codename",
@@ -136,13 +141,7 @@ export default function ParticipantTable() {
                 data={dataFetch}
                 title="Participants"
                 options={{
-                    pageSize: 10,
                     selection: false,
-                    filtering: true,
-                    search: false,
-                    padding: "dense",
-                    exportAllData: true,
-                    exportButton: { csv: true, pdf: false },
                     exportCsv: (columns, data) => exportCSV(columns, data, "Participants"),
                 }}
                 editable={{
@@ -204,11 +203,6 @@ export default function ParticipantTable() {
                         onClick: CopyToClipboard,
                     },
                 ]}
-                localization={{
-                    header: {
-                        actions: "", //remove action buttons' header
-                    },
-                }}
             />
         </div>
     );

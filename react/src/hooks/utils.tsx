@@ -101,9 +101,12 @@ export async function queryTableData<RowData extends object>(
         searchParams.append("order_by", `${query.orderBy.field}`);
         searchParams.append("order_dir", `${query.orderDirection}`);
     }
-    // page information
-    searchParams.append("page", `${query.page}`);
-    searchParams.append("limit", `${query.pageSize}`);
+    // ignore normally invalid sizes that designate retrieving all rows
+    if (query.pageSize > 0 && query.pageSize < Number.MAX_SAFE_INTEGER) {
+        // paging information
+        searchParams.append("page", `${query.page}`);
+        searchParams.append("limit", `${query.pageSize}`);
+    }
 
     const response = await fetch(url + "?" + searchParams.toString());
     if (response.ok) {
