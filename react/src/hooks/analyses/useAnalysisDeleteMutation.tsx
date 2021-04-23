@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Analysis } from "../../typings";
-import { changeFetch, deleteFromCachedList } from "../utils";
+import { changeFetch } from "../utils";
 
 async function deleteAnalysis(analysis_id: string) {
     return await changeFetch<string, Response>("/api/analyses/" + analysis_id, "DELETE", null, {
@@ -18,8 +17,12 @@ export function useAnalysisDeleteMutation() {
     const mutation = useMutation<string, Response, string>(deleteAnalysis, {
         onSuccess: (data, analysis_id) => {
             queryClient.removeQueries(["analyses", analysis_id]);
-            // TODO: Replace below with invalidate queries after overfetch #283
-            deleteFromCachedList<Analysis>("analyses", queryClient, analysis_id, "analysis_id");
+            queryClient.invalidateQueries({
+                predicate: query =>
+                    query.queryKey.length === 2 &&
+                    query.queryKey[0] === "analyses" &&
+                    (typeof query.queryKey[1] !== "string" || query.queryKey[1] === analysis_id),
+            });
         },
     });
     return mutation;

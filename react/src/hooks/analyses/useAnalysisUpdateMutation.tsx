@@ -54,8 +54,13 @@ export function useAnalysisUpdateMutation() {
             }
             const updatedAnalysis = { ...oldAnalysis, ...newAnalysis };
             queryClient.setQueryData(["analyses", newAnalysis.analysis_id], updatedAnalysis);
-            // TODO: Replace below with invalidate queries after overfetch #283
-            updateInCachedList<Analysis>("analyses", queryClient, updatedAnalysis, "analysis_id");
+            queryClient.invalidateQueries({
+                predicate: query =>
+                    query.queryKey.length === 2 &&
+                    query.queryKey[0] === "analyses" &&
+                    (typeof query.queryKey[1] !== "string" ||
+                        query.queryKey[1] === newAnalysis.analysis_id),
+            });
         },
     });
     return mutation;

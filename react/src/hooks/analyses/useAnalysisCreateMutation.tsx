@@ -23,11 +23,12 @@ export function useAnalysisCreateMutation() {
     const mutation = useMutation<Analysis, Response, NewAnalysisParams>(createAnalysis, {
         onSuccess: newAnalysis => {
             queryClient.setQueryData(["analyses", newAnalysis.analysis_id], newAnalysis);
-            // TODO: Replace below with invalidateQueries after overfetch #283
-            addToCachedList<Analysis>("analyses", queryClient, newAnalysis, {
-                invalidateQueryFilters: {
-                    exact: true,
-                },
+            queryClient.invalidateQueries({
+                predicate: query =>
+                    query.queryKey.length === 2 &&
+                    query.queryKey[0] === "analyses" &&
+                    (typeof query.queryKey[1] !== "string" ||
+                        query.queryKey[1] === newAnalysis.analysis_id),
             });
         },
     });
