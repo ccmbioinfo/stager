@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisChange, AnalysisDetailed } from "../../typings";
-import { changeFetch, updateInCachedList } from "../utils";
+import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface UpdateSource {
     source?: "selection" | "row-edit";
@@ -55,11 +55,7 @@ export function useAnalysisUpdateMutation() {
             const updatedAnalysis = { ...oldAnalysis, ...newAnalysis };
             queryClient.setQueryData(["analyses", newAnalysis.analysis_id], updatedAnalysis);
             queryClient.invalidateQueries({
-                predicate: query =>
-                    query.queryKey.length === 2 &&
-                    query.queryKey[0] === "analyses" &&
-                    (typeof query.queryKey[1] !== "string" ||
-                        query.queryKey[1] === newAnalysis.analysis_id),
+                predicate: invalidateAnalysisPredicate,
             });
         },
     });

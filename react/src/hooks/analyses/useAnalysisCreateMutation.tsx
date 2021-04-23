@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
-import { addToCachedList, changeFetch } from "../utils";
+import { invalidateAnalysisPredicate, changeFetch } from "../utils";
 
 interface NewAnalysisParams {
     datasets: Dataset["dataset_id"][];
@@ -24,11 +24,7 @@ export function useAnalysisCreateMutation() {
         onSuccess: newAnalysis => {
             queryClient.setQueryData(["analyses", newAnalysis.analysis_id], newAnalysis);
             queryClient.invalidateQueries({
-                predicate: query =>
-                    query.queryKey.length === 2 &&
-                    query.queryKey[0] === "analyses" &&
-                    (typeof query.queryKey[1] !== "string" ||
-                        query.queryKey[1] === newAnalysis.analysis_id),
+                predicate: invalidateAnalysisPredicate,
             });
         },
     });

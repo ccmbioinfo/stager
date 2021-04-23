@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "react-query";
-import { changeFetch } from "../utils";
+import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 async function deleteAnalysis(analysis_id: string) {
     return await changeFetch<string, Response>("/api/analyses/" + analysis_id, "DELETE", null, {
@@ -18,10 +18,7 @@ export function useAnalysisDeleteMutation() {
         onSuccess: (data, analysis_id) => {
             queryClient.removeQueries(["analyses", analysis_id]);
             queryClient.invalidateQueries({
-                predicate: query =>
-                    query.queryKey.length === 2 &&
-                    query.queryKey[0] === "analyses" &&
-                    (typeof query.queryKey[1] !== "string" || query.queryKey[1] === analysis_id),
+                predicate: invalidateAnalysisPredicate,
             });
         },
     });

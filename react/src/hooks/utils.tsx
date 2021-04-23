@@ -1,6 +1,7 @@
 // Function patterns that commonly occur in this set of hooks.
 
-import { Query, QueryResult } from "material-table";
+import { Query as MTQuery, QueryResult } from "material-table";
+import { stringToBoolean } from "../functions";
 import {
     InvalidateOptions,
     InvalidateQueryFilters,
@@ -10,8 +11,7 @@ import {
     UseQueryOptions,
     UseQueryResult,
 } from "react-query";
-import { SetDataOptions } from "react-query/types/core/query";
-import { stringToBoolean } from "../functions";
+import { Query, SetDataOptions } from "react-query/types/core/query";
 
 /**
  * Fetch the provided url. Return the JSON response if successful.
@@ -80,7 +80,7 @@ export const downloadCsvResponse = (args: { filename: string; blob: Blob }) => {
  * @param url The API url to request from (/api/example)
  */
 export async function queryTableData<RowData extends object>(
-    query: Query<RowData>,
+    query: MTQuery<RowData>,
     url: string
 ): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams();
@@ -278,3 +278,11 @@ export function clearQueryCache(queryClient: QueryClient, preserve: string[] = [
             }
         });
 }
+
+/**
+ * Predicate for invalidating Analysis queries after a mutation.
+ */
+export const invalidateAnalysisPredicate = (query: Query) =>
+    query.queryKey.length === 2 &&
+    query.queryKey[0] === "analyses" &&
+    typeof query.queryKey[1] === "object";
