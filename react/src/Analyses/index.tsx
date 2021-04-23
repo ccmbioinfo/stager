@@ -307,6 +307,7 @@ export default function Analyses() {
                             field: "assignee",
                             type: "string",
                             width: "8%",
+                            editable: "always",
                         },
                         {
                             title: "Priority",
