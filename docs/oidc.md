@@ -16,6 +16,20 @@ Additionally, the following `.env` variables must be set after registering Stage
 -   `OIDC_PROVIDER` - Name of the Identity Provider (eg. keycloak, auth0), for internal use.
 -   `REACT_APP_API_ENDPOINT` - Full URL of backend API. Should match the proxy in `react/package.json`
 
+## Adding or Updating Stager Users for OIDC
+
+Stager maintains a database containing all users who are authorized to use the application, even if we use OAuth for authentication. In order to associate a user from OAuth with a user in Stager, Stager users in `mysql` have "issuer" and "subject" columns. These are used to uniquely identify a user by the OpenID Connect standard. In your Identity provider, "subject" may refer to a user's unique `user_id` or similar, and "issuer" refers to the Identity provider's host URL.
+
+Currently, adding new users via the `POST /api/users` endpoint will set the "issuer" and "subject" columns as `None`.
+
+Updating an existing user currently requires that you update the user's record in the `user` table in `mysql`. Instructions for accessing `mysql` are in [database.md](./database.md). From there, simply update your desired user as follows:
+
+```mysql
+UPDATE user SET subject = "{YOUR_SUBJECT_ID}", issuer = "{YOUR_ISSUER_URL}" WHERE username = "{USERNAME}";
+```
+
+Ideally, the user's username in your Identity Provider should match their username in Stager, but this is not enforced.
+
 ## Testing OIDC in development
 
 To start the backend stack for testing OIDC endpoints, run:
