@@ -8135,10 +8135,10 @@ match-sorter@^6.0.2:
     "@babel/runtime" "^7.12.5"
     remove-accents "0.4.2"
 
-material-table@^1.69.1:
-  version "1.69.2"
-  resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.69.2.tgz#d5cf35d9814c30e6e8d00cd00c98756296259b57"
-  integrity sha512-OFst2Dzo5EZHk5mTPVR9cILFT9BcDSVVlFii0UOgvWE8ho/sn0euV1B2MfoTLKSX6pMkH0I/f3QTLX0AXhlUzQ==
+material-table@^1.69.3:
+  version "1.69.3"
+  resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.69.3.tgz#3f282cffecf5461985965cd4a516bebb8069bf2d"
+  integrity sha512-UT/eQbUqfAg6XstcnM8dOQNgWmWbH5tbRmwqfGfPKQUQQXq/jb1z2spFHXPJBhEZFmk+Q95HlopiE6nAHymLMw==
   dependencies:
     "@date-io/date-fns" "1.1.0"
     "@material-ui/pickers" "3.2.2"
