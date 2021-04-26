@@ -436,7 +436,7 @@ def update_analysis(id: int):
                 models.User.username == request.json["assignee"]
             ).first()
             if assignee:
-                analysis.assignee = assignee.user_id
+                analysis.assignee = assignee
             else:
                 abort(400, description="Assignee not found")
 
