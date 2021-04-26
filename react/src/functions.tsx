@@ -381,7 +381,7 @@ export const checkPipelineStatusChange = (fromState: PipelineStatus, toState: Pi
     const endStates = [PipelineStatus.COMPLETED, PipelineStatus.ERROR, PipelineStatus.CANCELLED];
     return (
         // End states cannot change to another state
-        !(fromState in endStates) &&
+        !endStates.includes(fromState) &&
         // Error or Cancel can happen to non-end states
         (toState === PipelineStatus.ERROR ||
             toState === PipelineStatus.CANCELLED ||

@@ -26,7 +26,9 @@ export default function SelectFilterComponent<RowData extends object>(props: {
             inputProps={{ "aria-label": `${props.columnDef.title} filter` }}
         >
             {props.options.map(label => (
-                <MenuItem value={label}>{label}</MenuItem>
+                <MenuItem value={label} key={label}>
+                    {label}
+                </MenuItem>
             ))}
         </Select>
     );
