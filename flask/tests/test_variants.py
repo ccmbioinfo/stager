@@ -92,9 +92,8 @@ def test_get_participant_summary(test_database, client, login_as):
     assert len(response.get_json()) == 2
     # of variants for LOXL4 for each participant's dataset
     for ptp in response.get_json():
-        for dataset in ptp.get("dataset"):
-            variants = dataset.get("variants")
-            assert len(variants) == 3
+        variants = ptp.get("dataset").get("variants")
+        assert len(variants) == 3
 
     # multiple genes
     response = client.get(
@@ -106,9 +105,8 @@ def test_get_participant_summary(test_database, client, login_as):
     assert len(response.get_json()) == 2
     # of variants for LOXL4 and RTEL1, for each participant's dataset
     for ptp in response.get_json():
-        for dataset in ptp.get("dataset"):
-            variants = dataset.get("variants")
-            assert len(variants) == 6
+        variants = ptp.get("dataset").get("variants")
+        assert len(variants) == 6
 
     # invalid - no gene found
     response = client.get(
