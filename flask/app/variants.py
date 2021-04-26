@@ -10,16 +10,6 @@ from . import models
 
 from .extensions import db
 
-from .utils import (
-    check_admin,
-    enum_validate,
-    filter_in_enum_or_abort,
-    filter_updated_or_abort,
-    mixin,
-    paged,
-    transaction_or_abort,
-)
-
 
 variants_blueprint = Blueprint(
     "variants",
@@ -221,20 +211,20 @@ def participant_summary():
         return jsonify(
             [
                 {
+                    "participant_id": dataset.tissue_sample.participant.participant_id,
                     "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                    "family_id": dataset.tissue_sample.participant.family.family_id,
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                    "dataset": [
-                        {
-                            "variants": [
-                                {
-                                    **asdict(genotype),
-                                    **asdict(genotype.variant),
-                                    "gene": genotype.variant.gene.hgnc_gene_name,
-                                }
-                                for genotype in dataset.genotype
-                            ],
-                        }
-                    ],
+                    "dataset": {
+                        "variants": [
+                            {
+                                **asdict(genotype),
+                                **asdict(genotype.variant),
+                                "gene": genotype.variant.gene.hgnc_gene_name,
+                            }
+                            for genotype in dataset.genotype
+                        ],
+                    },
                 }
                 for dataset in q
             ]
@@ -246,6 +236,9 @@ def participant_summary():
         try:
             sql_df = pd.read_sql(query.statement, query.session.bind)
         except:
+            app.logger.error(
+                "Unexpected error resulting from sqlalchemy query", exc_info=True
+            )
             abort(500, "Unexpected error")
 
         agg_df = get_report_df(sql_df, type="sample")
@@ -391,6 +384,9 @@ def variant_summary():
         try:
             sql_df = pd.read_sql(query.statement, query.session.bind)
         except:
+            app.logger.error(
+                "Unexpected error resulting from sqlalchemy query", exc_info=True
+            )
             abort(500, "Unexpected error")
 
         app.logger.info(sql_df["gene"].nunique())
