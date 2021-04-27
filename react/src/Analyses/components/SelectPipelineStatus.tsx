@@ -12,7 +12,7 @@ export default function SelectPipelineStatus(props: EditComponentProps<Analysis>
         if (userClient.user.is_admin) {
             const [valid, invalid] = Object.values(PipelineStatus).reduce(
                 (prev, curr) => {
-                    if (curr === props.value || checkPipelineStatusChange(props.value, curr)) {
+                    if (curr === oldValue || checkPipelineStatusChange(oldValue, curr)) {
                         prev[0].push(curr);
                         return prev;
                     } else {
@@ -25,7 +25,9 @@ export default function SelectPipelineStatus(props: EditComponentProps<Analysis>
 
             return [
                 <ListSubheader>Valid States</ListSubheader>,
-                valid.map(value => <MenuItem value={value}>{value}</MenuItem>),
+                valid.map(value => (
+                    <MenuItem value={value}>{value === oldValue ? <b>{value}</b> : value}</MenuItem>
+                )),
                 <ListSubheader>Invalid States</ListSubheader>,
                 invalid.map(value => <MenuItem value={value}>{value}</MenuItem>),
             ].flat();
