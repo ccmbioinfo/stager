@@ -26,7 +26,6 @@ import {
     AnalysisInfoDialog,
     DateFilterComponent,
     DateTimeText,
-    SelectFilterComponent,
     MaterialTablePrimary,
     Note,
 } from "../components";
@@ -158,6 +157,7 @@ export default function Analyses() {
     const theme = useTheme();
 
     const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
+    const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
@@ -363,13 +363,8 @@ export default function Analyses() {
                             title: "Status",
                             field: "analysis_state",
                             type: "string",
+                            lookup: pipelineStatusLookup,
                             editComponent: props => <SelectPipelineStatus {...props} />,
-                            filterComponent: props => (
-                                <SelectFilterComponent
-                                    {...props}
-                                    options={Object.values(PipelineStatus)}
-                                />
-                            ),
                         },
                         {
                             title: "Notes",
