@@ -1,6 +1,4 @@
 import React, { useState, useMemo } from "react";
-import clsx from "clsx";
-import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
 import {
     makeStyles,
     CssBaseline,
@@ -30,18 +28,20 @@ import {
     AddBox as AddBoxIcon,
     SupervisedUserCircle,
 } from "@material-ui/icons";
-import Participants from "./Participants";
-import Analyses from "./Analyses";
-import Datasets from "./Datasets";
+import clsx from "clsx";
+import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
 import AddDatasets from "./AddDatasets";
-import Settings from "./Settings";
-import Groups from "./Groups";
 import Admin from "./Admin";
-import SearchVariants from "./SearchVariants";
-import { ListItemRouterLink, NotificationPopover } from "./components";
+import Analyses from "./Analyses";
 import logo from "./assets/logo.png";
+import { ListItemRouterLink, NotificationPopover } from "./components";
 import { useUserContext } from "./contexts";
+import Datasets from "./Datasets";
+import Groups from "./Groups";
 import NotFoundPage from "./NotFound";
+import Participants from "./Participants";
+import SearchVariants from "./SearchVariants";
+import Settings from "./Settings";
 
 const drawerWidth = 200;
 
@@ -110,9 +110,6 @@ const useStyles = (darkMode: boolean) =>
                     }),
                     width: theme.spacing(7),
                     backgroundColor: darkMode ? "#383838" : "inherit",
-                },
-                bottomItems: {
-                    marginTop: "auto",
                 },
                 logo: {
                     height: "2.5em",
@@ -315,7 +312,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                                 render={() => <route.main />}
                             />
                         ) : (
-                            <Redirect key={index} to={`/participants`} />
+                            <Redirect key={index} to="/participants" />
                         )
                     )}
                     <Route path="*" render={() => <NotFoundPage />} />
