@@ -1,66 +1,113 @@
 {
-  "name": "ccm-stager",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@material-ui/core": "^4.11.3-deprecations.0",
-    "@material-ui/icons": "^4.9.1",
-    "@material-ui/lab": "^4.0.0-alpha.56",
-    "@testing-library/jest-dom": "^5.12.0",
-    "@testing-library/react": "^11.2.6",
-    "@testing-library/user-event": "^13.1.5",
-    "@types/jest": "^26.0.23",
-    "@types/node": "^14.14.41",
-    "@types/react": "^17.0.4",
-    "@types/react-dom": "^17.0.3",
-    "@types/react-router": "^5.1.13",
-    "@types/react-router-dom": "^5.1.7",
-    "@types/react-table": "^7.0.29",
-    "clsx": "^1.1.1",
-    "dayjs": "^1.10.4",
-    "material-table": "^1.69.3",
-    "notistack": "^1.0.6",
-    "prettier": "^2.1.2",
-    "re-resizable": "^6.9.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-file-drop": "^3.0.7",
-    "react-query": "^3.13.12",
-    "react-router-dom": "^5.1.2",
-    "react-scripts": "4.0.3",
-    "typescript": "~4.2.4"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "eslint 'src/**/*.{ts,tsx}'",
-    "fix-lint": "eslint --fix 'src/**/*.{ts,tsx}'",
-    "check-format": "prettier --check src",
-    "format": "prettier --write src"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "tabWidth": 4,
-    "semi": true,
-    "arrowParens": "avoid"
-  },
-  "proxy": "http://localhost:5000",
-  "browserslist": {
-    "production": [
-      ">0.2% in CA",
-      "not dead",
-      "not op_mini all",
-      "not ie >0"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+    "name": "ccm-stager",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@material-ui/core": "^4.11.3-deprecations.0",
+        "@material-ui/icons": "^4.9.1",
+        "@material-ui/lab": "^4.0.0-alpha.56",
+        "@testing-library/jest-dom": "^5.12.0",
+        "@testing-library/react": "^11.2.6",
+        "@testing-library/user-event": "^13.1.5",
+        "@types/jest": "^26.0.23",
+        "@types/node": "^14.14.41",
+        "@types/react": "^17.0.4",
+        "@types/react-dom": "^17.0.3",
+        "@types/react-router": "^5.1.13",
+        "@types/react-router-dom": "^5.1.7",
+        "@types/react-table": "^7.0.29",
+        "clsx": "^1.1.1",
+        "dayjs": "^1.10.4",
+        "eslint-plugin-import": "^2.22.1",
+        "eslint-plugin-mui-unused-classes": "^1.0.3",
+        "material-table": "^1.69.3",
+        "notistack": "^1.0.6",
+        "prettier": "^2.1.2",
+        "re-resizable": "^6.9.0",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "react-file-drop": "^3.0.7",
+        "react-query": "^3.13.12",
+        "react-router-dom": "^5.1.2",
+        "react-scripts": "4.0.3",
+        "typescript": "~4.2.4"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject",
+        "lint": "eslint 'src/**/*.{ts,tsx}'",
+        "fix-lint": "eslint --fix 'src/**/*.{ts,tsx}'",
+        "check-format": "prettier --check src",
+        "format": "prettier --write src"
+    },
+    "eslintConfig": {
+        "extends": "react-app",
+        "plugins": [
+            "mui-unused-classes"
+        ],
+        "rules": {
+            "import/no-useless-path-segments": "warn",
+            "import/no-cycle": "warn",
+            "import/order": [
+                "warn",
+                {
+                    "groups": [
+                        "builtin",
+                        "external",
+                        [
+                            "parent",
+                            "sibling",
+                            "index"
+                        ]
+                    ],
+                    "pathGroups": [
+                        {
+                            "pattern": "react",
+                            "group": "external",
+                            "position": "before"
+                        }
+                    ],
+                    "pathGroupsExcludedImportTypes": [
+                        "react"
+                    ],
+                    "alphabetize": {
+                        "order": "asc",
+                        "caseInsensitive": true
+                    }
+                }
+            ],
+            "mui-unused-classes/unused-classes": "warn",
+            "react/jsx-curly-brace-presence": "warn",
+            "react/jsx-key": "warn",
+            "sort-imports": [
+                "warn",
+                {
+                    "ignoreDeclarationSort": true,
+                    "ignoreCase": true
+                }
+            ]
+        }
+    },
+    "prettier": {
+        "printWidth": 100,
+        "tabWidth": 4,
+        "semi": true,
+        "arrowParens": "avoid"
+    },
+    "proxy": "http://localhost:5000",
+    "browserslist": {
+        "production": [
+            ">0.2% in CA",
+            "not dead",
+            "not op_mini all",
+            "not ie >0"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
 }
