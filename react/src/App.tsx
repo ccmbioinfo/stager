@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
+import React, { useEffect, useMemo, useState } from "react";
+import { createMuiTheme, IconButton, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
 
+import { emptyUser, UserClient, UserContext } from "./contexts";
+import { clearQueryCache } from "./hooks/utils";
 import LoginForm from "./Login";
 import Navigation from "./Navigation";
 import { CurrentUser } from "./typings";
-import { UserContext, emptyUser, UserClient } from "./contexts";
-import { clearQueryCache } from "./hooks/utils";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {

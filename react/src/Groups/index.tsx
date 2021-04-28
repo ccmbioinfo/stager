@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { makeStyles, Theme, Grid, Fab, Box, Container } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+import { Box, Container, Fab, Grid, makeStyles, Theme } from "@material-ui/core";
 import { GroupAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { Group as GroupCard } from "./components/Group";
+import { useGroupDeleteMutation, useGroupsQuery, useGroupUpdateMutation } from "../hooks";
 import CreateGroupModal from "./components/CreateGroupModal";
-import { useGroupsQuery, useGroupUpdateMutation, useGroupDeleteMutation } from "../hooks";
+import { Group as GroupCard } from "./components/Group";
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -12,12 +12,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         overflow: "auto",
     },
     appBarSpacer: theme.mixins.toolbar,
-    grow: {
-        flexGrow: 1,
-    },
-    toolbar: {
-        marginBottom: theme.spacing(1),
-    },
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),

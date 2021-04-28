@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { makeStyles, Container, Grid } from "@material-ui/core";
+import { Container, Grid, makeStyles } from "@material-ui/core";
 import ParticipantTable from "./components/ParticipantTable";
 
 const useStyles = makeStyles(theme => ({

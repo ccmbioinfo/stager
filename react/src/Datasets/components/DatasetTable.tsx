@@ -1,30 +1,30 @@
 import React, { useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { makeStyles, Chip, IconButton, TextField } from "@material-ui/core";
-import { PlayArrow, Delete, Cancel, Visibility } from "@material-ui/icons";
+import { Chip, IconButton, makeStyles, TextField } from "@material-ui/core";
+import { Cancel, Delete, PlayArrow, Visibility } from "@material-ui/icons";
 import { EditComponentProps, MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
-import { toKeyValue, exportCSV, rowDiff, updateTableFilter } from "../../functions";
-import { Dataset } from "../../typings";
-import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
-import DatasetInfoDialog from "./DatasetInfoDialog";
+import { useParams } from "react-router-dom";
 import {
-    DateTimeText,
     DateFilterComponent,
-    Note,
+    DateTimeText,
     FileLinkingComponent,
     MaterialTablePrimary,
+    Note,
 } from "../../components";
-import LinkedFilesButton from "./LinkedFilesButton";
+import { useUserContext } from "../../contexts";
+import { exportCSV, rowDiff, toKeyValue, updateTableFilter } from "../../functions";
 import {
+    useDatasetsPage,
     useDatasetUpdateMutation,
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useUnlinkedFilesQuery,
-    useDatasetsPage,
 } from "../../hooks";
-import { useUserContext } from "../../contexts";
+import { Dataset } from "../../typings";
+import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
+import DatasetInfoDialog from "./DatasetInfoDialog";
+import LinkedFilesButton from "./LinkedFilesButton";
 
 const useStyles = makeStyles(theme => ({
     chip: {

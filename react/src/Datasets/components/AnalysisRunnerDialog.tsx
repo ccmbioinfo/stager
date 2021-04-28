@@ -9,6 +9,7 @@ import {
     FormControlLabel,
     FormLabel,
     Grid,
+    makeStyles,
     Paper,
     Radio,
     RadioGroup,
@@ -19,11 +20,10 @@ import {
     TableHead,
     TableRow,
     Typography,
-    makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
+import { useAnalysisCreateMutation, useEnumsQuery, usePipelinesQuery } from "../../hooks";
 import { AnalysisPriority, Dataset } from "../../typings";
-import { useEnumsQuery, usePipelinesQuery, useAnalysisCreateMutation } from "../../hooks";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[];

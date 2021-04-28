@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Button,
@@ -13,8 +13,8 @@ import {
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore, MenuOpen } from "@material-ui/icons";
 import { useHistory } from "react-router-dom";
-import DetailSection from "./DetailSection";
 import { Info } from "../typings";
+import DetailSection from "./DetailSection";
 
 const useStyles = makeStyles(theme => ({
     listPaper: {

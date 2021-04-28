@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-    makeStyles,
+    Box,
     Button,
     Container,
+    makeStyles,
     Paper,
     TextField,
     Typography,
-    Box,
 } from "@material-ui/core";
 import { CurrentUser } from "./typings";
 

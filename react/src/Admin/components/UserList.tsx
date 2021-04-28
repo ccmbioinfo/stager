@@ -12,9 +12,9 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import UserRow from "./UserRow";
+import { useUsersDeleteMutation, useUsersQuery, useUsersUpdateMutation } from "../../hooks";
 import CreateUserModal from "./CreateUserModal";
-import { useUsersQuery, useUsersUpdateMutation, useUsersDeleteMutation } from "../../hooks/";
+import UserRow from "./UserRow";
 
 const useStyles = makeStyles(theme => ({
     toolbar: {
