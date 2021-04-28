@@ -19,10 +19,9 @@ import {
     Error,
 } from "@material-ui/icons";
 import { makeStyles, Theme } from "@material-ui/core/styles";
-import { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV, updateTableFilter, toTitleCase, toKeyValue } from "../functions";
+import { isRowSelected, exportCSV, toKeyValue } from "../functions";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import {
     AnalysisInfoDialog,
@@ -579,33 +578,6 @@ export default function Analyses() {
                                 }
                             );
                         },
-                    }}
-                    components={{
-                        Toolbar: props => (
-                            <div>
-                                <MTableToolbar {...props} />
-                                <div style={{ marginLeft: "24px" }}>
-                                    {Object.entries(PipelineStatus).map(([k, v]) => (
-                                        <Chip
-                                            key={k}
-                                            label={toTitleCase(k)}
-                                            clickable
-                                            className={classes.chip}
-                                            onClick={() =>
-                                                updateTableFilter(tableRef, "analysis_state", v)
-                                            }
-                                        />
-                                    ))}
-                                    <IconButton
-                                        onClick={() =>
-                                            updateTableFilter(tableRef, "analysis_state", "")
-                                        }
-                                    >
-                                        <Cancel />
-                                    </IconButton>
-                                </div>
-                            </div>
-                        ),
                     }}
                 />
             </Container>
