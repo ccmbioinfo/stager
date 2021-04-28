@@ -30,7 +30,6 @@ import {
     AddBox as AddBoxIcon,
     SupervisedUserCircle,
 } from "@material-ui/icons";
-
 import Participants from "./Participants";
 import Analyses from "./Analyses";
 import Datasets from "./Datasets";
@@ -42,6 +41,7 @@ import SearchVariants from "./SearchVariants";
 import { ListItemRouterLink, NotificationPopover } from "./components";
 import logo from "./assets/logo.png";
 import { useUserContext } from "./contexts";
+import NotFoundPage from "./NotFound";
 
 const drawerWidth = 200;
 
@@ -318,6 +318,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             <Redirect key={index} to={`/participants`} />
                         )
                     )}
+                    <Route path="*" render={() => <NotFoundPage />} />
                 </Switch>
             </BrowserRouter>
         </div>
