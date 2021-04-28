@@ -36,7 +36,7 @@ export default function ParticipantTable() {
 
     const { id: paramID } = useParams<{ id?: string }>();
 
-    async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
+    async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
             const toCopy = rowData.participant_codename + "_" + rowData.family_codename;
             await navigator.clipboard.writeText(toCopy);
@@ -75,17 +75,17 @@ export default function ParticipantTable() {
             <MaterialTablePrimary
                 columns={[
                     {
-                        title: "Participant Codename",
-                        field: "participant_codename",
-                        defaultFilter: paramID,
-                    },
-                    {
-                        title: "Family Codename",
+                        title: "Family",
                         field: "family_codename",
                         editable: "never",
                     },
                     {
-                        title: "Participant Type",
+                        title: "Participant",
+                        field: "participant_codename",
+                        defaultFilter: paramID,
+                    },
+                    {
+                        title: "Type",
                         field: "participant_type",
                         lookup: participantTypes,
                     },
@@ -95,8 +95,8 @@ export default function ParticipantTable() {
                         render: (rowData, type) => (
                             <BooleanDisplay value={rowData} fieldName={"affected"} type={type} />
                         ),
-                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
-                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
+                        editComponent: BooleanEditComponent,
+                        filterComponent: BooleanFilter,
                     },
                     {
                         title: "Solved",
@@ -104,8 +104,8 @@ export default function ParticipantTable() {
                         render: (rowData, type) => (
                             <BooleanDisplay value={rowData} fieldName={"solved"} type={type} />
                         ),
-                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
-                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
+                        editComponent: BooleanEditComponent,
+                        filterComponent: BooleanFilter,
                     },
                     {
                         title: "Sex",
@@ -200,7 +200,7 @@ export default function ParticipantTable() {
                     {
                         tooltip: "Copy combined codename",
                         icon: FileCopy,
-                        onClick: CopyToClipboard,
+                        onClick: copyToClipboard,
                     },
                 ]}
             />

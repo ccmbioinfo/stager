@@ -316,34 +316,23 @@ export default function Analyses() {
                     tableRef={tableRef}
                     columns={[
                         {
-                            title: "Analysis ID",
-                            field: "analysis_id",
-                            type: "string",
-                            editable: "never",
-                            width: "8%",
-                            defaultFilter: paramID,
-                        },
-                        {
                             title: "Pipeline",
                             field: "pipeline_id",
                             type: "string",
-                            width: "8%",
                             editable: "never",
-                            render: (row, type) => pipeName(row),
-                            filterComponent: props => <PipelineFilter {...props} />,
+                            render: row => pipeName(row),
+                            filterComponent: PipelineFilter,
                         },
                         {
-                            title: "Assignee",
-                            field: "assignee",
+                            title: "Status",
+                            field: "analysis_state",
                             type: "string",
                             editable: "never",
-                            width: "8%",
                         },
                         {
                             title: "Priority",
                             field: "priority",
                             type: "string",
-                            width: "8%",
                             lookup: priorityLookup,
                             editComponent: ({ onChange, value }) => {
                                 return (
@@ -373,7 +362,12 @@ export default function Analyses() {
                             field: "requester",
                             type: "string",
                             editable: "never",
-                            width: "8%",
+                        },
+                        {
+                            title: "Assignee",
+                            field: "assignee",
+                            type: "string",
+                            editable: "never",
                         },
                         {
                             title: "Updated",
@@ -381,18 +375,12 @@ export default function Analyses() {
                             type: "string",
                             editable: "never",
                             render: rowData => <DateTimeText datetime={rowData.updated} />,
-                            filterComponent: props => <DateFilterComponent {...props} />,
+                            filterComponent: DateFilterComponent,
                         },
                         {
                             title: "Path Prefix",
                             field: "result_path",
                             type: "string",
-                        },
-                        {
-                            title: "Status",
-                            field: "analysis_state",
-                            type: "string",
-                            editable: "never",
                         },
                         {
                             title: "Notes",
@@ -408,6 +396,13 @@ export default function Analyses() {
                                     fullWidth
                                 />
                             ),
+                        },
+                        {
+                            title: "ID",
+                            field: "analysis_id",
+                            type: "string",
+                            editable: "never",
+                            defaultFilter: paramID,
                         },
                     ]}
                     isLoading={analysisUpdateMutation.isLoading}
