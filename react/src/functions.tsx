@@ -1,19 +1,19 @@
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import LocalizedFormat from "dayjs/plugin/localizedFormat";
+import utc from "dayjs/plugin/utc";
 import {
-    Counts,
-    KeyValue,
     Analysis,
-    PipelineStatus,
-    Dataset,
-    Info,
+    Counts,
+    DataEntryRow,
     DataEntryRowBase,
     DataEntryRowOptional,
     DataEntryRowRNASeq,
-    FieldDisplayValueType,
+    Dataset,
     Field,
-    DataEntryRow,
+    FieldDisplayValueType,
+    Info,
+    KeyValue,
+    PipelineStatus,
     PseudoBoolean,
     PseudoBooleanReadableMap,
 } from "./typings";

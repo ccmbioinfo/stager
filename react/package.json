@@ -45,6 +45,7 @@
     "eslintConfig": {
         "extends": "react-app",
         "plugins": [
+            "import",
             "mui-unused-classes"
         ],
         "rules": {

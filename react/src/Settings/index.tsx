@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useSnackbar } from "notistack";
 import {
-    makeStyles,
     Button,
     Container,
     Divider,
     Grid,
+    Link,
+    makeStyles,
     Paper,
     TextField,
     Typography,
-    Link,
 } from "@material-ui/core";
-import { MinioKeyDisplay, MinioResetButton, ChipGroup } from "../components";
-import { useUserQuery, useUsersUpdateMutation } from "../hooks";
+import { useSnackbar } from "notistack";
+import { ChipGroup, MinioKeyDisplay, MinioResetButton } from "../components";
 import { useUserContext } from "../contexts";
+import { useUserQuery, useUsersUpdateMutation } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: "fill",
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,

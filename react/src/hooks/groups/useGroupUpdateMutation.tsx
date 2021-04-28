@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Group } from "../../typings";
-import { updateInCachedList, changeFetch } from "../utils";
+import { changeFetch, updateInCachedList } from "../utils";
 
 async function patchGroup(newGroup: Group) {
     // group_code is immutable

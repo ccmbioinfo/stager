@@ -1,47 +1,47 @@
-import React, { useState, useMemo } from "react";
-import clsx from "clsx";
-import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
+import React, { useMemo, useState } from "react";
 import {
-    makeStyles,
-    CssBaseline,
-    Drawer,
     AppBar,
-    Toolbar,
-    List,
-    Typography,
+    CssBaseline,
     Divider,
+    Drawer,
     IconButton,
-    Tooltip,
+    List,
+    makeStyles,
     Switch as MuiSwitch,
+    Toolbar,
+    Tooltip,
+    Typography,
 } from "@material-ui/core";
 import {
-    Menu as MenuIcon,
+    AccountCircle as AccountCircleIcon,
+    AddBox as AddBoxIcon,
+    Brightness3,
+    Brightness5,
     ChevronLeft as ChevronLeftIcon,
     Dns as DnsIcon,
+    MeetingRoom as MeetingRoomIcon,
+    Menu as MenuIcon,
     People as PeopleIcon,
     Search as SearchIcon,
     Settings as SettingsIcon,
     ShowChart as ShowChartIcon,
-    MeetingRoom as MeetingRoomIcon,
-    VerifiedUser as VerifiedUserIcon,
-    AccountCircle as AccountCircleIcon,
-    Brightness3,
-    Brightness5,
-    AddBox as AddBoxIcon,
     SupervisedUserCircle,
+    VerifiedUser as VerifiedUserIcon,
 } from "@material-ui/icons";
+import clsx from "clsx";
+import { BrowserRouter, Redirect, Route, RouteProps, Switch } from "react-router-dom";
 
-import Participants from "./Participants";
-import Analyses from "./Analyses";
-import Datasets from "./Datasets";
 import AddDatasets from "./AddDatasets";
-import Settings from "./Settings";
-import Groups from "./Groups";
 import Admin from "./Admin";
-import SearchVariants from "./SearchVariants";
-import { ListItemRouterLink, NotificationPopover } from "./components";
+import Analyses from "./Analyses";
 import logo from "./assets/logo.png";
+import { ListItemRouterLink, NotificationPopover } from "./components";
 import { useUserContext } from "./contexts";
+import Datasets from "./Datasets";
+import Groups from "./Groups";
+import Participants from "./Participants";
+import SearchVariants from "./SearchVariants";
+import Settings from "./Settings";
 
 const drawerWidth = 200;
 
@@ -110,9 +110,6 @@ const useStyles = (darkMode: boolean) =>
                     }),
                     width: theme.spacing(7),
                     backgroundColor: darkMode ? "#383838" : "inherit",
-                },
-                bottomItems: {
-                    marginTop: "auto",
                 },
                 logo: {
                     height: "2.5em",
@@ -315,7 +312,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                                 render={() => <route.main />}
                             />
                         ) : (
-                            <Redirect key={index} to={`/participants`} />
+                            <Redirect key={index} to="/participants" />
                         )
                     )}
                 </Switch>

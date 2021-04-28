@@ -2,9 +2,9 @@ import React from "react";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
 import MaterialTable, { MTableCell } from "material-table";
-import { formatDateString, createFieldObj } from "../../functions";
-import { Dataset, Sample, Info } from "../../typings";
 import { DateTimeText, InfoList } from "../../components";
+import { createFieldObj, formatDateString } from "../../functions";
+import { Dataset, Info, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     datasetList: {

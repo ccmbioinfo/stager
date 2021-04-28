@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import {
-    makeStyles,
-    Theme,
+    Box,
     Grid,
     IconButton,
-    Typography,
-    Box,
+    makeStyles,
     Paper,
     TextField,
+    Theme,
+    Typography,
 } from "@material-ui/core";
-import { Group as GroupIcon, Edit, Check, Close, Delete } from "@material-ui/icons";
+import { Check, Close, Delete, Edit, Group as GroupIcon } from "@material-ui/icons";
 import ConfirmModal from "../../components/ConfirmModal";
-import { Group as GroupType } from "../../typings";
 import { useGroupQuery } from "../../hooks";
+import { Group as GroupType } from "../../typings";
 
 const useStyles = makeStyles((theme: Theme) => ({
     paper: {

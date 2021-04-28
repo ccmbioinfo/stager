@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import GeneAutocomplete from "./Autocomplete";
-import { useVariantsQuery } from "../../hooks/variants";
 import { downloadCsvResponse } from "../../hooks/utils";
+import { useVariantsQuery } from "../../hooks/variants";
+import GeneAutocomplete from "./Autocomplete";
 
 interface SearchVariantsPageProps {}
 

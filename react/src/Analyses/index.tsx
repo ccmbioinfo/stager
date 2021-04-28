@@ -1,46 +1,46 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useHistory, useParams } from "react-router";
 import {
     Chip,
-    IconButton,
-    TextField,
     Container,
-    Select,
+    IconButton,
     MenuItem,
+    Select,
+    TextField,
     useTheme,
 } from "@material-ui/core";
-import {
-    Cancel,
-    Add,
-    Visibility,
-    PlayArrow,
-    PersonPin,
-    AssignmentTurnedIn,
-    Error,
-} from "@material-ui/icons";
 import { makeStyles, Theme } from "@material-ui/core/styles";
+import {
+    Add,
+    AssignmentTurnedIn,
+    Cancel,
+    Error,
+    PersonPin,
+    PlayArrow,
+    Visibility,
+} from "@material-ui/icons";
 import { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV, updateTableFilter, toTitleCase, toKeyValue } from "../functions";
-import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
+import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
-    Note,
-    DateTimeText,
     DateFilterComponent,
+    DateTimeText,
     MaterialTablePrimary,
+    Note,
 } from "../components";
+import { exportCSV, isRowSelected, toKeyValue, toTitleCase, updateTableFilter } from "../functions";
 import {
     AnalysisOptions,
     useAnalysesPage,
     useAnalysisUpdateMutation,
     useEnumsQuery,
 } from "../hooks";
-import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
+import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
-import SetAssigneeDialog from "./components/SetAssigneeDialog";
+import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
+import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
