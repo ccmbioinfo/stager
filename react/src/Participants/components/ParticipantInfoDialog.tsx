@@ -1,16 +1,16 @@
 import React, { useMemo } from "react";
-import { makeStyles, Dialog, DialogContent, Divider } from "@material-ui/core";
+import { Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
+import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
+    createFieldObj,
     formatDateString,
     getAnalysisInfoList,
-    createFieldObj,
     stringToBoolean,
 } from "../../functions";
-import { Participant, Analysis, Field } from "../../typings";
-import { DialogHeader, DetailSection, InfoList } from "../../components";
+import { useDatasetQueries, useEnumsQuery } from "../../hooks";
+import { Analysis, Field, Participant } from "../../typings";
 import SampleTable from "./SampleTable";
-import { useEnumsQuery, useDatasetQueries } from "../../hooks";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

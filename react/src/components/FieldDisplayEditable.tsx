@@ -1,5 +1,5 @@
-import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import React from "react";
+import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { formatFieldValue } from "../functions";
 import { Field, PseudoBooleanReadableMap } from "../typings";
 import FieldDisplay from "./FieldDisplay";

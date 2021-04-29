@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
     Box,
+    Button,
     IconButton,
+    Link,
     makeStyles,
     Menu,
     MenuItem,
@@ -16,32 +18,30 @@ import {
     Toolbar,
     Tooltip,
     Typography,
-    Button,
-    Link,
 } from "@material-ui/core";
 import {
+    Add,
+    CloudDownload,
     CloudUpload,
     Delete,
     LibraryAdd,
-    ViewColumn,
-    Add,
-    Restore,
     OpenInNew,
-    CloudDownload,
+    Restore,
+    ViewColumn,
 } from "@material-ui/icons";
-import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
-import { getOptions as _getOptions, getColumns, participantColumns, objArrayToCSV } from "./utils";
-import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
-import UploadDialog from "./UploadDialog";
-import { getDataEntryHeaders, createEmptyRows, setProp } from "../../functions";
+import dayjs from "dayjs";
 import { GroupDropdownSelect } from "../../components";
+import { createEmptyRows, getDataEntryHeaders, setProp } from "../../functions";
 import {
     useEnumsQuery,
     useFamiliesQuery,
     useInstitutionsQuery,
     useUnlinkedFilesQuery,
 } from "../../hooks";
-import dayjs from "dayjs";
+import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
+import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
+import UploadDialog from "./UploadDialog";
+import { getOptions as _getOptions, getColumns, objArrayToCSV, participantColumns } from "./utils";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];

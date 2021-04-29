@@ -8,14 +8,14 @@ import {
     DialogContentText,
     DialogTitle,
     FormControlLabel,
-    TextField,
     makeStyles,
+    TextField,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 
+import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
 import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
-import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
 
 const initState = {
     username: "",

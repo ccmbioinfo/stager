@@ -1,17 +1,17 @@
 // Function patterns that commonly occur in this set of hooks.
 
 import { Query, QueryResult } from "material-table";
-import { stringToBoolean } from "../functions";
 import {
+    InvalidateOptions,
+    InvalidateQueryFilters,
     MutationKey,
     QueryClient,
     useQueries,
     UseQueryOptions,
     UseQueryResult,
-    InvalidateOptions,
-    InvalidateQueryFilters,
 } from "react-query";
 import { SetDataOptions } from "react-query/types/core/query";
+import { stringToBoolean } from "../functions";
 
 /**
  * Fetch the provided url. Return the JSON response if successful.

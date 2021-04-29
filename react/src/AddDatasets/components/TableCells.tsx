@@ -10,10 +10,10 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { Resizable } from "re-resizable";
-import { DataEntryHeader, DataEntryRow, Option } from "../../typings";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
-import { toOption, booleanColumns, dateColumns, enumerableColumns } from "./utils";
 import { strIsEmpty } from "../../functions";
+import { DataEntryHeader, DataEntryRow, Option } from "../../typings";
+import { booleanColumns, dateColumns, enumerableColumns, toOption } from "./utils";
 
 const useCellStyles = makeStyles(theme => ({
     textField: {

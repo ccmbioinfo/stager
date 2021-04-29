@@ -1,10 +1,10 @@
 import React from "react";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
     Button,
     ButtonGroup,
+    Dialog,
+    DialogContent,
+    DialogTitle,
     Grid,
     makeStyles,
 } from "@material-ui/core";
@@ -18,30 +18,17 @@ interface UploadDialogProps {
 }
 
 const useStyles = makeStyles(theme => ({
-    root: {},
     dialog: {
         paddingBottom: theme.spacing(2),
         paddingTop: theme.spacing(0),
         paddingLeft: theme.spacing(0),
         paddingRight: theme.spacing(0),
     },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    padding: {
-        paddingTop: theme.spacing(4),
-    },
-    tabs: {
-        paddingTop: theme.spacing(0),
-    },
     tabPanel: {
         padding: theme.spacing(1),
     },
     gridItem: {
         padding: theme.spacing(1),
-    },
-    buttonGroup: {
-        paddingRight: theme.spacing(1),
     },
 }));
 

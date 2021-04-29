@@ -1,7 +1,7 @@
 import React from "react";
-import { makeStyles } from "@material-ui/styles";
-import { Link, Grid, Typography } from "@material-ui/core";
+import { Grid, Link, Typography } from "@material-ui/core";
 import { TrendingUp } from "@material-ui/icons";
+import { makeStyles } from "@material-ui/styles";
 
 export interface CardProps {
     title: string;

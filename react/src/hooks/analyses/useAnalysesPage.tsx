@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { Query, QueryResult } from "material-table";
 import { useQueryClient } from "react-query";
-import { basicFetch, queryTableData } from "../utils";
 import { Analysis, AnalysisDetailed } from "../../typings";
+import { basicFetch, queryTableData } from "../utils";
 
 async function fetchAnalyses(query: Query<Analysis>) {
     const queryResult = await queryTableData<Analysis>(query, "/api/analyses");

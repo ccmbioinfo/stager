@@ -1,7 +1,7 @@
 import { Query, QueryResult } from "material-table";
 import { useQuery, useQueryClient, UseQueryOptions } from "react-query";
-import { fetchCsv, getSearchParamsFromMaterialTableQuery, queryTableData } from "../utils";
 import { BlobResponse, Participant } from "../../typings";
+import { fetchCsv, getSearchParamsFromMaterialTableQuery, queryTableData } from "../utils";
 
 async function fetchParticipants(query: Query<Participant>) {
     // fetch

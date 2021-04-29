@@ -1,7 +1,7 @@
 import React from "react";
 import { makeStyles, Typography } from "@material-ui/core";
-import { Group } from "../../typings";
 import { ChipSelect } from "../../components";
+import { Group } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     groupSelect: {
