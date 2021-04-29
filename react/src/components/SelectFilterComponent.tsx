@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Column } from "material-table";
 import { MenuItem, Select } from "@material-ui/core";
 
+/**
+ * Unused. Standard filter component compatible with material-table.
+ */
 export default function SelectFilterComponent<RowData extends object>(props: {
     columnDef: Column<RowData>;
     onFilterChanged: (columnID: string, value: any) => void;

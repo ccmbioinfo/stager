@@ -10,7 +10,7 @@ export default function SelectPipelineStatus(props: EditComponentProps<Analysis>
     const [oldValue] = useState<PipelineStatus>(props.value);
     const options = useMemo(() => {
         if (userClient.user.is_admin) {
-            const [valid, invalid] = Object.values(PipelineStatus).reduce(
+            const [valid, invalid] = Object.values(PipelineStatus).reduce<PipelineStatus[][]>(
                 (prev, curr) => {
                     if (curr === oldValue || checkPipelineStatusChange(oldValue, curr)) {
                         prev[0].push(curr);
@@ -20,13 +20,15 @@ export default function SelectPipelineStatus(props: EditComponentProps<Analysis>
                         return prev;
                     }
                 },
-                [[], []] as PipelineStatus[][]
+                [[], []]
             );
 
             return [
                 <ListSubheader>Valid States</ListSubheader>,
                 valid.map(value => (
-                    <MenuItem value={value}>{value === oldValue ? <b>{value}</b> : value}</MenuItem>
+                    <MenuItem value={value} key={value}>
+                        {value === oldValue ? <b>{value}</b> : value}
+                    </MenuItem>
                 )),
                 <ListSubheader>Invalid States</ListSubheader>,
                 invalid.map(value => <MenuItem value={value}>{value}</MenuItem>),
@@ -39,7 +41,11 @@ export default function SelectPipelineStatus(props: EditComponentProps<Analysis>
                     state === oldValue ||
                     checkPipelineStatusChange(oldValue, state)
             )
-            .map(value => <MenuItem value={value}>{value}</MenuItem>);
+            .map(value => (
+                <MenuItem value={value} key={value}>
+                    {value}
+                </MenuItem>
+            ));
     }, [props.value, oldValue, userClient.user.is_admin]);
 
     const handleChange: SelectProps["onChange"] = e => {
