@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography } from "@material-ui/core";
-import { FieldDisplayValueType } from "../typings";
 import { formatFieldValue } from "../functions";
+import { FieldDisplayValueType } from "../typings";
 
 export interface FieldDisplayProps {
     title: string;

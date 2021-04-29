@@ -18,6 +18,8 @@
     "@types/react-table": "^7.0.29",
     "clsx": "^1.1.1",
     "dayjs": "^1.10.4",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-mui-unused-classes": "^1.0.3",
     "material-table": "^1.69.3",
     "notistack": "^1.0.6",
     "prettier": "^2.1.2",
@@ -41,11 +43,56 @@
     "format": "prettier --write src"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "plugins": [
+      "import",
+      "mui-unused-classes"
+    ],
+    "rules": {
+      "import/no-useless-path-segments": "warn",
+      "import/no-cycle": "warn",
+      "import/order": [
+        "warn",
+        {
+          "groups": [
+            "builtin",
+            "external",
+            [
+              "parent",
+              "sibling",
+              "index"
+            ]
+          ],
+          "pathGroups": [
+            {
+              "pattern": "react",
+              "group": "external",
+              "position": "before"
+            }
+          ],
+          "pathGroupsExcludedImportTypes": [
+            "react"
+          ],
+          "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+          }
+        }
+      ],
+      "mui-unused-classes/unused-classes": "warn",
+      "react/jsx-curly-brace-presence": "warn",
+      "react/jsx-key": "warn",
+      "sort-imports": [
+        "warn",
+        {
+          "ignoreDeclarationSort": true,
+          "ignoreCase": true
+        }
+      ]
+    }
   },
   "prettier": {
     "printWidth": 100,
-    "tabWidth": 4,
     "semi": true,
     "arrowParens": "avoid"
   },

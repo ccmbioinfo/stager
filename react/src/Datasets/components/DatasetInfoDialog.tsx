@@ -1,17 +1,17 @@
 import React, { useMemo } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
-import { DialogHeader, DetailSection, InfoList } from "../../components";
-import { Dataset, Sample } from "../../typings";
+import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
+    createFieldObj,
     formatDateString,
     getAnalysisInfoList,
     getDatasetFields,
     getSecDatasetFields,
-    createFieldObj,
 } from "../../functions";
-import { useEnumsQuery, useDatasetQuery } from "../../hooks";
+import { useDatasetQuery, useEnumsQuery } from "../../hooks";
+import { Dataset, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {

@@ -1,19 +1,19 @@
 import React, { useMemo, useState } from "react";
 import {
+    Badge,
+    Box,
+    IconButton,
     makeStyles,
     Paper,
-    Box,
-    Typography,
-    Tooltip,
-    IconButton,
     Popover,
-    Badge,
+    Tooltip,
+    Typography,
 } from "@material-ui/core";
 import { NotificationsActive } from "@material-ui/icons";
-import Notification from "./Notification";
+import { useAnalysesQuery } from "../hooks";
 import { Analysis } from "../typings";
 import AnalysisInfoDialog from "./AnalysisInfoDialog";
-import { useAnalysesQuery } from "../hooks";
+import Notification from "./Notification";
 
 const useStyles = makeStyles(theme => ({
     popover: {

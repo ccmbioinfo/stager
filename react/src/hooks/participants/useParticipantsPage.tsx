@@ -1,7 +1,7 @@
 import { Query, QueryResult } from "material-table";
 import { useQueryClient } from "react-query";
-import { queryTableData } from "../utils";
 import { Participant } from "../../typings";
+import { queryTableData } from "../utils";
 
 async function fetchParticipants(query: Query<Participant>) {
     // fetch

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Column } from "material-table";
 import { IconButton, InputAdornment, makeStyles, TextField, Tooltip } from "@material-ui/core";
 import { NavigateBefore } from "@material-ui/icons";
 import clsx from "clsx";
+import { Column } from "material-table";
 
 const useStyles = makeStyles(theme => ({
     button: {

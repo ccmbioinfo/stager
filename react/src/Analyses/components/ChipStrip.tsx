@@ -1,5 +1,5 @@
 import React from "react";
-import { createStyles, Theme, makeStyles, Chip } from "@material-ui/core";
+import { Chip, createStyles, makeStyles, Theme } from "@material-ui/core";
 
 export interface ChipStripProps {
     labels: string[];
@@ -25,7 +25,7 @@ export default function ChipStrip({ labels, color }: ChipStripProps) {
     return (
         <div className={chipStyle.root}>
             {labels.map(annotation => (
-                <Chip size="medium" color={color} label={annotation} />
+                <Chip key={annotation} size="medium" color={color} label={annotation} />
             ))}
         </div>
     );

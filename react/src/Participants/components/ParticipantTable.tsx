@@ -1,20 +1,20 @@
 import React, { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
-import { Participant } from "../../typings";
-import DatasetTypes from "./DatasetTypes";
-import ParticipantInfoDialog from "./ParticipantInfoDialog";
+import { useParams } from "react-router-dom";
 import {
-    Note,
     BooleanDisplay,
     BooleanEditComponent,
     BooleanFilter,
     MaterialTablePrimary,
+    Note,
 } from "../../components";
+import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
 import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantsPage } from "../../hooks";
+import { Participant } from "../../typings";
+import DatasetTypes from "./DatasetTypes";
+import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
@@ -93,7 +93,7 @@ export default function ParticipantTable() {
                         title: "Affected",
                         field: "affected",
                         render: (rowData, type) => (
-                            <BooleanDisplay value={rowData} fieldName={"affected"} type={type} />
+                            <BooleanDisplay value={rowData} fieldName="affected" type={type} />
                         ),
                         editComponent: BooleanEditComponent,
                         filterComponent: BooleanFilter,
@@ -102,7 +102,7 @@ export default function ParticipantTable() {
                         title: "Solved",
                         field: "solved",
                         render: (rowData, type) => (
-                            <BooleanDisplay value={rowData} fieldName={"solved"} type={type} />
+                            <BooleanDisplay value={rowData} fieldName="solved" type={type} />
                         ),
                         editComponent: BooleanEditComponent,
                         filterComponent: BooleanFilter,

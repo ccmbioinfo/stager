@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles, Container, Button, Tooltip } from "@material-ui/core";
+import { Button, Container, makeStyles, Tooltip } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
-import { useHistory } from "react-router";
 import { useSnackbar } from "notistack";
+import { useHistory } from "react-router";
+import { ConfirmModal } from "../components";
+import { useUserContext } from "../contexts";
+import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
+import { useBulkCreateMutation } from "../hooks";
+import { DataEntryRow, DataEntryRowBase } from "../typings";
 import DataEntryTable from "./components/DataEntryTable";
 import { participantColumns } from "./components/utils";
-import { DataEntryRow, DataEntryRowBase } from "../typings";
-import { ConfirmModal } from "../components";
-import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
-import { useUserContext } from "../contexts";
-import { useBulkCreateMutation } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -156,7 +156,7 @@ export default function AddParticipants() {
                 />
             </Container>
             <Tooltip title={errorMessage} interactive>
-                <Container className={classes.buttonContainer} maxWidth={"sm"}>
+                <Container className={classes.buttonContainer} maxWidth="sm">
                     <Button
                         disabled={!!errorMessage}
                         className={classes.submitButton}

@@ -1,37 +1,37 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useHistory, useParams } from "react-router";
-import { TextField, Container, Select, MenuItem, useTheme } from "@material-ui/core";
-import {
-    Cancel,
-    Add,
-    Visibility,
-    PlayArrow,
-    PersonPin,
-    AssignmentTurnedIn,
-    Error,
-} from "@material-ui/icons";
+import { Container, MenuItem, Select, TextField, useTheme } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
+import {
+    Add,
+    AssignmentTurnedIn,
+    Cancel,
+    Error,
+    PersonPin,
+    PlayArrow,
+    Visibility,
+} from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV, toKeyValue } from "../functions";
-import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
+import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
-    Note,
-    DateTimeText,
     DateFilterComponent,
+    DateTimeText,
     MaterialTablePrimary,
+    Note,
 } from "../components";
+import { exportCSV, isRowSelected, toKeyValue } from "../functions";
 import {
     AnalysisOptions,
     useAnalysesPage,
     useAnalysisUpdateMutation,
     useEnumsQuery,
 } from "../hooks";
-import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
+import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
-import SetAssigneeDialog from "./components/SetAssigneeDialog";
+import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
+import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -43,11 +43,6 @@ const useStyles = makeStyles(theme => ({
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
-    },
-    chip: {
-        color: "primary",
-        marginRight: "10px",
-        colorPrimary: theme.palette.primary,
     },
 }));
 

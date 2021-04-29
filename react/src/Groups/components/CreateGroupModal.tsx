@@ -5,13 +5,13 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    TextField,
     makeStyles,
+    TextField,
     Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { Group } from "../../typings";
 import { useGroupCreateMutation } from "../../hooks";
+import { Group } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     submitting: {
