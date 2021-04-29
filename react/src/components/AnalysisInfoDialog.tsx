@@ -1,13 +1,13 @@
 import React, { useMemo } from "react";
-import { Dialog, Divider, DialogContent } from "@material-ui/core";
+import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dns } from "@material-ui/icons";
-import { formatDateString, getDatasetInfoList, createFieldObj } from "../functions";
+import { createFieldObj, formatDateString, getDatasetInfoList } from "../functions";
+import { useAnalysisQuery, useEnumsQuery } from "../hooks";
 import { Analysis, Pipeline } from "../typings";
-import DialogHeader from "./DialogHeader";
 import DetailSection from "./DetailSection";
+import DialogHeader from "./DialogHeader";
 import InfoList from "./InfoList";
-import { useEnumsQuery, useAnalysisQuery } from "../hooks";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -16,9 +16,6 @@ const useStyles = makeStyles(theme => ({
     },
     infoSection: {
         margin: theme.spacing(3),
-    },
-    datasetInfo: {
-        padding: theme.spacing(2),
     },
 }));
 

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "react-query";
-import { User, NewUser } from "../../typings";
+import { NewUser, User } from "../../typings";
 import { addToCachedList, changeFetch } from "../utils";
 
 async function createUser(newUser: NewUser) {

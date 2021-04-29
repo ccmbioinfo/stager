@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Button,
     Collapse,
-    Grid,
-    Typography,
-    makeStyles,
-    IconButton,
     FormControlLabel,
+    Grid,
+    IconButton,
+    makeStyles,
     Switch,
+    Typography,
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
@@ -18,9 +18,6 @@ const gridSpacing = 2;
 const titleWidth = 12;
 
 const useStyles = makeStyles(theme => ({
-    fieldDisplay: {
-        textDecoration: "underline dotted",
-    },
     fab: {
         display: "block",
         width: "40%",
@@ -33,10 +30,6 @@ const useStyles = makeStyles(theme => ({
         display: "block",
         padding: theme.spacing(1),
         margin: 0,
-    },
-    actionButtons: {
-        position: "absolute",
-        right: theme.spacing(1),
     },
     button: {
         marginRight: theme.spacing(1),

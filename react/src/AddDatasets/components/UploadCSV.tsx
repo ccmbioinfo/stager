@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Box, IconButton, makeStyles, Typography } from "@material-ui/core";
-import { FileDrop } from "react-file-drop";
 import { Add } from "@material-ui/icons";
+import { FileDrop } from "react-file-drop";
 
 const useStyles = makeStyles(theme => ({
-    root: {},
     input: {
         display: "none",
     },

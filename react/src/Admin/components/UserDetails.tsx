@@ -11,11 +11,11 @@ import {
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, ConfirmPasswordAction } from "../../typings";
-import { NewPasswordForm, ConfirmModal, MinioResetButton, MinioKeyDisplay } from "../../components";
-import GroupSelect from "./GroupSelect";
-import { useGroupsQuery, useUserQuery } from "../../hooks";
+import { ConfirmModal, MinioKeyDisplay, MinioResetButton, NewPasswordForm } from "../../components";
 import { useUserContext } from "../../contexts";
+import { useGroupsQuery, useUserQuery } from "../../hooks";
+import { ConfirmPasswordAction, User } from "../../typings";
+import GroupSelect from "./GroupSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {

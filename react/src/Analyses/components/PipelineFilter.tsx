@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Column } from "material-table";
-import { Analysis, Pipeline } from "../../typings";
 import { Checkbox, ListItemText, MenuItem, Select } from "@material-ui/core";
+import { Column } from "material-table";
 import { usePipelinesQuery } from "../../hooks";
+import { Analysis, Pipeline } from "../../typings";
 
 type FilterProps = Parameters<Required<Column<Analysis>>["filterComponent"]>[0];
 

@@ -1,35 +1,36 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
-    makeStyles,
-    CssBaseline,
-    Drawer,
     AppBar,
-    Toolbar,
-    List,
-    Typography,
+    CssBaseline,
     Divider,
+    Drawer,
     IconButton,
-    Tooltip,
+    List,
+    makeStyles,
     Switch as MuiSwitch,
+    Toolbar,
+    Tooltip,
+    Typography,
 } from "@material-ui/core";
 import {
-    Menu as MenuIcon,
+    AccountCircle as AccountCircleIcon,
+    AddBox as AddBoxIcon,
+    Brightness3,
+    Brightness5,
     ChevronLeft as ChevronLeftIcon,
     Dns as DnsIcon,
+    MeetingRoom as MeetingRoomIcon,
+    Menu as MenuIcon,
     People as PeopleIcon,
     Search as SearchIcon,
     Settings as SettingsIcon,
     ShowChart as ShowChartIcon,
-    MeetingRoom as MeetingRoomIcon,
-    VerifiedUser as VerifiedUserIcon,
-    AccountCircle as AccountCircleIcon,
-    Brightness3,
-    Brightness5,
-    AddBox as AddBoxIcon,
     SupervisedUserCircle,
+    VerifiedUser as VerifiedUserIcon,
 } from "@material-ui/icons";
 import clsx from "clsx";
-import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
+import { BrowserRouter, Redirect, Route, RouteProps, Switch } from "react-router-dom";
+
 import AddDatasets from "./AddDatasets";
 import Admin from "./Admin";
 import Analyses from "./Analyses";

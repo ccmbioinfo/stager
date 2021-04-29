@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { makeStyles, Container, Grid } from "@material-ui/core";
+import { Container, Grid, makeStyles } from "@material-ui/core";
 import DatasetTable from "./components/DatasetTable";
 
 const useStyles = makeStyles(theme => ({
@@ -12,12 +12,6 @@ const useStyles = makeStyles(theme => ({
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
-    },
-    paper: {
-        padding: theme.spacing(2),
-        display: "flex",
-        overflow: "auto",
-        flexDirection: "column",
     },
 }));
 

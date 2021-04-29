@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { IconButton, TextField, Typography } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
-import { ConfirmPasswordState, ConfirmPasswordAction } from "../typings";
+import { ConfirmPasswordAction, ConfirmPasswordState } from "../typings";
 
 /**
  * A form element for creating a new password.

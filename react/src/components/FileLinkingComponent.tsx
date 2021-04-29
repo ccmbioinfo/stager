@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import {
+    Box,
+    Button,
     Checkbox,
+    FormControlLabel,
+    Grid,
+    List,
+    makeStyles,
+    Popover,
     TextField,
     Tooltip,
-    Popover,
-    FormControlLabel,
     Typography,
-    Box,
-    List,
-    Grid,
-    Button,
-    makeStyles,
 } from "@material-ui/core";
 import { Description, DoneAll } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
@@ -126,7 +126,13 @@ export default function FileLinkingComponent(props: {
                         <List>
                             {props.values.map(value => {
                                 return (
-                                    <Grid container wrap="nowrap" spacing={1} alignItems="center">
+                                    <Grid
+                                        key={value}
+                                        container
+                                        wrap="nowrap"
+                                        spacing={1}
+                                        alignItems="center"
+                                    >
                                         <Grid item>
                                             <Description />
                                         </Grid>

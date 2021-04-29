@@ -68,7 +68,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
                         {...rest}
                         {...InputProps}
                         startAdornment={
-                            <Search fontSize={"small"} htmlColor={theme.palette.grey[600]} />
+                            <Search fontSize="small" htmlColor={theme.palette.grey[600]} />
                         }
                         endAdornment={isFetching ? <CircularProgress size={16} /> : null}
                     />
