@@ -20,16 +20,7 @@ interface SetAssigneeDialogProps {
 
 export default function SetAssigneeDialog(props: SetAssigneeDialogProps) {
     const [username, setUsername] = useState<string>("");
-    const [error, setError] = useState<boolean>(false);
-
-    // Returns true if the username is valid.
-    function checkUsername(username: string) {
-        // TODO: GET username to check that it's a valid user
-
-        // placeholder regex check for testing
-        const pattern = new RegExp("^\\w{4,}$");
-        return pattern.test(username);
-    }
+    // const [error, setError] = useState<boolean>(false);
 
     return (
         <Dialog
@@ -50,8 +41,8 @@ export default function SetAssigneeDialog(props: SetAssigneeDialogProps) {
                     type="text"
                     value={username}
                     onChange={event => setUsername(event.target.value)}
-                    error={error}
-                    helperText={error ? "Invalid username." : ""}
+                    // error={error}
+                    // helperText={error ? "Invalid username." : ""}
                 />
             </DialogContent>
             <DialogActions>
@@ -60,17 +51,7 @@ export default function SetAssigneeDialog(props: SetAssigneeDialogProps) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={
-                            checkUsername(username)
-                                ? () => {
-                                      setError(false);
-                                      props.onSubmit(username);
-                                      setUsername("");
-                                  }
-                                : () => {
-                                      setError(true);
-                                  }
-                        }
+                        onClick={() => props.onSubmit(username)}
                         color="primary"
                         autoFocus
                         variant="contained"

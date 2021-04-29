@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
     Button,
     Dialog,
@@ -8,7 +8,8 @@ import {
     DialogTitle,
     Divider,
 } from "@material-ui/core";
-import { Analysis } from "../../typings";
+import { checkPipelineStatusChange } from "../../functions";
+import { Analysis, PipelineStatus } from "../../typings";
 
 interface CancelAnalysisDialogProp {
     title: string;
@@ -18,7 +19,6 @@ interface CancelAnalysisDialogProp {
     onClose: () => void;
     onAccept: () => void;
     affectedRows: Analysis[];
-    cancelFilter: (row: Analysis) => boolean; // What rows are allowed to be cancelled
 }
 
 export default function CancelAnalysisDialog({
@@ -29,14 +29,24 @@ export default function CancelAnalysisDialog({
     onClose,
     onAccept,
     affectedRows,
-    cancelFilter,
 }: CancelAnalysisDialogProp) {
     const message = `Do you really want to stop ${
         affectedRows.length > 1 ? "these analyses" : "this analysis"
     }? Stopping an analysis will delete all intermediate files and progress. Input files will remain untouched.`;
 
-    const rowsToCancel = affectedRows.filter(row => cancelFilter(row));
-    const rowsToSkip = affectedRows.filter(row => !cancelFilter(row));
+    const [rowsToCancel, rowsToSkip] = useMemo(() => {
+        const cancel: Analysis[] = [];
+        const skip: Analysis[] = [];
+
+        for (const row of affectedRows) {
+            if (checkPipelineStatusChange(row.analysis_state, PipelineStatus.CANCELLED)) {
+                cancel.push(row);
+            } else {
+                skip.push(row);
+            }
+        }
+        return [cancel, skip];
+    }, [affectedRows]);
 
     const labeledBy = `${labeledByPrefix}-cancel-alert-dialog-title`;
     const describedBy = `${describedByPrefix}-cancel-alert-dialog-description`;

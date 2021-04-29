@@ -376,3 +376,17 @@ export const updateTableFilter = (
         }
     }
 };
+
+export const checkPipelineStatusChange = (fromState: PipelineStatus, toState: PipelineStatus) => {
+    const endStates = [PipelineStatus.COMPLETED, PipelineStatus.ERROR, PipelineStatus.CANCELLED];
+    return (
+        // End states cannot change to another state
+        !endStates.includes(fromState) &&
+        // Error or Cancel can happen to non-end states
+        (toState === PipelineStatus.ERROR ||
+            toState === PipelineStatus.CANCELLED ||
+            // Specific state changes
+            (toState === PipelineStatus.COMPLETED && fromState === PipelineStatus.RUNNING) ||
+            (toState === PipelineStatus.RUNNING && fromState === PipelineStatus.PENDING))
+    );
+};

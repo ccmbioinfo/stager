@@ -29,7 +29,14 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
-import { exportCSV, isRowSelected, toKeyValue, toTitleCase, updateTableFilter } from "../functions";
+import {
+    checkPipelineStatusChange,
+    exportCSV,
+    isRowSelected,
+    toKeyValue,
+    toTitleCase,
+    updateTableFilter,
+} from "../functions";
 import {
     AnalysisOptions,
     useAnalysesPage,
@@ -40,6 +47,7 @@ import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
+import SelectPipelineStatus from "./components/SelectPipelineStatus";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
@@ -85,52 +93,15 @@ function rowsToString(rows: Analysis[], delim?: string) {
 }
 
 /**
- * Returns whether this row can be completed.
- */
-function completeFilter(row: Analysis) {
-    return row.analysis_state === PipelineStatus.RUNNING;
-}
-
-/**
- * Returns whether it's possible for this row to error.
- */
-function errorFilter(row: Analysis) {
-    return (
-        row.analysis_state === PipelineStatus.RUNNING ||
-        row.analysis_state === PipelineStatus.PENDING
-    );
-}
-
-/**
- * Returns whether this analysis is allowed to be cancelled.
- */
-function cancelFilter(row: Analysis) {
-    return (
-        row.analysis_state === PipelineStatus.RUNNING ||
-        row.analysis_state === PipelineStatus.PENDING
-    );
-}
-
-/**
- * Returns whether this analysis is allowed to be run.
- */
-function runFilter(row: Analysis) {
-    return row.analysis_state === PipelineStatus.PENDING;
-}
-
-/**
  * Updates the state of all selected rows.
  * Returns a new list of Analyses, as well as the number of rows that changed, were skipped, or failed to change.
- * TODO: Revisit after overfetch #283
  *
  * @param selectedRows
- * @param filter A function which returns true for a row that is allowed to be changed to newState, false otherwise.
  * @param mutation The mutation object to use to update the analyses.
  * @param newState The new state to apply to rows which pass the filter.
  */
 async function _changeStateForSelectedRows(
     selectedRows: Analysis[],
-    filter: (row: Analysis) => boolean,
     mutation: UseMutationResult<Analysis, Response, AnalysisOptions>,
     newState: PipelineStatus
 ) {
@@ -139,7 +110,7 @@ async function _changeStateForSelectedRows(
     let failed = 0;
     for (let i = 0; i < selectedRows.length; i++) {
         let row = selectedRows[i];
-        if (filter(row)) {
+        if (checkPipelineStatusChange(row.analysis_state, newState)) {
             try {
                 await mutation.mutateAsync({
                     analysis_id: row.analysis_id,
@@ -186,6 +157,7 @@ export default function Analyses() {
     const theme = useTheme();
 
     const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
+    const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
@@ -196,8 +168,8 @@ export default function Analyses() {
 
     const tableRef = useRef<any>();
 
-    function changeAnalysisState(filter: (row: Analysis) => boolean, newState: PipelineStatus) {
-        return _changeStateForSelectedRows(activeRows, filter, analysisUpdateMutation, newState);
+    function changeAnalysisState(newState: PipelineStatus) {
+        return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
     }
 
     useEffect(() => {
@@ -216,7 +188,7 @@ export default function Analyses() {
                         setCancel(false);
                     }}
                     onAccept={() => {
-                        changeAnalysisState(cancelFilter, PipelineStatus.CANCELLED).then(
+                        changeAnalysisState(PipelineStatus.CANCELLED).then(
                             ({ changed, skipped, failed }) => {
                                 setCancel(false);
                                 if (changed > 0)
@@ -244,7 +216,6 @@ export default function Analyses() {
                             }
                         );
                     }}
-                    cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />
@@ -336,8 +307,8 @@ export default function Analyses() {
                             title: "Assignee",
                             field: "assignee",
                             type: "string",
-                            editable: "never",
                             width: "8%",
+                            editable: "always",
                         },
                         {
                             title: "Priority",
@@ -392,7 +363,8 @@ export default function Analyses() {
                             title: "Status",
                             field: "analysis_state",
                             type: "string",
-                            editable: "never",
+                            lookup: pipelineStatusLookup,
+                            editComponent: props => <SelectPipelineStatus {...props} />,
                         },
                         {
                             title: "Notes",
@@ -451,7 +423,7 @@ export default function Analyses() {
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(runFilter, PipelineStatus.RUNNING).then(
+                                changeAnalysisState(PipelineStatus.RUNNING).then(
                                     ({ changed, skipped, failed }) => {
                                         if (changed > 0)
                                             enqueueSnackbar(
@@ -485,7 +457,7 @@ export default function Analyses() {
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(completeFilter, PipelineStatus.COMPLETED).then(
+                                changeAnalysisState(PipelineStatus.COMPLETED).then(
                                     ({ changed, skipped, failed }) => {
                                         if (changed > 0)
                                             enqueueSnackbar(
@@ -521,7 +493,7 @@ export default function Analyses() {
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
                                 setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(errorFilter, PipelineStatus.ERROR).then(
+                                changeAnalysisState(PipelineStatus.ERROR).then(
                                     ({ changed, skipped, failed }) => {
                                         if (changed > 0)
                                             enqueueSnackbar(
