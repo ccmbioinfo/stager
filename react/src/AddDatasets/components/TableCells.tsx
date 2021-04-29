@@ -44,7 +44,7 @@ export function DataEntryCell(props: {
     rowIndex: number;
     col: DataEntryHeader;
     getOptions: (rowIndex: number, col: DataEntryHeader) => Option[];
-    onEdit: (newValue: string | boolean | string[]) => void;
+    onEdit: (newValue: string | boolean | string[], autocomplete?: boolean) => void;
     disabled?: boolean;
     required?: boolean;
 }) {
