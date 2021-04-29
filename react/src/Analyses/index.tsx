@@ -1,14 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useHistory, useParams } from "react-router";
-import {
-    Chip,
-    IconButton,
-    TextField,
-    Container,
-    Select,
-    MenuItem,
-    useTheme,
-} from "@material-ui/core";
+import { TextField, Container, Select, MenuItem, useTheme } from "@material-ui/core";
 import {
     Cancel,
     Add,
