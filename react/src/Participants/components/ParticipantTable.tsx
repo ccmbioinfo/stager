@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { TextField } from "@material-ui/core";
+import React, { useMemo, useRef, useState } from "react";
+import { cloneDeep } from "lodash";
+import { Button } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
@@ -7,20 +8,45 @@ import {
     BooleanDisplay,
     BooleanEditComponent,
     BooleanFilter,
+    EditNotes,
     MaterialTablePrimary,
     Note,
 } from "../../components";
-import { countArray, downloadCsv, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
-import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantCsvQuery, useParticipantsPage } from "../../hooks";
+import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
+import {
+    GET_PARTICPANTS_URL,
+    useDownloadCsv,
+    useEnumsQuery,
+    useMetadatasetTypesQuery,
+    useParticipantsPage,
+} from "../../hooks";
+import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
+
+const renderDatasetTypes = (rowData: Participant) => (
+    <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
+);
+
+const renderNotes = (rowData: Participant) => <Note>{rowData.notes}</Note>;
+
+const SolvedBoolean = (rowData: Participant, type: "row" | "group") => (
+    <BooleanDisplay value={rowData} fieldName="solved" type={type} />
+);
+
+const AffectedBoolean = (rowData: Participant, type: "row" | "group") => (
+    <BooleanDisplay value={rowData} fieldName="affected" type={type} />
+);
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const [csvQueryEnabled, setCsvQueryEnabled] = useState(false);
+
+    const tableRef = useRef<any>();
+
+    const downloadCsv = useDownloadCsv(GET_PARTICPANTS_URL);
 
     const { data: enums } = useEnumsQuery();
     const { data: metadatasetTypes } = useMetadatasetTypesQuery();
@@ -33,21 +59,6 @@ export default function ParticipantTable() {
 
     const dataFetch = useParticipantsPage();
 
-    const tableRef = useRef<any>();
-
-    const { data: csvBlob } = useParticipantCsvQuery(
-        tableRef.current?.state.query || {},
-        csvQueryEnabled
-    );
-
-    useEffect(() => {
-        if (csvBlob && csvQueryEnabled) {
-            const { filename, blob } = csvBlob;
-            downloadCsv(filename, blob);
-            setCsvQueryEnabled(false);
-        }
-    }, [csvBlob, csvQueryEnabled]);
-
     const { enqueueSnackbar } = useSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
@@ -59,8 +70,32 @@ export default function ParticipantTable() {
         }
     }
 
+    const exportCsv = () => {
+        const stashed = stashFilters();
+        downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
+        restoreFilters(stashed);
+    };
+
+    const options = {
+        selection: false,
+        exportCsv,
+    };
+
+    const stashFilters = () => cloneDeep(tableRef.current.dataManager);
+
+    const restoreFilters = (stashed: any) => (tableRef.current.dataManager = stashed);
+
     return (
         <div>
+            <Button
+                onClick={() =>
+                    downloadCsv(
+                        transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {})
+                    )
+                }
+            >
+                DOWnLOAD
+            </Button>
             {activeRow && (
                 <ParticipantInfoDialog
                     open={detail}
@@ -109,20 +144,16 @@ export default function ParticipantTable() {
                     {
                         title: "Affected",
                         field: "affected",
-                        render: (rowData, type) => (
-                            <BooleanDisplay value={rowData} fieldName="affected" type={type} />
-                        ),
-                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
-                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
+                        render: AffectedBoolean,
+                        editComponent: BooleanEditComponent,
+                        filterComponent: BooleanFilter,
                     },
                     {
                         title: "Solved",
                         field: "solved",
-                        render: (rowData, type) => (
-                            <BooleanDisplay value={rowData} fieldName="solved" type={type} />
-                        ),
-                        editComponent: props => <BooleanEditComponent<Participant> {...props} />,
-                        filterComponent: props => <BooleanFilter<Participant> {...props} />,
+                        render: SolvedBoolean,
+                        editComponent: BooleanEditComponent,
+                        filterComponent: BooleanFilter,
                     },
                     {
                         title: "Sex",
@@ -133,16 +164,8 @@ export default function ParticipantTable() {
                     {
                         title: "Notes",
                         field: "notes",
-                        render: rowData => <Note>{rowData.notes}</Note>,
-                        editComponent: props => (
-                            <TextField
-                                multiline
-                                value={props.value}
-                                onChange={event => props.onChange(event.target.value)}
-                                rows={4}
-                                fullWidth
-                            />
-                        ),
+                        render: renderNotes,
+                        editComponent: EditNotes,
                     },
                     {
                         title: "Dataset Types",
@@ -150,17 +173,12 @@ export default function ParticipantTable() {
                         editable: "never",
                         lookup: datasetTypes,
                         filtering: false,
-                        render: rowData => (
-                            <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
-                        ),
+                        render: renderDatasetTypes,
                     },
                 ]}
                 data={dataFetch}
                 title="Participants"
-                options={{
-                    selection: false,
-                    exportCsv: () => setCsvQueryEnabled(true),
-                }}
+                options={options}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {
                         const diffParticipant = rowDiff<Participant>(

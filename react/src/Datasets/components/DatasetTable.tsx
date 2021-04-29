@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { Chip, IconButton, makeStyles, TextField } from "@material-ui/core";
+import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Visibility } from "@material-ui/icons";
 import { EditComponentProps, MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 import {
     DateFilterComponent,
     DateTimeText,
+    EditNotes,
     FileLinkingComponent,
     MaterialTablePrimary,
     Note,
@@ -44,16 +45,6 @@ const customFileFilterAndSearch = (filter: string, rowData: Dataset) => {
         rowData.linked_files.some(name => name.includes(filter))
     );
 };
-
-const EditNotesComponent = (props: EditComponentProps<Dataset>) => (
-    <TextField
-        multiline
-        value={props.value}
-        onChange={event => props.onChange(event.target.value)}
-        rows={4}
-        fullWidth
-    />
-);
 
 const EditFilesComponent = (props: EditComponentProps<Dataset>) => {
     const filesQuery = useUnlinkedFilesQuery();
@@ -154,7 +145,7 @@ export default function DatasetTable() {
                         title: "Notes",
                         field: "notes",
                         render: RenderNotes,
-                        editComponent: EditNotesComponent,
+                        editComponent: EditNotes,
                     },
                     {
                         title: "Files",

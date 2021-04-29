@@ -39,3 +39,4 @@ export { useDatasetUpdateMutation } from "./datasets/useDatasetUpdateMutation";
 export { useDatasetDeleteMutation } from "./datasets/useDatasetDeleteMutation";
 
 export * from "./variants/useVariantsQuery";
+export * from "./useDownloadCsv";

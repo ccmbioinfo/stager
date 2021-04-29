@@ -125,6 +125,14 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
     return searchParams;
 };
 
+export const transformMTQueryToCsvDownloadParams = <RowData extends object>(
+    query: Query<RowData>
+) => {
+    const params = getSearchParamsFromMaterialTableQuery(query);
+    const { page, limit, ...rest } = params;
+    return rest;
+};
+
 /**
  * Fetch the provided url with the given method and body (optional).
  * Return the JSON response if successful.

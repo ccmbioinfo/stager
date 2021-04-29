@@ -1,11 +1,13 @@
 import { Query, QueryResult } from "material-table";
-import { useQuery, useQueryClient, UseQueryOptions } from "react-query";
-import { BlobResponse, Participant } from "../../typings";
-import { fetchCsv, getSearchParamsFromMaterialTableQuery, queryTableData } from "../utils";
+import { useQueryClient } from "react-query";
+import { Participant } from "../../typings";
+import { queryTableData } from "../utils";
+
+export const GET_PARTICPANTS_URL = "/api/participants";
 
 async function fetchParticipants(query: Query<Participant>) {
     // fetch
-    const queryResult = await queryTableData<Participant>(query, "/api/participants");
+    const queryResult = await queryTableData<Participant>(query, GET_PARTICPANTS_URL);
     // format results
     queryResult.data.forEach((participant: Participant) => {
         participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
@@ -17,35 +19,6 @@ async function fetchParticipants(query: Query<Participant>) {
 
     return queryResult;
 }
-
-const fetchParticipantCsv = async (params: Record<string, string>) => {
-    const headers = { Accept: "text/csv" };
-    return fetchCsv("/api/participants", params, { headers });
-};
-
-/**
- * Used with material-table's remote data feature.
- */
-export const useParticipantCsvQuery = (query: Query<Participant>, enabled?: boolean) => {
-    //never refetch csv
-    query.page = 0;
-    query.pageSize = -1;
-
-    const params = getSearchParamsFromMaterialTableQuery(query);
-
-    const options: UseQueryOptions<BlobResponse, Response> = {
-        staleTime: Infinity,
-        retry: false,
-        refetchInterval: false,
-        refetchOnMount: false,
-    };
-
-    return useQuery<BlobResponse, Response>(
-        ["participants", "csv", params],
-        fetchParticipantCsv.bind(null, params),
-        { ...options, enabled }
-    );
-};
 
 /**
  * Return a function for paging participant data.
