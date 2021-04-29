@@ -239,19 +239,21 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             <MenuIcon />
                         </IconButton>
                         <Switch>
-                            {routes.map((route, index) => (
-                                <Route key={index} path={route.path} exact={route.exact}>
-                                    <Typography
-                                        component="h1"
-                                        variant="h6"
-                                        color="inherit"
-                                        noWrap
-                                        className={classes.title}
-                                    >
-                                        {route.pageName}
-                                    </Typography>
-                                </Route>
-                            ))}
+                            {routes
+                                .concat({ pageName: "Not Found", path: "*", main: NotFoundPage })
+                                .map((route, index) => (
+                                    <Route key={index} path={route.path} exact={route.exact}>
+                                        <Typography
+                                            component="h1"
+                                            variant="h6"
+                                            color="inherit"
+                                            noWrap
+                                            className={classes.title}
+                                        >
+                                            {route.pageName}
+                                        </Typography>
+                                    </Route>
+                                ))}
                         </Switch>
                         <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
                             <MuiSwitch
