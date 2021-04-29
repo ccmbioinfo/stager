@@ -8,8 +8,8 @@ import {
     DialogTitle,
     Divider,
 } from "@material-ui/core";
-import { Analysis, PipelineStatus } from "../../typings";
 import { checkPipelineStatusChange } from "../../functions";
+import { Analysis, PipelineStatus } from "../../typings";
 
 interface CancelAnalysisDialogProp {
     title: string;

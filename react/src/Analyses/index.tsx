@@ -30,12 +30,12 @@ import {
     Note,
 } from "../components";
 import {
+    checkPipelineStatusChange,
     exportCSV,
     isRowSelected,
     toKeyValue,
     toTitleCase,
     updateTableFilter,
-    checkPipelineStatusChange,
 } from "../functions";
 import {
     AnalysisOptions,
@@ -47,8 +47,8 @@ import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
-import SetAssigneeDialog from "./components/SetAssigneeDialog";
 import SelectPipelineStatus from "./components/SelectPipelineStatus";
+import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { MenuItem, Select, ListSubheader, SelectProps } from "@material-ui/core";
+import { ListSubheader, MenuItem, Select, SelectProps } from "@material-ui/core";
 import { EditComponentProps } from "material-table";
-import { Analysis, PipelineStatus } from "../../typings";
-import { checkPipelineStatusChange } from "../../functions";
 import { useUserContext } from "../../contexts";
+import { checkPipelineStatusChange } from "../../functions";
+import { Analysis, PipelineStatus } from "../../typings";
 
 export default function SelectPipelineStatus(props: EditComponentProps<Analysis>) {
     const userClient = useUserContext();
@@ -24,14 +24,18 @@ export default function SelectPipelineStatus(props: EditComponentProps<Analysis>
             );
 
             return [
-                <ListSubheader>Valid States</ListSubheader>,
+                <ListSubheader key="ValidStateHeader">Valid States</ListSubheader>,
                 valid.map(value => (
                     <MenuItem value={value} key={value}>
                         {value === oldValue ? <b>{value}</b> : value}
                     </MenuItem>
                 )),
-                <ListSubheader>Invalid States</ListSubheader>,
-                invalid.map(value => <MenuItem value={value}>{value}</MenuItem>),
+                <ListSubheader key="InvalidStateHeader">Invalid States</ListSubheader>,
+                invalid.map(value => (
+                    <MenuItem value={value} key={value}>
+                        {value}
+                    </MenuItem>
+                )),
             ].flat();
         }
         return Object.values(PipelineStatus)

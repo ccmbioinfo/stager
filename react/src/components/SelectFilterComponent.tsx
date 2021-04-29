@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Column } from "material-table";
 import { MenuItem, Select } from "@material-ui/core";
+import { Column } from "material-table";
 
 /**
  * Unused. Standard filter component compatible with material-table.

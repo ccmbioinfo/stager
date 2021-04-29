@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
-import { invalidateAnalysisPredicate, changeFetch } from "../utils";
+import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface NewAnalysisParams {
     datasets: Dataset["dataset_id"][];
