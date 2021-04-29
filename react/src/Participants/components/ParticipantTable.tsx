@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
+import { countArray, downloadCsv, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
 import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -14,12 +14,18 @@ import {
     BooleanFilter,
     MaterialTablePrimary,
 } from "../../components";
-import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantsPage } from "../../hooks";
+import {
+    useEnumsQuery,
+    useMetadatasetTypesQuery,
+    useParticipantCsvQuery,
+    useParticipantsPage,
+} from "../../hooks";
 
 export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
+    const [csvQueryEnabled, setCsvQueryEnabled] = useState(false);
 
     const { data: enums } = useEnumsQuery();
     const { data: metadatasetTypes } = useMetadatasetTypesQuery();
@@ -31,6 +37,21 @@ export default function ParticipantTable() {
     const participantTypes = useMemo(() => enums && toKeyValue(enums.ParticipantType), [enums]);
 
     const dataFetch = useParticipantsPage();
+
+    const tableRef = useRef<any>();
+
+    const { data: csvBlob } = useParticipantCsvQuery(
+        tableRef.current?.state.query || {},
+        csvQueryEnabled
+    );
+
+    useEffect(() => {
+        if (csvBlob && csvQueryEnabled) {
+            const { filename, blob } = csvBlob;
+            downloadCsv(filename, blob);
+            setCsvQueryEnabled(false);
+        }
+    }, [csvBlob, csvQueryEnabled]);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -73,6 +94,7 @@ export default function ParticipantTable() {
                 />
             )}
             <MaterialTablePrimary
+                tableRef={tableRef}
                 columns={[
                     {
                         title: "Participant Codename",
@@ -142,7 +164,7 @@ export default function ParticipantTable() {
                 title="Participants"
                 options={{
                     selection: false,
-                    exportCsv: (columns, data) => exportCSV(columns, data, "Participants"),
+                    exportCsv: () => setCsvQueryEnabled(true),
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {

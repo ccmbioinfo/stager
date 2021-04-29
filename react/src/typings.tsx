@@ -134,6 +134,10 @@ export type AnalysisChange = Pick<Analysis, "analysis_id"> &
         >
     >;
 
+export interface BlobResponse {
+    filename: string;
+    blob: Blob;
+}
 export interface Pipeline {
     pipeline_id: number;
     pipeline_name: string;

@@ -1,11 +1,15 @@
+from csv import DictWriter, QUOTE_MINIMAL
+from dataclasses import asdict
 from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
+from io import StringIO
 from typing import Any, Callable, Dict, List, Union
 
 from flask import abort, current_app as app, jsonify, request
 from flask.json import JSONEncoder
 from flask_login import current_user
+from flask_sqlalchemy import Model
 from sqlalchemy import exc
 from werkzeug.exceptions import HTTPException
 
@@ -152,6 +156,30 @@ def get_minio_admin() -> MinioAdmin:
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
     )
+
+
+def query_results_to_csv(results: List[Any], colnames: List[str] = None):
+    """ take a list of models and convert to csv """
+    if not colnames and results:
+        colnames = results[0].keys()
+        app.logger.debug("********************************")
+        app.logger.debug(colnames)
+    if not colnames:
+        raise ValueError("Data is empty and no colnames passed!")
+
+    csv_data = StringIO()
+    writer = DictWriter(
+        csv_data,
+        fieldnames=colnames,
+        quoting=QUOTE_MINIMAL,
+    )
+    writer.writeheader()
+    for row in results:
+        if isinstance(row, Model):
+            row = asdict(row)
+        writer.writerow(row)
+
+    return csv_data.getvalue()
 
 
 class DateTimeEncoder(JSONEncoder):

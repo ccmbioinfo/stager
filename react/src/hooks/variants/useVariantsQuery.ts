@@ -1,5 +1,6 @@
 import { Variant } from "@material-ui/core/styles/createTypography";
 import { QueryObserverOptions, useQuery } from "react-query";
+import { BlobResponse } from "../../typings";
 import { basicFetch, fetchCsv } from "../utils";
 
 async function fetchVariants(params: Record<string, any>, returnType: "csv" | "json" = "csv") {
@@ -15,7 +16,7 @@ async function fetchVariants(params: Record<string, any>, returnType: "csv" | "j
  * Return response of GET /api/variants
  */
 
-type BlobResponse = { filename: string; blob: Blob };
+
 
 export const useVariantsQuery = <T extends "csv" | "json">(
     params: Record<string, any>,

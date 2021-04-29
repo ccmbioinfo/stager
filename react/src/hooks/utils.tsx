@@ -62,16 +62,6 @@ export async function fetchCsv(
     }
 }
 
-export const downloadCsvResponse = (args: { filename: string; blob: Blob }) => {
-    const { filename, blob } = args;
-    const downloadLink = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    downloadLink.href = url;
-    downloadLink.download = filename;
-    downloadLink.click();
-    URL.revokeObjectURL(url);
-};
-
 /**
  * Builds a data fetch request and returns a promise that resolves
  * to the result object.
@@ -83,31 +73,7 @@ export async function queryTableData<RowData extends object>(
     query: Query<RowData>,
     url: string
 ): Promise<QueryResult<RowData>> {
-    const searchParams = new URLSearchParams();
-    // add filters
-    for (let filter of query.filters) {
-        const isBoolean = ["affected", "solved"].includes("" + filter.column.field);
-        let value = filter.value;
-        // booleans use "eq" as operator
-        if (isBoolean) {
-            value = stringToBoolean(filter.value);
-        }
-        if (filter.column.field && (filter.value || isBoolean)) {
-            searchParams.append(`${filter.column.field}`, `${value}`);
-        }
-    }
-    // order by
-    if (query.orderBy && query.orderDirection) {
-        searchParams.append("order_by", `${query.orderBy.field}`);
-        searchParams.append("order_dir", `${query.orderDirection}`);
-    }
-    // ignore normally invalid sizes that designate retrieving all rows
-    if (query.pageSize > 0 && query.pageSize < Number.MAX_SAFE_INTEGER) {
-        // paging information
-        searchParams.append("page", `${query.page}`);
-        searchParams.append("limit", `${query.pageSize}`);
-    }
-
+    const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
     const response = await fetch(url + "?" + searchParams.toString());
     if (response.ok) {
         const result = await response.json();
@@ -120,6 +86,44 @@ export async function queryTableData<RowData extends object>(
         throw response;
     }
 }
+
+/**
+ * Transform an m-table query object into a set of query string params that the backend understands
+ *
+ */
+export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
+    query: Query<RowData>
+) => {
+    const searchParams: Record<string, string> = {};
+    const { filters, orderBy, orderDirection, page, pageSize } = query;
+    // add filters
+    if (filters) {
+        for (let filter of filters) {
+            const isBoolean = ["affected", "solved"].includes("" + filter.column.field);
+            let value = filter.value;
+            // booleans use "eq" as operator
+            if (isBoolean) {
+                value = stringToBoolean(filter.value);
+            }
+            if (filter.column.field && (filter.value || isBoolean)) {
+                searchParams[`${filter.column.field}`] = `${value}`;
+            }
+        }
+    }
+    // order by
+    if (orderBy && orderDirection) {
+        searchParams.order_by = `${orderBy.field}`;
+        searchParams.order_dir = `${orderDirection}`;
+    }
+    // ignore normally invalid sizes that designate retrieving all rows
+    if (pageSize > 0 && pageSize < Number.MAX_SAFE_INTEGER) {
+        // paging information
+        searchParams.page = `${page}`;
+        searchParams.limit = `${pageSize}`;
+    }
+
+    return searchParams;
+};
 
 /**
  * Fetch the provided url with the given method and body (optional).

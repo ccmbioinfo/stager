@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import GeneAutocomplete from "./Autocomplete";
-import { useVariantsQuery } from "../../hooks/variants";
-import { downloadCsvResponse } from "../../hooks/utils";
+import { useVariantsQuery } from "../../hooks";
+import { downloadCsv } from "../../functions";
 
 interface SearchVariantsPageProps {}
 
@@ -35,7 +35,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const { data: blob } = useVariantsQuery({ panel: selectedGenes.join(";") }, "csv", {
+    const { data: blobResponse } = useVariantsQuery({ panel: selectedGenes.join(";") }, "csv", {
         enabled: csvFetchEnabled,
         onError: response => {
             if (response.status === 400) {
@@ -58,11 +58,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
            match a cache key, even if refetch hasn't been called or query is disabled,
            triggering a download. So we need to explicitly
            enable/disable the query AND provide flag as a dependency. */
-        if (blob && csvFetchEnabled) {
-            downloadCsvResponse(blob);
+        if (blobResponse && csvFetchEnabled) {
+            const { filename, blob } = blobResponse;
+            downloadCsv(filename, blob);
             setCsvFetchEnabled(false);
         }
-    }, [blob, csvFetchEnabled]);
+    }, [blobResponse, csvFetchEnabled]);
 
     useEffect(() => {
         document.title = `Search Variants | ${process.env.REACT_APP_NAME}`;
