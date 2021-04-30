@@ -187,7 +187,9 @@ def list_participants(page: int, limit: int) -> Response:
         csv = query_results_to_csv(results)
         response = Response(csv)
 
-        response.headers["Content-Disposition"] = "attachment;filename=participant_report.csv"
+        response.headers[
+            "Content-Disposition"
+        ] = "attachment;filename=participant_report.csv"
         response.headers["Content-Type"] = "text/csv"
 
         return response

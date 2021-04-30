@@ -40,9 +40,7 @@ def genes(page: int, limit: int):
         )
 
     if request.accept_mimetypes["text/csv"]:
-        colnames = [col.key for col in Gene.__table__.columns]
-
-        csv = query_results_to_csv(results, colnames)
+        csv = query_results_to_csv(results)
         response = Response(csv)
 
         response.headers["Content-Disposition"] = "attachment;filename=gene_report.csv"

@@ -1,5 +1,5 @@
 from csv import DictWriter, QUOTE_MINIMAL
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
@@ -158,14 +158,14 @@ def get_minio_admin() -> MinioAdmin:
     )
 
 
-def query_results_to_csv(results: List[Any], colnames: List[str] = None):
+def query_results_to_csv(results: List[dict or dataclass]):
     """ take a list of models and convert to csv """
-    if not colnames and results:
-        colnames = results[0].keys()
-        app.logger.debug("********************************")
-        app.logger.debug(colnames)
-    if not colnames:
-        raise ValueError("Data is empty and no colnames passed!")
+    is_dict = isinstance(results[0], dict)
+
+    if not is_dict:
+        results = [asdict(result) for result in results]
+
+    colnames = results[0].keys()
 
     csv_data = StringIO()
     writer = DictWriter(
