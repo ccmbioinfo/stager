@@ -142,7 +142,12 @@ export default function ParticipantTable() {
                 title="Participants"
                 options={{
                     selection: false,
-                    exportCsv: (columns, data) => exportCSV(columns, data, "Participants"),
+                    exportMenu: [
+                        {
+                            exportFunc: (columns, data) => exportCSV(columns, data, "Participants"),
+                            label: "Export as CSV",
+                        },
+                    ],
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {

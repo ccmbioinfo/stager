@@ -1,6 +1,6 @@
 import React from "react";
+import { EditComponentProps } from "@material-table/core";
 import { FormControl, MenuItem, Select } from "@material-ui/core";
-import { EditComponentProps } from "material-table";
 import { PseudoBoolean, PseudoBooleanReadableMap } from "../typings";
 
 /**
