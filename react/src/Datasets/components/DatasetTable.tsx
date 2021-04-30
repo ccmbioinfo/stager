@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
+import { EditComponentProps, MTableToolbar } from "@material-table/core";
 import { Chip, IconButton, makeStyles, TextField } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Visibility } from "@material-ui/icons";
-import { EditComponentProps, MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
@@ -184,7 +184,12 @@ export default function DatasetTable() {
                 data={dataFetch}
                 options={{
                     selection: true,
-                    exportCsv: wrappedExportCsv,
+                    exportMenu: [
+                        {
+                            label: "Export as CSV",
+                            exportFunc: wrappedExportCsv,
+                        },
+                    ],
                 }}
                 editable={{
                     onRowUpdate: async (newDataset, oldDataset) => {

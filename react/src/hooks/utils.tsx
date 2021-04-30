@@ -1,6 +1,6 @@
 // Function patterns that commonly occur in this set of hooks.
 
-import { Query as MTQuery, QueryResult } from "material-table";
+import { Query as MTQuery, QueryResult } from "@material-table/core";
 import {
     InvalidateOptions,
     InvalidateQueryFilters,

@@ -359,10 +359,15 @@ export default function Analyses() {
                     isLoading={analysisUpdateMutation.isLoading}
                     data={dataFetch}
                     options={{
-                        selection: true,
-                        exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
                         rowStyle: data =>
                             getHighlightColor(theme, data.priority, data.analysis_state),
+                        selection: true,
+                        exportMenu: [
+                            {
+                                label: "Export as CSV",
+                                exportFunc: (columns, data) => exportCSV(columns, data, "Analyses"),
+                            },
+                        ],
                     }}
                     actions={[
                         {
@@ -532,6 +537,7 @@ export default function Analyses() {
                         },
                     }}
                 />
+                )
             </Container>
         </main>
     );

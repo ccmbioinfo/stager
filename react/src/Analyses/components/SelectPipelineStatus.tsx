@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { EditComponentProps } from "@material-table/core";
 import { ListSubheader, MenuItem, Select, SelectProps } from "@material-ui/core";
-import { EditComponentProps } from "material-table";
 import { useUserContext } from "../../contexts";
 import { checkPipelineStatusChange } from "../../functions";
 import { Analysis, PipelineStatus } from "../../typings";

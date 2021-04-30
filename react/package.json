@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-table/core": "^2.3.35",
     "@material-ui/core": "^4.11.3-deprecations.0",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
@@ -20,7 +21,6 @@
     "dayjs": "^1.10.4",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-mui-unused-classes": "^1.0.3",
-    "material-table": "^1.69.3",
     "notistack": "^1.0.6",
     "prettier": "^2.1.2",
     "re-resizable": "^6.9.0",
