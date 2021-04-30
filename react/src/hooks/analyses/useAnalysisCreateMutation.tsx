@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
-import { addToCachedList, changeFetch } from "../utils";
+import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface NewAnalysisParams {
     datasets: Dataset["dataset_id"][];
@@ -23,11 +23,8 @@ export function useAnalysisCreateMutation() {
     const mutation = useMutation<Analysis, Response, NewAnalysisParams>(createAnalysis, {
         onSuccess: newAnalysis => {
             queryClient.setQueryData(["analyses", newAnalysis.analysis_id], newAnalysis);
-            // TODO: Replace below with invalidateQueries after overfetch #283
-            addToCachedList<Analysis>("analyses", queryClient, newAnalysis, {
-                invalidateQueryFilters: {
-                    exact: true,
-                },
+            queryClient.invalidateQueries({
+                predicate: invalidateAnalysisPredicate,
             });
         },
     });

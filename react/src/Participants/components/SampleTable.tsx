@@ -1,7 +1,7 @@
 import React from "react";
+import MaterialTable, { MTableCell } from "@material-table/core";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
-import MaterialTable, { MTableCell } from "material-table";
 import { DateTimeText, InfoList } from "../../components";
 import { createFieldObj, formatDateString } from "../../functions";
 import { Dataset, Info, Sample } from "../../typings";

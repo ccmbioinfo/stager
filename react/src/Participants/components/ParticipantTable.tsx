@@ -161,6 +161,7 @@ export default function ParticipantTable() {
                     }}
                 />
             )}
+<<<<<<< HEAD
             {columns && (
                 <MaterialTablePrimaryCore
                     tableRef={tableRef}
@@ -173,6 +174,112 @@ export default function ParticipantTable() {
                             const diffParticipant = rowDiff<Participant>(
                                 newParticipant,
                                 oldParticipant
+=======
+            <MaterialTablePrimary
+                columns={[
+                    {
+                        title: "Family",
+                        field: "family_codename",
+                        editable: "never",
+                    },
+                    {
+                        title: "Participant",
+                        field: "participant_codename",
+                        defaultFilter: paramID,
+                    },
+                    {
+                        title: "Type",
+                        field: "participant_type",
+                        lookup: participantTypes,
+                    },
+                    {
+                        title: "Affected",
+                        field: "affected",
+                        render: (rowData, type) => (
+                            <BooleanDisplay value={rowData} fieldName="affected" type={type} />
+                        ),
+                        editComponent: BooleanEditComponent,
+                        filterComponent: BooleanFilter,
+                    },
+                    {
+                        title: "Solved",
+                        field: "solved",
+                        render: (rowData, type) => (
+                            <BooleanDisplay value={rowData} fieldName="solved" type={type} />
+                        ),
+                        editComponent: BooleanEditComponent,
+                        filterComponent: BooleanFilter,
+                    },
+                    {
+                        title: "Sex",
+                        field: "sex",
+                        type: "string",
+                        lookup: sexTypes,
+                    },
+                    {
+                        title: "Notes",
+                        field: "notes",
+                        render: rowData => <Note>{rowData.notes}</Note>,
+                        editComponent: props => (
+                            <TextField
+                                multiline
+                                value={props.value}
+                                onChange={event => props.onChange(event.target.value)}
+                                rows={4}
+                                fullWidth
+                            />
+                        ),
+                    },
+                    {
+                        title: "Dataset Types",
+                        field: "dataset_types",
+                        editable: "never",
+                        lookup: datasetTypes,
+                        filtering: false,
+                        render: rowData => (
+                            <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
+                        ),
+                    },
+                ]}
+                data={dataFetch}
+                title="Participants"
+                options={{
+                    selection: false,
+                    exportMenu: [
+                        {
+                            exportFunc: (columns, data) => exportCSV(columns, data, "Participants"),
+                            label: "Export as CSV",
+                        },
+                    ],
+                }}
+                editable={{
+                    onRowUpdate: async (newParticipant, oldParticipant) => {
+                        const diffParticipant = rowDiff<Participant>(
+                            newParticipant,
+                            oldParticipant
+                        );
+
+                        const response = await fetch(
+                            `/api/participants/${newParticipant.participant_id}`,
+                            {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    ...diffParticipant,
+                                    affected: stringToBoolean(newParticipant.affected),
+                                    solved: stringToBoolean(newParticipant.solved),
+                                }),
+                            }
+                        );
+                        if (response.ok) {
+                            const updatedParticipant = await response.json();
+                            setParticipants(
+                                participants.map(participant =>
+                                    participant.participant_id === newParticipant.participant_id
+                                        ? { ...participant, ...updatedParticipant }
+                                        : participant
+                                )
+>>>>>>> master
                             );
 
                             const response = await fetch(
@@ -221,6 +328,7 @@ export default function ParticipantTable() {
                                 setDetail(true);
                             },
                         },
+<<<<<<< HEAD
                         {
                             tooltip: "Copy combined codename",
                             icon: FileCopy,
@@ -229,6 +337,16 @@ export default function ParticipantTable() {
                     ]}
                 />
             )}
+=======
+                    },
+                    {
+                        tooltip: "Copy combined codename",
+                        icon: FileCopy,
+                        onClick: copyToClipboard,
+                    },
+                ]}
+            />
+>>>>>>> master
         </div>
     );
 }
