@@ -132,8 +132,8 @@ export default function DatasetTable() {
                 title="Datasets"
                 tableRef={MTRef}
                 columns={[
-                    { title: "Participant", field: "participant_codename", editable: "never" },
                     { title: "Family", field: "family_codename", editable: "never" },
+                    { title: "Participant", field: "participant_codename", editable: "never" },
                     {
                         title: "Tissue Sample",
                         field: "tissue_sample_type",

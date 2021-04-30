@@ -23,6 +23,7 @@ export default function MaterialTablePrimary<T extends object>(props: MaterialTa
                 ...props.components,
             }}
             options={{
+                columnsButton: true,
                 pageSize: 20,
                 pageSizeOptions: [
                     20,

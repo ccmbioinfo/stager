@@ -1,14 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { MTableToolbar } from "@material-table/core";
-import {
-    Chip,
-    Container,
-    IconButton,
-    MenuItem,
-    Select,
-    TextField,
-    useTheme,
-} from "@material-ui/core";
+import { Container, MenuItem, Select, TextField, useTheme } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import {
     Add,
@@ -29,14 +20,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
-import {
-    checkPipelineStatusChange,
-    exportCSV,
-    isRowSelected,
-    toKeyValue,
-    toTitleCase,
-    updateTableFilter,
-} from "../functions";
+import { checkPipelineStatusChange, exportCSV, isRowSelected, toKeyValue } from "../functions";
 import {
     AnalysisOptions,
     useAnalysesPage,
@@ -60,11 +44,6 @@ const useStyles = makeStyles(theme => ({
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
-    },
-    chip: {
-        color: "primary",
-        marginRight: "10px",
-        colorPrimary: theme.palette.primary,
     },
 }));
 
@@ -287,34 +266,24 @@ export default function Analyses() {
                     tableRef={tableRef}
                     columns={[
                         {
-                            title: "Analysis ID",
-                            field: "analysis_id",
-                            type: "string",
-                            editable: "never",
-                            width: "8%",
-                            defaultFilter: paramID,
-                        },
-                        {
                             title: "Pipeline",
                             field: "pipeline_id",
                             type: "string",
-                            width: "8%",
                             editable: "never",
-                            render: (row, type) => pipeName(row),
-                            filterComponent: props => <PipelineFilter {...props} />,
+                            render: row => pipeName(row),
+                            filterComponent: PipelineFilter,
                         },
                         {
-                            title: "Assignee",
-                            field: "assignee",
+                            title: "Status",
+                            field: "analysis_state",
                             type: "string",
-                            width: "8%",
-                            editable: "always",
+                            lookup: pipelineStatusLookup,
+                            editComponent: SelectPipelineStatus,
                         },
                         {
                             title: "Priority",
                             field: "priority",
                             type: "string",
-                            width: "8%",
                             lookup: priorityLookup,
                             editComponent: ({ onChange, value }) => {
                                 return (
@@ -344,7 +313,12 @@ export default function Analyses() {
                             field: "requester",
                             type: "string",
                             editable: "never",
-                            width: "8%",
+                        },
+                        {
+                            title: "Assignee",
+                            field: "assignee",
+                            type: "string",
+                            editable: "always",
                         },
                         {
                             title: "Updated",
@@ -352,19 +326,12 @@ export default function Analyses() {
                             type: "string",
                             editable: "never",
                             render: rowData => <DateTimeText datetime={rowData.updated} />,
-                            filterComponent: props => <DateFilterComponent {...props} />,
+                            filterComponent: DateFilterComponent,
                         },
                         {
                             title: "Path Prefix",
                             field: "result_path",
                             type: "string",
-                        },
-                        {
-                            title: "Status",
-                            field: "analysis_state",
-                            type: "string",
-                            lookup: pipelineStatusLookup,
-                            editComponent: props => <SelectPipelineStatus {...props} />,
                         },
                         {
                             title: "Notes",
@@ -380,6 +347,13 @@ export default function Analyses() {
                                     fullWidth
                                 />
                             ),
+                        },
+                        {
+                            title: "ID",
+                            field: "analysis_id",
+                            type: "string",
+                            editable: "never",
+                            defaultFilter: paramID,
                         },
                     ]}
                     isLoading={analysisUpdateMutation.isLoading}
@@ -561,33 +535,6 @@ export default function Analyses() {
                                 }
                             );
                         },
-                    }}
-                    components={{
-                        Toolbar: props => (
-                            <div>
-                                <MTableToolbar {...props} />
-                                <div style={{ marginLeft: "24px" }}>
-                                    {Object.entries(PipelineStatus).map(([k, v]) => (
-                                        <Chip
-                                            key={k}
-                                            label={toTitleCase(k)}
-                                            clickable
-                                            className={classes.chip}
-                                            onClick={() =>
-                                                updateTableFilter(tableRef, "analysis_state", v)
-                                            }
-                                        />
-                                    ))}
-                                    <IconButton
-                                        onClick={() =>
-                                            updateTableFilter(tableRef, "analysis_state", "")
-                                        }
-                                    >
-                                        <Cancel />
-                                    </IconButton>
-                                </div>
-                            </div>
-                        ),
                     }}
                 />
                 )
