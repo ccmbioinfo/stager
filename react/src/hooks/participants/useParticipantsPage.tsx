@@ -1,4 +1,4 @@
-import { Query, QueryResult } from "material-table";
+import { Query, QueryResult } from "@material-table/core";
 import { useQueryClient } from "react-query";
 import { Participant } from "../../typings";
 import { queryTableData } from "../utils";

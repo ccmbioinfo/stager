@@ -1,5 +1,5 @@
+import { QueryResult } from "@material-table/core";
 import dayjs from "dayjs";
-import { QueryResult } from "material-table";
 import { QueryObserverResult, useQuery } from "react-query";
 import { jsonToAnalyses } from "../../functions";
 import { Analysis } from "../../typings";

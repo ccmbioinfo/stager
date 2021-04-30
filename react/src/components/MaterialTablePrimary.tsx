@@ -1,4 +1,4 @@
-import MaterialTable, { MaterialTableProps } from "material-table";
+import MaterialTable, { MaterialTableProps } from "@material-table/core";
 import MaterialTablePaginationOverride from "./MaterialTablePaginationOverride";
 
 /**
@@ -39,7 +39,6 @@ export default function MaterialTablePrimary<T extends object>(props: MaterialTa
                 search: false,
                 padding: "dense",
                 exportAllData: true,
-                exportButton: { csv: true, pdf: false },
                 ...props.options,
             }}
             localization={{

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { Column } from "@material-table/core";
 import { Checkbox, ListItemText, MenuItem, Select } from "@material-ui/core";
-import { Column } from "material-table";
 import { usePipelinesQuery } from "../../hooks";
 import { Analysis, Pipeline } from "../../typings";
 

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Query, QueryResult } from "material-table";
+import { Query, QueryResult } from "@material-table/core";
 import { useQueryClient } from "react-query";
 import { Analysis, AnalysisDetailed } from "../../typings";
 import { basicFetch, queryTableData } from "../utils";

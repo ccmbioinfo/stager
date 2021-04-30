@@ -1,6 +1,6 @@
 import React, { useState } from "react";
+import { Column } from "@material-table/core";
 import { FormControl, MenuItem, Select } from "@material-ui/core";
-import { Column } from "material-table";
 import { PseudoBoolean, PseudoBooleanReadableMap } from "../typings";
 
 /**

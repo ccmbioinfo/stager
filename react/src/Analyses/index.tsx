@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { MTableToolbar } from "@material-table/core";
 import {
     Chip,
     Container,
@@ -18,7 +19,6 @@ import {
     PlayArrow,
     Visibility,
 } from "@material-ui/icons";
-import { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
 import { useHistory, useParams } from "react-router";
@@ -385,10 +385,15 @@ export default function Analyses() {
                     isLoading={analysisUpdateMutation.isLoading}
                     data={dataFetch}
                     options={{
-                        selection: true,
-                        exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
                         rowStyle: data =>
                             getHighlightColor(theme, data.priority, data.analysis_state),
+                        selection: true,
+                        exportMenu: [
+                            {
+                                label: "Export as CSV",
+                                exportFunc: (columns, data) => exportCSV(columns, data, "Analyses"),
+                            },
+                        ],
                     }}
                     actions={[
                         {
@@ -585,6 +590,7 @@ export default function Analyses() {
                         ),
                     }}
                 />
+                )
             </Container>
         </main>
     );
