@@ -36,7 +36,6 @@ export const useDownloadCsv = <P>(path: string) => {
         },
         []
     );
-    console.log("returning");
 
     return download;
 };

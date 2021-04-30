@@ -46,6 +46,7 @@ export async function fetchCsv(
     if (options.headers) {
         headers = { ...options.headers, ...headers };
     }
+
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
 
     const response = await fetch(`${url}${paramString}`, { ...options, headers });
