@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import {
     Checkbox,
     IconButton,
@@ -47,6 +47,7 @@ export function DataEntryCell(props: {
     onEdit: (newValue: string | boolean | string[], autocomplete?: boolean) => void;
     disabled?: boolean;
     required?: boolean;
+    onSearch?: (value: string) => void;
 }) {
     if (booleanColumns.includes(props.col.field)) {
         return (
@@ -85,6 +86,7 @@ export function DataEntryCell(props: {
             column={props.col}
             aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
             required={props.required}
+            onSearch={props.onSearch}
         />
     );
 }
@@ -100,9 +102,19 @@ export function AutocompleteCell(
         disabled?: boolean;
         column: DataEntryHeader;
         required?: boolean;
+        onSearch?: (value: string) => void;
     } & TableCellProps
 ) {
+    // We control the inputValue so that we can query with it
+    const [search, setSearch] = useState("");
+
+    const onSearch = (value: string) => {
+        setSearch(value);
+        if (props.onSearch) props.onSearch(value);
+    };
+
     const onEdit = (newValue: Option, autopopulate?: boolean) => {
+        onSearch(newValue.inputValue);
         props.onEdit(newValue.inputValue, autopopulate);
     };
 
@@ -123,6 +135,14 @@ export function AutocompleteCell(
                 clearOnBlur
                 handleHomeEndKeys
                 autoHighlight
+                inputValue={search}
+                onInputChange={(event, value, reason) => {
+                    if (reason === "clear") {
+                        onSearch("");
+                    } else {
+                        onSearch(value);
+                    }
+                }}
                 onChange={(event, newValue) => {
                     const autocomplete =
                         props.column.field === "participant_codename" ||

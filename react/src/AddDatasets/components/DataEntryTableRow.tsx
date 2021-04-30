@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { TableRow } from "@material-ui/core";
 import { Delete, LibraryAdd } from "@material-ui/icons";
 import { useFamiliesQuery } from "../../hooks";
@@ -28,7 +28,8 @@ interface DataEntryTableRowProps {
  * Internal component for handling rows in the body of the DataEntryTable.
  */
 export default function DataEntryTableRow(props: DataEntryTableRowProps) {
-    const familiesResult = useFamiliesQuery(props.row.family_codename);
+    const [familySearch, setFamilySearch] = useState("");
+    const familiesResult = useFamiliesQuery(familySearch);
     const families = familiesResult.data || [];
     const showRNA = props.row.dataset_type === "RRS";
 
@@ -38,6 +39,12 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
         autopopulate?: boolean
     ) {
         return props.onChange(newValue, props.rowIndex, col, families, autopopulate);
+    }
+
+    function onSearch(col: DataEntryHeader, value: string) {
+        if (col.field === "family_codename") {
+            setFamilySearch(value);
+        }
     }
 
     function getOptions(rowIndex: number, col: DataEntryHeader) {
@@ -72,6 +79,7 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
                         props.row.participantColDisabled &&
                         (participantColumns as string[]).includes(col.field)
                     }
+                    onSearch={search => onSearch(col, search)}
                 />
             ))}
             {props.optionalCols.map(
