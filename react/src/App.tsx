@@ -3,6 +3,7 @@ import { createMuiTheme, IconButton, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 import { emptyUser, UserClient, UserContext } from "./contexts";
 import { clearQueryCache } from "./hooks/utils";
@@ -96,6 +97,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                             darkMode={props.darkMode}
                             toggleDarkMode={props.toggleDarkMode}
                         />
+                        <ReactQueryDevtools initialIsOpen={false} />
                     </SnackbarProvider>
                 </QueryClientProvider>
             </UserContext.Provider>

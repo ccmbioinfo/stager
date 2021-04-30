@@ -39,6 +39,7 @@ import { ListItemRouterLink, NotificationPopover } from "./components";
 import { useUserContext } from "./contexts";
 import Datasets from "./Datasets";
 import Groups from "./Groups";
+import NotFoundPage from "./NotFound";
 import Participants from "./Participants";
 import SearchVariants from "./SearchVariants";
 import Settings from "./Settings";
@@ -238,19 +239,21 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             <MenuIcon />
                         </IconButton>
                         <Switch>
-                            {routes.map((route, index) => (
-                                <Route key={index} path={route.path} exact={route.exact}>
-                                    <Typography
-                                        component="h1"
-                                        variant="h6"
-                                        color="inherit"
-                                        noWrap
-                                        className={classes.title}
-                                    >
-                                        {route.pageName}
-                                    </Typography>
-                                </Route>
-                            ))}
+                            {routes
+                                .concat({ pageName: "Not Found", path: "*", main: NotFoundPage })
+                                .map((route, index) => (
+                                    <Route key={index} path={route.path} exact={route.exact}>
+                                        <Typography
+                                            component="h1"
+                                            variant="h6"
+                                            color="inherit"
+                                            noWrap
+                                            className={classes.title}
+                                        >
+                                            {route.pageName}
+                                        </Typography>
+                                    </Route>
+                                ))}
                         </Switch>
                         <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
                             <MuiSwitch
@@ -315,6 +318,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             <Redirect key={index} to="/participants" />
                         )
                     )}
+                    <Route path="*" render={() => <NotFoundPage />} />
                 </Switch>
             </BrowserRouter>
         </div>
