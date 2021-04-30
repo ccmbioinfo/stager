@@ -48,6 +48,7 @@ export function DataEntryCell(props: {
     disabled?: boolean;
     required?: boolean;
     onSearch?: (value: string) => void;
+    loading?: boolean;
 }) {
     if (booleanColumns.includes(props.col.field)) {
         return (
@@ -87,6 +88,7 @@ export function DataEntryCell(props: {
             aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
             required={props.required}
             onSearch={props.onSearch}
+            loading={props.loading}
         />
     );
 }
@@ -103,6 +105,7 @@ export function AutocompleteCell(
         column: DataEntryHeader;
         required?: boolean;
         onSearch?: (value: string) => void;
+        loading?: boolean;
     } & TableCellProps
 ) {
     // We control the inputValue so that we can query with it
@@ -129,6 +132,8 @@ export function AutocompleteCell(
     return (
         <TableCell>
             <Autocomplete
+                loading={props.loading}
+                loadingText="Fetching..."
                 disabled={props.disabled}
                 aria-label={props["aria-label"]}
                 selectOnFocus

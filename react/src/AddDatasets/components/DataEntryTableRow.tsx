@@ -80,6 +80,7 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
                         (participantColumns as string[]).includes(col.field)
                     }
                     onSearch={search => onSearch(col, search)}
+                    loading={col.field === "family_codename" && familiesResult.isLoading}
                 />
             ))}
             {props.optionalCols.map(
