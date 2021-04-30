@@ -139,7 +139,7 @@ export function AutocompleteCell(
                 onInputChange={(event, value, reason) => {
                     if (reason === "clear") {
                         onSearch("");
-                    } else {
+                    } else if (reason === "input") {
                         onSearch(value);
                     }
                 }}
