@@ -1,10 +1,14 @@
 import React from "react";
-import { Grid, GridProps } from "@material-ui/core";
+import { Grid, GridProps, makeStyles } from "@material-ui/core";
 import { Field } from "../typings";
 import FieldDisplayEditable from "./FieldDisplayEditable";
 
 // Grids are very picky about what sizes are allowed
 type Width = Exclude<GridProps["xs"], boolean | "auto">;
+
+const useStyles = makeStyles(theme => ({
+    flexChild: { minWidth: 0, overflowWrap: "break-word" },
+}));
 
 /**
  * Display a collection of editable fields. Column width can be specified.
@@ -20,6 +24,7 @@ export default function GridFieldsDisplay(props: {
     orderPriority?: "left-right" | "top-down";
     columnWidth?: Width;
 }) {
+    const classes = useStyles();
     const infoWidth = props.columnWidth || 6;
     const numColumns = Math.floor(12 / infoWidth);
 
@@ -47,15 +52,17 @@ export default function GridFieldsDisplay(props: {
     return (
         <>
             {fieldColumns.map((column, colIndex) => (
-                <Grid item xs={infoWidth} key={`column-${colIndex}`}>
+                <Grid item container xs={infoWidth} key={`column-${colIndex}`}>
                     {column.map(value => (
-                        <FieldDisplayEditable
-                            field={value.field}
-                            editMode={props.editMode}
-                            enums={props.enums}
-                            onEdit={props.onEdit}
-                            key={value.key}
-                        />
+                        <Grid item xs={12} key={value.key} className={classes.flexChild}>
+                            <FieldDisplayEditable
+                                field={value.field}
+                                editMode={props.editMode}
+                                enums={props.enums}
+                                onEdit={props.onEdit}
+                                key={value.key}
+                            />
+                        </Grid>
                     ))}
                 </Grid>
             ))}
