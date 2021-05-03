@@ -3,10 +3,17 @@ from dataclasses import asdict, dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
-from io import StringIO
-from typing import Any, Callable, Dict, List, Union
+from io import BytesIO, StringIO
+from typing import Any, Callable, Dict, List, Mapping, Union
 
-from flask import abort, current_app as app, jsonify, request
+from flask import (
+    abort,
+    current_app as app,
+    jsonify,
+    request,
+    Request,
+    send_file,
+)
 from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
@@ -180,6 +187,49 @@ def query_results_to_csv(results: List[dict or dataclass]):
         writer.writerow(row)
 
     return csv_data.getvalue()
+
+
+def paginated_response(results: List[Any], page: int, total: int, limit: int = None):
+    return jsonify(
+        {
+            "data": results,
+            "page": page if limit else 0,
+            "total_count": total,
+        }
+    )
+
+
+def csv_response(
+    results: List[Dict[str, Any]] or List[Model],
+    filename: str = "report",
+    colnames: List[str] = None,
+):
+
+    if colnames:
+        results = filter_keys(results, colnames)
+
+    """ create a csv HTTP response from a list of query results or mapping """
+    csv = query_results_to_csv(results)
+
+    return send_file(
+        BytesIO(csv.encode("utf-8")),
+        "text/csv",
+        as_attachment=True,
+        attachment_filename=filename,
+    )
+
+
+def filter_keys(data: List[Dict[str, Any]] or List[Model], keys: List[str]):
+    """ filter list item mappings according to list of keys """
+    return [{key: value for key, value in row.items() if key in keys} for row in data]
+
+
+def expects_json(req: Request):
+    return req.headers.get("Accept") in ["application/json", "*/*", None]
+
+
+def expects_csv(req: Request):
+    return req.headers.get("Accept") == "text/csv"
 
 
 class DateTimeEncoder(JSONEncoder):

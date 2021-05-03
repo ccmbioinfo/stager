@@ -4,8 +4,10 @@ import { Dataset } from "../../typings";
 
 import { queryTableData } from "../utils";
 
+export const GET_DATASETS_URL = "/api/datasets";
+
 async function fetchDatasets(query: Query<Dataset>) {
-    const queryResult = await queryTableData(query, "/api/datasets");
+    const queryResult = await queryTableData(query, GET_DATASETS_URL);
     return queryResult;
 }
 

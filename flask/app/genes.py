@@ -1,11 +1,10 @@
-from dataclasses import asdict
 from io import StringIO
-from flask import abort, jsonify, request, Blueprint, Response
+from flask import abort, jsonify, request, Blueprint
 from flask_login import login_required
 from sqlalchemy import func
 from .extensions import db
 from .models import Gene
-from .utils import paged, query_results_to_csv
+from .utils import csv_response, expects_csv, expects_json, paged, paginated_response
 
 genes_blueprint = Blueprint(
     "genes",
@@ -29,24 +28,10 @@ def genes(page: int, limit: int):
 
     results = gene_query.limit(limit).offset(page * (limit or 0)).all()
 
-    # default to json if accept = */*
-    if request.accept_mimetypes["application/json"]:
-        return jsonify(
-            {
-                "data": results,
-                "page": page if limit else 0,
-                "total_count": total_count,
-            }
-        )
-
-    if request.accept_mimetypes["text/csv"]:
-        csv = query_results_to_csv(results)
-        response = Response(csv)
-
-        response.headers["Content-Disposition"] = "attachment;filename=gene_report.csv"
-        response.headers["Content-Type"] = "text/csv"
-
-        return response
+    if expects_json(request):
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+        return csv_response(results)
 
     abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 

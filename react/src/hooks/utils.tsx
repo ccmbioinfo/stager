@@ -34,13 +34,13 @@ export async function basicFetch(
 }
 
 /**
- * Fetch csv from provided url. Return blob and filename if successful (both should be included in cached response).
+ * Fetch csv from provided url. Return blob and filename if successful (both are needed for cached response).
  * Throw the response if unsuccessful.
  */
 export async function fetchCsv(
     url: string,
-    params: Record<string, any> = {},
-    options: RequestInit | undefined = {}
+    params: Record<string, string> = {},
+    options: RequestInit = {}
 ) {
     let headers = { Accept: "text/csv" };
     if (options.headers) {
@@ -93,7 +93,7 @@ export async function queryTableData<RowData extends object>(
  *
  */
 export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
-    query: Query<RowData>
+    query: MTQuery<RowData>
 ) => {
     const searchParams: Record<string, string> = {};
     const { filters, orderBy, orderDirection, page, pageSize } = query;
@@ -127,7 +127,7 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
 };
 
 export const transformMTQueryToCsvDownloadParams = <RowData extends object>(
-    query: Query<RowData>
+    query: MTQuery<RowData>
 ) => {
     const params = getSearchParamsFromMaterialTableQuery(query);
     const { page, limit, ...rest } = params;

@@ -9,6 +9,7 @@ import pandas as pd
 from . import models
 
 from .extensions import db
+from .utils import expects_csv, expects_json
 
 
 variants_blueprint = Blueprint(
@@ -194,7 +195,7 @@ def participant_summary():
 
     app.logger.info(request.accept_mimetypes)
 
-    if request.accept_mimetypes["application/json"]:
+    if expects_json(request):
 
         app.logger.info("Defaulting to json response")
 
@@ -229,7 +230,7 @@ def participant_summary():
                 for dataset in q
             ]
         )
-    elif request.accept_mimetypes["text/csv"]:
+    elif expects_csv(request):
 
         app.logger.info("text/csv Accept header requested")
 
@@ -343,7 +344,7 @@ def variant_summary():
     # defaults to json unless otherwise specified
     app.logger.info(request.accept_mimetypes)
 
-    if request.accept_mimetypes["application/json"]:
+    if expects_json(request):
 
         app.logger.info("Defaulting to json response")
 
@@ -377,7 +378,7 @@ def variant_summary():
                 for gene in q
             ],
         )
-    elif request.accept_mimetypes["text/csv"]:
+    elif expects_csv(request):
 
         app.logger.info("text/csv Accept header requested")
 

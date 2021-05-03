@@ -9,12 +9,15 @@ from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    csv_response,
     enum_validate,
+    expects_csv,
+    expects_json,
     filter_in_enum_or_abort,
     filter_nullable_bool_or_abort,
     mixin,
     paged,
-    query_results_to_csv,
+    paginated_response,
     transaction_or_abort,
     validate_json,
 )
@@ -174,25 +177,20 @@ def list_participants(page: int, limit: int) -> Response:
         for participant in participants
     ]
 
-    if request.headers.get("Accept") in ["application/json", "*/*"]:
-        return jsonify(
-            {
-                "data": results,
-                "page": page if limit else 0,
-                "total_count": total_count,
-            }
+    if expects_json(request):
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+        return csv_response(
+            results,
+            "participants_report.csv",
+            [
+                *models.Participant.__table__.c.keys(),
+                "family_codename",
+                "institution",
+                "updated_by",
+                "created_by",
+            ],
         )
-    elif request.headers.get("Accept") == "text/csv":
-
-        csv = query_results_to_csv(results)
-        response = Response(csv)
-
-        response.headers[
-            "Content-Disposition"
-        ] = "attachment;filename=participant_report.csv"
-        response.headers["Content-Type"] = "text/csv"
-
-        return response
 
     abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 

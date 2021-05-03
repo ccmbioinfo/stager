@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { downloadCsv } from "../../functions";
-import { useVariantsQuery } from "../../hooks/variants";
+import { GET_VARIANTS_SUMMARY_URL, useDownloadCsv } from "../../hooks";
 import GeneAutocomplete from "./Autocomplete";
 
 interface SearchVariantsPageProps {}
@@ -23,7 +22,6 @@ const useStyles = makeStyles(theme => ({
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<string[]>([]);
     const [error, setError] = useState(false);
-    const [csvFetchEnabled, setCsvFetchEnabled] = useState(false);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -35,8 +33,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const { data: blobResponse } = useVariantsQuery({ panel: selectedGenes.join(";") }, "csv", {
-        enabled: csvFetchEnabled,
+    const downloadCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
         onError: response => {
             if (response.status === 400) {
                 setError(true);
@@ -52,18 +49,6 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
             setError(false);
         }
     };
-
-    useEffect(() => {
-        /* react-query cache will return a 'new' blob when parameters
-           match a cache key, even if refetch hasn't been called or query is disabled,
-           triggering a download. So we need to explicitly
-           enable/disable the query AND provide flag as a dependency. */
-        if (blobResponse && csvFetchEnabled) {
-            const { filename, blob } = blobResponse;
-            downloadCsv(filename, blob);
-            setCsvFetchEnabled(false);
-        }
-    }, [blobResponse, csvFetchEnabled]);
 
     useEffect(() => {
         document.title = `Search Variants | ${process.env.REACT_APP_NAME}`;
@@ -106,7 +91,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item>
                             <Button
                                 disabled={!selectedGenes.length}
-                                onClick={() => setCsvFetchEnabled(true)}
+                                onClick={() => downloadCsv({ panel: selectedGenes.join(";") })}
                                 size="large"
                                 variant="contained"
                             >

@@ -1,6 +1,6 @@
 import React from "react";
+import { EditComponentProps } from "@material-table/core";
 import { TextField } from "@material-ui/core";
-import { EditComponentProps } from "material-table";
 
 export default function EditNotes<T extends object>(props: EditComponentProps<T>) {
     return (

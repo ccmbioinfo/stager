@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
-import { EditComponentProps, MTableToolbar } from "@material-table/core";
-import { Chip, IconButton, makeStyles, TextField } from "@material-ui/core";
+import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
+import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
@@ -14,14 +14,17 @@ import {
     Note,
 } from "../../components";
 import { useUserContext } from "../../contexts";
-import { exportCSV, rowDiff, toKeyValue, updateTableFilter } from "../../functions";
+import { rowDiff, toKeyValue, updateTableFilter } from "../../functions";
 import {
+    GET_DATASETS_URL,
     useDatasetsPage,
     useDatasetUpdateMutation,
+    useDownloadCsv,
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useUnlinkedFilesQuery,
 } from "../../hooks";
+import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Dataset } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
@@ -70,8 +73,6 @@ const RenderLinkedFilesButton = (props: Dataset) => (
 
 const RenderNotes = (rowData: Dataset) => <Note>{rowData.notes}</Note>;
 
-const wrappedExportCsv = (columns: any[], data: any[]) => exportCSV(columns, data, "Datasets");
-
 export default function DatasetTable() {
     const classes = useStyles();
     const { user: currentUser } = useUserContext();
@@ -100,6 +101,65 @@ export default function DatasetTable() {
 
     const { id: paramID } = useParams<{ id?: string }>();
 
+    const downloadCsv = useDownloadCsv(GET_DATASETS_URL);
+
+    const exportCsv = () => {
+        downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
+    };
+
+    const columns: Column<Dataset>[] = useMemo(() => {
+        return [
+            { title: "Family", field: "family_codename", editable: "never" },
+            { title: "Participant", field: "participant_codename", editable: "never" },
+            {
+                title: "Tissue Sample",
+                field: "tissue_sample_type",
+                editable: "never",
+                lookup: tissueSampleTypes,
+            },
+            {
+                title: "Type",
+                field: "dataset_type",
+                lookup: datasetTypes,
+            },
+            {
+                title: "Condition",
+                field: "condition",
+                lookup: conditions,
+            },
+            {
+                title: "Notes",
+                field: "notes",
+                render: RenderNotes,
+                editComponent: EditNotes,
+            },
+            {
+                title: "Files",
+                field: "linked_files",
+                // can search by number of files, or by file name
+                customFilterAndSearch: customFileFilterAndSearch,
+                customSort: linkedFileSort,
+                render: RenderLinkedFilesButton,
+                editComponent: EditFilesComponent,
+            },
+            {
+                title: "Updated",
+                field: "updated",
+                type: "string",
+                editable: "never",
+                render: RenderDatePicker,
+                filterComponent: DateFilterComponent,
+            },
+            { title: "Updated By", field: "updated_by", editable: "never" },
+            {
+                title: "ID",
+                field: "dataset_id",
+                editable: "never",
+                defaultFilter: paramID,
+            },
+        ];
+    }, [conditions, datasetTypes, paramID, tissueSampleTypes]);
+
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
 
@@ -122,63 +182,14 @@ export default function DatasetTable() {
             <MaterialTablePrimary
                 title="Datasets"
                 tableRef={MTRef}
-                columns={[
-                    { title: "Family", field: "family_codename", editable: "never" },
-                    { title: "Participant", field: "participant_codename", editable: "never" },
-                    {
-                        title: "Tissue Sample",
-                        field: "tissue_sample_type",
-                        editable: "never",
-                        lookup: tissueSampleTypes,
-                    },
-                    {
-                        title: "Type",
-                        field: "dataset_type",
-                        lookup: datasetTypes,
-                    },
-                    {
-                        title: "Condition",
-                        field: "condition",
-                        lookup: conditions,
-                    },
-                    {
-                        title: "Notes",
-                        field: "notes",
-                        render: RenderNotes,
-                        editComponent: EditNotes,
-                    },
-                    {
-                        title: "Files",
-                        field: "linked_files",
-                        // can search by number of files, or by file name
-                        customFilterAndSearch: customFileFilterAndSearch,
-                        customSort: linkedFileSort,
-                        render: RenderLinkedFilesButton,
-                        editComponent: EditFilesComponent,
-                    },
-                    {
-                        title: "Updated",
-                        field: "updated",
-                        type: "string",
-                        editable: "never",
-                        render: RenderDatePicker,
-                        filterComponent: DateFilterComponent,
-                    },
-                    { title: "Updated By", field: "updated_by", editable: "never" },
-                    {
-                        title: "ID",
-                        field: "dataset_id",
-                        editable: "never",
-                        defaultFilter: paramID,
-                    },
-                ]}
+                columns={columns || []}
                 data={dataFetch}
                 options={{
                     selection: true,
                     exportMenu: [
                         {
                             label: "Export as CSV",
-                            exportFunc: wrappedExportCsv,
+                            exportFunc: exportCsv,
                         },
                     ],
                 }}

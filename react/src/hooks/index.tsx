@@ -9,7 +9,7 @@ export { useBulkCreateMutation } from "./bulk/useBulkCreateMutation";
 
 export { useAnalysisQuery } from "./analyses/useAnalysisQuery";
 export { useAnalysesQuery } from "./analyses/useAnalysesQuery";
-export { useAnalysesPage } from "./analyses/useAnalysesPage";
+export * from "./analyses/useAnalysesPage";
 export { useAnalysisCreateMutation } from "./analyses/useAnalysisCreateMutation";
 export { useAnalysisUpdateMutation } from "./analyses/useAnalysisUpdateMutation";
 export type { AnalysisOptions } from "./analyses/useAnalysisUpdateMutation";
@@ -33,7 +33,7 @@ export * from "./participants/useParticipantsPage";
 export { useDatasetQuery } from "./datasets/useDatasetQuery";
 export { useDatasetsQuery } from "./datasets/useDatasetsQuery";
 export { useDatasetQueries } from "./datasets/useDatasetQueries";
-export { useDatasetsPage } from "./datasets/useDatasetsPage";
+export * from "./datasets/useDatasetsPage";
 export { useDatasetCreateMutation } from "./datasets/useDatasetCreateMutation";
 export { useDatasetUpdateMutation } from "./datasets/useDatasetUpdateMutation";
 export { useDatasetDeleteMutation } from "./datasets/useDatasetDeleteMutation";

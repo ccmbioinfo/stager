@@ -4,8 +4,10 @@ import { useQueryClient } from "react-query";
 import { Analysis, AnalysisDetailed } from "../../typings";
 import { basicFetch, queryTableData } from "../utils";
 
+export const GET_ANALYSES_URL = "/api/analyses";
+
 async function fetchAnalyses(query: Query<Analysis>) {
-    const queryResult = await queryTableData<Analysis>(query, "/api/analyses");
+    const queryResult = await queryTableData<Analysis>(query, GET_ANALYSES_URL);
     return queryResult;
 }
 
@@ -25,7 +27,7 @@ export function useAnalysesPage() {
                 try {
                     const result = await queryClient.fetchQuery<string, Response, AnalysisDetailed>(
                         ["analyses", idFilter.value],
-                        () => basicFetch("/api/analyses/" + idFilter.value)
+                        () => basicFetch(`${GET_ANALYSES_URL}/${idFilter.value}`)
                     );
 
                     return {
