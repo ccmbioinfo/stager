@@ -12,7 +12,7 @@ astroid==2.5.6
     # via pylint
 attrs==20.3.0
     # via pytest
-black==20.8b1
+black==21.4b2
     # via -r requirements-dev.in
 certifi==2020.12.5
     # via minio
@@ -112,10 +112,6 @@ toml==0.10.2
     #   black
     #   pylint
     #   pytest
-typed-ast==1.4.2
-    # via black
-typing-extensions==3.7.4.3
-    # via black
 urllib3==1.26.4
     # via minio
 werkzeug==1.0.1
