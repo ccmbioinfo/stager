@@ -257,7 +257,7 @@ export default function LoginPage(props: LoginProps) {
                         <Box className={classes.root}>
                             <Container maxWidth="sm">
                                 <Paper component="form" className={classes.form}>
-                                    {FormDisplay}
+                                    <FormDisplay />
                                 </Paper>
                             </Container>
                         </Box>
