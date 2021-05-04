@@ -11,7 +11,6 @@
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^13.1.5",
     "@types/jest": "^26.0.23",
-    "@types/lodash": "^4.14.168",
     "@types/node": "^14.14.41",
     "@types/react": "^17.0.4",
     "@types/react-dom": "^17.0.3",

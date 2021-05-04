@@ -57,7 +57,7 @@ def list_participants(page: int, limit: int) -> Response:
         "solved",
     ]
     if order_by is None:
-        order = models.Participant.participant_id
+        order = None  # system default, likely participant_id
     elif order_by == "family_codename":
         order = models.Family.family_codename
     elif order_by in allowed_columns:

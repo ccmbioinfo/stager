@@ -146,85 +146,84 @@ export default function ParticipantTable() {
                     }}
                 />
             )}
-            {columns && (
-                <MaterialTablePrimary
-                    tableRef={tableRef}
-                    columns={columns || []}
-                    data={dataFetch}
-                    title="Participants"
-                    options={{
-                        selection: false,
-                        exportAllData: true,
-                        exportMenu: [
-                            {
-                                exportFunc: exportCsv,
-                                label: "Export as CSV",
-                            },
-                        ],
-                        filtering: true,
-                        search: false,
-                    }}
-                    editable={{
-                        onRowUpdate: async (newParticipant, oldParticipant) => {
-                            const diffParticipant = rowDiff<Participant>(
-                                newParticipant,
-                                oldParticipant
-                            );
 
-                            const response = await fetch(
-                                `/api/participants/${newParticipant.participant_id}`,
-                                {
-                                    method: "PATCH",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        ...diffParticipant,
-                                        affected: stringToBoolean(newParticipant.affected),
-                                        solved: stringToBoolean(newParticipant.solved),
-                                    }),
-                                }
-                            );
-                            if (response.ok) {
-                                const updatedParticipant = await response.json();
-                                setParticipants(
-                                    participants.map(participant =>
-                                        participant.participant_id === newParticipant.participant_id
-                                            ? { ...participant, ...updatedParticipant }
-                                            : participant
-                                    )
-                                );
-                                enqueueSnackbar(
-                                    `Participant ${newParticipant.participant_codename} updated successfully`,
-                                    { variant: "success" }
-                                );
-                            } else {
-                                console.error(
-                                    `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
-                                );
-                                enqueueSnackbar(
-                                    `Failed to edit Participant ${oldParticipant?.participant_codename} - ${response.status} ${response.statusText}`,
-                                    { variant: "error" }
-                                );
+            <MaterialTablePrimary
+                tableRef={tableRef}
+                columns={columns || []}
+                data={dataFetch}
+                title="Participants"
+                options={{
+                    selection: false,
+                    exportAllData: true,
+                    exportMenu: [
+                        {
+                            exportFunc: exportCsv,
+                            label: "Export as CSV",
+                        },
+                    ],
+                    filtering: true,
+                    search: false,
+                }}
+                editable={{
+                    onRowUpdate: async (newParticipant, oldParticipant) => {
+                        const diffParticipant = rowDiff<Participant>(
+                            newParticipant,
+                            oldParticipant
+                        );
+
+                        const response = await fetch(
+                            `/api/participants/${newParticipant.participant_id}`,
+                            {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    ...diffParticipant,
+                                    affected: stringToBoolean(newParticipant.affected),
+                                    solved: stringToBoolean(newParticipant.solved),
+                                }),
                             }
+                        );
+                        if (response.ok) {
+                            const updatedParticipant = await response.json();
+                            setParticipants(
+                                participants.map(participant =>
+                                    participant.participant_id === newParticipant.participant_id
+                                        ? { ...participant, ...updatedParticipant }
+                                        : participant
+                                )
+                            );
+                            enqueueSnackbar(
+                                `Participant ${newParticipant.participant_codename} updated successfully`,
+                                { variant: "success" }
+                            );
+                        } else {
+                            console.error(
+                                `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
+                            );
+                            enqueueSnackbar(
+                                `Failed to edit Participant ${oldParticipant?.participant_codename} - ${response.status} ${response.statusText}`,
+                                { variant: "error" }
+                            );
+                        }
+                    },
+                }}
+                actions={[
+                    {
+                        tooltip: "View participant details",
+                        icon: Visibility,
+                        position: "row",
+                        onClick: (event, rowData) => {
+                            setActiveRow(rowData as Participant);
+                            setDetail(true);
                         },
-                    }}
-                    actions={[
-                        {
-                            tooltip: "View participant details",
-                            icon: Visibility,
-                            position: "row",
-                            onClick: (event, rowData) => {
-                                setActiveRow(rowData as Participant);
-                                setDetail(true);
-                            },
-                        },
-                        {
-                            tooltip: "Copy combined codename",
-                            icon: FileCopy,
-                            onClick: CopyToClipboard,
-                        },
-                    ]}
-                />
-            )}
+                    },
+                    {
+                        tooltip: "Copy combined codename",
+                        icon: FileCopy,
+                        onClick: CopyToClipboard,
+                    },
+                ]}
+            />
         </div>
     );
 }
