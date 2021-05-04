@@ -160,6 +160,12 @@ def list_analyses(page: int, limit: int) -> Response:
     if expects_json(request):
         return paginated_response(results, page, total_count, limit)
     elif expects_csv(request):
+
+        results = [
+            {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
+            for result in results
+        ]
+
         return csv_response(results, filename="analyses_report.csv")
 
     abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
