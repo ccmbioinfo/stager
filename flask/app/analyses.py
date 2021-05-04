@@ -166,7 +166,21 @@ def list_analyses(page: int, limit: int) -> Response:
             for result in results
         ]
 
-        return csv_response(results, filename="analyses_report.csv")
+        return csv_response(
+            results,
+            filename="analyses_report.csv",
+            colnames=[
+                "pipeline",
+                "pipeline_id",
+                "priority",
+                "requester",
+                "assignee",
+                "updated",
+                "result_path",
+                "notes",
+                "analysis_id",
+            ],
+        )
 
     abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 

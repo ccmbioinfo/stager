@@ -186,14 +186,14 @@ def list_datasets(page: int, limit: int) -> Response:
 
     results = [
         {
-            **asdict(dataset),
-            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+            "family_codename": dataset.tissue_sample.participant.family.family_codename,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
+            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+            **asdict(dataset),
             "participant_type": dataset.tissue_sample.participant.participant_type,
             "institution": dataset.tissue_sample.participant.institution
             and dataset.tissue_sample.participant.institution.institution,
             "sex": dataset.tissue_sample.participant.sex,
-            "family_codename": dataset.tissue_sample.participant.family.family_codename,
             "created_by": dataset.created_by.username,
             "updated_by": dataset.updated_by.username,
         }
@@ -203,7 +203,21 @@ def list_datasets(page: int, limit: int) -> Response:
     if expects_json(request):
         return paginated_response(results, page, total_count, limit)
     elif expects_csv(request):
-        return csv_response(results, filename="datasets_report.csv")
+        return csv_response(
+            results,
+            filename="datasets_report.csv",
+            colnames=[
+                "family_codename",
+                "participant_codenamne",
+                "tissue_sample_type",
+                "dataset_type",
+                "condition",
+                "notes",
+                "linked_files",
+                "updated",
+                "updated_by",
+            ],
+        )
 
     abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 
