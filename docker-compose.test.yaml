@@ -25,6 +25,7 @@ services:
       TEST_MINIO_ENDPOINT: minio:9000
       TEST_MINIO_ACCESS_KEY: "${TEST_MINIO_ACCESS_KEY}"
       TEST_MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
+      ENABLE_OIDC: ""
     depends_on:
       - mysql
       - minio

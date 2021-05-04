@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    user: "${MYSQL_UIDGID:-mysql}"
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      KEYCLOAK_DATABASE: "${KEYCLOAK_DATABASE}"
+      KEYCLOAK_DB_USER: "${KEYCLOAK_DB_USER}"
+      KEYCLOAK_DB_PASSWORD: "${KEYCLOAK_DB_PASSWORD}"
+    ports:
+      - "${MYSQL_HOST_PORT}:3306"
+    volumes:
+      - ${MYSQL_VOLUME}:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d
+  minio:
+    image: minio/minio:RELEASE.2021-02-11T08-23-43Z
+    user: "${MINIO_UIDGID:-}"
+    restart: on-failure
+    environment:
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+    ports:
+      - "${MINIO_HOST_PORT}:9000"
+    volumes:
+      - ${MINIO_VOLUME}:/data
+    command: server /data
+  app:
+    build: flask
+    image: ghcr.io/ccmbioinfo/stager:dev
+    entrypoint:
+      [
+        "./utils/wait-for-it.sh",
+        "mysql:3306",
+        "--timeout=0",
+        "--",
+        "./utils/wait-for-it.sh",
+        "keycloak:8080",
+        "--timeout=0",
+        "--",
+        "./utils/run.sh",
+      ]
+    command: ["--host=0.0.0.0"]
+    user: "${FLASK_UIDGID:-www-data}"
+    environment:
+      ST_SECRET_KEY: "${ST_SECRET_KEY}"
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      ENABLE_OIDC: "true"
+      OIDC_CLIENT_ID: "ccm-stager"
+      OIDC_CLIENT_SECRET: "$$not_a_secret"
+      OIDC_WELL_KNOWN: "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration"
+      OIDC_PROVIDER: "keycloak"
+      KEYCLOAK_HOST: "http://keycloak:8080"
+      KEYCLOAK_USER: "${KEYCLOAK_USER}"
+      KEYCLOAK_PASSWORD: "${KEYCLOAK_PASSWORD}"
+      FRONTEND_HOST: "${FRONTEND_HOST:-http://localhost:3000}"
+    ports:
+      - "${FLASK_HOST_PORT}:5000"
+    depends_on:
+      - mysql
+      - minio
+      - keycloak
+    volumes:
+      - ./flask:/usr/src/stager
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: "${KEYCLOAK_DATABASE}"
+      DB_USER: "${KEYCLOAK_DB_USER}"
+      DB_PASSWORD: "${KEYCLOAK_DB_PASSWORD}"
+      KEYCLOAK_USER: "${KEYCLOAK_USER}"
+      KEYCLOAK_PASSWORD: "${KEYCLOAK_PASSWORD}"
+      KEYCLOAK_FRONTEND_URL: "http://localhost:8080/auth"
+      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the MySQL JDBC driver documentation in order to use it.
+      #JDBC_PARAMS: "connectTimeout=30000"
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql

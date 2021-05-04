@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, logging as flask_logging
-from .extensions import db, login, migrate
+from .extensions import db, login, migrate, oauth
 from .utils import DateTimeEncoder
 
 from app import (
@@ -61,6 +61,14 @@ def register_extensions(app):
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
+    oauth.init_app(app)
+    oauth.register(
+        name=app.config["OIDC_PROVIDER"],
+        client_id=app.config["OIDC_CLIENT_ID"],
+        client_secret=app.config["OIDC_CLIENT_SECRET"],
+        server_metadata_url=app.config["OIDC_WELL_KNOWN"],
+        client_kwargs={"scope": "openid"},
+    )
 
 
 def config_logger(app):
