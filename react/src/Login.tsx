@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Button,
@@ -235,29 +235,26 @@ export default function LoginPage(props: LoginProps) {
         document.title = `Sign in | ${process.env.REACT_APP_NAME}`;
     }, []);
 
-    const OAuthCallback = useMemo(
-        () => (props.oauth ? <OIDCRedirectHandler {...props} /> : <Redirect to="/" />),
-        [props]
-    );
-
-    const FormDisplay: JSX.Element = useMemo(() => {
-        if (props.oauth === true) {
-            return <OauthLoginForm />;
-        }
-        return <LoginForm {...props} />;
-    }, [props]);
-
     return (
         <BrowserRouter>
             <Switch>
-                <Route path="/oidc_callback" render={() => OAuthCallback} />
+                <Route
+                    path="/oidc_callback"
+                    render={() =>
+                        props.oauth ? <OIDCRedirectHandler {...props} /> : <Redirect to="/" />
+                    }
+                />
                 <Route
                     path="/"
                     render={() => (
                         <Box className={classes.root}>
                             <Container maxWidth="sm">
                                 <Paper component="form" className={classes.form}>
-                                    <FormDisplay />
+                                    {props.oauth === true ? (
+                                        <OauthLoginForm />
+                                    ) : (
+                                        <LoginForm {...props} />
+                                    )}
                                 </Paper>
                             </Container>
                         </Box>
