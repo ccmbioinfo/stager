@@ -191,7 +191,6 @@ def list_participants(page: int, limit: int) -> Response:
                 "solved",
                 "sex",
                 "notes",
-                "dataset_types",
                 "updated_by",
                 "created_by",
             ],

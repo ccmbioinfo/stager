@@ -186,14 +186,14 @@ def list_datasets(page: int, limit: int) -> Response:
 
     results = [
         {
-            "family_codename": dataset.tissue_sample.participant.family.family_codename,
-            "participant_codename": dataset.tissue_sample.participant.participant_codename,
-            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
             **asdict(dataset),
+            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+            "participant_codename": dataset.tissue_sample.participant.participant_codename,
             "participant_type": dataset.tissue_sample.participant.participant_type,
             "institution": dataset.tissue_sample.participant.institution
             and dataset.tissue_sample.participant.institution.institution,
             "sex": dataset.tissue_sample.participant.sex,
+            "family_codename": dataset.tissue_sample.participant.family.family_codename,
             "created_by": dataset.created_by.username,
             "updated_by": dataset.updated_by.username,
         }
@@ -208,7 +208,7 @@ def list_datasets(page: int, limit: int) -> Response:
             filename="datasets_report.csv",
             colnames=[
                 "family_codename",
-                "participant_codenamne",
+                "participant_codename",
                 "tissue_sample_type",
                 "dataset_type",
                 "condition",
@@ -216,6 +216,7 @@ def list_datasets(page: int, limit: int) -> Response:
                 "linked_files",
                 "updated",
                 "updated_by",
+                "dataset_id"
             ],
         )
 

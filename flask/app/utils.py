@@ -206,7 +206,7 @@ def csv_response(
 ):
 
     if colnames:
-        results = filter_keys(results, colnames)
+        results = filter_keys_and_reorder(results, colnames)
 
     """ create a csv HTTP response from a list of query results or mapping """
     csv = query_results_to_csv(results)
@@ -219,9 +219,9 @@ def csv_response(
     )
 
 
-def filter_keys(data: List[Dict[str, Any]] or List[Model], keys: List[str]):
-    """ filter list item mappings according to list of keys """
-    return [{key: value for key, value in row.items() if key in keys} for row in data]
+def filter_keys_and_reorder(data: List[Dict[str, Any]] or List[Model], keys: List[str]):
+    """ filter list item mappings and key order according to list of keys """
+    return [{key: row[key] for key in keys} for row in data]
 
 
 def expects_json(req: Request):
