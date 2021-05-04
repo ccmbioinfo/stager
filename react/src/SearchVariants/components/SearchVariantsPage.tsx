@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
+import {
+    Box,
+    Button,
+    Chip,
+    Container,
+    FormControlLabel,
+    Grid,
+    makeStyles,
+    Radio,
+    RadioGroup,
+    Typography,
+} from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { GET_VARIANTS_SUMMARY_URL, useDownloadCsv } from "../../hooks";
+import { useDownloadCsv } from "../../hooks";
 import GeneAutocomplete from "./Autocomplete";
 
 interface SearchVariantsPageProps {}
@@ -19,9 +30,14 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
+
+const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
+
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<string[]>([]);
     const [error, setError] = useState(false);
+    const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -33,21 +49,34 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const downloadCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
-        onError: response => {
-            if (response.status === 400) {
-                setError(true);
-            } else {
-                const errorText = response.statusText;
-                enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
-            }
-        },
+    const csvDownloadError = (response: Response) => {
+        if (response.status === 400) {
+            setError(true);
+        } else {
+            const errorText = response.statusText;
+            enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
+        }
+    };
+
+    const downloadVariantwiseCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
+        onError: csvDownloadError,
+    });
+
+    const downloadParticipantwiseCsv = useDownloadCsv(GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL, {
+        onError: csvDownloadError,
     });
 
     const clearError = () => {
         if (error) {
             setError(false);
         }
+    };
+
+    const downloadCsv = () => {
+        if (downloadType === "participant") {
+            return downloadParticipantwiseCsv({ panel: selectedGenes.join(";") });
+        }
+        return downloadVariantwiseCsv({ panel: selectedGenes.join(";") });
     };
 
     useEffect(() => {
@@ -91,13 +120,35 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item>
                             <Button
                                 disabled={!selectedGenes.length}
-                                onClick={() => downloadCsv({ panel: selectedGenes.join(";") })}
+                                onClick={() => downloadCsv()}
                                 size="large"
                                 variant="contained"
                             >
-                                Submit
+                                Download
                             </Button>
                         </Grid>
+                    </Grid>
+                    <Grid container item xs={12} md={6}>
+                        <RadioGroup
+                            row
+                            aria-label="Pipelines"
+                            name="pipelines"
+                            value={downloadType}
+                            onChange={event =>
+                                setDownloadType(event.target.value as "variant" | "participant")
+                            }
+                        >
+                            <FormControlLabel
+                                label="Variant Wise Report"
+                                value="variant"
+                                control={<Radio color="primary" />}
+                            />
+                            <FormControlLabel
+                                label="Sample Wise Report"
+                                value="participant"
+                                control={<Radio color="primary" />}
+                            />
+                        </RadioGroup>
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
                         <Grid item>

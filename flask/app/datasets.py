@@ -216,7 +216,7 @@ def list_datasets(page: int, limit: int) -> Response:
                 "linked_files",
                 "updated",
                 "updated_by",
-                "dataset_id"
+                "dataset_id",
             ],
         )
 
