@@ -419,12 +419,26 @@ class PipelineDatasets(db.Model):
 
 @dataclass
 class Gene(db.Model):
-    gene_id: int = db.Column(db.Integer, primary_key=True)
-    hgnc_gene_id: int = db.Column(db.Integer, unique=True)
-    ensembl_id: int = db.Column(db.Integer, unique=True)
-    gene: str = db.Column(db.String(50))
-    hgnc_gene_name: str = db.Column(db.String(50))
+    # Truncate ENSG
+    ensembl_id: int = db.Column(db.Integer, primary_key=True)
+    # Truncate HGNC:
+    hgnc_id: int = db.Column(db.Integer, unique=True)
+    ncbi_id: int = db.Column(db.Integer, unique=True)
     variants = db.relationship("Variant", backref="gene")
+
+
+@dataclass
+class GeneAlias(db.Model):
+    # Autoincrement surrogate key
+    alias_id = db.Column(db.Integer, primary_key=True)
+    ensembl_id: int = db.Column(
+        db.Integer,
+        db.ForeignKey("gene.ensembl_id", onupdate="cascade", ondelete="cascade"),
+    )
+    # Not unique in case one name corresponds to multiple ENSGs across releases
+    name: str = db.Column(db.String(20), nullable=False)
+    # No point in allowing dupes for the same identifier though
+    __table_args__ = (db.UniqueConstraint("ensembl_id", "name"),)
 
 
 @dataclass
@@ -439,9 +453,9 @@ class Variant(db.Model):
     variation: str = db.Column(db.String(50), nullable=False)
     refseq_change = db.Column(db.String(250), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
-    gene_id: int = db.Column(
+    ensembl_id: int = db.Column(
         db.Integer,
-        db.ForeignKey("gene.gene_id", onupdate="cascade", ondelete="restrict"),
+        db.ForeignKey("gene.ensembl_id", onupdate="cascade", ondelete="restrict"),
     )
     conserved_in_20_mammals: int = db.Column(db.Float, nullable=True)
     sift_score: int = db.Column(db.Float, nullable=True)
