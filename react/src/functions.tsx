@@ -98,12 +98,9 @@ export function isRowSelected(row: any): boolean {
  */
 export function getAnalysisFields(analysis: Analysis) {
     return [
-        createFieldObj("Analysis ID", analysis.analysis_id),
         createFieldObj("State", analysis.analysis_state),
-        createFieldObj("Pipeline ID", analysis.pipeline_id),
         createFieldObj("Assigned to", analysis.assignee),
         createFieldObj("Path Prefix", analysis.result_path),
-        createFieldObj("qSub ID", analysis.qsubID),
         createFieldObj("Notes", analysis.notes),
         createFieldObj("Requested", formatDateString(analysis.requested)),
         createFieldObj("Requested By", analysis.requester),
@@ -222,7 +219,7 @@ export function snakeCaseToTitle(str: string): string {
 }
 
 /**
- * Given a string, returns the string with first word capitalized
+ * Given a string, returns the string with the first letter of each word capitalized
  */
 export function toTitleCase(str: string): string {
     return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
@@ -232,13 +229,15 @@ export function createFieldObj(
     title: string,
     value: FieldDisplayValueType,
     fieldName?: string,
-    disableEdit?: boolean
+    disableEdit?: boolean,
+    fullWidth?: boolean
 ): Field {
     return {
-        title: title,
-        value: value,
-        fieldName: fieldName,
-        disableEdit: disableEdit,
+        fullWidth,
+        title,
+        value,
+        fieldName,
+        disableEdit,
     };
 }
 

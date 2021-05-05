@@ -1,5 +1,14 @@
-import React, { useMemo } from "react";
-import { Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
+import React, { useMemo, useState } from "react";
+import {
+    Box,
+    Button,
+    Collapse,
+    Dialog,
+    DialogContent,
+    Divider,
+    makeStyles,
+    Typography,
+} from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
@@ -25,17 +34,35 @@ const useStyles = makeStyles(theme => ({
 function getParticipantFields(participant: Participant): Field[] {
     return [
         createFieldObj("Family Codename", participant.family_codename, "family_codename", true),
-        createFieldObj("Participant Type", participant.participant_type, "participant_type"),
-        createFieldObj("Sex", participant.sex, "sex"),
-        createFieldObj("Affected", stringToBoolean(participant.affected), "affected"),
-        createFieldObj("Solved", stringToBoolean(participant.solved), "solved"),
-        createFieldObj("Dataset Types", participant.dataset_types, "dataset_types", true),
-        createFieldObj("Notes", participant.notes, "notes"),
-        createFieldObj("Time of Creation", formatDateString(participant.created), "created", true),
-        createFieldObj("Created By", participant.created_by, "created_by", true),
-        createFieldObj("Time of Update", formatDateString(participant.updated), "updated", true),
-        createFieldObj("Updated By", participant.updated_by, "updated_by", true),
-        createFieldObj("Institution", participant.institution, "institution", true),
+        createFieldObj(
+            "Participant Type",
+            participant.participant_type,
+            "participant_type",
+            false,
+            true
+        ),
+        createFieldObj("Sex", participant.sex, "sex", false, true),
+        createFieldObj("Affected", stringToBoolean(participant.affected), "affected", false, true),
+        createFieldObj("Solved", stringToBoolean(participant.solved), "solved", false, true),
+        createFieldObj("Dataset Types", participant.dataset_types, "dataset_types", true, true),
+        createFieldObj("Notes", participant.notes, "notes", false, true),
+        createFieldObj(
+            "Time of Creation",
+            formatDateString(participant.created),
+            "created",
+            true,
+            true
+        ),
+        createFieldObj("Created By", participant.created_by, "created_by", true, true),
+        createFieldObj(
+            "Time of Update",
+            formatDateString(participant.updated),
+            "updated",
+            true,
+            true
+        ),
+        createFieldObj("Updated By", participant.updated_by, "updated_by", true, true),
+        createFieldObj("Institution", participant.institution, "institution", true, true),
     ];
 }
 
@@ -48,6 +75,7 @@ interface DialogProp {
 
 export default function ParticipantInfoDialog(props: DialogProp) {
     const classes = useStyles();
+    const [analysisInfoListOpen, setAnalysisInfoListOpen] = useState(false);
     const datasets = useMemo(
         () => props.participant.tissue_samples.flatMap(sample => sample.datasets),
         [props.participant]
@@ -78,6 +106,7 @@ export default function ParticipantInfoDialog(props: DialogProp) {
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
                     <DetailSection
+                        mainColumnWidth={3}
                         fields={getParticipantFields(props.participant)}
                         enums={enums}
                         dataInfo={{
@@ -96,20 +125,31 @@ export default function ParticipantInfoDialog(props: DialogProp) {
                         </div>
                     </>
                 )}
-                {analyses.length > 0 && (
-                    <>
-                        <Divider />
-                        <div className={classes.infoSection}>
-                            <InfoList
-                                infoList={getAnalysisInfoList(analyses)}
-                                title="Analyses"
-                                enums={enums}
-                                icon={<ShowChart />}
-                                linkPath="/analysis"
-                            />
-                        </div>
-                    </>
-                )}
+
+                <>
+                    <Divider />
+                    <Box margin={3}>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => setAnalysisInfoListOpen(!analysisInfoListOpen)}
+                        >
+                            {`${analysisInfoListOpen ? "Hide" : "Show"} Analyses`}
+                        </Button>
+                        <Collapse in={analysisInfoListOpen}>
+                            {analyses && analyses.length ? (
+                                <InfoList
+                                    infoList={getAnalysisInfoList(analyses)}
+                                    enums={enums}
+                                    icon={<ShowChart />}
+                                    linkPath="/analysis"
+                                />
+                            ) : (
+                                <Typography>There are no analyses for this participant</Typography>
+                            )}
+                        </Collapse>
+                    </Box>
+                </>
             </DialogContent>
         </Dialog>
     );

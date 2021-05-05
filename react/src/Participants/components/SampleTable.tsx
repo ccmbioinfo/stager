@@ -45,7 +45,6 @@ export default function SampleTable(props: {
     return (
         <MaterialTable
             columns={[
-                { title: "Sample ID", field: "tissue_sample_id" },
                 {
                     title: "Extraction Date",
                     field: "extraction_date",
@@ -59,7 +58,7 @@ export default function SampleTable(props: {
                     field: "created",
                     render: rowData => <DateTimeText datetime={rowData.created} />,
                 },
-                { title: "Create By", field: "created_by" },
+                { title: "Created By", field: "created_by" },
                 {
                     title: "Update Time",
                     field: "updated",

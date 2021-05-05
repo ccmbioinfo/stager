@@ -231,6 +231,7 @@ export interface Field {
     title: string;
     value: FieldDisplayValueType;
     fieldName?: string;
+    fullWidth?: boolean;
     disableEdit?: boolean;
 }
 
