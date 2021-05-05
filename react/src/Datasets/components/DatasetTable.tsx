@@ -182,7 +182,7 @@ export default function DatasetTable() {
             <MaterialTablePrimary
                 title="Datasets"
                 tableRef={MTRef}
-                columns={columns || []}
+                columns={columns}
                 data={dataFetch}
                 options={{
                     selection: true,

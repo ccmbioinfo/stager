@@ -149,7 +149,7 @@ export default function ParticipantTable() {
 
             <MaterialTablePrimary
                 tableRef={tableRef}
-                columns={columns || []}
+                columns={columns}
                 data={dataFetch}
                 title="Participants"
                 options={{

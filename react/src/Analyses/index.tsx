@@ -364,7 +364,7 @@ export default function Analyses() {
                 <MaterialTablePrimary
                     title="Analyses"
                     tableRef={tableRef}
-                    columns={columns || []}
+                    columns={columns}
                     isLoading={analysisUpdateMutation.isLoading}
                     data={dataFetch}
                     options={{

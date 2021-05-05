@@ -204,11 +204,11 @@ def csv_response(
     filename: str = "report",
     colnames: List[str] = None,
 ):
+    """ create a csv HTTP response from a list of query results or mapping """
 
     if colnames:
         results = filter_keys_and_reorder(results, colnames)
 
-    """ create a csv HTTP response from a list of query results or mapping """
     csv = query_results_to_csv(results)
 
     return send_file(
