@@ -72,8 +72,10 @@ export default function SampleTable(props: {
             detailPanel={rowData => {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
                     return {
-                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                         fields: getFields(dataset),
+                        identifier: dataset.dataset_id,
+                        linkPath: "datasets",
+                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                     };
                 });
                 return (

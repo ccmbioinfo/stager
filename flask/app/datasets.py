@@ -92,6 +92,9 @@ def list_datasets(page: int, limit: int) -> Response:
     updated_by = request.args.get("updated_by", type=str)
     if updated_by:
         filters.append(func.instr(models.User.username, updated_by))
+    dataset_id = request.args.get("dataset_id", type=str)
+    if dataset_id:
+        filters.append(models.Dataset.dataset_id == dataset_id)
     linked_files = request.args.get("linked_files", type=str)
     if linked_files:
         filters.append(func.instr(models.DatasetFile.path, linked_files))
