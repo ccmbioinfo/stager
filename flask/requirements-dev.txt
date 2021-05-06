@@ -53,10 +53,6 @@ gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via requests
-importlib-metadata==3.10.0
-    # via
-    #   pluggy
-    #   pytest
 iniconfig==1.1.1
     # via pytest
 isort==5.8.0
@@ -96,7 +92,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.8.1
+pylint==2.8.2
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
