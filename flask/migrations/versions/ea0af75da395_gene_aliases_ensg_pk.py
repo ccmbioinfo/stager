@@ -37,7 +37,8 @@ def upgrade():
         "gene_alias",
         sa.Column("alias_id", sa.Integer(), nullable=False),
         sa.Column("ensembl_id", sa.Integer(), nullable=True),
-        sa.Column("name", sa.String(length=20), nullable=False),
+        sa.Column("name", sa.String(length=50), nullable=False),
+        sa.Column("kind", sa.String(length=50), nullable=True),
         sa.ForeignKeyConstraint(
             ["ensembl_id"], ["gene.ensembl_id"], onupdate="cascade", ondelete="cascade"
         ),

@@ -436,7 +436,9 @@ class GeneAlias(db.Model):
         db.ForeignKey("gene.ensembl_id", onupdate="cascade", ondelete="cascade"),
     )
     # Not unique in case one name corresponds to multiple ENSGs across releases
-    name: str = db.Column(db.String(20), nullable=False)
+    name: str = db.Column(db.String(50), nullable=False)
+    # Optional flexible type label, e.g., current hgnc gene symbol, previous gene symbol, synonyms
+    kind: str = db.Column(db.String(50))
     # No point in allowing dupes for the same identifier though
     __table_args__ = (db.UniqueConstraint("ensembl_id", "name"),)
 
