@@ -14,6 +14,7 @@ import { useSnackbar } from "notistack";
 import { ChipGroup, MinioKeyDisplay, MinioResetButton } from "../components";
 import { useUserContext } from "../contexts";
 import { useUserQuery, useUsersUpdateMutation } from "../hooks";
+import Instructions from "./components/Instructions";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -199,6 +200,7 @@ export default function Settings() {
                         <MinioResetButton username={currentUser.username} />
                     </div>
                 </Paper>
+                <Instructions />
             </Container>
         </main>
     );
