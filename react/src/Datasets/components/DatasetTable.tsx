@@ -83,8 +83,10 @@ export default function DatasetTable() {
 
     const dataFetch = useDatasetsPage();
     const datasetUpdateMutation = useDatasetUpdateMutation();
-    const { data: enums } = useEnumsQuery();
-    const { data: metadatasetTypes } = useMetadatasetTypesQuery();
+    const enumsQuery = useEnumsQuery();
+    const enums = enumsQuery.data;
+    const metadatasetTypesQuery = useMetadatasetTypesQuery();
+    const metadatasetTypes = metadatasetTypesQuery.data;
     const datasetTypes = useMemo(
         () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
         [metadatasetTypes]
@@ -164,7 +166,11 @@ export default function DatasetTable() {
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
 
-    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder");
+    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", [
+        enumsQuery.isSuccess,
+        metadatasetTypesQuery.isSuccess,
+        filesQuery.isSuccess,
+    ]);
 
     return (
         <div>
