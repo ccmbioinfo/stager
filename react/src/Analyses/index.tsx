@@ -27,6 +27,7 @@ import {
     GET_ANALYSES_URL,
     useAnalysesPage,
     useAnalysisUpdateMutation,
+    useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
 } from "../hooks";
@@ -155,6 +156,8 @@ export default function Analyses() {
     useEffect(() => {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
     }, []);
+
+    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder");
 
     function changeAnalysisState(newState: PipelineStatus) {
         return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
@@ -545,6 +548,7 @@ export default function Analyses() {
                             );
                         },
                     }}
+                    onColumnDragged={handleColumnDrag}
                 />
             </Container>
         </main>

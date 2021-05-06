@@ -14,6 +14,7 @@ import {
 import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
 import {
     GET_PARTICIPANTS_URL,
+    useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
     useMetadatasetTypesQuery,
@@ -105,6 +106,8 @@ export default function ParticipantTable() {
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
+
+    const handleColumnDrag = useColumnOrderCache(tableRef, "participantTableColumnOrder");
 
     async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -223,6 +226,7 @@ export default function ParticipantTable() {
                         onClick: copyToClipboard,
                     },
                 ]}
+                onColumnDragged={handleColumnDrag}
             />
         </div>
     );

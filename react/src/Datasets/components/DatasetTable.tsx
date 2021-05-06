@@ -17,6 +17,7 @@ import { useUserContext } from "../../contexts";
 import { rowDiff, toKeyValue, updateTableFilter } from "../../functions";
 import {
     GET_DATASETS_URL,
+    useColumnOrderCache,
     useDatasetsPage,
     useDatasetUpdateMutation,
     useDownloadCsv,
@@ -163,6 +164,8 @@ export default function DatasetTable() {
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
 
+    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder");
+
     return (
         <div>
             <AnalysisRunnerDialog
@@ -302,6 +305,7 @@ export default function DatasetTable() {
                         },
                     },
                 ]}
+                onColumnDragged={handleColumnDrag}
             />
         </div>
     );
