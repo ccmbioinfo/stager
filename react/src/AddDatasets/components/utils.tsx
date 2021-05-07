@@ -22,6 +22,9 @@ export const enumerableColumns: Array<keyof DataEntryRow> = [
 
 // Convert a field string (snake_case) into a displayable title (Snake Case)
 function formatFieldToTitle(field: string): string {
+    if (field === "sequencing_date") {
+        return "Report Date";
+    }
     return snakeCaseToTitle(field) // convert to title case
         .replace(/([iI][dD])/g, txt => txt.toUpperCase()); // capitalize any occurrance of "ID"
 }

@@ -10,12 +10,18 @@ from minio import Minio
 from .models import *
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
+from .manage_keycloak import *
+from .utils import stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
     app.cli.add_command(seed_database_minio_groups)
+    if app.config.get("ENABLE_OIDC") and os.getenv("KEYCLOAK_HOST") is not None:
+        app.cli.add_command(create_realm)
+        app.cli.add_command(create_client)
+        app.cli.add_command(add_user)
 
 
 @click.command("db-seed")
@@ -33,6 +39,8 @@ def seed_database(force: bool) -> None:
 @click.option("--force", is_flag=True, default=False)
 @with_appcontext
 def seed_database_for_development(force: bool) -> None:
+    if stager_is_keycloak_admin():
+        setup_keycloak()
     seed_default_admin(force)
     seed_institutions(force)
     seed_dataset_types(force)
@@ -59,7 +67,12 @@ def seed_default_admin(force: bool) -> None:
             is_admin=True,
             deactivated=False,
         )
-        default_admin.set_password(app.config.get("DEFAULT_PASSWORD"))
+        password = app.config.get("DEFAULT_PASSWORD")
+        default_admin.set_password(password)
+        if stager_is_keycloak_admin():
+            access_token = obtain_admin_token()
+            if access_token:
+                add_keycloak_user(access_token, default_admin, password)
         db.session.add(default_admin)
         app.logger.info(
             f'Created default admin "{default_admin.username}" with email "{default_admin.email}"'
@@ -201,7 +214,12 @@ def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
                     is_admin=False,
                     deactivated=False,
                 )
-                user.set_password(code + "-" + app.config.get("DEFAULT_PASSWORD"))
+                password = code + "-" + app.config.get("DEFAULT_PASSWORD")
+                user.set_password(password)
+                if stager_is_keycloak_admin():
+                    access_token = obtain_admin_token()
+                    if access_token:
+                        add_keycloak_user(access_token, user, password)
                 user.groups.append(group)
                 db.session.add(user)
                 app.logger.info(f"Created user {user.username} in group {code}")

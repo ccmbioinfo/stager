@@ -27,6 +27,9 @@ class User(UserMixin, db.Model):
     deactivated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     minio_access_key = db.Column(db.String(150))
     minio_secret_key = db.Column(db.String(150))
+    # OIDC columns; if either is null then we consider them non-oidc users
+    issuer = db.Column(db.String(150))
+    subject = db.Column(db.String(255))
 
     groups = db.relationship("Group", secondary=users_groups_table, backref="users")
 
@@ -40,6 +43,10 @@ class User(UserMixin, db.Model):
 
     def get_id(self):
         return self.user_id
+
+    def set_oidc_fields(self, issuer: str, subject: str):
+        self.issuer = issuer
+        self.subject = subject
 
 
 @login.user_loader

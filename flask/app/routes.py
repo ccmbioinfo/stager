@@ -4,48 +4,45 @@ from enum import Enum
 import inspect
 from io import StringIO
 
-from flask import Blueprint, abort, current_app as app, jsonify, request
+from flask import (
+    Blueprint,
+    abort,
+    current_app as app,
+    jsonify,
+    request,
+    redirect,
+)
+from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
 
 from . import models
-from .extensions import db
-from .utils import enum_validate, transaction_or_abort, validate_json
+from .extensions import db, oauth
+from .utils import enum_validate, transaction_or_abort, validate_json, update_last_login
 
 routes = Blueprint("routes", __name__)
 
 
 @routes.route("/api", strict_slashes=False)
 def version():
-    return jsonify({"sha": app.config.get("GIT_SHA")})
+    return jsonify(
+        {"sha": app.config.get("GIT_SHA"), "oauth": app.config.get("ENABLE_OIDC")}
+    )
 
 
 @routes.route("/api/login", methods=["POST"])
 def login():
-    last_login = None
     app.logger.info("Checking whether user is authenticated")
     if current_user.is_authenticated:
         # get/update last login
         app.logger.info("User is authenticated, updating last login..")
-        try:
-            last_login = current_user.last_login
-            current_user.last_login = datetime.now()
-            db.session.commit()
-            app.logger.info("Last login for '%s' updated..", current_user.username)
-        except:
-            app.logger.warning(
-                "Failed to updated last_login for '%s'", current_user.username
-            )
+        return update_last_login()
 
-        return jsonify(
-            {
-                "username": current_user.username,
-                "last_login": last_login,
-                "is_admin": current_user.is_admin,
-                "groups": [group.group_code for group in current_user.groups],
-            }
-        )
+    if app.config.get("ENABLE_OIDC"):
+        # Current user has to authenticate through /login -> /api/authorize flow
+        abort(401, description="Unauthorized")
+
     app.logger.debug("Checking request body")
     body = request.json
     if not body or "username" not in body or "password" not in body:
@@ -58,26 +55,71 @@ def login():
         app.logger.error("Unauthorized user")
         abort(401, description="Unauthorized")
 
-    # get/update last login
-    try:
-        last_login = user.last_login
-        user.last_login = datetime.now()
-        db.session.commit()
-    except:
-        app.logger.warning("Failed to update last_login for '%s'", user.username)
-
+    user_details = update_last_login(user)
     login_user(user)
+
     app.logger.info(
         "User '%s' has successfully logged in, returning JSON.", user.username
     )
-    return jsonify(
-        {
-            "username": user.username,
-            "last_login": last_login,
-            "is_admin": current_user.is_admin,
-            "groups": [group.group_code for group in current_user.groups],
-        }
+    return user_details
+
+
+@routes.route("/api/login", methods=["GET"])
+def oidc_login():
+    """
+    Return a curated login URL for the frontend to use.
+    """
+    if not app.config.get("ENABLE_OIDC"):
+        abort(405)
+    provider = app.config.get("OIDC_PROVIDER")
+    app.logger.debug(f"Creating client with {provider}...")
+    client = oauth.create_client(provider)
+    app.logger.debug("Building redirect url...")
+    # It's safe to take redirect_uris from the client since
+    # the OAuth provider maintains a list of valid redirect_uris
+    redirect_uri = request.args.get(
+        "redirect_uri", url_for("routes.authorize", _external=True)
     )
+    app.logger.debug(f"Redirect url built: {redirect_uri}")
+    app.logger.debug("Getting authorize url...")
+    return client.authorize_redirect(redirect_uri)
+
+
+@routes.route("/api/authorize")
+def authorize():
+    """
+    Make a token request using the following request args:
+    code: The Authorization Code from the Authorization Endpoint
+    state: Used for CSRF mitigation, returned by Auth. Endpoint
+    session_state: Used for CSRF mitigation, returned by Auth. Endpoint
+    """
+    if not app.config.get("ENABLE_OIDC"):
+        abort(404)
+    client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+    # Exchange authorization code for token
+    token = client.authorize_access_token()
+    userinfo = client.parse_id_token(token)
+
+    issuer = userinfo["iss"]
+    subject = userinfo["sub"]
+
+    # Use issuer, subject to uniquely identify End-User
+    user = models.User.query.filter_by(subject=subject, issuer=issuer).first()
+    if user is None:
+        # TODO: Figure out what to do if user exists in OpenID provider but not in Stager
+        app.logger.error(
+            f"OIDC user with subject ID {subject} and issuer {issuer} is not tracked by Stager."
+        )
+        abort(404, description="User not found")
+    elif user.deactivated:
+        app.logger.error("Unauthorized OIDC user")
+        abort(401, "Unauthorized")
+    else:
+        app.logger.info(f"OIDC user {user.username} logged in successfully.")
+        login_user(user)
+        app.logger.debug(f"current_user: {current_user}")
+
+    return update_last_login(user)
 
 
 @routes.route("/api/logout", methods=["POST"])

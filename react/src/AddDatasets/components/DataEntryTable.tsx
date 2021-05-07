@@ -1,46 +1,23 @@
 import React, { useEffect, useState } from "react";
 import {
-    Box,
     Button,
-    IconButton,
-    Link,
     makeStyles,
-    Menu,
-    MenuItem,
     Paper,
-    Switch,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Toolbar,
-    Tooltip,
-    Typography,
 } from "@material-ui/core";
-import {
-    Add,
-    CloudDownload,
-    CloudUpload,
-    Delete,
-    LibraryAdd,
-    OpenInNew,
-    Restore,
-    ViewColumn,
-} from "@material-ui/icons";
+import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
-import { GroupDropdownSelect } from "../../components";
 import { createEmptyRows, getDataEntryHeaders, setProp } from "../../functions";
-import {
-    useEnumsQuery,
-    useFamiliesQuery,
-    useInstitutionsQuery,
-    useUnlinkedFilesQuery,
-} from "../../hooks";
+import { useEnumsQuery, useInstitutionsQuery, useUnlinkedFilesQuery } from "../../hooks";
 import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
-import { DataEntryActionCell, DataEntryCell, HeaderCell } from "./TableCells";
-import UploadDialog from "./UploadDialog";
+import DataEntryTableRow from "./DataEntryTableRow";
+import DataEntryToolbar from "./DataEntryToolbar";
+import { HeaderCell } from "./TableCells";
 import { getOptions as _getOptions, getColumns, objArrayToCSV, participantColumns } from "./utils";
 
 export interface DataEntryTableProps {
@@ -131,8 +108,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
 
     const filesQuery = useUnlinkedFilesQuery();
     const [files, setFiles] = useState<string[]>([]);
-    const familyResult = useFamiliesQuery();
-    const families = familyResult.data || [];
     const institutionResult = useInstitutionsQuery();
     const institutions = institutionResult.data || [];
     const { data: enums } = useEnumsQuery();
@@ -146,6 +121,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         newValue: string | boolean | string[],
         rowIndex: number,
         col: DataEntryHeader,
+        families: Family[],
         autopopulate?: boolean
     ) {
         if (col.field === "dataset_type" && newValue === "RRS") {
@@ -198,7 +174,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     // Return the options for a given cell based on row, column
-    function getOptions(rowIndex: number, col: DataEntryHeader): Option[] {
+    function getOptions(rowIndex: number, col: DataEntryHeader, families: Family[]): Option[] {
         return _getOptions(props.data, col, rowIndex, families, enums, files, institutions);
     }
 
@@ -270,87 +246,36 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     </TableHead>
                     <TableBody>
                         {props.data.map((row, rowIndex) => (
-                            <TableRow key={rowIndex}>
-                                <DataEntryActionCell
-                                    tooltipTitle="Delete row"
-                                    icon={<Delete />}
-                                    onClick={() =>
-                                        props.onChange(
-                                            props.data.filter((value, index) => index !== rowIndex)
+                            <DataEntryTableRow
+                                row={row}
+                                rowIndex={rowIndex}
+                                key={rowIndex}
+                                requiredCols={columns}
+                                optionalCols={optionals}
+                                rnaSeqCols={RNASeqCols}
+                                getOptions={getOptions}
+                                onChange={onEdit}
+                                onDuplicate={() =>
+                                    props.onChange(
+                                        props.data.flatMap((value, index) =>
+                                            index === rowIndex
+                                                ? [
+                                                      value,
+                                                      {
+                                                          ...value,
+                                                          linked_files: undefined,
+                                                      },
+                                                  ]
+                                                : value
                                         )
-                                    }
-                                    disabled={props.data.length === 1}
-                                />
-                                <DataEntryActionCell
-                                    tooltipTitle="Duplicate row"
-                                    icon={<LibraryAdd />}
-                                    onClick={() =>
-                                        props.onChange(
-                                            props.data.flatMap((value, index) =>
-                                                index === rowIndex
-                                                    ? [
-                                                          value,
-                                                          {
-                                                              ...value,
-                                                              linked_files: undefined,
-                                                          },
-                                                      ]
-                                                    : value
-                                            )
-                                        )
-                                    }
-                                />
-
-                                {columns.map(col => (
-                                    <DataEntryCell
-                                        row={row}
-                                        rowIndex={rowIndex}
-                                        col={col}
-                                        getOptions={getOptions}
-                                        onEdit={(newValue, autocomplete?: boolean) =>
-                                            onEdit(newValue, rowIndex, col, autocomplete)
-                                        }
-                                        key={col.field}
-                                        required={!row.participantColDisabled} // not required if pre-filled
-                                        disabled={
-                                            row.participantColDisabled &&
-                                            (participantColumns as string[]).includes(col.field)
-                                        }
-                                    />
-                                ))}
-                                {optionals.map(
-                                    col =>
-                                        !col.hidden && (
-                                            <DataEntryCell
-                                                row={row}
-                                                rowIndex={rowIndex}
-                                                col={col}
-                                                getOptions={getOptions}
-                                                onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                                key={col.field}
-                                                disabled={
-                                                    row.participantColDisabled &&
-                                                    !!participantColumns.find(
-                                                        currCol => currCol === col.field
-                                                    )
-                                                }
-                                            />
-                                        )
-                                )}
-
-                                {showRNA &&
-                                    RNASeqCols.map(col => (
-                                        <DataEntryCell
-                                            row={row}
-                                            rowIndex={rowIndex}
-                                            col={col}
-                                            getOptions={getOptions}
-                                            onEdit={newValue => onEdit(newValue, rowIndex, col)}
-                                            disabled={row.dataset_type !== "RRS"}
-                                            key={col.field}
-                                        />
-                                    ))}
-                            </TableRow>
+                                    )
+                                }
+                                onDelete={() =>
+                                    props.onChange(
+                                        props.data.filter((value, index) => index !== rowIndex)
+                                    )
+                                }
+                            />
                         ))}
                         <TableRow>
                             <TableCell className={classes.buttonCell} colSpan={100}>
@@ -373,116 +298,5 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 </Table>
             </TableContainer>
         </Paper>
-    );
-}
-
-const useToolbarStyles = makeStyles(theme => ({
-    toolbar: {
-        paddingRight: theme.spacing(1),
-        paddingLeft: theme.spacing(2),
-    },
-}));
-
-/**
- * The toolbar for the DataEntryTable, which displays the title and other action
- * buttons that do not depend on specific rows.
- */
-function DataEntryToolbar(props: {
-    handleColumnAction: (field: keyof DataEntryRow) => void;
-    handleResetAction: () => void;
-    handleCSVTemplateAction: () => void;
-    columns: DataEntryHeader[];
-    allGroups: string[]; // this user's groups
-    groups: string[]; // selected groups
-    setGroups: (selectedGroups: string[]) => void;
-}) {
-    const classes = useToolbarStyles();
-    const [openUpload, setOpenUpload] = useState(false);
-
-    return (
-        <>
-            <Toolbar className={classes.toolbar}>
-                <Box display="flex" flexGrow={1}>
-                    <Typography variant="h6">Enter Metadata</Typography>
-                </Box>
-                <GroupDropdownSelect
-                    selectedGroupCodes={props.groups}
-                    allGroupCodes={props.allGroups}
-                    onChange={props.setGroups}
-                    disabled={props.allGroups.length <= 1}
-                />
-                <Tooltip title="Download Template CSV">
-                    <IconButton onClick={props.handleCSVTemplateAction}>
-                        <CloudDownload />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Upload CSV">
-                    <IconButton onClick={() => setOpenUpload(true)}>
-                        <CloudUpload />
-                    </IconButton>
-                </Tooltip>
-                <DataEntryColumnMenuAction
-                    columns={props.columns}
-                    onClick={props.handleColumnAction}
-                />
-                <Tooltip title="Reset column defaults">
-                    <IconButton onClick={props.handleResetAction}>
-                        <Restore />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Go to MinIO">
-                    <Link href={process.env.REACT_APP_MINIO_URL} target="_blank">
-                        <IconButton>
-                            <OpenInNew />
-                        </IconButton>
-                    </Link>
-                </Tooltip>
-            </Toolbar>
-            <UploadDialog
-                open={openUpload}
-                onClose={() => setOpenUpload(false)}
-                groups={props.groups}
-            />
-        </>
-    );
-}
-
-/**
- * A special action button which opens a menu for showing / hiding
- * optional columns.
- */
-function DataEntryColumnMenuAction(props: {
-    columns: DataEntryHeader[];
-    onClick: (field: keyof DataEntryRow) => void;
-}) {
-    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-
-    return (
-        <>
-            <Tooltip title="Show/Hide columns">
-                <IconButton
-                    onClick={event => {
-                        setAnchor(event.currentTarget);
-                    }}
-                >
-                    <ViewColumn />
-                </IconButton>
-            </Tooltip>
-            <Menu
-                anchorEl={anchor}
-                open={Boolean(anchor)}
-                keepMounted
-                onClose={() => setAnchor(null)}
-            >
-                {props.columns.map(column => (
-                    <MenuItem onClick={() => props.onClick(column.field)} key={column.title}>
-                        <Box display="flex" flexGrow={1}>
-                            {column.title}
-                        </Box>
-                        <Switch edge="end" checked={!column.hidden} />
-                    </MenuItem>
-                ))}
-            </Menu>
-        </>
     );
 }

@@ -4,8 +4,8 @@ from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
 from io import BytesIO, StringIO
-from typing import Any, Callable, Dict, List, Mapping, Union
-
+from os import getenv
+from typing import Any, Callable, Dict, List, Union
 from flask import (
     abort,
     current_app as app,
@@ -22,6 +22,7 @@ from werkzeug.exceptions import HTTPException
 
 from .extensions import db
 from .madmin import MinioAdmin
+from .models import User
 
 
 def handle_error(e):
@@ -199,6 +200,33 @@ def paginated_response(results: List[Any], page: int, total: int, limit: int = N
     )
 
 
+def update_last_login(user: User = None):
+    """
+    Update last login for given user and return login details.
+    Use current_user if no user is specified.
+    """
+    if not user:
+        user = current_user  # type: ignore
+
+    last_login = None
+    try:
+        last_login = user.last_login
+        user.last_login = datetime.now()
+        db.session.commit()
+        app.logger.info("Last login for '%s' updated..", user.username)
+    except:
+        app.logger.warning("Failed to updated last_login for '%s'", user.username)
+
+    return jsonify(
+        {
+            "username": user.username,
+            "last_login": last_login,
+            "is_admin": user.is_admin,
+            "groups": [group.group_code for group in user.groups],
+        }
+    )
+
+
 def csv_response(
     results: List[Dict[str, Any]] or List[Model],
     filename: str = "report",
@@ -230,6 +258,16 @@ def expects_json(req: Request):
 
 def expects_csv(req: Request):
     return "text/csv" in req.accept_mimetypes
+
+
+def stager_is_keycloak_admin():
+    """
+    Return true if OIDC is enabled and if Stager is using a Keycloak
+    instance with administrative access.
+
+    In other words, return true if Stager has the ability to create users in Keycloak.
+    """
+    return app.config.get("ENABLE_OIDC") and getenv("KEYCLOAK_HOST") is not None
 
 
 class DateTimeEncoder(JSONEncoder):
