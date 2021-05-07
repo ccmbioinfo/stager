@@ -40,3 +40,4 @@ export { useDatasetDeleteMutation } from "./datasets/useDatasetDeleteMutation";
 
 export * from "./useDownloadCsv";
 export { useColumnOrderCache } from "./useColumnOrderCache";
+export { useSortOrderCache } from "./useSortOrderCache";
