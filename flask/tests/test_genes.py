@@ -8,8 +8,7 @@ def setup_db():
     """ seed db with minimal data """
     db.session.add(
         Gene(
-            hgnc_gene_id=12345,
-            hgnc_gene_name="FOOBAR",
+            hgnc_id=12345,
             ensembl_id=1000,
         )
     )

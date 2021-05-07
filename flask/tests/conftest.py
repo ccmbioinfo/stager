@@ -401,11 +401,12 @@ def test_database(client):
         },
     }
 
-    for gene in ["LOXL4", "RTEL1"]:
-
-        gene_obj = Gene(gene=gene)
+    for ensg, gene in [(138131, "LOXL4"), (258366, "RTEL1")]:
+        gene_obj = Gene(ensembl_id=ensg)
         db.session.add(gene_obj)
-        db.session.commit()
+        db.session.flush()
+        db.session.add(GeneAlias(ensembl_id=ensg, name=gene))
+        db.session.flush()
 
         # variant logic for analysis_3
         for i in range(len(positions["LOXL4"])):
@@ -417,7 +418,7 @@ def test_database(client):
                 variation=variations[gene][i],
                 refseq_change=refseq_changes[gene][i],
                 depth=depths[gene][i],
-                gene_id=gene_obj.gene_id,
+                ensembl_id=gene_obj.ensembl_id,
                 conserved_in_20_mammals=conserved_in_20_mammals[gene][i],
                 sift_score=sift_scores[gene][i],
                 polyphen_score=polyphen_scores[gene][i],
@@ -425,7 +426,7 @@ def test_database(client):
                 gnomad_af=gnomad_afs[gene][i],
             )
             db.session.add(variant_obj)
-            db.session.commit()
+            db.session.flush()
 
             for dataset_id in datasets_gt:
                 gt_obj = Genotype(
@@ -437,7 +438,8 @@ def test_database(client):
                     alt_depths=datasets_gt[dataset_id][gene]["alt_depths"][i],
                 )
                 db.session.add(gt_obj)
-                db.session.commit()
+                db.session.flush()
+    db.session.commit()
 
 
 @pytest.fixture
