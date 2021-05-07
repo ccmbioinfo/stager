@@ -1,14 +1,5 @@
-import React, { useMemo, useState } from "react";
-import {
-    Box,
-    Button,
-    Collapse,
-    Dialog,
-    DialogContent,
-    Divider,
-    makeStyles,
-    Typography,
-} from "@material-ui/core";
+import React, { useMemo } from "react";
+import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
@@ -75,7 +66,6 @@ interface DialogProp {
 
 export default function ParticipantInfoDialog(props: DialogProp) {
     const classes = useStyles();
-    const [analysisInfoListOpen, setAnalysisInfoListOpen] = useState(false);
     const datasets = useMemo(
         () => props.participant.tissue_samples.flatMap(sample => sample.datasets),
         [props.participant]
@@ -129,25 +119,15 @@ export default function ParticipantInfoDialog(props: DialogProp) {
                 <>
                     <Divider />
                     <Box margin={3}>
-                        <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => setAnalysisInfoListOpen(!analysisInfoListOpen)}
-                        >
-                            {`${analysisInfoListOpen ? "Hide" : "Show"} Analyses`}
-                        </Button>
-                        <Collapse in={analysisInfoListOpen}>
-                            {analyses && analyses.length ? (
-                                <InfoList
-                                    infoList={getAnalysisInfoList(analyses)}
-                                    enums={enums}
-                                    icon={<ShowChart />}
-                                    linkPath="/analysis"
-                                />
-                            ) : (
-                                <Typography>There are no analyses for this participant</Typography>
-                            )}
-                        </Collapse>
+                        {analyses.length > 0 && (
+                            <InfoList
+                                infoList={getAnalysisInfoList(analyses)}
+                                title="Analyses"
+                                enums={enums}
+                                icon={<ShowChart />}
+                                linkPath="/analysis"
+                            />
+                        )}
                     </Box>
                 </>
             </DialogContent>
