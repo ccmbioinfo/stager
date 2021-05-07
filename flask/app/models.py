@@ -424,6 +424,7 @@ class Gene(db.Model):
     # Truncate HGNC:
     hgnc_id: int = db.Column(db.Integer, unique=True)
     ncbi_id: int = db.Column(db.Integer, unique=True)
+    aliases = db.relationship("GeneAlias", backref="gene")
     variants = db.relationship("Variant", backref="gene")
 
 
