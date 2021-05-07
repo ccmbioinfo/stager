@@ -4,7 +4,7 @@ import { Field } from "../typings";
 import FieldDisplayEditable from "./FieldDisplayEditable";
 
 // Grids are very picky about what sizes are allowed
-type Width = Exclude<GridProps["xs"], boolean | "auto">;
+export type Width = Exclude<GridProps["xs"], boolean | "auto">;
 
 const useStyles = makeStyles(theme => ({
     flexChild: { minWidth: 0, overflowWrap: "break-word" },

@@ -33,7 +33,7 @@ def test_fetch_genes_csv(test_database, client, login_as):
     login_as("user")
     response = client.get("/api/summary/genes", headers={"Accept": "text/csv"})
     assert response.status_code == 200
-    assert response.headers["Content-Type"] == "text/csv"
+    assert response.headers["Content-Type"] == "text/csv; charset=utf-8"
     gene_reader = reader(response.data.decode().split("\n"))
     rows = [row for row in gene_reader if len(row)]
     for item in rows[0]:

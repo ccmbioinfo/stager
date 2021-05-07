@@ -36,7 +36,6 @@ function getFieldInEnums(fieldName: string): string {
 const useTextStyles = makeStyles(theme => ({
     textField: {
         margin: theme.spacing(0.2),
-        width: "50%",
     },
 }));
 
@@ -65,6 +64,7 @@ function EnhancedTextField({
     // Props common to all variants
     const textFieldProps: TextFieldProps = {
         className: classes.textField,
+        fullWidth: field.fullWidth,
         margin: "dense",
         label: field.title,
         value: formatFieldValue(field.value),

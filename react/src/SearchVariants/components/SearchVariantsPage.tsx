@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
+import {
+    Box,
+    Button,
+    Chip,
+    Container,
+    FormControlLabel,
+    Grid,
+    makeStyles,
+    Radio,
+    RadioGroup,
+    Typography,
+} from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { downloadCsvResponse } from "../../hooks/utils";
-import { useVariantsQuery } from "../../hooks/variants";
+import { useDownloadCsv } from "../../hooks";
 import GeneAutocomplete from "./Autocomplete";
 
 interface SearchVariantsPageProps {}
@@ -20,10 +30,14 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
+
+const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
+
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<string[]>([]);
     const [error, setError] = useState(false);
-    const [csvFetchEnabled, setCsvFetchEnabled] = useState(false);
+    const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -35,16 +49,21 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const { data: blob } = useVariantsQuery({ panel: selectedGenes.join(";") }, "csv", {
-        enabled: csvFetchEnabled,
-        onError: response => {
-            if (response.status === 400) {
-                setError(true);
-            } else {
-                const errorText = response.statusText;
-                enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
-            }
-        },
+    const csvDownloadError = (response: Response) => {
+        if (response.status === 400) {
+            setError(true);
+        } else {
+            const errorText = response.statusText;
+            enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
+        }
+    };
+
+    const downloadVariantwiseCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
+        onError: csvDownloadError,
+    });
+
+    const downloadParticipantwiseCsv = useDownloadCsv(GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL, {
+        onError: csvDownloadError,
     });
 
     const clearError = () => {
@@ -53,16 +72,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    useEffect(() => {
-        /* react-query cache will return a 'new' blob when parameters
-           match a cache key, even if refetch hasn't been called or query is disabled,
-           triggering a download. So we need to explicitly
-           enable/disable the query AND provide flag as a dependency. */
-        if (blob && csvFetchEnabled) {
-            downloadCsvResponse(blob);
-            setCsvFetchEnabled(false);
+    const downloadCsv = () => {
+        if (downloadType === "participant") {
+            return downloadParticipantwiseCsv({ panel: selectedGenes.join(";") });
         }
-    }, [blob, csvFetchEnabled]);
+        return downloadVariantwiseCsv({ panel: selectedGenes.join(";") });
+    };
 
     useEffect(() => {
         document.title = `Search Variants | ${process.env.REACT_APP_NAME}`;
@@ -105,13 +120,35 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item>
                             <Button
                                 disabled={!selectedGenes.length}
-                                onClick={() => setCsvFetchEnabled(true)}
+                                onClick={() => downloadCsv()}
                                 size="large"
                                 variant="contained"
                             >
-                                Submit
+                                Download
                             </Button>
                         </Grid>
+                    </Grid>
+                    <Grid container item xs={12} md={6}>
+                        <RadioGroup
+                            row
+                            aria-label="Pipelines"
+                            name="pipelines"
+                            value={downloadType}
+                            onChange={event =>
+                                setDownloadType(event.target.value as "variant" | "participant")
+                            }
+                        >
+                            <FormControlLabel
+                                label="variant-wise"
+                                value="variant"
+                                control={<Radio color="primary" />}
+                            />
+                            <FormControlLabel
+                                label="participant-wise"
+                                value="participant"
+                                control={<Radio color="primary" />}
+                            />
+                        </RadioGroup>
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
                         <Grid item>
