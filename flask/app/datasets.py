@@ -9,11 +9,15 @@ from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    csv_response,
     enum_validate,
+    expects_csv,
+    expects_json,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
     mixin,
     paged,
+    paginated_response,
     transaction_or_abort,
     validate_json,
 )
@@ -180,27 +184,43 @@ def list_datasets(page: int, limit: int) -> Response:
     ).scalar()
     datasets = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
-    return jsonify(
+    results = [
         {
-            "data": [
-                {
-                    **asdict(dataset),
-                    "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
-                    "participant_codename": dataset.tissue_sample.participant.participant_codename,
-                    "participant_type": dataset.tissue_sample.participant.participant_type,
-                    "institution": dataset.tissue_sample.participant.institution
-                    and dataset.tissue_sample.participant.institution.institution,
-                    "sex": dataset.tissue_sample.participant.sex,
-                    "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                    "created_by": dataset.created_by.username,
-                    "updated_by": dataset.updated_by.username,
-                }
-                for dataset in datasets
-            ],
-            "page": page if limit else 0,
-            "total_count": total_count,
+            **asdict(dataset),
+            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+            "participant_codename": dataset.tissue_sample.participant.participant_codename,
+            "participant_type": dataset.tissue_sample.participant.participant_type,
+            "institution": dataset.tissue_sample.participant.institution
+            and dataset.tissue_sample.participant.institution.institution,
+            "sex": dataset.tissue_sample.participant.sex,
+            "family_codename": dataset.tissue_sample.participant.family.family_codename,
+            "created_by": dataset.created_by.username,
+            "updated_by": dataset.updated_by.username,
         }
-    )
+        for dataset in datasets
+    ]
+
+    if expects_json(request):
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+        return csv_response(
+            results,
+            filename="datasets_report.csv",
+            colnames=[
+                "family_codename",
+                "participant_codename",
+                "tissue_sample_type",
+                "dataset_type",
+                "condition",
+                "notes",
+                "linked_files",
+                "updated",
+                "updated_by",
+                "dataset_id",
+            ],
+        )
+
+    abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 
 
 @datasets_blueprint.route("/api/datasets/<int:id>", methods=["GET"])

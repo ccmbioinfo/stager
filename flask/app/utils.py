@@ -1,12 +1,22 @@
+from csv import DictWriter, QUOTE_MINIMAL
+from dataclasses import asdict, dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Union
+from io import BytesIO, StringIO
 from os import getenv
-
-from flask import abort, current_app as app, jsonify, request
+from typing import Any, Callable, Dict, List, Union
+from flask import (
+    abort,
+    current_app as app,
+    jsonify,
+    request,
+    Request,
+    send_file,
+)
 from flask.json import JSONEncoder
 from flask_login import current_user
+from flask_sqlalchemy import Model
 from sqlalchemy import exc
 from werkzeug.exceptions import HTTPException
 
@@ -156,6 +166,40 @@ def get_minio_admin() -> MinioAdmin:
     )
 
 
+def query_results_to_csv(results: List[dict or dataclass]):
+    """ take a list of models and convert to csv """
+    is_dict = isinstance(results[0], dict)
+
+    if not is_dict:
+        results = [asdict(result) for result in results]
+
+    colnames = results[0].keys()
+
+    csv_data = StringIO()
+    writer = DictWriter(
+        csv_data,
+        fieldnames=colnames,
+        quoting=QUOTE_MINIMAL,
+    )
+    writer.writeheader()
+    for row in results:
+        if isinstance(row, Model):
+            row = asdict(row)
+        writer.writerow(row)
+
+    return csv_data.getvalue()
+
+
+def paginated_response(results: List[Any], page: int, total: int, limit: int = None):
+    return jsonify(
+        {
+            "data": results,
+            "page": page if limit else 0,
+            "total_count": total,
+        }
+    )
+
+
 def update_last_login(user: User = None):
     """
     Update last login for given user and return login details.
@@ -181,6 +225,39 @@ def update_last_login(user: User = None):
             "groups": [group.group_code for group in user.groups],
         }
     )
+
+
+def csv_response(
+    results: List[Dict[str, Any]] or List[Model],
+    filename: str = "report",
+    colnames: List[str] = None,
+):
+    """ create a csv HTTP response from a list of query results or mapping """
+
+    if colnames:
+        results = filter_keys_and_reorder(results, colnames)
+
+    csv = query_results_to_csv(results)
+
+    return send_file(
+        BytesIO(csv.encode("utf-8")),
+        "text/csv",
+        as_attachment=True,
+        attachment_filename=filename,
+    )
+
+
+def filter_keys_and_reorder(data: List[Dict[str, Any]] or List[Model], keys: List[str]):
+    """ filter list item mappings and key order according to list of keys """
+    return [{key: row[key] for key in keys} for row in data]
+
+
+def expects_json(req: Request):
+    return not req.accept_mimetypes or "application/json" in req.accept_mimetypes
+
+
+def expects_csv(req: Request):
+    return "text/csv" in req.accept_mimetypes
 
 
 def stager_is_keycloak_admin():

@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { TextField } from "@material-ui/core";
+import React, { useMemo, useRef, useState } from "react";
+import { Column } from "@material-table/core";
 import { FileCopy, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
@@ -7,11 +7,19 @@ import {
     BooleanDisplay,
     BooleanEditComponent,
     BooleanFilter,
+    EditNotes,
     MaterialTablePrimary,
     Note,
 } from "../../components";
-import { countArray, exportCSV, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
-import { useEnumsQuery, useMetadatasetTypesQuery, useParticipantsPage } from "../../hooks";
+import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
+import {
+    GET_PARTICIPANTS_URL,
+    useDownloadCsv,
+    useEnumsQuery,
+    useMetadatasetTypesQuery,
+    useParticipantsPage,
+} from "../../hooks";
+import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -20,21 +28,83 @@ export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-
     const { data: enums } = useEnumsQuery();
+    const sexTypes = useMemo(() => enums && toKeyValue(enums.Sex), [enums]);
+    const participantTypes = useMemo(() => enums && toKeyValue(enums.ParticipantType), [enums]);
+    const { id: paramID } = useParams<{ id?: string }>();
     const { data: metadatasetTypes } = useMetadatasetTypesQuery();
     const datasetTypes = useMemo(
         () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
         [metadatasetTypes]
     );
-    const sexTypes = useMemo(() => enums && toKeyValue(enums.Sex), [enums]);
-    const participantTypes = useMemo(() => enums && toKeyValue(enums.ParticipantType), [enums]);
+
+    const columns: Column<Participant>[] = useMemo(() => {
+        return [
+            {
+                title: "Family Codename",
+                field: "family_codename",
+                editable: "never",
+            },
+            {
+                title: "Participant Codename",
+                field: "participant_codename",
+                defaultFilter: paramID,
+            },
+            {
+                title: "Participant Type",
+                field: "participant_type",
+                lookup: participantTypes,
+            },
+            {
+                title: "Affected",
+                field: "affected",
+                render: (rowData: Participant, type: "row" | "group") => (
+                    <BooleanDisplay value={rowData} fieldName="affected" type={type} />
+                ),
+                editComponent: BooleanEditComponent,
+                filterComponent: BooleanFilter,
+            },
+            {
+                title: "Solved",
+                field: "solved",
+                render: (rowData: Participant, type: "row" | "group") => (
+                    <BooleanDisplay value={rowData} fieldName="solved" type={type} />
+                ),
+                editComponent: BooleanEditComponent,
+                filterComponent: BooleanFilter,
+            },
+            {
+                title: "Sex",
+                field: "sex",
+                type: "string",
+                lookup: sexTypes,
+            },
+            {
+                title: "Notes",
+                field: "notes",
+                render: (rowData: Participant) => <Note>{rowData.notes}</Note>,
+                editComponent: EditNotes,
+            },
+            {
+                title: "Dataset Types",
+                field: "dataset_types",
+                editable: "never",
+                lookup: datasetTypes,
+                filtering: false,
+                render: (rowData: Participant) => (
+                    <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
+                ),
+            },
+        ];
+    }, [datasetTypes, sexTypes, participantTypes, paramID]);
+
+    const tableRef = useRef<any>();
+
+    const downloadCsv = useDownloadCsv(GET_PARTICIPANTS_URL);
 
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
-
-    const { id: paramID } = useParams<{ id?: string }>();
 
     async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -42,6 +112,10 @@ export default function ParticipantTable() {
             await navigator.clipboard.writeText(toCopy);
         }
     }
+
+    const exportCsv = () => {
+        downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
+    };
 
     return (
         <div>
@@ -72,82 +146,23 @@ export default function ParticipantTable() {
                     }}
                 />
             )}
+
             <MaterialTablePrimary
-                columns={[
-                    {
-                        title: "Family",
-                        field: "family_codename",
-                        editable: "never",
-                    },
-                    {
-                        title: "Participant",
-                        field: "participant_codename",
-                        defaultFilter: paramID,
-                    },
-                    {
-                        title: "Type",
-                        field: "participant_type",
-                        lookup: participantTypes,
-                    },
-                    {
-                        title: "Affected",
-                        field: "affected",
-                        render: (rowData, type) => (
-                            <BooleanDisplay value={rowData} fieldName="affected" type={type} />
-                        ),
-                        editComponent: BooleanEditComponent,
-                        filterComponent: BooleanFilter,
-                    },
-                    {
-                        title: "Solved",
-                        field: "solved",
-                        render: (rowData, type) => (
-                            <BooleanDisplay value={rowData} fieldName="solved" type={type} />
-                        ),
-                        editComponent: BooleanEditComponent,
-                        filterComponent: BooleanFilter,
-                    },
-                    {
-                        title: "Sex",
-                        field: "sex",
-                        type: "string",
-                        lookup: sexTypes,
-                    },
-                    {
-                        title: "Notes",
-                        field: "notes",
-                        render: rowData => <Note>{rowData.notes}</Note>,
-                        editComponent: props => (
-                            <TextField
-                                multiline
-                                value={props.value}
-                                onChange={event => props.onChange(event.target.value)}
-                                rows={4}
-                                fullWidth
-                            />
-                        ),
-                    },
-                    {
-                        title: "Dataset Types",
-                        field: "dataset_types",
-                        editable: "never",
-                        lookup: datasetTypes,
-                        filtering: false,
-                        render: rowData => (
-                            <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
-                        ),
-                    },
-                ]}
+                tableRef={tableRef}
+                columns={columns}
                 data={dataFetch}
                 title="Participants"
                 options={{
                     selection: false,
+                    exportAllData: true,
                     exportMenu: [
                         {
-                            exportFunc: (columns, data) => exportCSV(columns, data, "Participants"),
+                            exportFunc: exportCsv,
                             label: "Export as CSV",
                         },
                     ],
+                    filtering: true,
+                    search: false,
                 }}
                 editable={{
                     onRowUpdate: async (newParticipant, oldParticipant) => {

@@ -9,11 +9,15 @@ from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    csv_response,
     enum_validate,
+    expects_csv,
+    expects_json,
     filter_in_enum_or_abort,
     filter_nullable_bool_or_abort,
     mixin,
     paged,
+    paginated_response,
     transaction_or_abort,
     validate_json,
 )
@@ -43,6 +47,7 @@ participants_blueprint = Blueprint(
 def list_participants(page: int, limit: int) -> Response:
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
+        "participant_id",
         "family_codename",
         "participant_codename",
         "notes",
@@ -62,14 +67,14 @@ def list_participants(page: int, limit: int) -> Response:
     else:
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
+    order_dir = request.args.get("order_dir", type=str)
+
+    if order_dir and order_dir not in ["desc", "asc"]:
+        abort(400, description="order_dir must be either 'asc' or 'desc'")
+
     if order:
-        order_dir = request.args.get("order_dir", type=str)
         if order_dir == "desc":
             order = order.desc()
-        elif order_dir == "asc":
-            order = order.asc()
-        else:
-            abort(400, description="order_dir must be either 'asc' or 'desc'")
 
     filters = []
     family_codename = request.args.get("family_codename", type=str)
@@ -155,28 +160,43 @@ def list_participants(page: int, limit: int) -> Response:
     ).scalar()
     participants = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
-    return jsonify(
+    results = [
         {
-            "data": [
-                {
-                    **asdict(participant),
-                    "family_codename": participant.family.family_codename,
-                    "institution": participant.institution.institution
-                    if participant.institution
-                    else None,
-                    "updated_by": participant.updated_by.username,
-                    "created_by": participant.created_by.username,
-                    "tissue_samples": [
-                        {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
-                        for tissue_sample in participant.tissue_samples
-                    ],
-                }
-                for participant in participants
+            **asdict(participant),
+            "family_codename": participant.family.family_codename,
+            "institution": participant.institution.institution
+            if participant.institution
+            else None,
+            "updated_by": participant.updated_by.username,
+            "created_by": participant.created_by.username,
+            "tissue_samples": [
+                {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
+                for tissue_sample in participant.tissue_samples
             ],
-            "page": page if limit else 0,
-            "total_count": total_count,
         }
-    )
+        for participant in participants
+    ]
+
+    if expects_json(request):
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+        return csv_response(
+            results,
+            "participants_report.csv",
+            [
+                "participant_codename",
+                "family_codename",
+                "participant_type",
+                "affected",
+                "solved",
+                "sex",
+                "notes",
+                "updated_by",
+                "created_by",
+            ],
+        )
+
+    abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 
 
 @participants_blueprint.route("/api/participants/<int:id>", methods=["DELETE"])

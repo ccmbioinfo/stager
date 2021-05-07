@@ -11,11 +11,15 @@ from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    csv_response,
     enum_validate,
+    expects_csv,
+    expects_json,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
     mixin,
     paged,
+    paginated_response,
     transaction_or_abort,
     validate_json,
 )
@@ -142,22 +146,43 @@ def list_analyses(page: int, limit: int) -> Response:
     ).scalar()
     analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
-    return jsonify(
+    results = [
         {
-            "data": [
-                {
-                    **asdict(analysis),
-                    "requester": analysis.requester.username,
-                    "updated_by": analysis.updated_by.username,
-                    "assignee": analysis.assignee_id and analysis.assignee.username,
-                    "pipeline": analysis.pipeline,
-                }
-                for analysis in analyses
-            ],
-            "page": page if limit else 0,
-            "total_count": total_count,
+            **asdict(analysis),
+            "requester": analysis.requester.username,
+            "updated_by": analysis.updated_by.username,
+            "assignee": analysis.assignee_id and analysis.assignee.username,
+            "pipeline": analysis.pipeline,
         }
-    )
+        for analysis in analyses
+    ]
+
+    if expects_json(request):
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+
+        results = [
+            {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
+            for result in results
+        ]
+
+        return csv_response(
+            results,
+            filename="analyses_report.csv",
+            colnames=[
+                "pipeline",
+                "pipeline_id",
+                "priority",
+                "requester",
+                "assignee",
+                "updated",
+                "result_path",
+                "notes",
+                "analysis_id",
+            ],
+        )
+
+    abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])

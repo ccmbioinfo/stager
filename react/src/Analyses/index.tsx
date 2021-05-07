@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Column } from "@material-table/core";
 import { Container, MenuItem, Select, TextField, useTheme } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import {
@@ -20,13 +21,16 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
-import { checkPipelineStatusChange, exportCSV, isRowSelected, toKeyValue } from "../functions";
+import { checkPipelineStatusChange, isRowSelected, toKeyValue } from "../functions";
 import {
     AnalysisOptions,
+    GET_ANALYSES_URL,
     useAnalysesPage,
     useAnalysisUpdateMutation,
+    useDownloadCsv,
     useEnumsQuery,
 } from "../hooks";
+import { transformMTQueryToCsvDownloadParams } from "../hooks/utils";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
@@ -129,6 +133,8 @@ export default function Analyses() {
 
     const dataFetch = useAnalysesPage();
 
+    const downloadCsv = useDownloadCsv(GET_ANALYSES_URL);
+
     const analysisUpdateMutation = useAnalysisUpdateMutation();
 
     const { data: enums } = useEnumsQuery();
@@ -146,14 +152,108 @@ export default function Analyses() {
     const { id: paramID } = useParams<{ id: string }>();
 
     const tableRef = useRef<any>();
+    useEffect(() => {
+        document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
+    }, []);
 
     function changeAnalysisState(newState: PipelineStatus) {
         return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
     }
 
-    useEffect(() => {
-        document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
-    }, []);
+    const exportCsv = () => {
+        downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
+    };
+
+    const columns: Column<Analysis>[] = useMemo(() => {
+        return [
+            {
+                title: "Pipeline",
+                field: "pipeline_id",
+                type: "string",
+                editable: "never",
+                render: row => pipeName(row),
+                filterComponent: PipelineFilter,
+            },
+            {
+                title: "Status",
+                field: "analysis_state",
+                type: "string",
+                lookup: pipelineStatusLookup,
+                editComponent: SelectPipelineStatus,
+            },
+            {
+                title: "Priority",
+                field: "priority",
+                type: "string",
+                lookup: priorityLookup,
+                editComponent: ({ onChange, value }) => {
+                    return (
+                        <Select
+                            value={value || "None"}
+                            onChange={event =>
+                                onChange(event.target.value === "None" ? null : event.target.value)
+                            }
+                            fullWidth
+                        >
+                            {enums?.PriorityType.map(p => (
+                                <MenuItem key={p} value={p}>
+                                    {p}
+                                </MenuItem>
+                            ))}
+                            <MenuItem value="None">None</MenuItem>
+                        </Select>
+                    );
+                },
+            },
+            {
+                title: "Requester",
+                field: "requester",
+                type: "string",
+                editable: "never",
+            },
+            {
+                title: "Assignee",
+                field: "assignee",
+                type: "string",
+                editable: "always",
+            },
+            {
+                title: "Updated",
+                field: "updated",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.updated} />,
+                filterComponent: DateFilterComponent,
+            },
+            {
+                title: "Path Prefix",
+                field: "result_path",
+                type: "string",
+            },
+            {
+                title: "Notes",
+                field: "notes",
+                type: "string",
+                render: rowData => <Note>{rowData.notes}</Note>,
+                editComponent: props => (
+                    <TextField
+                        multiline
+                        value={props.value}
+                        onChange={event => props.onChange(event.target.value)}
+                        rows={4}
+                        fullWidth
+                    />
+                ),
+            },
+            {
+                title: "ID",
+                field: "analysis_id",
+                type: "string",
+                editable: "never",
+                defaultFilter: paramID,
+            },
+        ];
+    }, [enums?.PriorityType, paramID, pipelineStatusLookup, priorityLookup]);
 
     return (
         <main className={classes.content}>
@@ -264,98 +364,7 @@ export default function Analyses() {
                 <MaterialTablePrimary
                     title="Analyses"
                     tableRef={tableRef}
-                    columns={[
-                        {
-                            title: "Pipeline",
-                            field: "pipeline_id",
-                            type: "string",
-                            editable: "never",
-                            render: row => pipeName(row),
-                            filterComponent: PipelineFilter,
-                        },
-                        {
-                            title: "Status",
-                            field: "analysis_state",
-                            type: "string",
-                            lookup: pipelineStatusLookup,
-                            editComponent: SelectPipelineStatus,
-                        },
-                        {
-                            title: "Priority",
-                            field: "priority",
-                            type: "string",
-                            lookup: priorityLookup,
-                            editComponent: ({ onChange, value }) => {
-                                return (
-                                    <Select
-                                        value={value || "None"}
-                                        onChange={event =>
-                                            onChange(
-                                                event.target.value === "None"
-                                                    ? null
-                                                    : event.target.value
-                                            )
-                                        }
-                                        fullWidth
-                                    >
-                                        {enums?.PriorityType.map(p => (
-                                            <MenuItem key={p} value={p}>
-                                                {p}
-                                            </MenuItem>
-                                        ))}
-                                        <MenuItem value="None">None</MenuItem>
-                                    </Select>
-                                );
-                            },
-                        },
-                        {
-                            title: "Requester",
-                            field: "requester",
-                            type: "string",
-                            editable: "never",
-                        },
-                        {
-                            title: "Assignee",
-                            field: "assignee",
-                            type: "string",
-                            editable: "always",
-                        },
-                        {
-                            title: "Updated",
-                            field: "updated",
-                            type: "string",
-                            editable: "never",
-                            render: rowData => <DateTimeText datetime={rowData.updated} />,
-                            filterComponent: DateFilterComponent,
-                        },
-                        {
-                            title: "Path Prefix",
-                            field: "result_path",
-                            type: "string",
-                        },
-                        {
-                            title: "Notes",
-                            field: "notes",
-                            type: "string",
-                            render: rowData => <Note>{rowData.notes}</Note>,
-                            editComponent: props => (
-                                <TextField
-                                    multiline
-                                    value={props.value}
-                                    onChange={event => props.onChange(event.target.value)}
-                                    rows={4}
-                                    fullWidth
-                                />
-                            ),
-                        },
-                        {
-                            title: "ID",
-                            field: "analysis_id",
-                            type: "string",
-                            editable: "never",
-                            defaultFilter: paramID,
-                        },
-                    ]}
+                    columns={columns}
                     isLoading={analysisUpdateMutation.isLoading}
                     data={dataFetch}
                     options={{
@@ -365,7 +374,7 @@ export default function Analyses() {
                         exportMenu: [
                             {
                                 label: "Export as CSV",
-                                exportFunc: (columns, data) => exportCSV(columns, data, "Analyses"),
+                                exportFunc: exportCsv,
                             },
                         ],
                     }}

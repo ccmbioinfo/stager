@@ -244,23 +244,15 @@ export function createFieldObj(
 
 /**
  * Convert given table to CSV and downloads it to user.
- *
- * @param table A 2D array of strings to convert to CSV. Inner arrays are rows. table[0] is the header row.
- * @param filename What to call the downloaded file
- * @see https://github.com/mholt/PapaParse/issues/175
  */
-export function downloadCSV(table: string[][], filename: string) {
-    const rows = table.map(row => row.join(",")).join("\r\n");
-    const blob = new Blob([rows], {
-        type: "text/csv;charset=utf-8",
-    });
-    var a = window.document.createElement("a");
-    a.href = window.URL.createObjectURL(blob);
-    a.setAttribute("download", filename + ".csv");
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
+export const downloadCsv = (filename: string, blob: Blob) => {
+    const downloadLink = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = filename;
+    downloadLink.click();
+    URL.revokeObjectURL(url);
+};
 
 /**
  * Used for material-table exportCSV.
@@ -278,7 +270,13 @@ export function rowDataToTable(columnDefs: any[], data: any[]) {
  * rowData, and downloads as CSV.
  */
 export function exportCSV(columnDefs: any[], data: any[], filename: string) {
-    downloadCSV(rowDataToTable(columnDefs, data), filename);
+    const table = rowDataToTable(columnDefs, data);
+    const rows = table.map(row => row.join(",")).join("\r\n");
+    const blob = new Blob([rows], {
+        type: "text/csv;charset=utf-8",
+    });
+
+    downloadCsv(filename, blob);
 }
 
 export function createEmptyRows(amount?: number): DataEntryRow[] {

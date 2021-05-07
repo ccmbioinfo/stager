@@ -1,4 +1,4 @@
-""" test validators """
+""" test json validator """
 from unittest.mock import patch
 from unittest import TestCase
 from werkzeug.exceptions import UnsupportedMediaType
