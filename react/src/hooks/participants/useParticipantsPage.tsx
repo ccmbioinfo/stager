@@ -3,11 +3,11 @@ import { useQueryClient } from "react-query";
 import { Participant } from "../../typings";
 import { queryTableData } from "../utils";
 
-export const GET_PARTICPANTS_URL = "/api/participants";
+export const GET_PARTICIPANTS_URL = "/api/participants";
 
 async function fetchParticipants(query: Query<Participant>) {
     // fetch
-    const queryResult = await queryTableData<Participant>(query, GET_PARTICPANTS_URL);
+    const queryResult = await queryTableData<Participant>(query, GET_PARTICIPANTS_URL);
     // format results
     queryResult.data.forEach((participant: Participant) => {
         participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>

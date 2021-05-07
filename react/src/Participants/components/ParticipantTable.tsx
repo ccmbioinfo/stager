@@ -13,7 +13,7 @@ import {
 } from "../../components";
 import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
 import {
-    GET_PARTICPANTS_URL,
+    GET_PARTICIPANTS_URL,
     useDownloadCsv,
     useEnumsQuery,
     useMetadatasetTypesQuery,
@@ -41,14 +41,14 @@ export default function ParticipantTable() {
     const columns: Column<Participant>[] = useMemo(() => {
         return [
             {
-                title: "Participant Codename",
-                field: "participant_codename",
-                defaultFilter: paramID,
-            },
-            {
                 title: "Family Codename",
                 field: "family_codename",
                 editable: "never",
+            },
+            {
+                title: "Participant Codename",
+                field: "participant_codename",
+                defaultFilter: paramID,
             },
             {
                 title: "Participant Type",
@@ -100,13 +100,13 @@ export default function ParticipantTable() {
 
     const tableRef = useRef<any>();
 
-    const downloadCsv = useDownloadCsv(GET_PARTICPANTS_URL);
+    const downloadCsv = useDownloadCsv(GET_PARTICIPANTS_URL);
 
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
 
-    async function CopyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
+    async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
             const toCopy = rowData.participant_codename + "_" + rowData.family_codename;
             await navigator.clipboard.writeText(toCopy);
@@ -220,7 +220,7 @@ export default function ParticipantTable() {
                     {
                         tooltip: "Copy combined codename",
                         icon: FileCopy,
-                        onClick: CopyToClipboard,
+                        onClick: copyToClipboard,
                     },
                 ]}
             />

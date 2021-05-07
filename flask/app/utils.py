@@ -225,11 +225,11 @@ def filter_keys_and_reorder(data: List[Dict[str, Any]] or List[Model], keys: Lis
 
 
 def expects_json(req: Request):
-    return req.headers.get("Accept") in ["application/json", "*/*", None]
+    return not req.accept_mimetypes or "application/json" in req.accept_mimetypes
 
 
 def expects_csv(req: Request):
-    return req.headers.get("Accept") == "text/csv"
+    return "text/csv" in req.accept_mimetypes
 
 
 class DateTimeEncoder(JSONEncoder):

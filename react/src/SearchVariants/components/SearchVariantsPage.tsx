@@ -139,12 +139,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             }
                         >
                             <FormControlLabel
-                                label="Variant Wise Report"
+                                label="variant-wise"
                                 value="variant"
                                 control={<Radio color="primary" />}
                             />
                             <FormControlLabel
-                                label="Sample Wise Report"
+                                label="participant-wise"
                                 value="participant"
                                 control={<Radio color="primary" />}
                             />
