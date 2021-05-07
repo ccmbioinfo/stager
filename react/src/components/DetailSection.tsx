@@ -12,7 +12,7 @@ import {
 import { Check } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { Field } from "../typings";
-import GridFieldsDisplay from "./GridFieldsDisplay";
+import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
 
 const gridSpacing = 2;
 const titleWidth = 12;
@@ -46,6 +46,7 @@ interface DataInfo {
 interface DetailSectionProps {
     fields: Field[];
     enums?: Record<string, string[]>;
+    mainColumnWidth?: Width;
     collapsibleFields?: Field[];
     title?: string;
     dataInfo?: DataInfo; // dataInfo indicates data is editable
@@ -164,6 +165,7 @@ export default function DetailSection(props: DetailSectionProps) {
                         editMode={editMode}
                         onEdit={OnEditData}
                         enums={props.enums}
+                        columnWidth={props.mainColumnWidth}
                     />
                 </Grid>
                 {props.dataInfo && (

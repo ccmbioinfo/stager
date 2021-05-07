@@ -546,7 +546,6 @@ export default function Analyses() {
                         },
                     }}
                 />
-                )
             </Container>
         </main>
     );

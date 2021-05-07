@@ -45,7 +45,6 @@ export default function SampleTable(props: {
     return (
         <MaterialTable
             columns={[
-                { title: "Sample ID", field: "tissue_sample_id" },
                 {
                     title: "Extraction Date",
                     field: "extraction_date",
@@ -59,7 +58,7 @@ export default function SampleTable(props: {
                     field: "created",
                     render: rowData => <DateTimeText datetime={rowData.created} />,
                 },
-                { title: "Create By", field: "created_by" },
+                { title: "Created By", field: "created_by" },
                 {
                     title: "Update Time",
                     field: "updated",
@@ -72,8 +71,10 @@ export default function SampleTable(props: {
             detailPanel={rowData => {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
                     return {
-                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                         fields: getFields(dataset),
+                        identifier: dataset.dataset_id,
+                        linkPath: "datasets",
+                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                     };
                 });
                 return (
