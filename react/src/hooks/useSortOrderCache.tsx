@@ -48,7 +48,14 @@ export function useSortOrderCache(
                     if (cachedArray.length !== 2) throw Error(`${cacheKey} is not array of size 2`);
                     const orderBy = parseInt(cachedArray[0]);
                     const orderDirection = cachedArray[1];
+
                     tableRef.current.onChangeOrder(orderBy, orderDirection);
+                    // tableRef.current.dataManager.sortData();
+                    console.log(
+                        tableRef.current.dataManager.orderBy,
+                        tableRef.current.dataManager.orderDirection
+                    );
+                    // tableRef.current.onQueryChange();
                 } catch (error) {
                     // bad cache
                     console.error(error);

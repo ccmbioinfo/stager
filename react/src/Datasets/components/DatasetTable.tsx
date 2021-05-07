@@ -23,6 +23,7 @@ import {
     useDownloadCsv,
     useEnumsQuery,
     useMetadatasetTypesQuery,
+    useSortOrderCache,
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
@@ -166,11 +167,10 @@ export default function DatasetTable() {
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
 
-    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", [
-        enumsQuery.isSuccess,
-        metadatasetTypesQuery.isSuccess,
-        filesQuery.isSuccess,
-    ]);
+    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched, filesQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
+    const handleSortChange = useSortOrderCache(MTRef, "datasetTableSortOrder", cacheDeps);
 
     return (
         <div>
@@ -312,6 +312,7 @@ export default function DatasetTable() {
                     },
                 ]}
                 onColumnDragged={handleColumnDrag}
+                onOrderChange={handleSortChange}
             />
         </div>
     );

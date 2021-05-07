@@ -29,14 +29,21 @@ export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const { data: enums } = useEnumsQuery();
-    const sexTypes = useMemo(() => enums && toKeyValue(enums.Sex), [enums]);
-    const participantTypes = useMemo(() => enums && toKeyValue(enums.ParticipantType), [enums]);
+    const enumsQuery = useEnumsQuery();
+    const sexTypes = useMemo(() => enumsQuery.data && toKeyValue(enumsQuery.data.Sex), [
+        enumsQuery.data,
+    ]);
+    const participantTypes = useMemo(
+        () => enumsQuery.data && toKeyValue(enumsQuery.data.ParticipantType),
+        [enumsQuery.data]
+    );
     const { id: paramID } = useParams<{ id?: string }>();
-    const { data: metadatasetTypes } = useMetadatasetTypesQuery();
+    const metadatasetTypesQuery = useMetadatasetTypesQuery();
     const datasetTypes = useMemo(
-        () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
-        [metadatasetTypes]
+        () =>
+            metadatasetTypesQuery.data &&
+            toKeyValue(Object.values(metadatasetTypesQuery.data).flat()),
+        [metadatasetTypesQuery.data]
     );
 
     const columns: Column<Participant>[] = useMemo(() => {

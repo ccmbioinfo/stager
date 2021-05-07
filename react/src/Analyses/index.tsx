@@ -30,6 +30,7 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useSortOrderCache,
 } from "../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../hooks/utils";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
@@ -138,7 +139,8 @@ export default function Analyses() {
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
 
-    const { data: enums } = useEnumsQuery();
+    const enumsQuery = useEnumsQuery();
+    const enums = enumsQuery.data;
 
     const theme = useTheme();
 
@@ -157,7 +159,10 @@ export default function Analyses() {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
     }, []);
 
-    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder");
+    const cacheDeps = [enumsQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
+    const handleSortChange = useSortOrderCache(tableRef, "analysisTableSortOrder", cacheDeps);
 
     function changeAnalysisState(newState: PipelineStatus) {
         return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
@@ -549,6 +554,7 @@ export default function Analyses() {
                         },
                     }}
                     onColumnDragged={handleColumnDrag}
+                    onOrderChange={handleSortChange}
                 />
             </Container>
         </main>
