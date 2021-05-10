@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
     Checkbox,
     IconButton,
@@ -30,10 +30,6 @@ const useCellStyles = makeStyles(theme => ({
         padding: 0,
     },
 }));
-
-const filter = createFilterOptions<Option>({
-    limit: 25,
-});
 
 /**
  * A 'general' data entry cell that returns a table cell with a user control
@@ -113,6 +109,8 @@ export function AutocompleteCell(
 
     const onSearch = (value: string) => {
         setSearch(value);
+        //a search will reset any selected value
+        props.onEdit("");
         if (props.onSearch) props.onSearch(value);
     };
 
@@ -121,12 +119,40 @@ export function AutocompleteCell(
         props.onEdit(newValue.inputValue, autopopulate);
     };
 
-    // Remove 'this' input value from the list of options
-    const options = props.options.filter(
-        (val, index, arr) =>
-            arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
-            val.inputValue !== props.value.inputValue
-    );
+    useEffect(() => {
+        //handle defaults
+        if (props.value.inputValue !== "") {
+            setSearch(props.value.inputValue);
+        }
+    }, [props.value, search]);
+
+    const options = props.options.slice();
+
+    const getIsFreeSolo = () => props.column.field === "notes";
+
+    //dummy value to suppress warnings about no matches when initializing with empty string search value
+    if (props.value.inputValue === "") {
+        options.push({
+            title: "",
+            inputValue: "",
+        });
+    }
+
+    // Adds user-entered value as option
+    // We prefer to show pre-existing options than the "create new" option
+    if (
+        !enumerableColumns.includes(props.column.field) &&
+        search !== "" &&
+        !options.find(option => option.inputValue === search) &&
+        props.column.field !== "notes"
+    ) {
+        options.push({
+            title: `Add "${search}"`,
+            inputValue: search,
+            origin: "Add new...",
+        });
+    }
+
     const isError = props.required && strIsEmpty(props.value.inputValue);
 
     return (
@@ -136,16 +162,23 @@ export function AutocompleteCell(
                 loadingText="Fetching..."
                 disabled={props.disabled}
                 aria-label={props["aria-label"]}
+                freeSolo={getIsFreeSolo()}
                 selectOnFocus
-                clearOnBlur
+                onBlur={() => {
+                    // regular clearonblur won't work with our dummy values, since they're all technically set
+                    if (getIsFreeSolo()) {
+                        //update on blur if user isn't compelled to select an option
+                        onEdit(toOption(search));
+                    } else setSearch(props.value.inputValue || "");
+                }}
                 handleHomeEndKeys
                 autoHighlight
                 inputValue={search}
-                onInputChange={(event, value, reason) => {
+                onInputChange={(event, inputValue, reason) => {
                     if (reason === "clear") {
                         onSearch("");
                     } else if (reason === "input") {
-                        onSearch(value);
+                        onSearch(inputValue);
                     }
                 }}
                 onChange={(event, newValue) => {
@@ -169,27 +202,14 @@ export function AutocompleteCell(
                     />
                 )}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
-                filterOptions={(options, params) => {
-                    const filtered = filter(options, params);
-
-                    // Adds user-entered value as option
-                    // We prefer to show pre-existing options than the "create new" option
-                    if (
-                        !enumerableColumns.includes(props.column.field) &&
-                        params.inputValue !== "" &&
-                        !filtered.find(option => option.inputValue === params.inputValue)
-                    ) {
-                        filtered.push({
-                            title: `Add "${params.inputValue}"`,
-                            inputValue: params.inputValue,
-                            origin: "Add new...",
-                        });
-                    }
-
-                    return filtered;
-                }}
+                filterOptions={(options, params) =>
+                    createFilterOptions<Option>({
+                        limit: 25,
+                    })(options, params).filter(val => val.inputValue !== props.value.inputValue)
+                }
                 getOptionDisabled={option => !!option.disabled}
                 getOptionLabel={option => option.inputValue}
+                getOptionSelected={(option, value) => option.inputValue === value.inputValue}
                 renderOption={option => option.title}
             />
         </TableCell>

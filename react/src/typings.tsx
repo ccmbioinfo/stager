@@ -189,9 +189,11 @@ export class DataEntryRowRNASeq {
     spike_in?: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
+interface BaseDataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
     participantColDisabled?: boolean;
 }
+
+export type DataEntryRow = { [P in keyof BaseDataEntryRow]: BaseDataEntryRow[P] | null };
 
 export interface DataEntryHeader {
     title: string;

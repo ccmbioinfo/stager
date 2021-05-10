@@ -73,8 +73,8 @@ function getDefaultColumns(fallbackColumns: string[]) {
 }
 
 function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
-    let participantCodename: string;
-    let familyCodename: string;
+    let participantCodename: string | null;
+    let familyCodename: string | null;
     if (column === "participant_codename" && row.family_codename !== "") {
         familyCodename = row.family_codename;
         participantCodename = newValue;
@@ -141,6 +141,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                     : removeNewValue
             );
         }
+
         const newRows = props.data.map((value, index) => {
             if (autopopulate && index === rowIndex) {
                 // autopopulate row

@@ -127,6 +127,7 @@ export default function AddParticipants() {
                             variant: "success",
                         }
                     );
+                    setData(createEmptyRows(1));
                     history.push("/datasets");
                 },
                 onError: async response => {

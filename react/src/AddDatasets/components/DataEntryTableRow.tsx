@@ -76,8 +76,10 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
                     key={col.field}
                     required={!props.row.participantColDisabled} // not required if pre-filled
                     disabled={
-                        props.row.participantColDisabled &&
-                        (participantColumns as string[]).includes(col.field)
+                        !!(
+                            props.row.participantColDisabled &&
+                            (participantColumns as string[]).includes(col.field)
+                        )
                     }
                     onSearch={search => onSearch(col, search)}
                     loading={col.field === "family_codename" && familiesResult.isLoading}
@@ -94,8 +96,10 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
                             onEdit={newValue => handleChange(newValue, col)}
                             key={col.field}
                             disabled={
-                                props.row.participantColDisabled &&
-                                !!participantColumns.find(currCol => currCol === col.field)
+                                !!(
+                                    props.row.participantColDisabled &&
+                                    !!participantColumns.find(currCol => currCol === col.field)
+                                )
                             }
                         />
                     )

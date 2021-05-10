@@ -47,10 +47,14 @@ export function getColumns(category: "required" | "optional" | "RNASeq"): DataEn
 
 // Convert the provided value into an Option
 export function toOption(
-    str: string | boolean | number | undefined | Option,
+    str: string | boolean | number | undefined | Option | null,
     origin?: string,
     disabled?: boolean
 ): Option {
+    if (str === null) {
+        //typof null === 'object
+        str = undefined;
+    }
     let inputValue = str;
 
     switch (typeof str) {
