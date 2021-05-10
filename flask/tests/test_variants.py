@@ -10,7 +10,7 @@ def test_get_variant_summary(test_database, client, login_as):
 
     # single gene
     response = client.get(
-        "api/summary/variants?panel=LOXL4",
+        "api/summary/variants?panel=ENSG00000138131",  # LOXL4
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
@@ -19,7 +19,7 @@ def test_get_variant_summary(test_database, client, login_as):
 
     # multiple genes
     response = client.get(
-        "api/summary/variants?panel=LOXL4;RTEL1",
+        "api/summary/variants?panel=ENSG00000138131,ENSG00000258366",  # LOXL4, RTEL1
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
@@ -39,14 +39,14 @@ def test_get_variant_summary(test_database, client, login_as):
     # not all genes found
 
     response = client.get(
-        "api/summary/variants?panel=LOXL4;TYPODGENENAME",
+        "api/summary/variants?panel=ENSG00000138131,HGNC:0000",
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 400
 
     # --- csv ----
     response = client.get(
-        "api/summary/variants?panel=LOXL4", headers={"Accept": "text/csv"}
+        "api/summary/variants?panel=ENSG00000138131", headers={"Accept": "text/csv"}
     )
 
     df = pd.read_csv(BytesIO(response.get_data()), encoding="utf8")
@@ -54,7 +54,8 @@ def test_get_variant_summary(test_database, client, login_as):
     assert df.shape[0] == 3
 
     response = client.get(
-        "api/summary/variants?panel=LOXL4;RTEL1", headers={"Accept": "text/csv"}
+        "api/summary/variants?panel=ENSG00000138131,ENSG00000258366",
+        headers={"Accept": "text/csv"},
     )
 
     df = pd.read_csv(BytesIO(response.get_data()), encoding="utf8")
@@ -64,14 +65,15 @@ def test_get_variant_summary(test_database, client, login_as):
     # --- invalid accept header ----
 
     response = client.get(
-        "api/summary/variants?panel=LOXL4",
+        "api/summary/variants?panel=ENSG00000138131",
         headers={"Accept": "BAD_ACCEPT/HEADER"},
     )
     assert response.status_code == 406
 
     login_as("user")
     response = client.get(
-        "api/summary/variants?panel=LOXL4", headers={"Accept": "application/json"}
+        "api/summary/variants?panel=ENSG00000138131",
+        headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
     assert len(response.get_json()) == 1
@@ -83,7 +85,7 @@ def test_get_participant_summary(test_database, client, login_as):
 
     # single gene
     response = client.get(
-        "api/summary/participants?panel=LOXL4",
+        "api/summary/participants?panel=ENSG00000138131",
         headers={"Accept": "application/json"},
     )
 
@@ -97,7 +99,7 @@ def test_get_participant_summary(test_database, client, login_as):
 
     # multiple genes
     response = client.get(
-        "api/summary/participants?panel=LOXL4;RTEL1",
+        "api/summary/participants?panel=ENSG00000138131,ENSG00000258366",
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
@@ -118,14 +120,14 @@ def test_get_participant_summary(test_database, client, login_as):
     # not all genes found
 
     response = client.get(
-        "api/summary/participants?panel=LOXL4;TYPODGENENAME",
+        "api/summary/participants?panel=ENSG00000138131,HGNC:0000",
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 400
 
     # --- csv ----
     response = client.get(
-        "api/summary/participants?panel=LOXL4", headers={"Accept": "text/csv"}
+        "api/summary/participants?panel=ENSG00000138131", headers={"Accept": "text/csv"}
     )
 
     df = pd.read_csv(BytesIO(response.get_data()), encoding="utf8")
@@ -133,7 +135,8 @@ def test_get_participant_summary(test_database, client, login_as):
     assert df.shape[0] == 5
 
     response = client.get(
-        "api/summary/participants?panel=LOXL4;RTEL1", headers={"Accept": "text/csv"}
+        "api/summary/participants?panel=ENSG00000138131,ENSG00000258366",
+        headers={"Accept": "text/csv"},
     )
     # the number of variants for the given participants in LOXL4 AND RTEL1 that have sufficient depth for zygosity (4 + 5)
     df = pd.read_csv(BytesIO(response.get_data()), encoding="utf8")
@@ -143,14 +146,14 @@ def test_get_participant_summary(test_database, client, login_as):
     # --- invalid accept header ----
 
     response = client.get(
-        "api/summary/participants?panel=LOXL4",
+        "api/summary/participants?panel=ENSG00000138131",
         headers={"Accept": "BAD_ACCEPT/HEADER"},
     )
     assert response.status_code == 406
 
     login_as("user")
     response = client.get(
-        "api/summary/participants?panel=LOXL4",
+        "api/summary/participants?panel=ENSG00000138131",
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
