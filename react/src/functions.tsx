@@ -376,20 +376,12 @@ export const updateTableFilter = (
 };
 
 /**
- * Get the columns currently stored by material-table.
- */
-export const getTableColumns = (tableRef: React.MutableRefObject<any>): any[] | null => {
-    if (tableRef.current) return tableRef.current.dataManager.columns;
-    return null;
-};
-
-/**
  * Return a mapping of column ids to column order indexes currently stored by material-table.
  */
 export const getTableColumnOrder = (
     tableRef: React.MutableRefObject<any>
 ): Record<number, number> | null => {
-    const cols = getTableColumns(tableRef);
+    const cols = tableRef.current?.dataManager.columns as any[] | undefined;
     const result: Record<number, number> = {};
     if (cols) {
         cols.forEach(col => {

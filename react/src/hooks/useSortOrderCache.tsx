@@ -25,11 +25,7 @@ export function useSortOrderCache(
     };
 
     useEffect(() => {
-        if (
-            tableRef.current &&
-            (dependencies === undefined || dependencies.find(dep => !dep) === undefined) &&
-            !applied
-        ) {
+        if (tableRef.current && (!dependencies || dependencies.indexOf(false) === -1) && !applied) {
             const sortOrderCache = localStorage.getItem(cacheKey);
             if (sortOrderCache === null) {
                 // empty cache
@@ -42,23 +38,15 @@ export function useSortOrderCache(
                 );
             } else {
                 // cache hit
-                try {
-                    // simple format check
-                    const cachedArray = sortOrderCache.split(",");
-                    if (cachedArray.length !== 2) throw Error(`${cacheKey} is not array of size 2`);
+                // simple format check
+                const cachedArray = sortOrderCache.split(",");
+                if (cachedArray.length === 2) {
                     const orderBy = parseInt(cachedArray[0]);
                     const orderDirection = cachedArray[1];
-
                     tableRef.current.onChangeOrder(orderBy, orderDirection);
-                    // tableRef.current.dataManager.sortData();
-                    console.log(
-                        tableRef.current.dataManager.orderBy,
-                        tableRef.current.dataManager.orderDirection
-                    );
-                    // tableRef.current.onQueryChange();
-                } catch (error) {
+                } else {
                     // bad cache
-                    console.error(error);
+                    console.error(`${cacheKey} format invalid`);
                     localStorage.removeItem(cacheKey);
                 }
             }
