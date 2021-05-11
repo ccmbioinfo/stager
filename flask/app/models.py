@@ -451,10 +451,10 @@ class Variant(db.Model):
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
     position: str = db.Column(db.String(20), nullable=False)
-    reference_allele: str = db.Column(db.String(150), nullable=False)
-    alt_allele: str = db.Column(db.String(150), nullable=False)
+    reference_allele: str = db.Column(db.String(300), nullable=False)
+    alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
-    refseq_change = db.Column(db.String(250), nullable=True)
+    refseq_change = db.Column(db.String(500), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
     ensembl_id: int = db.Column(
         db.Integer,

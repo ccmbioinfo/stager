@@ -55,6 +55,28 @@ def upgrade():
         onupdate="cascade",
         ondelete="restrict",
     )
+
+    op.alter_column(
+        "variant",
+        "alt_allele",
+        existing_type=mysql.VARCHAR(length=150),
+        type_=sa.String(length=300),
+        existing_nullable=False,
+    )
+    op.alter_column(
+        "variant",
+        "reference_allele",
+        existing_type=mysql.VARCHAR(length=150),
+        type_=sa.String(length=300),
+        existing_nullable=False,
+    )
+    op.alter_column(
+        "variant",
+        "refseq_change",
+        existing_type=mysql.VARCHAR(length=250),
+        type_=sa.String(length=500),
+        existing_nullable=True,
+    )
     # ### end Alembic commands ###
 
 
@@ -91,5 +113,27 @@ def downgrade():
         ["gene_id"],
         onupdate="CASCADE",
         ondelete="RESTRICT",
+    )
+
+    op.alter_column(
+        "variant",
+        "refseq_change",
+        existing_type=sa.String(length=500),
+        type_=mysql.VARCHAR(length=250),
+        existing_nullable=True,
+    )
+    op.alter_column(
+        "variant",
+        "reference_allele",
+        existing_type=sa.String(length=300),
+        type_=mysql.VARCHAR(length=150),
+        existing_nullable=False,
+    )
+    op.alter_column(
+        "variant",
+        "alt_allele",
+        existing_type=sa.String(length=300),
+        type_=mysql.VARCHAR(length=150),
+        existing_nullable=False,
     )
     # ### end Alembic commands ###
