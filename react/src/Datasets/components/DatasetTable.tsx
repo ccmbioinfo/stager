@@ -24,6 +24,7 @@ import {
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useSortOrderCache,
+    useTableFilterCache,
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
@@ -171,6 +172,11 @@ export default function DatasetTable() {
 
     const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
     const handleSortChange = useSortOrderCache(MTRef, "datasetTableSortOrder", cacheDeps);
+    const handleFilterChanged = useTableFilterCache<Dataset>(
+        MTRef,
+        "datasetTableFilterCache",
+        cacheDeps
+    );
 
     return (
         <div>
@@ -192,7 +198,10 @@ export default function DatasetTable() {
                 title="Datasets"
                 tableRef={MTRef}
                 columns={columns}
-                data={dataFetch}
+                data={query => {
+                    if (query) handleFilterChanged(query.filters);
+                    return dataFetch(query);
+                }}
                 options={{
                     selection: true,
                     exportMenu: [
@@ -313,6 +322,13 @@ export default function DatasetTable() {
                 ]}
                 onColumnDragged={handleColumnDrag}
                 onOrderChange={handleSortChange}
+                onQueryChange={query => {
+                    console.log("Query changed!");
+                    if (query) {
+                        handleFilterChanged(query.filters);
+                    }
+                }}
+                // onFilterChange={handleFilterChanged}
             />
         </div>
     );
