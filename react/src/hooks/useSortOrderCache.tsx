@@ -13,7 +13,7 @@ import { MaterialTableProps } from "@material-table/core";
 export function useSortOrderCache(
     tableRef: React.MutableRefObject<any>,
     cacheKey: string,
-    dependencies?: boolean[]
+    dependencies?: (boolean | undefined)[]
 ) {
     const [applied, setApplied] = useState(false);
 
@@ -25,7 +25,7 @@ export function useSortOrderCache(
     };
 
     useEffect(() => {
-        if (tableRef.current && (!dependencies || dependencies.indexOf(false) === -1) && !applied) {
+        if (tableRef.current && (!dependencies || dependencies.every(dep => !!dep)) && !applied) {
             const sortOrderCache = localStorage.getItem(cacheKey);
             if (sortOrderCache === null) {
                 // empty cache

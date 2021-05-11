@@ -14,7 +14,7 @@ import { getTableColumnOrder } from "../functions";
 export function useColumnOrderCache(
     tableRef: React.MutableRefObject<any>,
     cacheKey: string,
-    dependencies?: boolean[]
+    dependencies?: (boolean | undefined)[]
 ) {
     // ensures that the side effect only occurs once
     const [applied, setApplied] = useState(false);
@@ -32,11 +32,7 @@ export function useColumnOrderCache(
     };
 
     useEffect(() => {
-        if (
-            tableRef.current &&
-            (dependencies === undefined || dependencies.find(dep => !dep) === undefined) &&
-            !applied
-        ) {
+        if (tableRef.current && (!dependencies || dependencies.every(dep => !!dep)) && !applied) {
             // Get stored settings
             const columnOrderCache = localStorage.getItem(cacheKey);
             // maps id -> columnIndex
