@@ -14,10 +14,12 @@ import {
 import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
 import {
     GET_PARTICIPANTS_URL,
+    useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useParticipantsPage,
+    useSortOrderCache,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
@@ -28,14 +30,21 @@ export default function ParticipantTable() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const { data: enums } = useEnumsQuery();
-    const sexTypes = useMemo(() => enums && toKeyValue(enums.Sex), [enums]);
-    const participantTypes = useMemo(() => enums && toKeyValue(enums.ParticipantType), [enums]);
+    const enumsQuery = useEnumsQuery();
+    const sexTypes = useMemo(() => enumsQuery.data && toKeyValue(enumsQuery.data.Sex), [
+        enumsQuery.data,
+    ]);
+    const participantTypes = useMemo(
+        () => enumsQuery.data && toKeyValue(enumsQuery.data.ParticipantType),
+        [enumsQuery.data]
+    );
     const { id: paramID } = useParams<{ id?: string }>();
-    const { data: metadatasetTypes } = useMetadatasetTypesQuery();
+    const metadatasetTypesQuery = useMetadatasetTypesQuery();
     const datasetTypes = useMemo(
-        () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
-        [metadatasetTypes]
+        () =>
+            metadatasetTypesQuery.data &&
+            toKeyValue(Object.values(metadatasetTypesQuery.data).flat()),
+        [metadatasetTypesQuery.data]
     );
 
     const columns: Column<Participant>[] = useMemo(() => {
@@ -105,6 +114,15 @@ export default function ParticipantTable() {
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
+
+    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(
+        tableRef,
+        "participantTableColumnOrder",
+        cacheDeps
+    );
+    const handleSortChange = useSortOrderCache(tableRef, "participantTableSortOrder", cacheDeps);
 
     async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -223,6 +241,8 @@ export default function ParticipantTable() {
                         onClick: copyToClipboard,
                     },
                 ]}
+                onColumnDragged={handleColumnDrag}
+                onOrderChange={handleSortChange}
             />
         </div>
     );

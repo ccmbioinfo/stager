@@ -1,3 +1,4 @@
+import React from "react";
 import dayjs from "dayjs";
 import LocalizedFormat from "dayjs/plugin/localizedFormat";
 import utc from "dayjs/plugin/utc";
@@ -372,6 +373,23 @@ export const updateTableFilter = (
             tableRef.current.onQueryChange();
         }
     }
+};
+
+/**
+ * Return a mapping of column ids to column order indexes currently stored by material-table.
+ */
+export const getTableColumnOrder = (
+    tableRef: React.MutableRefObject<any>
+): Record<number, number> | null => {
+    const cols = tableRef.current?.dataManager.columns as any[] | undefined;
+    const result: Record<number, number> = {};
+    if (cols) {
+        cols.forEach(col => {
+            result[col.tableData.id] = col.tableData.columnOrder;
+        });
+        return result;
+    }
+    return null;
 };
 
 export const checkPipelineStatusChange = (fromState: PipelineStatus, toState: PipelineStatus) => {
