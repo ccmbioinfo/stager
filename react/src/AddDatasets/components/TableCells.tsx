@@ -106,7 +106,7 @@ export function AutocompleteCell(
 ) {
     // We control the inputValue so that we can query with it
     // with this pattern, we have to be careful that search state and selection state stay in sync
-    const [search, setSearch] = useState(props.value.inputValue || "");
+    const [search, setSearch] = useState(props.value.inputValue);
 
     //selected value might change via autopopulate
     useEffect(() => {
