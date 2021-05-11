@@ -284,13 +284,13 @@ export function createEmptyRows(amount?: number): DataEntryRow[] {
     var arr = [];
     for (let i = 0; i < amount; i++) {
         arr.push({
-            family_codename: null,
-            participant_codename: null,
-            participant_type: null,
-            tissue_sample_type: null,
-            dataset_type: null,
+            family_codename: "",
+            participant_codename: "",
+            participant_type: "",
+            tissue_sample_type: "",
+            dataset_type: "",
             condition: "GermLine",
-            sequencing_date: null,
+            sequencing_date: "",
         });
     }
     return arr;
@@ -347,7 +347,7 @@ export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: bool
 /**
  * Return true if the string is empty or contains only whitespace, false otherwise.
  */
-export function strIsEmpty(str?: string | null): boolean {
+export function strIsEmpty(str?: string): boolean {
     const testRegex = /\S/g;
     return str ? !testRegex.test(str) : true;
 }
