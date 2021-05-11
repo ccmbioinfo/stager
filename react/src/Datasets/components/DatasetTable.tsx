@@ -112,8 +112,12 @@ export default function DatasetTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
     };
 
-    const columns: Column<Dataset>[] = useMemo(() => {
-        return [
+    const { handleFilterChanged, setInitialFilters } = useTableFilterCache<Dataset>(
+        "datasetTableFilterCache"
+    );
+
+    const columns = useMemo(() => {
+        const columns: Column<Dataset>[] = [
             { title: "Family", field: "family_codename", editable: "never" },
             { title: "Participant", field: "participant_codename", editable: "never" },
             {
@@ -163,7 +167,10 @@ export default function DatasetTable() {
                 defaultFilter: paramID,
             },
         ];
-    }, [conditions, datasetTypes, paramID, tissueSampleTypes]);
+
+        setInitialFilters(columns);
+        return columns;
+    }, [conditions, datasetTypes, paramID, tissueSampleTypes, setInitialFilters]);
 
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
@@ -172,11 +179,6 @@ export default function DatasetTable() {
 
     const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
     const handleSortChange = useSortOrderCache(MTRef, "datasetTableSortOrder", cacheDeps);
-    const handleFilterChanged = useTableFilterCache<Dataset>(
-        MTRef,
-        "datasetTableFilterCache",
-        cacheDeps
-    );
 
     return (
         <div>
