@@ -192,6 +192,7 @@ export class DataEntryRowRNASeq {
 export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
     participantColDisabled?: boolean;
 }
+
 export interface DataEntryHeader {
     title: string;
     field: keyof DataEntryRow;
