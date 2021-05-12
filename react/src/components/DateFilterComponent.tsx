@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Column } from "@material-table/core";
 import { IconButton, InputAdornment, makeStyles, TextField, Tooltip } from "@material-ui/core";
 import { NavigateBefore } from "@material-ui/icons";
@@ -25,15 +25,17 @@ export default function DateFilterComponent<RowData extends object>(props: {
     onFilterChanged: (rowId: string, value: any) => void;
 }) {
     const classes = useStyles();
-    const [isBefore, setIsBefore] = useState(true);
-    const [date, setDate] = useState("");
+    const filterValue: string | null = (props.columnDef as any).tableData.filterValue || null;
+    const isBefore = filterValue === null ? true : filterValue.split(",")?.[0] === "before";
+    const date = filterValue?.split(",")?.[1] || null;
 
-    function updateFilter(newBefore: boolean, newDate: string) {
-        // don't update if the date is not entered yet
-        if (date || newDate) {
-            // https://github.com/mbrn/material-table/pull/2435
-            const rowId = (props.columnDef as any).tableData.id;
+    function updateFilter(newBefore: boolean, newDate: string | null) {
+        // https://github.com/mbrn/material-table/pull/2435
+        const rowId = (props.columnDef as any).tableData.id;
+        if (newDate) {
             props.onFilterChanged(rowId, `${newBefore ? "before" : "after"},${newDate}`);
+        } else {
+            props.onFilterChanged(rowId, null);
         }
     }
 
@@ -47,16 +49,12 @@ export default function DateFilterComponent<RowData extends object>(props: {
                     <InputAdornment position="start">
                         <Tooltip title={isBefore ? "Before" : "After"}>
                             <IconButton
+                                disabled={filterValue === null}
                                 size="small"
                                 className={clsx(classes.button, {
                                     [classes.buttonFlipped]: !isBefore,
                                 })}
-                                onClick={e => {
-                                    setIsBefore(prev => {
-                                        updateFilter(!prev, date);
-                                        return !prev;
-                                    });
-                                }}
+                                onClick={() => updateFilter(!isBefore, date)}
                             >
                                 <NavigateBefore />
                             </IconButton>
@@ -67,10 +65,7 @@ export default function DateFilterComponent<RowData extends object>(props: {
             InputLabelProps={{
                 shrink: true,
             }}
-            onChange={e => {
-                setDate(e.target.value);
-                updateFilter(isBefore, e.target.value);
-            }}
+            onChange={e => updateFilter(isBefore, e.target.value)}
         />
     );
 }
