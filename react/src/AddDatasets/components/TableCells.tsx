@@ -123,7 +123,7 @@ export function AutocompleteCell(
         if (props.onSearch) props.onSearch(value);
     };
 
-    const getIsFreeSolo = () => props.column.field === "notes";
+    const isFreeSolo = () => props.column.field === "notes";
 
     //dummy value to suppress warnings when initializing with empty string search value
     if (props.value.inputValue === "") {
@@ -162,7 +162,7 @@ export function AutocompleteCell(
                 loadingText="Fetching..."
                 disabled={props.disabled}
                 aria-label={props["aria-label"]}
-                freeSolo={getIsFreeSolo()}
+                freeSolo={isFreeSolo()}
                 selectOnFocus
                 onBlur={() => {
                     if (!enumerableColumns.includes(props.column.field)) {
