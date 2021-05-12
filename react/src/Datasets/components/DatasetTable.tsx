@@ -324,13 +324,6 @@ export default function DatasetTable() {
                 ]}
                 onColumnDragged={handleColumnDrag}
                 onOrderChange={handleSortChange}
-                onQueryChange={query => {
-                    console.log("Query changed!");
-                    if (query) {
-                        handleFilterChanged(query.filters);
-                    }
-                }}
-                // onFilterChange={handleFilterChanged}
             />
         </div>
     );
