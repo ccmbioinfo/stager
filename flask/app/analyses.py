@@ -171,7 +171,7 @@ def list_analyses(page: int, limit: int) -> Response:
             filename="analyses_report.csv",
             colnames=[
                 "pipeline",
-                "pipeline_id",
+                "analysis_state",
                 "priority",
                 "requester",
                 "assignee",

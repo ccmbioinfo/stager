@@ -88,7 +88,7 @@ def test_read_policy(mc: MinioAdmin):
     for item in policies:
         policy = mc.get_policy(item["policy"])
         assert policy["policy"] == item["policy"]
-        assert policy["policyJSON"]["Statement"]
+        assert policy["policyJSON"]
 
 
 def test_apply_policy(mc: MinioAdmin):
