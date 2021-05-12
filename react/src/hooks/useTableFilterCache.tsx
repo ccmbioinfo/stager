@@ -42,7 +42,7 @@ export function useTableFilterCache<RowData extends object>(cacheKey: string) {
     };
 
     return {
-        handleFilterChange: handleFilterChange,
-        setInitialFilters: setInitialFilters,
+        handleFilterChange,
+        setInitialFilters,
     };
 }
