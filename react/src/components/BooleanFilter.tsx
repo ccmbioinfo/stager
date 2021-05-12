@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Column } from "@material-table/core";
 import { FormControl, MenuItem, Select } from "@material-ui/core";
 import { PseudoBoolean, PseudoBooleanReadableMap } from "../typings";
@@ -11,15 +11,13 @@ export default function BooleanFilter<RowData extends object>(props: {
     onFilterChanged: (columnID: string, value: any) => void;
 }) {
     const options = Object.keys(PseudoBooleanReadableMap) as PseudoBoolean[];
-    const [value, setValue] = useState<PseudoBoolean | "">("");
 
     return (
         <FormControl>
             <Select
                 fullWidth
-                value={value}
+                value={(props.columnDef as any).tableData.filterValue}
                 onChange={e => {
-                    setValue(e.target.value as PseudoBoolean);
                     props.onFilterChanged((props.columnDef as any).tableData.id, e.target.value);
                 }}
             >
