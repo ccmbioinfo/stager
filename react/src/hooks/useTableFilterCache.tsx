@@ -13,7 +13,7 @@ export function useTableFilterCache<RowData extends object>(cacheKey: string) {
      * Filters should be extracted from material-table query
      * when data is fetched.
      */
-    const handleFilterChanged = (filters: Filter<RowData>[]) => {
+    const handleFilterChange = (filters: Filter<RowData>[]) => {
         localStorage.setItem(cacheKey, JSON.stringify(filters));
     };
 
@@ -42,7 +42,7 @@ export function useTableFilterCache<RowData extends object>(cacheKey: string) {
     };
 
     return {
-        handleFilterChanged: handleFilterChanged,
+        handleFilterChange: handleFilterChange,
         setInitialFilters: setInitialFilters,
     };
 }

@@ -31,6 +31,7 @@ import {
     useDownloadCsv,
     useEnumsQuery,
     useSortOrderCache,
+    useTableFilterCache,
 } from "../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../hooks/utils";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
@@ -163,6 +164,9 @@ export default function Analyses() {
 
     const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
     const handleSortChange = useSortOrderCache(tableRef, "analysisTableSortOrder", cacheDeps);
+    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Analysis>(
+        "analysisTableDefaultFilters"
+    );
 
     function changeAnalysisState(newState: PipelineStatus) {
         return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
@@ -172,8 +176,8 @@ export default function Analyses() {
         downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
     };
 
-    const columns: Column<Analysis>[] = useMemo(() => {
-        return [
+    const columns = useMemo(() => {
+        const columns: Column<Analysis>[] = [
             {
                 title: "Pipeline",
                 field: "pipeline_id",
@@ -261,7 +265,9 @@ export default function Analyses() {
                 defaultFilter: paramID,
             },
         ];
-    }, [enums?.PriorityType, paramID, pipelineStatusLookup, priorityLookup]);
+        setInitialFilters(columns);
+        return columns;
+    }, [enums?.PriorityType, paramID, pipelineStatusLookup, priorityLookup, setInitialFilters]);
 
     return (
         <main className={classes.content}>
@@ -374,7 +380,10 @@ export default function Analyses() {
                     tableRef={tableRef}
                     columns={columns}
                     isLoading={analysisUpdateMutation.isLoading}
-                    data={dataFetch}
+                    data={query => {
+                        if (query) handleFilterChange(query.filters);
+                        return dataFetch(query);
+                    }}
                     options={{
                         rowStyle: data =>
                             getHighlightColor(theme, data.priority, data.analysis_state),

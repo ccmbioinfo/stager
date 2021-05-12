@@ -112,8 +112,8 @@ export default function DatasetTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
     };
 
-    const { handleFilterChanged, setInitialFilters } = useTableFilterCache<Dataset>(
-        "datasetTableFilterCache"
+    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Dataset>(
+        "datasetTableDefaultFilters"
     );
 
     const columns = useMemo(() => {
@@ -201,7 +201,7 @@ export default function DatasetTable() {
                 tableRef={MTRef}
                 columns={columns}
                 data={query => {
-                    if (query) handleFilterChanged(query.filters);
+                    if (query) handleFilterChange(query.filters);
                     return dataFetch(query);
                 }}
                 options={{

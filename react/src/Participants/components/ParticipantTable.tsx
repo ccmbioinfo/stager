@@ -20,6 +20,7 @@ import {
     useMetadatasetTypesQuery,
     useParticipantsPage,
     useSortOrderCache,
+    useTableFilterCache,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
@@ -47,8 +48,12 @@ export default function ParticipantTable() {
         [metadatasetTypesQuery.data]
     );
 
-    const columns: Column<Participant>[] = useMemo(() => {
-        return [
+    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Participant>(
+        "participantTableDefaultFilters"
+    );
+
+    const columns = useMemo(() => {
+        const columns: Column<Participant>[] = [
             {
                 title: "Family Codename",
                 field: "family_codename",
@@ -105,7 +110,9 @@ export default function ParticipantTable() {
                 ),
             },
         ];
-    }, [datasetTypes, sexTypes, participantTypes, paramID]);
+        setInitialFilters(columns);
+        return columns;
+    }, [datasetTypes, sexTypes, participantTypes, paramID, setInitialFilters]);
 
     const tableRef = useRef<any>();
 
@@ -168,7 +175,10 @@ export default function ParticipantTable() {
             <MaterialTablePrimary
                 tableRef={tableRef}
                 columns={columns}
-                data={dataFetch}
+                data={query => {
+                    if (query) handleFilterChange(query.filters);
+                    return dataFetch(query);
+                }}
                 title="Participants"
                 options={{
                     selection: false,
