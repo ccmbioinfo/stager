@@ -419,13 +419,16 @@ class PipelineDatasets(db.Model):
 
 @dataclass
 class Gene(db.Model):
-    # Truncate ENSG
+    # these are indeed unique in the gtf
     ensembl_id: int = db.Column(db.Integer, primary_key=True)
-    # Truncate HGNC:
-    hgnc_id: int = db.Column(db.Integer, unique=True)
-    ncbi_id: int = db.Column(db.Integer, unique=True)
+    # hgnc_id: int = db.Column(db.Integer, unique=True)
+    # ncbi_id: int = db.Column(db.Integer, unique=True)
+    chromosome: str = db.Column(db.String(2), nullable=False)
+    # indicates whether the feature is from havana, ensembl or both
+    source: str = db.Column(db.String(20))
+    start: int = db.Column(db.Integer, nullable=False)
+    end: int = db.Column(db.Integer, nullable=False)
     aliases = db.relationship("GeneAlias", backref="gene")
-    variants = db.relationship("Variant", backref="gene")
 
 
 @dataclass
@@ -450,16 +453,13 @@ class Variant(db.Model):
     analysis_id: int = db.Column(
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
-    position: str = db.Column(db.String(20), nullable=False)
+    chromosome: str = db.Column(db.String(2), nullable=False)
+    position: str = db.Column(db.Integer, nullable=False)
     reference_allele: str = db.Column(db.String(300), nullable=False)
     alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
     refseq_change = db.Column(db.String(500), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
-    ensembl_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("gene.ensembl_id", onupdate="cascade", ondelete="restrict"),
-    )
     conserved_in_20_mammals: int = db.Column(db.Float, nullable=True)
     sift_score: int = db.Column(db.Float, nullable=True)
     polyphen_score: int = db.Column(db.Float, nullable=True)
