@@ -24,6 +24,7 @@ import {
     useEnumsQuery,
     useMetadatasetTypesQuery,
     useSortOrderCache,
+    useTableFilterCache,
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
@@ -111,8 +112,12 @@ export default function DatasetTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
     };
 
-    const columns: Column<Dataset>[] = useMemo(() => {
-        return [
+    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Dataset>(
+        "datasetTableDefaultFilters"
+    );
+
+    const columns = useMemo(() => {
+        const columns: Column<Dataset>[] = [
             { title: "Family", field: "family_codename", editable: "never" },
             { title: "Participant", field: "participant_codename", editable: "never" },
             {
@@ -162,7 +167,10 @@ export default function DatasetTable() {
                 defaultFilter: paramID,
             },
         ];
-    }, [conditions, datasetTypes, paramID, tissueSampleTypes]);
+
+        setInitialFilters(columns);
+        return columns;
+    }, [conditions, datasetTypes, paramID, tissueSampleTypes, setInitialFilters]);
 
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
@@ -192,7 +200,10 @@ export default function DatasetTable() {
                 title="Datasets"
                 tableRef={MTRef}
                 columns={columns}
-                data={dataFetch}
+                data={query => {
+                    if (query) handleFilterChange(query.filters);
+                    return dataFetch(query);
+                }}
                 options={{
                     selection: true,
                     exportMenu: [
