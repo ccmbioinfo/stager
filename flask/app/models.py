@@ -423,7 +423,7 @@ class Gene(db.Model):
     ensembl_id: int = db.Column(db.Integer, primary_key=True)
     # hgnc_id: int = db.Column(db.Integer, unique=True)
     # ncbi_id: int = db.Column(db.Integer, unique=True)
-    chromosome: str = db.Column(db.String(2), nullable=False)
+    chromosome: str = db.Column(db.String(15), nullable=False)
     # indicates whether the feature is from havana, ensembl or both
     source: str = db.Column(db.String(20))
     start: int = db.Column(db.Integer, nullable=False)
@@ -453,7 +453,7 @@ class Variant(db.Model):
     analysis_id: int = db.Column(
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
-    chromosome: str = db.Column(db.String(2), nullable=False)
+    chromosome: str = db.Column(db.String(15), nullable=False)
     position: str = db.Column(db.Integer, nullable=False)
     reference_allele: str = db.Column(db.String(300), nullable=False)
     alt_allele: str = db.Column(db.String(300), nullable=False)

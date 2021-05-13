@@ -1,4 +1,4 @@
-"""support for positional-based querying
+"""genes_by_position
 
 Revision ID: 5e69ca582792
 Revises: 42a60aeca550
@@ -27,12 +27,12 @@ def upgrade():
 
     op.create_table(
         "gene",
+        sa.Column("chromosome", sa.String(length=15), nullable=False),
+        sa.Column("end", sa.Integer(), nullable=False),
+        sa.Column("source", sa.String(length=20), nullable=True),
+        sa.Column("start", sa.Integer(), nullable=False),
         sa.Column("ensembl_id", sa.Integer(), nullable=False),
-        sa.Column("hgnc_id", sa.Integer(), nullable=True),
-        sa.Column("ncbi_id", sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint("ensembl_id"),
-        sa.UniqueConstraint("hgnc_id"),
-        sa.UniqueConstraint("ncbi_id"),
     )
 
     op.create_table(
@@ -49,7 +49,7 @@ def upgrade():
     )
 
     op.add_column(
-        "variant", sa.Column("chromosome", sa.String(length=2), nullable=False)
+        "variant", sa.Column("chromosome", sa.String(length=15), nullable=False)
     )
     op.alter_column(
         "variant",
