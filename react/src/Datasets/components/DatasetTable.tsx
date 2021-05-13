@@ -172,6 +172,7 @@ export default function DatasetTable() {
                 editable: "never",
                 render: RenderDatePicker,
                 filterComponent: DateFilterComponent,
+                defaultSort: "desc",
             },
             { title: "Updated By", field: "updated_by", editable: "never" },
             {

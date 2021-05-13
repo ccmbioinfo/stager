@@ -237,6 +237,15 @@ export default function Analyses() {
                 editable: "always",
             },
             {
+                title: "Requested",
+                field: "requested",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.requested} />,
+                filterComponent: DateFilterComponent,
+                defaultSort: "desc",
+            },
+            {
                 title: "Updated",
                 field: "updated",
                 type: "string",
