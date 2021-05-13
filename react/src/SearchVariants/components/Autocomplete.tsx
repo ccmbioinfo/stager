@@ -39,10 +39,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
             onInputChange={(event, newInputValue, reason) => {
                 if (reason === "reset") {
                     setSearch("");
-                } else if (
-                    //prevent requery on select
-                    !(results?.data || []).map(o => o.hgnc_gene_name).includes(newInputValue)
-                ) {
+                } else if (reason === "input") {
                     setSearch(newInputValue);
                     if (onSearch) {
                         onSearch();

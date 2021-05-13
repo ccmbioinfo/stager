@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
     Checkbox,
     IconButton,
@@ -30,10 +30,6 @@ const useCellStyles = makeStyles(theme => ({
         padding: 0,
     },
 }));
-
-const filter = createFilterOptions<Option>({
-    limit: 25,
-});
 
 /**
  * A 'general' data entry cell that returns a table cell with a user control
@@ -100,7 +96,7 @@ export function AutocompleteCell(
     props: {
         value: Option;
         options: Option[];
-        onEdit: (newValue: string, autocomplete?: boolean) => void;
+        onEdit: (newValue: string, autopopulate?: boolean) => void;
         disabled?: boolean;
         column: DataEntryHeader;
         required?: boolean;
@@ -109,24 +105,54 @@ export function AutocompleteCell(
     } & TableCellProps
 ) {
     // We control the inputValue so that we can query with it
-    const [search, setSearch] = useState("");
+    // with this pattern, we have to be careful that search state and selection state stay in sync
+    const [search, setSearch] = useState(props.value.inputValue);
+
+    //selected value might change via autopopulate
+    useEffect(() => {
+        if (!strIsEmpty(props.value.inputValue) && props.value.title !== search) {
+            setSearch(props.value.title);
+        }
+    }, [props.value, search]);
 
     const onSearch = (value: string) => {
         setSearch(value);
+        //a search will reset any selected value
+        props.onEdit("");
+        //trigger dynamic option load
         if (props.onSearch) props.onSearch(value);
     };
 
-    const onEdit = (newValue: Option, autopopulate?: boolean) => {
-        onSearch(newValue.inputValue);
-        props.onEdit(newValue.inputValue, autopopulate);
-    };
+    const isFreeSolo = () => props.column.field === "notes";
 
-    // Remove 'this' input value from the list of options
-    const options = props.options.filter(
-        (val, index, arr) =>
-            arr.findIndex((opt, i) => opt.inputValue === val.inputValue) === index &&
-            val.inputValue !== props.value.inputValue
+    //dummy value to suppress warnings when initializing with empty string search value
+    if (props.value.inputValue === "") {
+        props.options.push({
+            title: "",
+            inputValue: "",
+            origin: "dummy",
+        });
+    }
+
+    // Adds user-entered value as option
+    // We prefer to show pre-existing options than the "create new" option
+    if (
+        !enumerableColumns.includes(props.column.field) &&
+        search !== "" &&
+        !props.options.find(option => option.inputValue === search) &&
+        props.column.field !== "notes"
+    ) {
+        props.options.push({
+            title: `Add "${search}"`,
+            inputValue: search,
+            origin: "Add new...",
+        });
+    }
+
+    const triggerAutopopulation = ["participant_codename", "family_codename"].includes(
+        props.column.field
     );
+
     const isError = props.required && strIsEmpty(props.value.inputValue);
 
     return (
@@ -136,29 +162,35 @@ export function AutocompleteCell(
                 loadingText="Fetching..."
                 disabled={props.disabled}
                 aria-label={props["aria-label"]}
+                freeSolo={isFreeSolo()}
                 selectOnFocus
-                clearOnBlur
+                onBlur={() => {
+                    if (!enumerableColumns.includes(props.column.field)) {
+                        //update on blur if user isn't required to select an option
+                        props.onEdit(search, triggerAutopopulation);
+                    } else if (strIsEmpty(props.value.inputValue)) {
+                        //if this is an enum col, user might have left a string in the box
+                        //if there's no selection, wipe it out
+                        setSearch("");
+                    }
+                }}
                 handleHomeEndKeys
                 autoHighlight
                 inputValue={search}
-                onInputChange={(event, value, reason) => {
+                onInputChange={(event, searchString, reason) => {
                     if (reason === "clear") {
                         onSearch("");
                     } else if (reason === "input") {
-                        onSearch(value);
+                        onSearch(searchString);
                     }
                 }}
                 onChange={(event, newValue) => {
-                    const autocomplete =
-                        props.column.field === "participant_codename" ||
-                        props.column.field === "family_codename";
-                    if (newValue) {
-                        onEdit(toOption(newValue), autocomplete);
-                    } else {
-                        onEdit(toOption(""), autocomplete);
-                    }
+                    //value is passed around as an Option, so we need to transform here for typescript
+                    const optionValue = toOption(newValue);
+                    props.onEdit(toOption(newValue).inputValue, triggerAutopopulation);
+                    setSearch(optionValue.title);
                 }}
-                options={options}
+                options={props.options}
                 value={props.value}
                 renderInput={params => (
                     <TextField
@@ -169,27 +201,14 @@ export function AutocompleteCell(
                     />
                 )}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
-                filterOptions={(options, params) => {
-                    const filtered = filter(options, params);
-
-                    // Adds user-entered value as option
-                    // We prefer to show pre-existing options than the "create new" option
-                    if (
-                        !enumerableColumns.includes(props.column.field) &&
-                        params.inputValue !== "" &&
-                        !filtered.find(option => option.inputValue === params.inputValue)
-                    ) {
-                        filtered.push({
-                            title: `Add "${params.inputValue}"`,
-                            inputValue: params.inputValue,
-                            origin: "Add new...",
-                        });
-                    }
-
-                    return filtered;
-                }}
+                filterOptions={(options, params) =>
+                    createFilterOptions<Option>({
+                        limit: 25,
+                    })(options, params).filter(val => val.inputValue !== props.value.inputValue)
+                }
                 getOptionDisabled={option => !!option.disabled}
-                getOptionLabel={option => option.inputValue}
+                getOptionLabel={option => option.title}
+                getOptionSelected={(option, value) => option.inputValue === value.inputValue}
                 renderOption={option => option.title}
             />
         </TableCell>
