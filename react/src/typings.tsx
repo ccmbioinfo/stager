@@ -31,8 +31,10 @@ export interface Family {
 export interface Participant {
     participant_id: string;
     participant_codename: string;
+    participant_aliases: string;
     family_id: string;
     family_codename: string;
+    family_aliases: string;
     participant_type: string;
     affected: PseudoBoolean;
     solved: PseudoBoolean;
@@ -61,10 +63,13 @@ export interface Sample {
 export interface Dataset {
     dataset_id: string;
     participant_codename: string;
+    participant_aliases: string;
     family_codename: string;
+    family_aliases: string;
     tissue_sample_type: string;
     tissue_sample_id: string;
     dataset_type: string;
+    group_codes: string[];
     linked_files: string[]; // paths to files
     notes: string;
     condition: string;

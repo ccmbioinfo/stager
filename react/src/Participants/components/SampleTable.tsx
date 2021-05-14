@@ -26,7 +26,6 @@ function getFields(dataset: Dataset) {
         createFieldObj("Library Prep Date", formatDateString(dataset.library_prep_date)),
         createFieldObj("Read Length", dataset.read_length),
         createFieldObj("Read Type", dataset.read_type),
-        createFieldObj("Sequencing ID", dataset.sequencing_id),
         createFieldObj("Sequencing Centre", dataset.sequencing_centre),
         createFieldObj("Creation Time", formatDateString(dataset.created)),
         createFieldObj("Created By", dataset.created_by),
