@@ -164,6 +164,7 @@ def list_participants(page: int, limit: int) -> Response:
         {
             **asdict(participant),
             "family_codename": participant.family.family_codename,
+            "family_aliases": participant.family.family_aliases,
             "institution": participant.institution.institution
             if participant.institution
             else None,

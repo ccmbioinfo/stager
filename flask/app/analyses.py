@@ -238,6 +238,7 @@ def get_analysis(id: int):
             "datasets": [
                 {
                     **asdict(dataset),
+                    "group_codes": [group.group_code for group in dataset.groups],
                     "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                     "participant_codename": dataset.tissue_sample.participant.participant_codename,
                     "participant_type": dataset.tissue_sample.participant.participant_type,
