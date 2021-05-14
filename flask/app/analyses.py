@@ -268,6 +268,10 @@ def create_analysis():
     if not (isinstance(datasets, list) and len(datasets)):
         abort(400, description="Missing datasets field or invalid type")
 
+    notes = request.json.get("notes")
+    if notes and not isinstance(notes, str):
+        abort(400, description="Invalid notes type")
+
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
@@ -343,6 +347,7 @@ def create_analysis():
         updated=now,
         updated_by_id=updated_by_id,
         datasets=found_datasets,
+        notes=notes,
     )
 
     db.session.add(analysis)

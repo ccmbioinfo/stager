@@ -6,9 +6,11 @@ interface NewAnalysisParams {
     datasets: Dataset["dataset_id"][];
     pipeline_id: Pipeline["pipeline_id"];
     priority?: AnalysisPriority;
+    notes?: string;
 }
 
 async function createAnalysis(params: NewAnalysisParams) {
+    if (params.notes?.trim() === "") params.notes = undefined;
     return await changeFetch("/api/analyses", "POST", params);
 }
 
