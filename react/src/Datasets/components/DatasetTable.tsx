@@ -190,7 +190,10 @@ export default function DatasetTable() {
                 editable: "never",
                 filtering: false,
                 render: rowData => (
-                    <ChipGroup names={rowData.group_code.map(c => c.toUpperCase())} size="small" />
+                    <ChipGroup
+                        names={rowData.group_code?.map(c => c.toUpperCase()) || []}
+                        size="small"
+                    />
                 ),
             });
         }
