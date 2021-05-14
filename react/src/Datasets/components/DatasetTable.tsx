@@ -22,6 +22,7 @@ import {
     useDatasetUpdateMutation,
     useDownloadCsv,
     useEnumsQuery,
+    useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useSortOrderCache,
     useTableFilterCache,
@@ -115,6 +116,9 @@ export default function DatasetTable() {
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Dataset>(
         "datasetTableDefaultFilters"
     );
+    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Dataset>(
+        "datasetTableDefaultHidden"
+    );
 
     const columns = useMemo(() => {
         const columns: Column<Dataset>[] = [
@@ -167,10 +171,10 @@ export default function DatasetTable() {
                 defaultFilter: paramID,
             },
         ];
-
+        setHiddenColumns(columns);
         setInitialFilters(columns);
         return columns;
-    }, [conditions, datasetTypes, paramID, tissueSampleTypes, setInitialFilters]);
+    }, [conditions, datasetTypes, paramID, tissueSampleTypes, setInitialFilters, setHiddenColumns]);
 
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
@@ -324,6 +328,7 @@ export default function DatasetTable() {
                 ]}
                 onColumnDragged={handleColumnDrag}
                 onOrderChange={handleSortChange}
+                onChangeColumnHidden={handleChangeColumnHidden}
             />
         </div>
     );

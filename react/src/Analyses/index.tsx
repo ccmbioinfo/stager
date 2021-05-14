@@ -30,6 +30,7 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useHiddenColumnCache,
     useSortOrderCache,
     useTableFilterCache,
 } from "../hooks";
@@ -167,6 +168,9 @@ export default function Analyses() {
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Analysis>(
         "analysisTableDefaultFilters"
     );
+    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
+        "analysisTableDefaultHidden"
+    );
 
     function changeAnalysisState(newState: PipelineStatus) {
         return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
@@ -265,9 +269,17 @@ export default function Analyses() {
                 defaultFilter: paramID,
             },
         ];
+        setHiddenColumns(columns);
         setInitialFilters(columns);
         return columns;
-    }, [enums?.PriorityType, paramID, pipelineStatusLookup, priorityLookup, setInitialFilters]);
+    }, [
+        enums?.PriorityType,
+        paramID,
+        pipelineStatusLookup,
+        priorityLookup,
+        setInitialFilters,
+        setHiddenColumns,
+    ]);
 
     return (
         <main className={classes.content}>
@@ -564,6 +576,7 @@ export default function Analyses() {
                     }}
                     onColumnDragged={handleColumnDrag}
                     onOrderChange={handleSortChange}
+                    onChangeColumnHidden={handleChangeColumnHidden}
                 />
             </Container>
         </main>

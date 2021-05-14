@@ -17,6 +17,7 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useParticipantsPage,
     useSortOrderCache,
@@ -50,6 +51,9 @@ export default function ParticipantTable() {
 
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Participant>(
         "participantTableDefaultFilters"
+    );
+    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Participant>(
+        "participantTableDefaultHidden"
     );
 
     const columns = useMemo(() => {
@@ -110,9 +114,10 @@ export default function ParticipantTable() {
                 ),
             },
         ];
+        setHiddenColumns(columns);
         setInitialFilters(columns);
         return columns;
-    }, [datasetTypes, sexTypes, participantTypes, paramID, setInitialFilters]);
+    }, [datasetTypes, sexTypes, participantTypes, paramID, setInitialFilters, setHiddenColumns]);
 
     const tableRef = useRef<any>();
 
@@ -253,6 +258,7 @@ export default function ParticipantTable() {
                 ]}
                 onColumnDragged={handleColumnDrag}
                 onOrderChange={handleSortChange}
+                onChangeColumnHidden={handleChangeColumnHidden}
             />
         </div>
     );
