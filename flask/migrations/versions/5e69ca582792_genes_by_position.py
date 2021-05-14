@@ -27,7 +27,7 @@ def upgrade():
 
     op.create_table(
         "gene",
-        sa.Column("chromosome", sa.String(length=15), nullable=False),
+        sa.Column("chromosome", sa.String(length=2), nullable=False),
         sa.Column("end", sa.Integer(), nullable=False),
         sa.Column("source", sa.String(length=20), nullable=True),
         sa.Column("start", sa.Integer(), nullable=False),
@@ -49,7 +49,7 @@ def upgrade():
     )
 
     op.add_column(
-        "variant", sa.Column("chromosome", sa.String(length=15), nullable=False)
+        "variant", sa.Column("chromosome", sa.String(length=2), nullable=False)
     )
     op.alter_column(
         "variant",
