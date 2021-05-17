@@ -7,6 +7,8 @@ import {
     BooleanDisplay,
     BooleanEditComponent,
     BooleanFilter,
+    DateFilterComponent,
+    DateTimeText,
     EditNotes,
     MaterialTablePrimary,
     Note,
@@ -47,6 +49,19 @@ export default function ParticipantTable() {
             metadatasetTypesQuery.data &&
             toKeyValue(Object.values(metadatasetTypesQuery.data).flat()),
         [metadatasetTypesQuery.data]
+    );
+    const tableRef = useRef<any>();
+
+    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(
+        tableRef,
+        "participantTableColumnOrder",
+        cacheDeps
+    );
+    const { handleOrderChange, setInitialSorting } = useSortOrderCache<Participant>(
+        tableRef,
+        "participantTableSortOrder"
     );
 
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Participant>(
@@ -104,6 +119,15 @@ export default function ParticipantTable() {
                 editComponent: EditNotes,
             },
             {
+                title: "Updated",
+                field: "updated",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.updated} />,
+                filterComponent: DateFilterComponent,
+                defaultSort: "desc",
+            },
+            {
                 title: "Dataset Types",
                 field: "dataset_types",
                 editable: "never",
@@ -114,27 +138,25 @@ export default function ParticipantTable() {
                 ),
             },
         ];
+        setInitialSorting(columns);
         setHiddenColumns(columns);
         setInitialFilters(columns);
         return columns;
-    }, [datasetTypes, sexTypes, participantTypes, paramID, setInitialFilters, setHiddenColumns]);
-
-    const tableRef = useRef<any>();
+    }, [
+        datasetTypes,
+        sexTypes,
+        participantTypes,
+        paramID,
+        setInitialFilters,
+        setInitialSorting,
+        setHiddenColumns,
+    ]);
 
     const downloadCsv = useDownloadCsv(GET_PARTICIPANTS_URL);
 
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
-
-    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(
-        tableRef,
-        "participantTableColumnOrder",
-        cacheDeps
-    );
-    const handleSortChange = useSortOrderCache(tableRef, "participantTableSortOrder", cacheDeps);
 
     async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -257,8 +279,8 @@ export default function ParticipantTable() {
                     },
                 ]}
                 onColumnDragged={handleColumnDrag}
-                onOrderChange={handleSortChange}
                 onChangeColumnHidden={handleChangeColumnHidden}
+                onOrderChange={handleOrderChange}
             />
         </div>
     );

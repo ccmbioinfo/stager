@@ -164,12 +164,15 @@ export default function Analyses() {
     const cacheDeps = [enumsQuery.isFetched];
 
     const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
-    const handleSortChange = useSortOrderCache(tableRef, "analysisTableSortOrder", cacheDeps);
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Analysis>(
         "analysisTableDefaultFilters"
     );
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
         "analysisTableDefaultHidden"
+    );
+    const { handleOrderChange, setInitialSorting } = useSortOrderCache<Analysis>(
+        tableRef,
+        "analysisTableSortOrder"
     );
 
     function changeAnalysisState(newState: PipelineStatus) {
@@ -234,6 +237,15 @@ export default function Analyses() {
                 editable: "always",
             },
             {
+                title: "Requested",
+                field: "requested",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.requested} />,
+                filterComponent: DateFilterComponent,
+                defaultSort: "desc",
+            },
+            {
                 title: "Updated",
                 field: "updated",
                 type: "string",
@@ -270,6 +282,7 @@ export default function Analyses() {
             },
         ];
         setHiddenColumns(columns);
+        setInitialSorting(columns);
         setInitialFilters(columns);
         return columns;
     }, [
@@ -279,6 +292,7 @@ export default function Analyses() {
         priorityLookup,
         setInitialFilters,
         setHiddenColumns,
+        setInitialSorting,
     ]);
 
     return (
@@ -575,8 +589,8 @@ export default function Analyses() {
                         },
                     }}
                     onColumnDragged={handleColumnDrag}
-                    onOrderChange={handleSortChange}
                     onChangeColumnHidden={handleChangeColumnHidden}
+                    onOrderChange={handleOrderChange}
                 />
             </Container>
         </main>

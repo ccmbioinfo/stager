@@ -113,11 +113,21 @@ export default function DatasetTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
     };
 
+    //setting to `any` b/c MTable typing doesn't include dataManager
+    const MTRef = useRef<any>();
+
+    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched, filesQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Dataset>(
         "datasetTableDefaultFilters"
     );
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Dataset>(
         "datasetTableDefaultHidden"
+    );
+    const { handleOrderChange, setInitialSorting } = useSortOrderCache<Dataset>(
+        MTRef,
+        "datasetTableSortOrder"
     );
 
     const columns = useMemo(() => {
@@ -162,6 +172,7 @@ export default function DatasetTable() {
                 editable: "never",
                 render: RenderDatePicker,
                 filterComponent: DateFilterComponent,
+                defaultSort: "desc",
             },
             { title: "Updated By", field: "updated_by", editable: "never" },
             {
@@ -171,18 +182,19 @@ export default function DatasetTable() {
                 defaultFilter: paramID,
             },
         ];
+        setInitialSorting(columns);
         setHiddenColumns(columns);
         setInitialFilters(columns);
         return columns;
-    }, [conditions, datasetTypes, paramID, tissueSampleTypes, setInitialFilters, setHiddenColumns]);
-
-    //setting to `any` b/c MTable typing doesn't include dataManager
-    const MTRef = useRef<any>();
-
-    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched, filesQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
-    const handleSortChange = useSortOrderCache(MTRef, "datasetTableSortOrder", cacheDeps);
+    }, [
+        conditions,
+        datasetTypes,
+        paramID,
+        tissueSampleTypes,
+        setInitialFilters,
+        setInitialSorting,
+        setHiddenColumns,
+    ]);
 
     return (
         <div>
@@ -327,8 +339,8 @@ export default function DatasetTable() {
                     },
                 ]}
                 onColumnDragged={handleColumnDrag}
-                onOrderChange={handleSortChange}
                 onChangeColumnHidden={handleChangeColumnHidden}
+                onOrderChange={handleOrderChange}
             />
         </div>
     );
