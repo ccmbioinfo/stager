@@ -133,6 +133,7 @@ export default function ParticipantTable() {
                 editable: "never",
                 lookup: datasetTypes,
                 filtering: false,
+                sorting: false,
                 render: (rowData: Participant) => (
                     <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
                 ),

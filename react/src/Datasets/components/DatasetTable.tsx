@@ -189,6 +189,7 @@ export default function DatasetTable() {
                 field: "group_code",
                 editable: "never",
                 filtering: false,
+                sorting: false,
                 render: rowData => (
                     <ChipGroup
                         names={rowData.group_code?.map(c => c.toUpperCase()) || []}
