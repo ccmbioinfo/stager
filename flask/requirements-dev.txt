@@ -132,7 +132,7 @@ urllib3==1.26.4
     # via
     #   minio
     #   requests
-werkzeug==1.0.1
+werkzeug==2.0.0
     # via
     #   -r requirements.in
     #   flask
