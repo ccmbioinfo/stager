@@ -6,6 +6,7 @@ import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import {
+    ChipGroup,
     DateFilterComponent,
     DateTimeText,
     EditNotes,
@@ -182,6 +183,21 @@ export default function DatasetTable() {
                 defaultFilter: paramID,
             },
         ];
+        if (currentUser.is_admin || currentUser.groups.length > 1) {
+            columns.push({
+                title: "Permission Groups",
+                field: "group_code",
+                editable: "never",
+                filtering: false,
+                sorting: false,
+                render: rowData => (
+                    <ChipGroup
+                        names={rowData.group_code?.map(c => c.toUpperCase()) || []}
+                        size="small"
+                    />
+                ),
+            });
+        }
         setInitialSorting(columns);
         setHiddenColumns(columns);
         setInitialFilters(columns);
@@ -191,6 +207,7 @@ export default function DatasetTable() {
         datasetTypes,
         paramID,
         tissueSampleTypes,
+        currentUser,
         setInitialFilters,
         setInitialSorting,
         setHiddenColumns,

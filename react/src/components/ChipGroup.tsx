@@ -3,7 +3,7 @@ import { Box, BoxProps, Chip, ChipProps, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles(theme => ({
     chip: {
-        marginLeft: theme.spacing(1),
+        margin: theme.spacing(0.5),
     },
 }));
 
