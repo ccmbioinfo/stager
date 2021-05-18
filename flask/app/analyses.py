@@ -389,6 +389,7 @@ def create_analysis():
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["POST"])
 @login_required
 def create_reanalysis(id: int):
+    app.logger.info(f"Checking if analysis {id} exists...")
     analysis = models.Analysis.query.filter(
         models.Analysis.analysis_id == id
     ).first_or_404()
@@ -404,6 +405,7 @@ def create_reanalysis(id: int):
     else:
         requester_id = updated_by_id = user_id = current_user.user_id
 
+    app.logger.info("Checking if datasets are available to user...")
     if user_id:
         found_datasets_query = (
             models.Dataset.query.join(
@@ -429,6 +431,9 @@ def create_reanalysis(id: int):
         abort(404, description="Some datasets were not found")
 
     # TODO: Do we need to check for compatibility if the previous analysis already exists?
+    app.logger.info(
+        f"Checking if datasets are still compatible with pipeline {analysis.pipeline_id}..."
+    )
     compatible_datasets_pipelines_query = (
         db.session.query(
             models.Dataset,
@@ -453,6 +458,7 @@ def create_reanalysis(id: int):
     if len(compatible_datasets_pipelines_query) != len(datasets):
         abort(404, description="Requested pipelines are incompatible with datasets")
 
+    app.logger.info("Cloning previous analysis...")
     # Clone attributes from existing analysis, overwrite some
     now = datetime.now()
     new_analysis = clone_model_object(

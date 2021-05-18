@@ -247,3 +247,52 @@ def test_create_analysis(test_database, client, login_as):
             ).status_code
             == expected_error_code
         )
+
+
+# POST /api/analyses/:id
+
+
+def test_reanalysis(test_database, client, login_as):
+    login_as("user_b")
+
+    # test valid id with wrong permission
+    assert client.post("/api/analyses/2").status_code == 404
+
+    login_as("admin")
+
+    # test invalid id given
+    assert client.post("/api/analyses/999").status_code == 404
+
+    # test valid id given
+    response = client.post("/api/analyses/1")
+    assert response.status_code == 201
+
+    analysis_id = response.get_json()["analysis_id"]
+    new_analysis = (
+        models.Analysis.query.options(joinedload(models.Analysis.datasets))
+        .filter(models.Analysis.analysis_id == analysis_id)
+        .one_or_none()
+    )
+    old_analysis = (
+        models.Analysis.query.options(joinedload(models.Analysis.datasets))
+        .filter(models.Analysis.analysis_id == 1)
+        .one_or_none()
+    )
+    assert new_analysis is not None
+    assert len(new_analysis.datasets) == len(old_analysis.datasets)
+    for i in range(len(new_analysis.datasets)):
+        old, new = old_analysis.datasets[i], new_analysis.datasets[i]
+        assert old.dataset_id == new.dataset_id
+
+    assert new_analysis.analysis_state == "Requested"
+
+    # test id of re-analysis given
+    response = client.post(f"/api/analyses/{analysis_id}")
+    assert response.status_code == 201
+    new_id = response.get_json()["analysis_id"]
+    new_new_analysis = (
+        models.Analysis.query.options(joinedload(models.Analysis.datasets))
+        .filter(models.Analysis.analysis_id == new_id)
+        .one_or_none()
+    )
+    assert new_new_analysis is not None
