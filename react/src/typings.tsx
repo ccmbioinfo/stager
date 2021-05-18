@@ -69,7 +69,6 @@ export interface Dataset {
     tissue_sample_type: string;
     tissue_sample_id: string;
     dataset_type: string;
-    group_codes: string[];
     linked_files: string[]; // paths to files
     notes: string;
     condition: string;
@@ -87,7 +86,7 @@ export interface Dataset {
     updated: string;
     updated_by: number;
     discriminator: string;
-    group_code?: string[];
+    group_code: string[];
 }
 
 // Result from /api/datasets/:id

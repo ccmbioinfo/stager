@@ -191,7 +191,6 @@ def list_datasets(page: int, limit: int) -> Response:
     results = [
         {
             **asdict(dataset),
-            "group_codes": [group.group_code for group in dataset.groups],
             "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
             "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,

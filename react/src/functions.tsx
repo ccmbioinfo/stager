@@ -138,7 +138,7 @@ export function getDatasetFields(dataset: Dataset) {
         createFieldObj("Participant Aliases", dataset.participant_aliases, "participant_aliases"),
         createFieldObj("Family Codename", dataset.family_codename, "family_codename"),
         createFieldObj("Family Aliases", dataset.family_aliases, "family_aliases"),
-        createFieldObj("Permission Groups", dataset.group_codes.join(", "), "group_codes", true),
+        createFieldObj("Permission Groups", dataset.group_code.join(", "), "group_codes", true),
         createFieldObj("Tissue Sample Type", dataset.tissue_sample_type, "tissue_sample_type"),
         createFieldObj("Sequencing Centre", dataset.sequencing_centre, "sequencing_centre"),
         createFieldObj("Notes", dataset.notes, "notes"),
