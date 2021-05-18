@@ -203,6 +203,7 @@ def list_datasets(page: int, limit: int) -> Response:
             "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
             "created_by": dataset.created_by.username,
             "updated_by": dataset.updated_by.username,
+            "group_code": [group.group_code for group in dataset.groups],
         }
         for dataset in datasets
     ]

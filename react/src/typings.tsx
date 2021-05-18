@@ -87,6 +87,7 @@ export interface Dataset {
     updated: string;
     updated_by: number;
     discriminator: string;
+    group_code?: string[];
 }
 
 // Result from /api/datasets/:id

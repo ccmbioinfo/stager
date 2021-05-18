@@ -7,6 +7,8 @@ import {
     BooleanDisplay,
     BooleanEditComponent,
     BooleanFilter,
+    DateFilterComponent,
+    DateTimeText,
     EditNotes,
     MaterialTablePrimary,
     Note,
@@ -17,6 +19,7 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useParticipantsPage,
     useSortOrderCache,
@@ -47,9 +50,25 @@ export default function ParticipantTable() {
             toKeyValue(Object.values(metadatasetTypesQuery.data).flat()),
         [metadatasetTypesQuery.data]
     );
+    const tableRef = useRef<any>();
+
+    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(
+        tableRef,
+        "participantTableColumnOrder",
+        cacheDeps
+    );
+    const { handleOrderChange, setInitialSorting } = useSortOrderCache<Participant>(
+        tableRef,
+        "participantTableSortOrder"
+    );
 
     const { handleFilterChange, setInitialFilters } = useTableFilterCache<Participant>(
         "participantTableDefaultFilters"
+    );
+    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Participant>(
+        "participantTableDefaultHidden"
     );
 
     const columns = useMemo(() => {
@@ -100,36 +119,45 @@ export default function ParticipantTable() {
                 editComponent: EditNotes,
             },
             {
+                title: "Updated",
+                field: "updated",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.updated} />,
+                filterComponent: DateFilterComponent,
+                defaultSort: "desc",
+            },
+            {
                 title: "Dataset Types",
                 field: "dataset_types",
                 editable: "never",
                 lookup: datasetTypes,
                 filtering: false,
+                sorting: false,
                 render: (rowData: Participant) => (
                     <DatasetTypes datasetTypes={countArray(rowData.dataset_types)} />
                 ),
             },
         ];
+        setInitialSorting(columns);
+        setHiddenColumns(columns);
         setInitialFilters(columns);
         return columns;
-    }, [datasetTypes, sexTypes, participantTypes, paramID, setInitialFilters]);
-
-    const tableRef = useRef<any>();
+    }, [
+        datasetTypes,
+        sexTypes,
+        participantTypes,
+        paramID,
+        setInitialFilters,
+        setInitialSorting,
+        setHiddenColumns,
+    ]);
 
     const downloadCsv = useDownloadCsv(GET_PARTICIPANTS_URL);
 
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
-
-    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(
-        tableRef,
-        "participantTableColumnOrder",
-        cacheDeps
-    );
-    const handleSortChange = useSortOrderCache(tableRef, "participantTableSortOrder", cacheDeps);
 
     async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -252,7 +280,8 @@ export default function ParticipantTable() {
                     },
                 ]}
                 onColumnDragged={handleColumnDrag}
-                onOrderChange={handleSortChange}
+                onChangeColumnHidden={handleChangeColumnHidden}
+                onOrderChange={handleOrderChange}
             />
         </div>
     );

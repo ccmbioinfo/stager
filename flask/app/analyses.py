@@ -44,6 +44,7 @@ def list_analyses(page: int, limit: int) -> Response:
         "assignee",
         "requester",
         "priority",
+        "requested",
     ]
     assignee_user = aliased(models.User)
     requester_user = aliased(models.User)
@@ -94,6 +95,9 @@ def list_analyses(page: int, limit: int) -> Response:
     updated = request.args.get("updated", type=str)
     if updated:
         filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
+    requested = request.args.get("requested", type=str)
+    if requested:
+        filters.append(filter_updated_or_abort(models.Analysis.requested, requested))
     analysis_state = request.args.get("analysis_state", type=str)
     if analysis_state:
         filters.append(
