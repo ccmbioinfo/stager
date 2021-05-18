@@ -27,7 +27,11 @@ function getParticipantFields(participant: Participant): Field[] {
         createFieldObj("Family Codename", participant.family_codename, "family_codename"),
         createFieldObj("Family Aliases", participant.family_aliases, "family_aliases"),
         createFieldObj("Participant Type", participant.participant_type, "participant_type"),
-        createFieldObj("Participant Aliases", participant.participant_aliases, "participant_aliases"),
+        createFieldObj(
+            "Participant Aliases",
+            participant.participant_aliases,
+            "participant_aliases"
+        ),
         createFieldObj("Sex", participant.sex, "sex"),
         createFieldObj("Affected", stringToBoolean(participant.affected), "affected", true),
         createFieldObj("Solved", stringToBoolean(participant.solved), "solved"),
