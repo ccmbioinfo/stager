@@ -426,6 +426,7 @@ class Gene(db.Model):
     chromosome: str = db.Column(db.String(2), nullable=False)
     # indicates whether the feature is from havana, ensembl or both
     source: str = db.Column(db.String(20))
+    # GRCh37 coordinates, incompatible with others
     start: int = db.Column(db.Integer, nullable=False)
     end: int = db.Column(db.Integer, nullable=False)
     aliases = db.relationship("GeneAlias", backref="gene")
@@ -454,6 +455,7 @@ class Variant(db.Model):
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
     chromosome: str = db.Column(db.String(2), nullable=False)
+    # GRCh37 coordinates, incompatible with others
     position: int = db.Column(db.Integer, nullable=False)
     reference_allele: str = db.Column(db.String(300), nullable=False)
     alt_allele: str = db.Column(db.String(300), nullable=False)

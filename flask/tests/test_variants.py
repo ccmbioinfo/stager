@@ -1,7 +1,5 @@
-import pytest
-from app import db, models
-import pandas as pd
 from io import BytesIO
+import pandas as pd
 
 
 def test_get_variant_summary(test_database, client, login_as):
