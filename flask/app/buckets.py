@@ -44,7 +44,7 @@ def get_unlinked_files():
     # Get all files in valid minio buckets
     all_files = []
     for bucket in valid_bucket_names:
-        objs = minioClient.list_objects(bucket)
+        objs = minioClient.list_objects(bucket, recursive=True)
         for obj in objs:
             all_files.append(bucket + "/" + obj.object_name)
 
