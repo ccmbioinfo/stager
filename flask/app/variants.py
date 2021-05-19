@@ -5,7 +5,7 @@ from flask import Blueprint, Response, abort, current_app as app, jsonify, reque
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager
-from sqlalchemy.sql import or_
+from sqlalchemy.sql import and_, or_
 
 import pandas as pd
 from . import models
@@ -105,7 +105,7 @@ def get_report_df(df: pd.DataFrame, type: str):
 
 def parse_gene_panel() -> List[Any]:
     """
-    Parses query string parameter ?panel=ENSGXXXXXXXX,ENSGXXXXXXX,HGNC:XXXX
+    Parses query string parameter ?panel=ENSGXXXXXXXX,ENSGXXXXXXX
     """
     genes = request.args.get("panel", type=str)
     if genes is None or len(genes) == 0:
@@ -113,17 +113,12 @@ def parse_gene_panel() -> List[Any]:
         abort(400, description="No gene(s) provided")
     genes = genes.lower().split(",")
     app.logger.info("Requested gene panel: %s", genes)
-    filters = []
+    ensgs = []
     errors = []
     for gene in genes:
         if gene.startswith("ensg"):
             try:
-                filters.append(models.Gene.ensembl_id == int(gene[4:]))
-            except ValueError:
-                errors.append(gene)
-        elif gene.startswith("hgnc:"):
-            try:
-                filters.append(models.Gene.hgnc_id == int(gene[5:]))
+                ensgs.append(int(gene[4:]))
             except ValueError:
                 errors.append(gene)
         else:
@@ -135,11 +130,10 @@ def parse_gene_panel() -> List[Any]:
     # we can't validate whether the requested genes are found in the results (if that is still desired), since gene is no longer a property like in the variant endpoint
     # this may not play well if we decide to pre-populate the entire gene table though since in that case, a gene can be found in the database but not have variants
     # Again, we customize the count query for efficiency
-    found_genes = (
-        models.Gene.query.filter(or_(*filters))
-        .with_entities(func.count(distinct(models.Gene.ensembl_id)))
-        .scalar()
-    )
+    query = models.Gene.query.filter(models.Gene.ensembl_id.in_(ensgs))
+    found_genes = query.with_entities(
+        func.count(distinct(models.Gene.ensembl_id))
+    ).scalar()
     if found_genes == 0:
         app.logger.error("No requested genes were found.")
         abort(400, description="No requested genes were found.")
@@ -147,14 +141,22 @@ def parse_gene_panel() -> List[Any]:
         app.logger.error("Not all requested genes were found.")
         abort(400, description="Not all requested genes were found.")
 
-    return filters
+    genes = query.all()
+    return [
+        and_(
+            gene.chromosome == models.Variant.chromosome,
+            gene.start <= models.Variant.position,
+            models.Variant.position <= gene.end,
+        )
+        for gene in genes
+    ]
 
 
 @variants_blueprint.route("/api/summary/participants", methods=["GET"])
 @login_required
 def participant_summary():
     """
-    GET /api/summary/participants?panel=ENSGXXXXXXXX,ENSGXXXXXXX,HGNC:XXXX
+    GET /api/summary/participants?panel=ENSGXXXXXXXX,ENSGXXXXXXX
     """
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -167,9 +169,9 @@ def participant_summary():
 
     query = (
         models.Dataset.query.options(
-            contains_eager(models.Dataset.genotype)
-            .contains_eager(models.Genotype.variant)
-            .contains_eager(models.Variant.gene),
+            contains_eager(models.Dataset.genotype).contains_eager(
+                models.Genotype.variant
+            ),
             contains_eager(models.Dataset.tissue_sample)
             .contains_eager(models.TissueSample.participant)
             .contains_eager(models.Participant.family),
@@ -178,7 +180,6 @@ def participant_summary():
         .join(models.TissueSample.datasets)
         .join(models.Dataset.genotype)
         .join(models.Genotype.analysis, models.Genotype.variant)
-        .join(models.Variant.gene)
         .join(models.Participant.family)
         .filter(or_(*filters))
     )
@@ -269,7 +270,7 @@ def participant_summary():
 @login_required
 def variant_summary():
     """
-    GET /api/summary/variants?panel=ENSGXXXXXXXX,ENSGXXXXXXX,HGNC:XXXX
+    GET /api/summary/variants?panel=ENSGXXXXXXXX,ENSGXXXXXXX
     """
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -281,10 +282,8 @@ def variant_summary():
     filters = parse_gene_panel()
 
     query = (
-        models.Gene.query.join(models.Gene.variants)
-        .options(
-            contains_eager(models.Gene.variants)
-            .contains_eager(models.Variant.genotype)
+        models.Variant.query.options(
+            contains_eager(models.Variant.genotype)
             .contains_eager(models.Genotype.analysis)
             .contains_eager(models.Analysis.datasets)
             .contains_eager(models.Dataset.tissue_sample)
