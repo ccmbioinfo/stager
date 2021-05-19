@@ -324,9 +324,13 @@ def test_database(client):
 
     # gene viewer
 
+    genes = [
+        (138131, "10", 98_247_690, 98_268_194, "LOXL4"),
+        (258366, "20", 63_657_810, 63_696_253, "RTEL1"),
+    ]
     positions = {
-        "LOXL4": ["10:100010909", "10:100016572", "10:100016632"],
-        "RTEL1": ["20:62326518", "20:62326938", "20:62327126"],
+        "LOXL4": [("10", 100010909), ("10", 100016572), ("10", 100016632)],
+        "RTEL1": [("20", 62326518), ("20", 62326938), ("20", 62327126)],
     }
     reference_alleles = {"LOXL4": ["C", "G", "G"], "RTEL1": ["C", "G", "C"]}
 
@@ -401,8 +405,8 @@ def test_database(client):
         },
     }
 
-    for ensg, gene in [(138131, "LOXL4"), (258366, "RTEL1")]:
-        gene_obj = Gene(ensembl_id=ensg)
+    for ensg, chromosome, start, end, gene in genes:
+        gene_obj = Gene(ensembl_id=ensg, chromosome=chromosome, start=start, end=end)
         db.session.add(gene_obj)
         db.session.flush()
         db.session.add(GeneAlias(ensembl_id=ensg, name=gene))
@@ -412,13 +416,13 @@ def test_database(client):
         for i in range(len(positions["LOXL4"])):
             variant_obj = Variant(
                 analysis_id=analysis_2.analysis_id,
-                position=positions[gene][i],
+                chromosome=positions[gene][i][0],
+                position=positions[gene][i][1],
                 reference_allele=reference_alleles[gene][i],
                 alt_allele=alt_alleles[gene][i],
                 variation=variations[gene][i],
                 refseq_change=refseq_changes[gene][i],
                 depth=depths[gene][i],
-                ensembl_id=gene_obj.ensembl_id,
                 conserved_in_20_mammals=conserved_in_20_mammals[gene][i],
                 sift_score=sift_scores[gene][i],
                 polyphen_score=polyphen_scores[gene][i],
