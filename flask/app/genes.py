@@ -58,18 +58,6 @@ def get_gene_by_name(name: str):
     return jsonify(serialize(gene))
 
 
-@genes_blueprint.route("/api/summary/genes/hgnc/<int:hgnc_id>", methods=["GET"])
-@login_required
-def get_gene_hgnc_id(hgnc_id: int):
-    """ return a gene based on hgnc id """
-    gene = (
-        Gene.query.options(joinedload(Gene.aliases))
-        .filter_by(hgnc_id=hgnc_id)
-        .first_or_404()
-    )
-    return jsonify(serialize(gene))
-
-
 @genes_blueprint.route("/api/summary/genes/ensg/<int:ensembl_id>", methods=["GET"])
 @login_required
 def get_gene_ensg_id(ensembl_id: int):

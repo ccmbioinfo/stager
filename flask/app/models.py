@@ -454,7 +454,7 @@ class Variant(db.Model):
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
     chromosome: str = db.Column(db.String(2), nullable=False)
-    position: str = db.Column(db.Integer, nullable=False)
+    position: int = db.Column(db.Integer, nullable=False)
     reference_allele: str = db.Column(db.String(300), nullable=False)
     alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
