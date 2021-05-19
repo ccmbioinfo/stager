@@ -82,6 +82,13 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                                         `Re-analysis of analysis ${props.analysis.analysis_id} requested.`
                                     );
                                 },
+                                onError: async response => {
+                                    const error = (await response.json()).error;
+                                    enqueueSnackbar(
+                                        `Failed to request re-analysis of ${props.analysis.analysis_id}: ${response.status} - ${error}`,
+                                        { variant: "error" }
+                                    );
+                                },
                             }
                         );
                     }}
