@@ -45,7 +45,7 @@ export function toKeyValue(items: string[]) {
  */
 export function formatDateString(date: string) {
     const datetime = dayjs.utc(date);
-    return datetime.local().format("LLLL");
+    return datetime.isValid() ? datetime.local().format("LLLL") : "";
 }
 
 /**
@@ -154,6 +154,7 @@ export function getDatasetFields(dataset: Dataset) {
  */
 export function getSecDatasetFields(dataset: Dataset) {
     return [
+        createFieldObj("Batch ID", dataset.batch_id, "batch_id"),
         createFieldObj("Linked Files", dataset.linked_files, "linked_files"),
         createFieldObj("Condition", dataset.condition, "condition"),
         createFieldObj("Extraction Protocol", dataset.extraction_protocol, "extraction_protocol"),
