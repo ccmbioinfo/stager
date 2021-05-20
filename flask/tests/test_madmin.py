@@ -84,7 +84,7 @@ def test_enable_disable_group(mc: MinioAdmin):
 
 def test_read_policy(mc: MinioAdmin):
     policies = mc.list_policies()
-    assert len(policies) == 4
+    assert len(policies) == 5
     for item in policies:
         policy = mc.get_policy(item["policy"])
         assert policy["policy"] == item["policy"]
@@ -110,7 +110,7 @@ def test_apply_policy(mc: MinioAdmin):
         mc.set_policy("too", "many", "arguments")
 
     num_prev_policies = len(mc.list_policies())
-    assert num_prev_policies == 4
+    assert num_prev_policies == 5
 
     mc.add_policy("reader", readonly)
     assert len(mc.list_policies()) == num_prev_policies + 1
