@@ -84,7 +84,7 @@ def test_enable_disable_group(mc: MinioAdmin):
 
 def test_read_policy(mc: MinioAdmin):
     policies = mc.list_policies()
-    assert len(policies) == 5
+    assert len(policies) == 4
     for item in policies:
         policy = mc.get_policy(item["policy"])
         assert policy["policy"] == item["policy"]
@@ -109,12 +109,15 @@ def test_apply_policy(mc: MinioAdmin):
     with pytest.raises(ValueError):
         mc.set_policy("too", "many", "arguments")
 
+    num_prev_policies = len(mc.list_policies())
+    assert num_prev_policies == 4
+
     mc.add_policy("reader", readonly)
-    assert len(mc.list_policies()) == 6
+    assert len(mc.list_policies()) == num_prev_policies + 1
     mc.add_policy("fullaccess", readwrite)
-    assert len(mc.list_policies()) == 7
+    assert len(mc.list_policies()) == num_prev_policies + 2
     mc.add_policy("rw", readwrite_buckets)
-    assert len(mc.list_policies()) == 8
+    assert len(mc.list_policies()) == num_prev_policies + 3
 
     mc.add_user("foo", "barbarbar")
     mc.group_add("yeet", "foo")
@@ -133,4 +136,4 @@ def test_apply_policy(mc: MinioAdmin):
     mc.remove_policy("rw")
     mc.remove_user("foo")
     mc.group_remove("yeet")
-    assert len(mc.list_policies()) == 5
+    assert len(mc.list_policies()) == num_prev_policies
