@@ -203,6 +203,8 @@ def test_create_group(test_database, client, login_as, minio_admin):
         == 422
     )
 
+    num_prev_policies = len(minio_admin.list_policies())
+
     # Test success with no users and check db and minio
     assert (
         client.post(
@@ -214,7 +216,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
     group = models.Group.query.filter(models.Group.group_code == "code").one_or_none()
     assert group is not None
     assert len(group.users) == 0
-    assert len(minio_admin.list_policies()) == 7
+    assert len(minio_admin.list_policies()) == num_prev_policies + 1
     minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
         access_key=TestConfig.MINIO_ACCESS_KEY,
@@ -243,7 +245,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
     group = models.Group.query.filter(models.Group.group_code == "code2").one_or_none()
     assert group is not None
     assert len(group.users) == 1
-    assert len(minio_admin.list_policies()) == 7
+    assert len(minio_admin.list_policies()) == num_prev_policies + 1
     assert len(minio_admin.get_group("code2")["members"]) == 1
     minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
