@@ -229,7 +229,6 @@ def participant_summary():
                             {
                                 **asdict(genotype),
                                 **asdict(genotype.variant),
-                                "gene": f"ENSG{genotype.variant.ensembl_id}",
                             }
                             for genotype in dataset.genotype
                         ],
@@ -324,22 +323,16 @@ def variant_summary():
         return jsonify(
             [
                 {
-                    **asdict(gene),
-                    "variants": [
+                    **asdict(variant),
+                    "genotype": [
                         {
-                            **asdict(variant),
-                            "genotype": [
-                                {
-                                    **asdict(genotype),
-                                    "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
-                                }
-                                for genotype in variant.genotype
-                            ],
+                            **asdict(genotype),
+                            "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
                         }
-                        for variant in gene.variants
+                        for genotype in variant.genotype
                     ],
                 }
-                for gene in q
+                for variant in q
             ],
         )
     elif expects_csv(request):
