@@ -25,7 +25,6 @@ const useStyles = makeStyles(theme => ({
 
 function getSamplesFields(sample: Sample) {
     return [
-        createFieldObj("Sample ID", sample.tissue_sample_id),
         createFieldObj("Sample Type", sample.tissue_sample_type),
         createFieldObj("Extraction Date", formatDateString(sample.extraction_date)),
         createFieldObj("Tissue Processing Protocol", sample.tissue_processing),
@@ -69,6 +68,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
                         <DetailSection
                             fields={getDatasetFields(props.dataset)}
                             enums={enums}
+                            columnWidth={4}
                             collapsibleFields={getSecDatasetFields(props.dataset)}
                             dataInfo={{
                                 type: "dataset",
@@ -82,6 +82,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
                 <div className={classes.infoSection}>
                     {sample && (
                         <DetailSection
+                            columnWidth={4}
                             fields={getSamplesFields(sample)}
                             enums={enums}
                             title="Associated Tissue Sample"
