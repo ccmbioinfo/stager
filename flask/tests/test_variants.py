@@ -75,7 +75,7 @@ def test_variant_wise_json_permissions(test_database, client, login_as):
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
-    assert len(response.get_json()) == 1
+    assert len(response.get_json()) == 3
 
 
 def test_participant_wise_json_single_gene(test_database, client, login_as):

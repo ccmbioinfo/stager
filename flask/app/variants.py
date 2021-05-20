@@ -30,13 +30,13 @@ def get_report_df(df: pd.DataFrame, type: str):
 
     df = df[
         [
+            "chromosome",
             "position",
             "reference_allele",
             "alt_allele",
             "variation",
             "refseq_change",
             "depth",
-            "gene",
             "conserved_in_20_mammals",
             "sift_score",
             "polyphen_score",
@@ -46,9 +46,7 @@ def get_report_df(df: pd.DataFrame, type: str):
             "burden",
             "alt_depths",
             "dataset_id",
-            "participant_id",
             "participant_codename",
-            "family_id",
             "family_codename",
         ]
     ]
@@ -68,7 +66,6 @@ def get_report_df(df: pd.DataFrame, type: str):
                 "variation": "first",
                 "refseq_change": "first",
                 "depth": list,
-                "gene": "first",
                 "conserved_in_20_mammals": "first",
                 "sift_score": "first",
                 "polyphen_score": "first",
@@ -78,9 +75,7 @@ def get_report_df(df: pd.DataFrame, type: str):
                 "burden": list,
                 "alt_depths": list,
                 "dataset_id": list,
-                "participant_id": list,
                 "participant_codename": list,
-                "family_id": lambda x: set(x),
                 "family_codename": lambda x: set(x),
             },
             axis="columns",
@@ -96,8 +91,6 @@ def get_report_df(df: pd.DataFrame, type: str):
             "participant_codename",
             "family_codename",
             "dataset_id",
-            "participant_id",
-            "family_id",
         ]:
             df[col] = df[col].apply(lambda g: "; ".join(g))
         return df
