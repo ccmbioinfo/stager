@@ -216,7 +216,6 @@ def test_create_group(test_database, client, login_as, minio_admin):
     group = models.Group.query.filter(models.Group.group_code == "code").one_or_none()
     assert group is not None
     assert len(group.users) == 0
-    print(minio_admin.list_policies())
     assert len(minio_admin.list_policies()) == num_prev_policies + 1
     minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
