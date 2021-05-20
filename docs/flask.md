@@ -211,10 +211,10 @@ There are 2 groups: `ach`, `bcch`.
 
 There are 4 users: `admin`, `user`, `user_a`, `user_b`
 
--   `admin` has `is_admin` privileges, and belongs to 0 groups.
--   `user` belongs to 1 group `ach`.
--   `user_a` belongs to 2 groups `ach`, `bcch`.
--   `user_b` belongs to 0 groups.
+-   `admin` (`user_id 1`) has `is_admin` privileges, and belongs to 0 groups.
+-   `user` (`user_id 2`) belongs to 1 group `ach`.
+-   `user_a` (`user_id 3`) belongs to 2 groups `ach`, `bcch`.
+-   `user_b` (`user_id 4`) belongs to 0 groups.
 
 There are 2 pipelines: `pipeline_1`, `pipeline_2`.
 
