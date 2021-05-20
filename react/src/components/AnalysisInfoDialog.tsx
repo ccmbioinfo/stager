@@ -24,6 +24,7 @@ function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
         createFieldObj("Assigned to", analysis.assignee),
         createFieldObj("Requested by", analysis.requester),
         createFieldObj("Status", analysis.analysis_state),
+        createFieldObj("Path Prefix", analysis.result_path),
         createFieldObj("Last Updated", formatDateString(analysis.updated)),
         createFieldObj("Notes", analysis.notes),
         createFieldObj("Pipeline", `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`),
