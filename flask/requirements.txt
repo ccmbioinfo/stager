@@ -32,7 +32,7 @@ flask-sqlalchemy==2.5.1
     #   flask-migrate
 flask-wtf==0.14.3
     # via -r requirements.in
-flask==1.1.2
+flask==2.0.1
     # via
     #   -r requirements.in
     #   flask-login
@@ -43,15 +43,15 @@ gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via requests
-itsdangerous==1.1.0
+itsdangerous==2.0.1
     # via
     #   flask
     #   flask-wtf
-jinja2==2.11.3
+jinja2==3.0.1
     # via flask
 mako==1.1.4
     # via alembic
-markupsafe==1.1.1
+markupsafe==2.0.1
     # via
     #   jinja2
     #   mako
@@ -87,7 +87,7 @@ urllib3==1.26.4
     # via
     #   minio
     #   requests
-werkzeug==1.0.1
+werkzeug==2.0.1
     # via
     #   -r requirements.in
     #   flask
