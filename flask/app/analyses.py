@@ -6,11 +6,13 @@ from sqlalchemy import distinct, func
 from sqlalchemy.orm import aliased, contains_eager
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
+from sqlalchemy.orm.session import make_transient
 
 from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    clone_entity,
     csv_response,
     enum_validate,
     expects_csv,
@@ -273,6 +275,10 @@ def create_analysis():
     if not (isinstance(datasets, list) and len(datasets)):
         abort(400, description="Missing datasets field or invalid type")
 
+    notes = request.json.get("notes")
+    if notes and not isinstance(notes, str):
+        abort(400, description="Invalid notes type")
+
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
@@ -348,6 +354,7 @@ def create_analysis():
         updated=now,
         updated_by_id=updated_by_id,
         datasets=found_datasets,
+        notes=notes,
     )
 
     db.session.add(analysis)
@@ -381,6 +388,128 @@ def create_analysis():
         ),
         201,
         {"location": f"/api/analyses/{analysis.analysis_id}"},
+    )
+
+
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["POST"])
+@login_required
+def create_reanalysis(id: int):
+    app.logger.info(f"Checking if analysis {id} exists...")
+    analysis = models.Analysis.query.filter(
+        models.Analysis.analysis_id == id
+    ).first_or_404()
+
+    datasets = [dataset.dataset_id for dataset in analysis.datasets]
+
+    if app.config.get("LOGIN_DISABLED"):
+        user_id = request.args.get("user")
+        requester_id = updated_by_id = user_id or 1
+    elif current_user.is_admin:
+        user_id = request.args.get("user")
+        requester_id = updated_by_id = user_id or current_user.user_id
+    else:
+        requester_id = updated_by_id = user_id = current_user.user_id
+
+    app.logger.info("Checking if datasets are available to user...")
+    if user_id:
+        found_datasets_query = (
+            models.Dataset.query.join(
+                models.groups_datasets_table,
+                models.Dataset.dataset_id
+                == models.groups_datasets_table.columns.dataset_id,
+            )
+            .join(
+                models.users_groups_table,
+                models.groups_datasets_table.columns.group_id
+                == models.users_groups_table.columns.group_id,
+            )
+            .filter(models.users_groups_table.columns.user_id == user_id)
+        )
+    else:
+        found_datasets_query = models.Dataset.query
+
+    found_datasets = found_datasets_query.filter(
+        models.Dataset.dataset_id.in_(datasets)
+    ).all()
+
+    if len(found_datasets) != len(datasets):
+        abort(404, description="Some datasets were not found")
+
+    # TODO: Do we need to check for compatibility if the previous analysis already exists?
+    app.logger.info(
+        f"Checking if datasets are still compatible with pipeline {analysis.pipeline_id}..."
+    )
+    compatible_datasets_pipelines_query = (
+        db.session.query(
+            models.Dataset,
+            models.MetaDatasetType_DatasetType,
+            models.PipelineDatasets,
+        )
+        .filter(models.Dataset.dataset_id.in_(datasets))
+        .join(
+            models.MetaDatasetType_DatasetType,
+            models.Dataset.dataset_type
+            == models.MetaDatasetType_DatasetType.dataset_type,
+        )
+        .join(
+            models.PipelineDatasets,
+            models.PipelineDatasets.supported_metadataset_type
+            == models.MetaDatasetType_DatasetType.metadataset_type,
+        )
+        .filter(models.PipelineDatasets.pipeline_id == analysis.pipeline_id)
+        .all()
+    )
+
+    if len(compatible_datasets_pipelines_query) != len(datasets):
+        abort(404, description="Requested pipelines are incompatible with datasets")
+
+    app.logger.info("Cloning previous analysis...")
+    # Clone attributes from existing analysis, overwrite some
+    now = datetime.now()
+    new_analysis = clone_entity(
+        analysis,
+        analysis_state="Requested",
+        requested=now,
+        updated=now,
+        requester_id=requester_id,
+        updated_by_id=updated_by_id,
+        notes=f"Reanalysis of analysis ID {id}",
+        datasets=found_datasets,
+    )
+
+    db.session.add(new_analysis)
+    transaction_or_abort(db.session.commit)
+
+    return (
+        jsonify(
+            {
+                **asdict(new_analysis),
+                "requester": new_analysis.requester_id
+                and new_analysis.requester.username,
+                "updated_by": new_analysis.updated_by_id
+                and new_analysis.updated_by.username,
+                "assignee": new_analysis.assignee_id and new_analysis.assignee.username,
+                "pipeline": new_analysis.pipeline,
+                "datasets": [
+                    {
+                        **asdict(dataset),
+                        "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                        "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                        "participant_type": dataset.tissue_sample.participant.participant_type,
+                        "institution": dataset.tissue_sample.participant.institution.institution
+                        if dataset.tissue_sample.participant.institution
+                        else None,
+                        "sex": dataset.tissue_sample.participant.sex,
+                        "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                        "updated_by": dataset.tissue_sample.updated_by.username,
+                        "created_by": dataset.tissue_sample.created_by.username,
+                    }
+                    for dataset in new_analysis.datasets
+                ],
+            }
+        ),
+        201,
+        {"location": f"/api/analyses/{new_analysis.analysis_id}"},
     )
 
 

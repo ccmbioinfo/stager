@@ -260,6 +260,21 @@ def expects_csv(req: Request):
     return "text/csv" in req.accept_mimetypes
 
 
+# https://stackoverflow.com/a/55991358
+def clone_entity(model_object, **kwargs):
+    """
+    Clone an arbitrary sqlalchemy entity (eg. from a query.first()) without its primary key values.
+    """
+
+    table = model_object.__table__
+    non_pk_columns = [k for k in table.columns.keys() if k not in table.primary_key]
+    data = {c: getattr(model_object, c) for c in non_pk_columns}
+    data.update(kwargs)
+
+    clone = model_object.__class__(**data)
+    return clone
+
+
 def stager_is_keycloak_admin():
     """
     Return true if OIDC is enabled and if Stager is using a Keycloak
