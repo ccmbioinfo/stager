@@ -34,8 +34,6 @@ cryptography==3.4.7
     #   pymysql
 flask-login==0.5.0
     # via -r requirements.in
-flask-migrate==2.7.0
-    # via -r requirements.in
 flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
@@ -46,15 +44,12 @@ flask==2.0.1
     #   flask-login
     #   flask-migrate
     #   flask-sqlalchemy
+flask_migrate==3.0.0
+    # via -r requirements.in
 gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via requests
-importlib-metadata==4.0.1
-    # via
-    #   click
-    #   pluggy
-    #   pytest
 iniconfig==1.1.1
     # via pytest
 isort==5.8.0
@@ -124,13 +119,9 @@ toml==0.10.2
     #   pylint
     #   pytest
 typed-ast==1.4.2
-    # via
-    #   astroid
-    #   black
+    # via black
 typing-extensions==3.10.0.0
-    # via
-    #   black
-    #   importlib-metadata
+    # via black
 urllib3==1.26.4
     # via
     #   minio
@@ -139,8 +130,6 @@ werkzeug==2.0.1
     # via flask
 wrapt==1.12.1
     # via astroid
-zipp==3.4.1
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
