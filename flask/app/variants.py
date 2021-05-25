@@ -64,6 +64,7 @@ def get_report_df(df: pd.DataFrame, type: str):
         df = df.groupby(["position", "reference_allele", "alt_allele"]).agg(
             {
                 "variation": "first",
+                "chromosome": "first",
                 "refseq_change": "first",
                 "depth": list,
                 "conserved_in_20_mammals": "first",
