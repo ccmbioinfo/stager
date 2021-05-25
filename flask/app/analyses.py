@@ -12,7 +12,7 @@ from . import models
 from .extensions import db
 from .utils import (
     check_admin,
-    clone_model_object,
+    clone_entity,
     csv_response,
     enum_validate,
     expects_csv,
@@ -461,7 +461,7 @@ def create_reanalysis(id: int):
     app.logger.info("Cloning previous analysis...")
     # Clone attributes from existing analysis, overwrite some
     now = datetime.now()
-    new_analysis = clone_model_object(
+    new_analysis = clone_entity(
         analysis,
         analysis_state="Requested",
         requested=now,

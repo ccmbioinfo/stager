@@ -261,9 +261,9 @@ def expects_csv(req: Request):
 
 
 # https://stackoverflow.com/a/55991358
-def clone_model_object(model_object, **kwargs):
+def clone_entity(model_object, **kwargs):
     """
-    Clone an arbitrary sqlalchemy model object without its primary key values.
+    Clone an arbitrary sqlalchemy entity (eg. from a query.first()) without its primary key values.
     """
 
     table = model_object.__table__
