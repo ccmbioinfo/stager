@@ -99,7 +99,11 @@ def get_report_df(df: pd.DataFrame, type: str):
 
 def parse_gene_panel() -> List[Any]:
     """
-    Parses query string parameter ?panel=ENSGXXXXXXXX,ENSGXXXXXXX
+    Parses query string parameter ?panel=ENSGXXXXXXXX,ENSGXXXXXXX for the current request.
+    We abort if the panel parameter is missing or malformed. If any specified gene isn't
+    in our database, we also abort.
+    Returns a list of filters for use against the variant table to find corresponding variants
+    based on gene start and end positions.
     """
     genes = request.args.get("panel", type=str)
     if genes is None or len(genes) == 0:
