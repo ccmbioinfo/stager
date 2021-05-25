@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Column } from "@material-table/core";
-import { Checkbox, ListItemText, MenuItem, Select } from "@material-ui/core";
+import { Checkbox, FormControl, ListItemText, MenuItem, Select } from "@material-ui/core";
 import { usePipelinesQuery } from "../../hooks";
 import { Analysis, Pipeline } from "../../typings";
 
@@ -33,7 +33,9 @@ export default function PipelineFilter(props: FilterProps) {
     ]);
 
     // Filter value is a string of comma-separated pipeline IDs
-    const filterValue: number[] = (props.columnDef as any).tableData.filterValue?.split(",") || [];
+    const filterValue: number[] =
+        (props.columnDef as any).tableData.filterValue?.split(",").map((i: string) => Number(i)) ||
+        [];
 
     // Selected pipeline_ids
     const [selected, setSelected] = useState(filterValue);
@@ -48,7 +50,7 @@ export default function PipelineFilter(props: FilterProps) {
     }
 
     return (
-        <>
+        <FormControl style={{ width: "100%" }}>
             {pipelinesObj && pipelineList && (
                 <Select
                     multiple
@@ -67,6 +69,6 @@ export default function PipelineFilter(props: FilterProps) {
                     ))}
                 </Select>
             )}
-        </>
+        </FormControl>
     );
 }
