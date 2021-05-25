@@ -19,6 +19,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TextField,
     Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
@@ -49,6 +50,7 @@ export default function AnalysisRunnerDialog({
     const pipelines = pipelineQuery.data || [];
     const [pipeline, setPipeline] = useState(NaN);
     const [analysisPriority, setAnalysisPriority] = useState<AnalysisPriority | "None" | "">("");
+    const [notes, setNotes] = useState("");
     const mutation = useAnalysisCreateMutation();
     const { data: enums } = useEnumsQuery();
 
@@ -121,6 +123,23 @@ export default function AnalysisRunnerDialog({
                             </RadioGroup>
                         </FormControl>
                     </Grid>
+                    <Grid item>
+                        <FormControl component="fieldset" fullWidth>
+                            <FormLabel component="legend" className={classes.text}>
+                                Notes:
+                            </FormLabel>
+                            <TextField
+                                aria-label="Notes"
+                                name="notes"
+                                variant="filled"
+                                multiline
+                                fullWidth
+                                margin="normal"
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                            />
+                        </FormControl>
+                    </Grid>
                 </Grid>
                 <Typography variant="subtitle1" className={classes.text}>
                     Datasets:
@@ -173,6 +192,7 @@ export default function AnalysisRunnerDialog({
                                 datasets: datasets.map(d => d.dataset_id),
                                 pipeline_id: pipeline,
                                 ...priority,
+                                notes: notes,
                             },
                             {
                                 onSuccess: analysis => {

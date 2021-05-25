@@ -41,6 +41,7 @@ jobs:
       run: yarn build
       env:
         REACT_APP_NAME: Stager
+        REACT_APP_EMAIL: ${{ secrets.REACT_APP_EMAIL }}
         REACT_APP_MINIO_URL: ${{ secrets.CCM_DEV_REACT_APP_MINIO_URL }}
     - run: yarn lint
     - run: yarn check-format
@@ -58,6 +59,7 @@ jobs:
       run: yarn build
       env:
         REACT_APP_NAME: Stager
+        REACT_APP_EMAIL: ${{ secrets.REACT_APP_EMAIL }}
         REACT_APP_MINIO_URL: ${{ secrets.CHEO_RI_REACT_APP_MINIO_URL }}
     - name: Deploy (CHEO-RI)
       if: github.event_name == 'push'

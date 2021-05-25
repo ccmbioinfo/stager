@@ -97,8 +97,8 @@ def test_get_dataset_admin(client, test_database, login_as):
         assert client.get(f"/api/datasets/{i}?user=400").status_code == 404
 
     # Assume user identity belonging to a group with limited visibility
-    assert client.get(f"/api/datasets/1?user=2").status_code == 200
-    assert client.get(f"/api/datasets/2?user=2").status_code == 404
+    assert client.get(f"/api/datasets/1?user=2").status_code == 404
+    assert client.get(f"/api/datasets/2?user=2").status_code == 200
     assert client.get(f"/api/datasets/3?user=2").status_code == 200
     assert client.get(f"/api/datasets/4?user=2").status_code == 404
 
@@ -111,8 +111,8 @@ def test_get_dataset_user(client, test_database, login_as):
 
     # Cannot assume another user's identity, query string ignored
     for query in ["", "?user=1", "?user=2"]:
-        assert client.get(f"/api/datasets/1{query}").status_code == 200
-        assert client.get(f"/api/datasets/2{query}").status_code == 404
+        assert client.get(f"/api/datasets/1{query}").status_code == 404
+        assert client.get(f"/api/datasets/2{query}").status_code == 200
         assert client.get(f"/api/datasets/3{query}").status_code == 200
         assert client.get(f"/api/datasets/4{query}").status_code == 404
 
@@ -164,14 +164,14 @@ def test_update_dataset_user(client, test_database, login_as):
     # Nonexistent
     assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # No permission
-    assert client.patch("/api/datasets/2", json={"foo": "bar"}).status_code == 404
+    assert client.patch("/api/datasets/1", json={"foo": "bar"}).status_code == 404
 
     changes = [
         {"notes": "stop the count"},
         {"dataset_type": "WES", "linked_files": ["/path/to/file"]},
     ]
     for body in changes:
-        response = client.patch("/api/datasets/1", json=body)
+        response = client.patch("/api/datasets/2", json=body)
         assert response.status_code == 200
         dataset = response.get_json()
         assert dataset["updated_by"] == "user"
@@ -223,12 +223,12 @@ def test_delete_dataset_user(client, test_database, login_as):
     login_as("user")
 
     # Regular users cannot delete
-    assert client.delete("/api/datasets/1").status_code == 401
-    assert client.get("/api/datasets/1").status_code == 200
+    assert client.delete("/api/datasets/2").status_code == 401
+    assert client.get("/api/datasets/2").status_code == 200
 
     # Regular users cannot ascertain the existence of datasets by trying to delete
-    assert client.delete("/api/datasets/2").status_code == 401
-    assert client.get("/api/datasets/2").status_code == 404
+    assert client.delete("/api/datasets/1").status_code == 401
+    assert client.get("/api/datasets/1").status_code == 404
     assert client.delete("/api/datasets/400").status_code == 401
     assert client.get("/api/datasets/400").status_code == 404
 

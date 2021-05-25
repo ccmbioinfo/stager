@@ -88,7 +88,6 @@ def list_datasets(page: int, limit: int) -> Response:
             order = order.asc()
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
-
     filters = []
     notes = request.args.get("notes", type=str)
     if notes:
@@ -175,6 +174,7 @@ def list_datasets(page: int, limit: int) -> Response:
                 contains_eager(models.Dataset.updated_by),
             )
             .join(models.Dataset.tissue_sample)
+            .outerjoin(models.Dataset.groups)
             .join(models.TissueSample.participant)
             .join(models.Participant.family)
             .outerjoin(models.Dataset.files)
@@ -185,20 +185,24 @@ def list_datasets(page: int, limit: int) -> Response:
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
     ).scalar()
+
     datasets = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
     results = [
         {
             **asdict(dataset),
             "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+            "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
             "participant_type": dataset.tissue_sample.participant.participant_type,
             "institution": dataset.tissue_sample.participant.institution
             and dataset.tissue_sample.participant.institution.institution,
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
+            "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
             "created_by": dataset.created_by.username,
             "updated_by": dataset.updated_by.username,
+            "group_code": [group.group_code for group in dataset.groups],
         }
         for dataset in datasets
     ]
@@ -273,12 +277,14 @@ def get_dataset(id: int):
             **asdict(dataset),
             "tissue_sample": dataset.tissue_sample,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
+            "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
             "participant_type": dataset.tissue_sample.participant.participant_type,
             "institution": dataset.tissue_sample.participant.institution.institution
             if dataset.tissue_sample.participant.institution
             else None,
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
+            "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
             "created_by": dataset.tissue_sample.participant.created_by.username,
             "updated_by": dataset.tissue_sample.participant.updated_by.username,
             "analyses": [

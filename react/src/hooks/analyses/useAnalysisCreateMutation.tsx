@@ -7,6 +7,7 @@ interface NewAnalysisParams {
     datasets: Dataset["dataset_id"][];
     pipeline_id: Pipeline["pipeline_id"];
     priority?: AnalysisPriority;
+    notes?: string;
 }
 
 interface ReAnalysisParams {
@@ -17,8 +18,10 @@ interface ReAnalysisParams {
 type CreateAnalysisParams = NewAnalysisParams | ReAnalysisParams;
 
 async function createAnalysis(params: CreateAnalysisParams) {
+    if (params.notes?.trim() === "") params.notes = undefined;
     if (params.type === "reanalysis")
         return await changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
+
     return await changeFetch("/api/analyses", "POST", params);
 }
 

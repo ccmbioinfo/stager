@@ -31,7 +31,6 @@ function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
         createFieldObj("Last Updated", formatDateString(analysis.updated)),
         createFieldObj("Notes", analysis.notes),
         createFieldObj("Pipeline", `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`),
-        createFieldObj("Pipeline ID", analysis.pipeline_id),
         createFieldObj("Supported Types", pipeline?.supported_types),
     ];
 }

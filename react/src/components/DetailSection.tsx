@@ -46,7 +46,7 @@ interface DataInfo {
 interface DetailSectionProps {
     fields: Field[];
     enums?: Record<string, string[]>;
-    mainColumnWidth?: Width;
+    columnWidth?: Width;
     collapsibleFields?: Field[];
     title?: string;
     dataInfo?: DataInfo; // dataInfo indicates data is editable
@@ -165,7 +165,7 @@ export default function DetailSection(props: DetailSectionProps) {
                         editMode={editMode}
                         onEdit={OnEditData}
                         enums={props.enums}
-                        columnWidth={props.mainColumnWidth}
+                        columnWidth={props.columnWidth}
                     />
                 </Grid>
                 {props.dataInfo && (
@@ -207,6 +207,7 @@ export default function DetailSection(props: DetailSectionProps) {
                         <Grid container spacing={gridSpacing} justify="space-evenly">
                             <GridFieldsDisplay
                                 fields={secondaryFields}
+                                columnWidth={props.columnWidth}
                                 editMode={editMode}
                                 onEdit={OnEditData}
                                 enums={props.enums}

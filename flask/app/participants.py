@@ -15,6 +15,7 @@ from .utils import (
     expects_json,
     filter_in_enum_or_abort,
     filter_nullable_bool_or_abort,
+    filter_updated_or_abort,
     mixin,
     paged,
     paginated_response,
@@ -55,6 +56,7 @@ def list_participants(page: int, limit: int) -> Response:
         "sex",
         "affected",
         "solved",
+        "updated",
     ]
     if order_by is None:
         order = None  # system default, likely participant_id
@@ -108,6 +110,9 @@ def list_participants(page: int, limit: int) -> Response:
     solved = request.args.get("solved", type=str)
     if solved:
         filters.append(filter_nullable_bool_or_abort(models.Participant.solved, solved))
+    updated = request.args.get("updated", type=str)
+    if updated:
+        filters.append(filter_updated_or_abort(models.Participant.updated, updated))
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -164,6 +169,7 @@ def list_participants(page: int, limit: int) -> Response:
         {
             **asdict(participant),
             "family_codename": participant.family.family_codename,
+            "family_aliases": participant.family.family_aliases,
             "institution": participant.institution.institution
             if participant.institution
             else None,

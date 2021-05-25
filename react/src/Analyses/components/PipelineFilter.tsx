@@ -32,8 +32,11 @@ export default function PipelineFilter(props: FilterProps) {
         pipelinesQuery,
     ]);
 
+    // Filter value is a string of comma-separated pipeline IDs
+    const filterValue: number[] = (props.columnDef as any).tableData.filterValue?.split(",") || [];
+
     // Selected pipeline_ids
-    const [selected, setSelected] = useState<number[]>([]);
+    const [selected, setSelected] = useState(filterValue);
 
     function onFilterChange(event: React.ChangeEvent<{ value: unknown }>) {
         setSelected(event.target.value as number[]);
