@@ -243,7 +243,7 @@ def csv_response(
         BytesIO(csv.encode("utf-8")),
         "text/csv",
         as_attachment=True,
-        attachment_filename=filename,
+        download_name=filename,
     )
 
 
