@@ -18,7 +18,7 @@ interface ReAnalysisParams {
 type CreateAnalysisParams = NewAnalysisParams | ReAnalysisParams;
 
 async function createAnalysis(params: CreateAnalysisParams) {
-    if (params.notes?.trim() === "") params.notes = undefined;
+    if (params.type === "new" && params.notes?.trim() === "") params.notes = undefined;
     if (params.type === "reanalysis")
         return await changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
 
