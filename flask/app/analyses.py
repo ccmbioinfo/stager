@@ -128,7 +128,17 @@ def list_analyses(page: int, limit: int) -> Response:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-    query = models.Analysis.query
+
+    query = models.Analysis.query.options(
+        selectinload(models.Analysis.datasets).options(
+            selectinload(models.Dataset.tissue_sample).options(
+                selectinload(models.TissueSample.participant).options(
+                    selectinload(models.Participant.family)
+                )
+            )
+        )
+    )
+
     if assignee:
         query = query.join(assignee_user, models.Analysis.assignee)
     if requester:
@@ -150,16 +160,6 @@ def list_analyses(page: int, limit: int) -> Response:
         )
     else:  # Admin or LOGIN_DISABLED, authorized to query all analyses
         query = query.filter(*filters)
-
-    models.Analysis.query.options(
-        selectinload(models.Analysis.datasets).options(
-            selectinload(models.Dataset.tissue_sample).options(
-                selectinload(models.TissueSample.participant).options(
-                    selectinload(models.Participant.family)
-                )
-            )
-        )
-    )
 
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
@@ -213,9 +213,6 @@ def list_analyses(page: int, limit: int) -> Response:
                     func.instr(
                         models.Participant.participant_aliases,
                         request.args.get("search"),
-                    ),
-                    func.instr(
-                        models.Participant.participant_codename, participant_codename
                     ),
                 )
             )

@@ -248,23 +248,6 @@ export default function Analyses() {
                 editable: "always",
             },
             {
-                title: "Family Codename(s)",
-                field: "family_codename",
-                render: rowData => (
-                    <ChipGroup
-                        margin={1}
-                        names={rowData.family_codenames
-                            ///remove dupes, since they are typically identical
-                            ?.filter((c, i, a) => a.indexOf(c) === i)}
-                    />
-                ),
-                sorting: false,
-            },
-            {
-                title: "Participant Codename(s)",
-                field: "participant_codename",
-                render: rowData => <ChipGroup margin={1} names={rowData.participant_codenames} />,
-                sorting: false,
                 title: "Requested",
                 field: "requested",
                 type: "string",
@@ -272,6 +255,32 @@ export default function Analyses() {
                 render: rowData => <DateTimeText datetime={rowData.requested} />,
                 filterComponent: DateFilterComponent,
                 defaultSort: "desc",
+            },
+            {
+                title: "Family Codename(s)",
+                field: "family_codename",
+                render: rowData => (
+                    <ChipGroup
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="flex-start"
+                        names={rowData.family_codenames?.filter((c, i, a) => a.indexOf(c) === i)}
+                    />
+                ),
+                sorting: false,
+            },
+            {
+                title: "Participant Codename(s)",
+                field: "participant_codename",
+                render: rowData => (
+                    <ChipGroup
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="flex-start"
+                        names={rowData.participant_codenames}
+                    />
+                ),
+                sorting: false,
             },
             {
                 title: "Updated",

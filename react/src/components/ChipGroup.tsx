@@ -1,18 +1,28 @@
 import React from "react";
-import { Box, BoxProps, Chip, ChipProps } from "@material-ui/core";
+import { Box, BoxProps, Chip, ChipProps, makeStyles } from "@material-ui/core";
+
+const useStyles = makeStyles(theme => ({
+    chip: {
+        margin: theme.spacing(0.5),
+    },
+}));
 
 /**
  * Displays a group of chips from an array of names.
  */
 export default function ChipGroup(props: { names: string[]; size?: ChipProps["size"] } & BoxProps) {
+    const classes = useStyles();
     const { names, ...boxProps } = props;
     return (
-        <>
-            {names.map(name => (
-                <Box key={`chip-${name}`} {...boxProps}>
-                    <Chip size={props.size} label={name} />
-                </Box>
+        <Box {...boxProps}>
+            {props.names.map(name => (
+                <Chip
+                    key={`chip-${name}`}
+                    size={props.size}
+                    label={name}
+                    className={classes.chip}
+                />
             ))}
-        </>
+        </Box>
     );
 }
