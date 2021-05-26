@@ -118,7 +118,7 @@ export default function Settings() {
                         </Typography>
                         <div style={{ flexGrow: 1 }} />
                         {groups.length > 0 ? (
-                            <ChipGroup names={groups} size="medium" />
+                            <ChipGroup marginLeft={1} names={groups} size="medium" />
                         ) : (
                             <div className={classes.disabled}>
                                 You are not in any permission groups.

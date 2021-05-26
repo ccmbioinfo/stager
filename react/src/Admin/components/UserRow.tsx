@@ -85,6 +85,7 @@ export default function UserRow(props: {
                                 </Grid>
                                 <Grid item>
                                     <ChipGroup
+                                        marginLeft={1}
                                         names={props.user.groups.map(group => group.toUpperCase())}
                                         size="small"
                                     />

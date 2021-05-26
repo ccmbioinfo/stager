@@ -1,15 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Column } from "@material-table/core";
-import {
-    Box,
-    Chip,
-    Container,
-    MenuItem,
-    Select,
-    TextField,
-    Typography,
-    useTheme,
-} from "@material-ui/core";
+import { Container, MenuItem, Select, TextField, Typography, useTheme } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import {
     Add,
@@ -25,6 +16,7 @@ import { UseMutationResult } from "react-query";
 import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
+    ChipGroup,
     DateFilterComponent,
     DateTimeText,
     MaterialTablePrimary,
@@ -255,26 +247,20 @@ export default function Analyses() {
             {
                 title: "Family Codename(s)",
                 field: "family_codename",
-                render: rowData =>
-                    rowData.family_codenames
-                        ///remove dupes, since they are typically identical
-                        ?.filter((c, i, a) => a.indexOf(c) === i)
-                        .map((c, i) => (
-                            <Box key={i} margin={1}>
-                                <Chip label={c} />
-                            </Box>
-                        )),
+                render: rowData => (
+                    <ChipGroup
+                        margin={1}
+                        names={rowData.family_codenames
+                            ///remove dupes, since they are typically identical
+                            ?.filter((c, i, a) => a.indexOf(c) === i)}
+                    />
+                ),
                 sorting: false,
             },
             {
                 title: "Participant Codename(s)",
                 field: "participant_codename",
-                render: rowData =>
-                    rowData.participant_codenames?.map((c, i) => (
-                        <Box key={i} margin={1}>
-                            <Chip label={c} />
-                        </Box>
-                    )),
+                render: rowData => <ChipGroup margin={1} names={rowData.participant_codenames} />,
                 sorting: false,
             },
             {
