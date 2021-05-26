@@ -211,6 +211,8 @@ export interface NewUser {
     password: string;
     confirmPassword?: string;
     groups: string[]; // Group.group_code
+    issuer?: string;
+    subject?: string;
 }
 
 export interface User {
