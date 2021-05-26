@@ -225,6 +225,8 @@ export interface User {
     confirmPassword?: string;
     minio_access_key?: string;
     minio_secret_key?: string;
+    issuer?: string;
+    subject?: string;
 }
 
 // A logged-in user
