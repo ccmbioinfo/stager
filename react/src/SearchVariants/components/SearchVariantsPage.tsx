@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { useDownloadCsv } from "../../hooks";
+import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
 
 interface SearchVariantsPageProps {}
@@ -35,14 +36,14 @@ const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
 const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
-    const [selectedGenes, setSelectedGenes] = useState<string[]>([]);
+    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>([]);
     const [error, setError] = useState(false);
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
 
     const { enqueueSnackbar } = useSnackbar();
 
-    const updateSelectedGenes = (gene: string) => {
-        if (gene && !selectedGenes.includes(gene)) {
+    const updateSelectedGenes = (gene: GeneAlias) => {
+        if (!selectedGenes.includes(gene)) {
             setSelectedGenes(selectedGenes.concat(gene));
         } else {
             setSelectedGenes(selectedGenes.filter(g => g !== gene));
@@ -73,10 +74,11 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     };
 
     const downloadCsv = () => {
+        const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
         if (downloadType === "participant") {
-            return downloadParticipantwiseCsv({ panel: selectedGenes.join(";") });
+            return downloadParticipantwiseCsv({ panel });
         }
-        return downloadVariantwiseCsv({ panel: selectedGenes.join(";") });
+        return downloadVariantwiseCsv({ panel });
     };
 
     useEffect(() => {
@@ -109,12 +111,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             <GeneAutocomplete
                                 fullWidth={true}
                                 onSearch={clearError}
-                                onSelect={gene =>
-                                    gene.hgnc_gene_name
-                                        ? updateSelectedGenes(gene.hgnc_gene_name)
-                                        : /* this shouldn't happen since we're querying on this field (for now) */
-                                          console.error(`Gene id ${gene.gene_id} has no gene name`)
-                                }
+                                onSelect={gene => updateSelectedGenes(gene)}
                             />
                         </Grid>
                         <Grid item>
@@ -160,9 +157,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         </Grid>
                         <Grid item container xs={12}>
                             {selectedGenes.map(g => (
-                                <Grid item key={g}>
-                                    <Box key={g} padding={1} margin={1}>
-                                        <Chip label={g} onDelete={() => updateSelectedGenes(g)} />
+                                <Grid item key={g.ensembl_id}>
+                                    <Box key={g.ensembl_id} padding={1} margin={1}>
+                                        <Chip
+                                            label={g.name}
+                                            onDelete={() => updateSelectedGenes(g)}
+                                        />
                                     </Box>
                                 </Grid>
                             ))}
@@ -172,9 +172,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         {error && (
                             <Typography align="center" color="error">
                                 No variants found for{" "}
-                                {selectedGenes.length === 1
-                                    ? selectedGenes[0]
-                                    : selectedGenes.join(", ")}
+                                {selectedGenes.map(gene => gene.name).join(", ")}
                             </Typography>
                         )}
                     </Grid>

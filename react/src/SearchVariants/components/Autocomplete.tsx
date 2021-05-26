@@ -3,17 +3,17 @@ import { CircularProgress, OutlinedInput, useTheme } from "@material-ui/core";
 import { Search } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import { useGenesQuery } from "../../hooks/genes";
-import { Gene } from "../../typings";
+import { GeneAlias } from "../../typings";
 
 interface GeneAutocompleteProps {
     fullWidth?: boolean;
     onSearch?: () => void;
-    onSelect: (result: Gene) => void;
+    onSelect: (result: GeneAlias) => void;
 }
 
 const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch, onSelect }) => {
     const [search, setSearch] = useState<string>("");
-    const [selectedValue, setSelectedValue] = useState<Gene>();
+    const [selectedValue, setSelectedValue] = useState<GeneAlias>();
 
     const { data: results, isFetching } = useGenesQuery(
         {
@@ -29,13 +29,13 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
             autoComplete
             clearOnEscape
             fullWidth={fullWidth}
-            getOptionSelected={(option, value) => option.gene_id === value.gene_id}
-            getOptionLabel={option => option?.hgnc_gene_name || ""}
+            getOptionSelected={(option, value) => option.ensembl_id === value.ensembl_id}
+            getOptionLabel={option => option.name || ""}
             includeInputInList={true}
             inputValue={search}
             loading={isFetching}
             noOptionsText="No Results"
-            options={results?.data.filter(d => !!d.hgnc_gene_name) || []}
+            options={results?.data.filter(d => d.name) || []}
             onInputChange={(event, newInputValue, reason) => {
                 if (reason === "reset") {
                     setSearch("");
@@ -46,11 +46,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
                     }
                 }
             }}
-            onChange={(
-                event: React.ChangeEvent<{}>,
-                selectedValue: Gene | null,
-                reason: string
-            ) => {
+            onChange={(event, selectedValue, reason) => {
                 if (search && reason !== "clear" && selectedValue) {
                     onSelect(selectedValue);
                     //persisting selected value will lead to option mismatch warnings
