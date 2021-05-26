@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
-import { Dialog, DialogContent, Divider } from "@material-ui/core";
+import { Button, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { Dns } from "@material-ui/icons";
+import { Dns, Replay } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
 import { createFieldObj, formatDateString, getDatasetInfoList } from "../functions";
-import { useAnalysisQuery, useEnumsQuery } from "../hooks";
+import { useAnalysisCreateMutation, useAnalysisQuery, useEnumsQuery } from "../hooks";
 import { Analysis, Pipeline } from "../typings";
 import DetailSection from "./DetailSection";
 import DialogHeader from "./DialogHeader";
@@ -16,6 +17,9 @@ const useStyles = makeStyles(theme => ({
     },
     infoSection: {
         margin: theme.spacing(3),
+    },
+    headerButton: {
+        marginLeft: theme.spacing(2),
     },
 }));
 
@@ -48,8 +52,10 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
         () => (analysisQuery.isSuccess ? analysisQuery.data.pipeline : undefined),
         [analysisQuery]
     );
+    const mutation = useAnalysisCreateMutation();
     const labeledBy = "analysis-info-dialog-slide-title";
     const { data: enums } = useEnumsQuery();
+    const { enqueueSnackbar } = useSnackbar();
 
     return (
         <Dialog
@@ -61,6 +67,33 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
         >
             <DialogHeader id={labeledBy} onClose={props.onClose}>
                 Details of Analysis ID {props.analysis.analysis_id}
+                <Button
+                    className={classes.headerButton}
+                    variant="contained"
+                    size="small"
+                    endIcon={<Replay />}
+                    onClick={() => {
+                        mutation.mutate(
+                            { type: "reanalysis", analysis_id: props.analysis.analysis_id },
+                            {
+                                onSuccess: () => {
+                                    enqueueSnackbar(
+                                        `Re-analysis of analysis ${props.analysis.analysis_id} requested.`
+                                    );
+                                },
+                                onError: async response => {
+                                    const error = (await response.json()).error;
+                                    enqueueSnackbar(
+                                        `Failed to request re-analysis of ${props.analysis.analysis_id}: ${response.status} - ${error}`,
+                                        { variant: "error" }
+                                    );
+                                },
+                            }
+                        );
+                    }}
+                >
+                    Request Re-analysis
+                </Button>
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>

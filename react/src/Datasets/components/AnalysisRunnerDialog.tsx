@@ -188,6 +188,7 @@ export default function AnalysisRunnerDialog({
                                 : { priority: analysisPriority };
                         mutation.mutate(
                             {
+                                type: "new",
                                 datasets: datasets.map(d => d.dataset_id),
                                 pipeline_id: pipeline,
                                 ...priority,
