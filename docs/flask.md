@@ -202,3 +202,54 @@ To clean up the test service containers:
 ```bash
 docker-compose -p stager-test -f docker-compose.test.yaml down
 ```
+
+### Current Test Data
+
+Below is an overview of our test database. Update this section if changes are made to the test database that affect the overall structure.
+
+There are 2 groups: `ach`, `bcch`.
+
+There are 4 users: `admin`, `user`, `user_a`, `user_b`
+
+-   `admin` (`user_id 1`) has `is_admin` privileges, and belongs to 0 groups.
+-   `user` (`user_id 2`) belongs to 1 group `ach`.
+-   `user_a` (`user_id 3`) belongs to 2 groups `ach`, `bcch`.
+-   `user_b` (`user_id 4`) belongs to 0 groups.
+
+There are 2 pipelines: `pipeline_1`, `pipeline_2`.
+
+-   `pipeline_1` (CRG) supports metadataset type `Genome`.
+    -   `Genome` includes dataset types `RGS`, `CGS`, `WGS`.
+-   `pipeline_2` (CRE) supports metadataset type `Exome`.
+    -   `Exome` includes dataset types `RES`, `CES`, `WES`, `CPS`, `RCS`, `RDC`, `RDE`.
+
+There are 2 families: `family_a`, `family_b`.
+
+-   `family_a` has 2 participants: `participant_1`, `participant_2`.
+
+    -   `participant_1` has 1 tissue sample: `sample_1`.
+
+        -   `sample_1` has 2 datasets: `dataset_1`, `dataset_2`.
+            -   `dataset_1` has dataset type `WES`, and belongs to 0 groups.
+            -   `dataset_2` has dataset type `WGS`, and belongs to 1 group: `ach`.
+
+    -   `participant_2` has 1 tissue sample: `sample_2`.
+        -   `sample_2` has 1 dataset: `dataset_3`.
+            -   `dataset_3` has dataset type `WGS`, and belongs to 1 group: `ach`.
+
+-   `family_b` has 1 participant: `participant_3`.
+    -   `participant_3` has 1 tissue sample: `sample_3`.
+        -   `sample_3` has 1 dataset: `dataset_4`.
+            -   `dataset_4` has dataset type `WES`, and belongs to 0 groups.
+
+There are 3 participants: `participant_1`, `participant_2`, `participant_3`.
+
+There are 3 tissue samples: `sample_1`, `sample_2`, `sample_3`.
+
+There are 4 datasets: `dataset_1`, `dataset_2`, `dataset_3`, `dataset_4`.
+
+There are 3 analyses: `analysis_1`, `analysis_2`, `analysis_3`.
+
+-   `analysis_1` uses `pipeline_2`, and uses 1 dataset: `dataset_1`.
+-   `analysis_2` uses `pipeline_1`, and uses 2 datasets: `dataset_2`, `dataset_3`.
+-   `analysis_3` uses `pipeline_2`, and uses 2 datasets: `dataset_1`, `dataset_4`.

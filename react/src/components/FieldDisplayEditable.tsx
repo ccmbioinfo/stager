@@ -64,7 +64,7 @@ function EnhancedTextField({
     // Props common to all variants
     const textFieldProps: TextFieldProps = {
         className: classes.textField,
-        fullWidth: field.fullWidth,
+        fullWidth: true,
         margin: "dense",
         label: field.title,
         value: formatFieldValue(field.value),

@@ -419,12 +419,33 @@ class PipelineDatasets(db.Model):
 
 @dataclass
 class Gene(db.Model):
-    gene_id: int = db.Column(db.Integer, primary_key=True)
-    hgnc_gene_id: int = db.Column(db.Integer, unique=True)
-    ensembl_id: int = db.Column(db.Integer, unique=True)
-    gene: str = db.Column(db.String(50))
-    hgnc_gene_name: str = db.Column(db.String(50))
-    variants = db.relationship("Variant", backref="gene")
+    # these are indeed unique in the gtf
+    ensembl_id: int = db.Column(db.Integer, primary_key=True)
+    # hgnc_id: int = db.Column(db.Integer, unique=True)
+    # ncbi_id: int = db.Column(db.Integer, unique=True)
+    chromosome: str = db.Column(db.String(2), nullable=False)
+    # indicates whether the feature is from havana, ensembl or both
+    source: str = db.Column(db.String(20))
+    # GRCh37 coordinates, incompatible with others
+    start: int = db.Column(db.Integer, nullable=False)
+    end: int = db.Column(db.Integer, nullable=False)
+    aliases = db.relationship("GeneAlias", backref="gene")
+
+
+@dataclass
+class GeneAlias(db.Model):
+    # Autoincrement surrogate key
+    alias_id = db.Column(db.Integer, primary_key=True)
+    ensembl_id: int = db.Column(
+        db.Integer,
+        db.ForeignKey("gene.ensembl_id", onupdate="cascade", ondelete="cascade"),
+    )
+    # Not unique in case one name corresponds to multiple ENSGs across releases
+    name: str = db.Column(db.String(50), nullable=False)
+    # Optional flexible type label, e.g., current hgnc gene symbol, previous gene symbol, synonyms
+    kind: str = db.Column(db.String(50))
+    # No point in allowing dupes for the same identifier though
+    __table_args__ = (db.UniqueConstraint("ensembl_id", "name"),)
 
 
 @dataclass
@@ -433,16 +454,14 @@ class Variant(db.Model):
     analysis_id: int = db.Column(
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
-    position: str = db.Column(db.String(20), nullable=False)
-    reference_allele: str = db.Column(db.String(150), nullable=False)
-    alt_allele: str = db.Column(db.String(150), nullable=False)
+    chromosome: str = db.Column(db.String(2), nullable=False)
+    # GRCh37 coordinates, incompatible with others
+    position: int = db.Column(db.Integer, nullable=False)
+    reference_allele: str = db.Column(db.String(300), nullable=False)
+    alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
-    refseq_change = db.Column(db.String(250), nullable=True)
+    refseq_change = db.Column(db.String(500), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
-    gene_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("gene.gene_id", onupdate="cascade", ondelete="restrict"),
-    )
     conserved_in_20_mammals: int = db.Column(db.Float, nullable=True)
     sift_score: int = db.Column(db.Float, nullable=True)
     polyphen_score: int = db.Column(db.Float, nullable=True)

@@ -1,13 +1,11 @@
+authlib
 flask
 flask_sqlalchemy
 flask_login
 flask_migrate
-flask_wtf
-requests
-authlib
 gunicorn
 minio
 pandas
 pymysql[rsa]
+requests
 sqlalchemy
-werkzeug
