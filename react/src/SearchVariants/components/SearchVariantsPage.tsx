@@ -37,7 +37,6 @@ const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>([]);
-    const [error, setError] = useState(false);
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
 
     const { enqueueSnackbar } = useSnackbar();
@@ -50,28 +49,23 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const csvDownloadError = (response: Response) => {
-        if (response.status === 400) {
-            setError(true);
-        } else {
-            const errorText = response.statusText;
-            enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
+    const onError = async (response: Response) => {
+        try {
+            const payload = await response.json();
+            enqueueSnackbar(`${response.status} ${response.statusText}: ${payload.error}`);
+        } catch (error) {
+            console.error(error, response);
+            enqueueSnackbar(`${response.status} ${response.statusText}`);
         }
     };
 
     const downloadVariantwiseCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
-        onError: csvDownloadError,
+        onError,
     });
 
     const downloadParticipantwiseCsv = useDownloadCsv(GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL, {
-        onError: csvDownloadError,
+        onError,
     });
-
-    const clearError = () => {
-        if (error) {
-            setError(false);
-        }
-    };
 
     const downloadCsv = () => {
         const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
@@ -110,7 +104,6 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item xs={12}>
                             <GeneAutocomplete
                                 fullWidth={true}
-                                onSearch={clearError}
                                 onSelect={gene => updateSelectedGenes(gene)}
                             />
                         </Grid>
@@ -167,14 +160,6 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 </Grid>
                             ))}
                         </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        {error && (
-                            <Typography align="center" color="error">
-                                No variants found for{" "}
-                                {selectedGenes.map(gene => gene.name).join(", ")}
-                            </Typography>
-                        )}
                     </Grid>
                 </Grid>
             </Container>
