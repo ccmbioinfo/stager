@@ -314,14 +314,10 @@ def update_user(username, issuer, subject):
     if user is None:
         raise ClickException("Username not found")
 
-    if issuer is not None:
-        if issuer == "":
-            issuer = None
+    if issuer:
         user.issuer = issuer
 
-    if subject is not None:
-        if subject == "":
-            subject = None
+    if subject:
         user.subject = subject
 
     try:

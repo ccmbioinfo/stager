@@ -24,9 +24,8 @@ Currently, adding new users via the `POST /api/users` endpoint will set the "iss
 
 Stager provides a CLI command for updating existing users' OAuth fields. Attach a shell to the running app container and run the command as follows:
 
-```bash
-docker-compose exec app bash
-flask update-user --issuer={ISSUER} --subject={SUBJECT} {USERNAME}
+```
+docker-compose exec app flask update-user --issuer={ISSUER} --subject={SUBJECT} {USERNAME}
 ```
 
 Ideally, the user's username in your Identity Provider should match their username in Stager, but this is not enforced.
