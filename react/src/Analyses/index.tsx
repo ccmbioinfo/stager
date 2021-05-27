@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Column } from "@material-table/core";
-import { Container, MenuItem, Select, TextField, Typography, useTheme } from "@material-ui/core";
+import { Container, MenuItem, Select, TextField, useTheme } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import {
     Add,
@@ -127,16 +127,6 @@ const getHighlightColor = (theme: Theme, priority: AnalysisPriority, status: Pip
         return { backgroundColor: theme.palette.error.light };
     }
     return {};
-};
-
-const TruncatedText: React.FC<{ text: string; maxLength: number }> = ({ text, maxLength }) => {
-    const possiblyTruncated =
-        text && text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-    return (
-        <Typography>
-            <span title={text}>{possiblyTruncated}</span>
-        </Typography>
-    );
 };
 
 export default function Analyses() {
@@ -294,7 +284,7 @@ export default function Analyses() {
                 title: "Path Prefix",
                 field: "result_path",
                 type: "string",
-                render: rowData => <TruncatedText text={rowData.result_path} maxLength={15} />,
+                render: rowData => <Note>{rowData.result_path}</Note>,
             },
             {
                 title: "Notes",
