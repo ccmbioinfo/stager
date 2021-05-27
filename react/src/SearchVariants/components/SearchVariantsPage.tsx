@@ -36,17 +36,36 @@ const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
 const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
-    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>([]);
-    const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
+    const loadPanel = () => {
+        const stored = localStorage.getItem("gene-panel");
+        if (stored === null) return [];
+        try {
+            const panel = JSON.parse(stored);
+            if (Array.isArray(panel)) {
+                return panel;
+            } else {
+                console.warn("Invalid localStorage format for `gene-panel`.", stored);
+                localStorage.removeItem("gene-panel");
+                return [];
+            }
+        } catch (error) {
+            console.warn("Invalid localStorage format for `gene-panel`.", stored);
+            localStorage.removeItem("gene-panel");
+            return [];
+        }
+    };
 
     const { enqueueSnackbar } = useSnackbar();
 
-    const updateSelectedGenes = (gene: GeneAlias) => {
-        if (!selectedGenes.includes(gene)) {
-            setSelectedGenes(selectedGenes.concat(gene));
-        } else {
-            setSelectedGenes(selectedGenes.filter(g => g !== gene));
-        }
+    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadPanel());
+    const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
+
+    const toggleGeneSelection = (gene: GeneAlias) => {
+        const updated = !selectedGenes.includes(gene)
+            ? selectedGenes.concat(gene)
+            : selectedGenes.filter(g => g !== gene);
+        setSelectedGenes(updated);
+        localStorage.setItem("gene-panel", JSON.stringify(updated));
     };
 
     const onError = async (response: Response) => {
@@ -102,15 +121,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         wrap="nowrap"
                     >
                         <Grid item xs={12}>
-                            <GeneAutocomplete
-                                fullWidth={true}
-                                onSelect={gene => updateSelectedGenes(gene)}
-                            />
+                            <GeneAutocomplete fullWidth={true} onSelect={toggleGeneSelection} />
                         </Grid>
                         <Grid item>
                             <Button
                                 disabled={!selectedGenes.length}
-                                onClick={() => downloadCsv()}
+                                onClick={downloadCsv}
                                 size="large"
                                 variant="contained"
                             >
@@ -154,7 +170,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                     <Box key={g.ensembl_id} padding={1} margin={1}>
                                         <Chip
                                             label={g.name}
-                                            onDelete={() => updateSelectedGenes(g)}
+                                            onDelete={() => toggleGeneSelection(g)}
                                         />
                                     </Box>
                                 </Grid>
