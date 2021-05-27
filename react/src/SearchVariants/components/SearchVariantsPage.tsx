@@ -137,8 +137,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                     <Grid container item xs={12} md={6}>
                         <RadioGroup
                             row
-                            aria-label="Pipelines"
-                            name="pipelines"
+                            aria-label="report type"
                             value={downloadType}
                             onChange={event =>
                                 setDownloadType(event.target.value as "variant" | "participant")
@@ -166,8 +165,8 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         </Grid>
                         <Grid item container xs={12}>
                             {selectedGenes.map(g => (
-                                <Grid item key={g.ensembl_id}>
-                                    <Box key={g.ensembl_id} padding={1} margin={1}>
+                                <Grid item key={g.name}>
+                                    <Box key={g.name} padding={1} margin={1}>
                                         <Chip
                                             label={g.name}
                                             onDelete={() => toggleGeneSelection(g)}
