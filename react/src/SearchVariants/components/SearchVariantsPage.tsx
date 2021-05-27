@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-    Box,
     Button,
     Chip,
     Container,
@@ -28,6 +27,13 @@ const useStyles = makeStyles(theme => ({
     container: {
         marginTop: theme.spacing(3),
         marginBottom: theme.spacing(3),
+    },
+    chip: {
+        margin: theme.spacing(1),
+        paddingTop: theme.spacing(3),
+        paddingBottom: theme.spacing(3),
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
     },
 }));
 
@@ -157,21 +163,24 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
                         <Grid item>
-                            {!!selectedGenes.length && (
-                                <Box padding={1} margin={1}>
-                                    <Typography>Selected Genes</Typography>
-                                </Box>
-                            )}
+                            {!!selectedGenes.length && <Typography>Selected Genes</Typography>}
                         </Grid>
                         <Grid item container xs={12}>
                             {selectedGenes.map(g => (
                                 <Grid item key={g.name}>
-                                    <Box key={g.name} padding={1} margin={1}>
-                                        <Chip
-                                            label={g.name}
-                                            onDelete={() => toggleGeneSelection(g)}
-                                        />
-                                    </Box>
+                                    <Chip
+                                        className={classes.chip}
+                                        label={
+                                            <>
+                                                <b>{g.name}</b>
+                                                <br />
+                                                <small>
+                                                    ENSG{`${g.ensembl_id}`.padStart(11, "0")}
+                                                </small>
+                                            </>
+                                        }
+                                        onDelete={() => toggleGeneSelection(g)}
+                                    />
                                 </Grid>
                             ))}
                         </Grid>
