@@ -111,12 +111,12 @@ def parse_gene_panel() -> List[Any]:
         abort(400, description="No gene(s) provided")
     genes = genes.lower().split(",")
     app.logger.info("Requested gene panel: %s", genes)
-    ensgs = []
+    ensgs = set()
     errors = []
     for gene in genes:
         if gene.startswith("ensg"):
             try:
-                ensgs.append(int(gene[4:]))
+                ensgs.add(int(gene[4:]))
             except ValueError:
                 errors.append(gene)
         else:
@@ -135,7 +135,7 @@ def parse_gene_panel() -> List[Any]:
     if found_genes == 0:
         app.logger.error("No requested genes were found.")
         abort(400, description="No requested genes were found.")
-    elif found_genes < len(genes):
+    elif found_genes < len(ensgs):
         app.logger.error("Not all requested genes were found.")
         abort(400, description="Not all requested genes were found.")
 

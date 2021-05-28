@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-    Box,
     Button,
     Chip,
     Container,
@@ -13,6 +12,7 @@ import {
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { useDownloadCsv } from "../../hooks";
+import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
 
 interface SearchVariantsPageProps {}
@@ -28,6 +28,13 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(3),
         marginBottom: theme.spacing(3),
     },
+    chip: {
+        margin: theme.spacing(1),
+        paddingTop: theme.spacing(3),
+        paddingBottom: theme.spacing(3),
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
+    },
 }));
 
 const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
@@ -35,48 +42,62 @@ const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
 const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
-    const [selectedGenes, setSelectedGenes] = useState<string[]>([]);
-    const [error, setError] = useState(false);
-    const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
-
-    const { enqueueSnackbar } = useSnackbar();
-
-    const updateSelectedGenes = (gene: string) => {
-        if (gene && !selectedGenes.includes(gene)) {
-            setSelectedGenes(selectedGenes.concat(gene));
-        } else {
-            setSelectedGenes(selectedGenes.filter(g => g !== gene));
+    const loadPanel = () => {
+        const stored = localStorage.getItem("gene-panel");
+        if (stored === null) return [];
+        try {
+            const panel = JSON.parse(stored);
+            if (Array.isArray(panel)) {
+                return panel;
+            } else {
+                console.warn("Invalid localStorage format for `gene-panel`.", stored);
+                localStorage.removeItem("gene-panel");
+                return [];
+            }
+        } catch (error) {
+            console.warn("Invalid localStorage format for `gene-panel`.", stored);
+            localStorage.removeItem("gene-panel");
+            return [];
         }
     };
 
-    const csvDownloadError = (response: Response) => {
-        if (response.status === 400) {
-            setError(true);
-        } else {
-            const errorText = response.statusText;
-            enqueueSnackbar(`Query Failed. Error: ${errorText}`, { variant: "error" });
+    const { enqueueSnackbar } = useSnackbar();
+
+    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadPanel());
+    const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
+
+    const toggleGeneSelection = (gene: GeneAlias) => {
+        const updated = !selectedGenes.includes(gene)
+            ? selectedGenes.concat(gene)
+            : selectedGenes.filter(g => g !== gene);
+        setSelectedGenes(updated);
+        localStorage.setItem("gene-panel", JSON.stringify(updated));
+    };
+
+    const onError = async (response: Response) => {
+        try {
+            const payload = await response.json();
+            enqueueSnackbar(`${response.status} ${response.statusText}: ${payload.error}`);
+        } catch (error) {
+            console.error(error, response);
+            enqueueSnackbar(`${response.status} ${response.statusText}`);
         }
     };
 
     const downloadVariantwiseCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
-        onError: csvDownloadError,
+        onError,
     });
 
     const downloadParticipantwiseCsv = useDownloadCsv(GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL, {
-        onError: csvDownloadError,
+        onError,
     });
 
-    const clearError = () => {
-        if (error) {
-            setError(false);
-        }
-    };
-
     const downloadCsv = () => {
+        const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
         if (downloadType === "participant") {
-            return downloadParticipantwiseCsv({ panel: selectedGenes.join(";") });
+            return downloadParticipantwiseCsv({ panel });
         }
-        return downloadVariantwiseCsv({ panel: selectedGenes.join(";") });
+        return downloadVariantwiseCsv({ panel });
     };
 
     useEffect(() => {
@@ -106,21 +127,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         wrap="nowrap"
                     >
                         <Grid item xs={12}>
-                            <GeneAutocomplete
-                                fullWidth={true}
-                                onSearch={clearError}
-                                onSelect={gene =>
-                                    gene.hgnc_gene_name
-                                        ? updateSelectedGenes(gene.hgnc_gene_name)
-                                        : /* this shouldn't happen since we're querying on this field (for now) */
-                                          console.error(`Gene id ${gene.gene_id} has no gene name`)
-                                }
-                            />
+                            <GeneAutocomplete fullWidth={true} onSelect={toggleGeneSelection} />
                         </Grid>
                         <Grid item>
                             <Button
                                 disabled={!selectedGenes.length}
-                                onClick={() => downloadCsv()}
+                                onClick={downloadCsv}
                                 size="large"
                                 variant="contained"
                             >
@@ -131,8 +143,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                     <Grid container item xs={12} md={6}>
                         <RadioGroup
                             row
-                            aria-label="Pipelines"
-                            name="pipelines"
+                            aria-label="report type"
                             value={downloadType}
                             onChange={event =>
                                 setDownloadType(event.target.value as "variant" | "participant")
@@ -152,31 +163,27 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
                         <Grid item>
-                            {!!selectedGenes.length && (
-                                <Box padding={1} margin={1}>
-                                    <Typography>Selected Genes</Typography>
-                                </Box>
-                            )}
+                            {!!selectedGenes.length && <Typography>Selected Genes</Typography>}
                         </Grid>
                         <Grid item container xs={12}>
                             {selectedGenes.map(g => (
-                                <Grid item key={g}>
-                                    <Box key={g} padding={1} margin={1}>
-                                        <Chip label={g} onDelete={() => updateSelectedGenes(g)} />
-                                    </Box>
+                                <Grid item key={g.name}>
+                                    <Chip
+                                        className={classes.chip}
+                                        label={
+                                            <>
+                                                <b>{g.name}</b>
+                                                <br />
+                                                <small>
+                                                    ENSG{`${g.ensembl_id}`.padStart(11, "0")}
+                                                </small>
+                                            </>
+                                        }
+                                        onDelete={() => toggleGeneSelection(g)}
+                                    />
                                 </Grid>
                             ))}
                         </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        {error && (
-                            <Typography align="center" color="error">
-                                No variants found for{" "}
-                                {selectedGenes.length === 1
-                                    ? selectedGenes[0]
-                                    : selectedGenes.join(", ")}
-                            </Typography>
-                        )}
                     </Grid>
                 </Grid>
             </Container>

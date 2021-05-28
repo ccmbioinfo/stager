@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { Gene } from "../../typings";
+import { GeneAlias } from "../../typings";
 import { basicFetch } from "../utils";
 
 async function fetchGenes(params: Record<string, any>) {
@@ -11,7 +11,7 @@ async function fetchGenes(params: Record<string, any>) {
  *
  */
 export const useGenesQuery = (params: Record<string, any> = {}, enabled: boolean = true) =>
-    useQuery<{ data: Gene[] }, Response>(
+    useQuery<{ data: GeneAlias[] }, Response>(
         ["genes", params],
         fetchGenes.bind(null, { ...params, limit: 25 }),
         {
