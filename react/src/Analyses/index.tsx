@@ -16,6 +16,7 @@ import { UseMutationResult } from "react-query";
 import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
+    ChipGroup,
     DateFilterComponent,
     DateTimeText,
     MaterialTablePrimary,
@@ -246,6 +247,32 @@ export default function Analyses() {
                 defaultSort: "desc",
             },
             {
+                title: "Family Codename(s)",
+                field: "family_codename",
+                render: rowData => (
+                    <ChipGroup
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="flex-start"
+                        names={rowData.family_codenames?.filter((c, i, a) => a.indexOf(c) === i)}
+                    />
+                ),
+                sorting: false,
+            },
+            {
+                title: "Participant Codename(s)",
+                field: "participant_codename",
+                render: rowData => (
+                    <ChipGroup
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="flex-start"
+                        names={rowData.participant_codenames}
+                    />
+                ),
+                sorting: false,
+            },
+            {
                 title: "Updated",
                 field: "updated",
                 type: "string",
@@ -257,6 +284,7 @@ export default function Analyses() {
                 title: "Path Prefix",
                 field: "result_path",
                 type: "string",
+                render: rowData => <Note>{rowData.result_path}</Note>,
             },
             {
                 title: "Notes",
@@ -420,6 +448,7 @@ export default function Analyses() {
                                 exportFunc: exportCsv,
                             },
                         ],
+                        search: true,
                     }}
                     actions={[
                         {

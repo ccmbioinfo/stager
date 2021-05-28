@@ -96,7 +96,7 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
     query: MTQuery<RowData>
 ) => {
     const searchParams: Record<string, string> = {};
-    const { filters, orderBy, orderDirection, page, pageSize } = query;
+    const { filters, orderBy, orderDirection, page, pageSize, search } = query;
     // add filters
     if (filters) {
         for (let filter of filters) {
@@ -121,6 +121,10 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
         // paging information
         searchParams.page = `${page}`;
         searchParams.limit = `${pageSize}`;
+    }
+
+    if (search) {
+        searchParams.search = search;
     }
 
     return searchParams;

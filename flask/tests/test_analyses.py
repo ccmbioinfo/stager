@@ -69,6 +69,25 @@ def test_get_analysis(test_database, client, login_as):
             assert dataset["participant_codename"] == "002"
 
 
+def test_search_analyses_user(test_database, client, login_as):
+    login_as("user")
+    # user shares groups with datasets 2 and 3, which both belong to analysis 2
+    # analysis_2 - dataset_3
+    #                    - tissue_sample_2 - participant_2[participant_codename==002] - family_a[family_codename=="A"]
+    #                    - group - user
+    response = client.get("/api/analyses?search=A")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 1
+
+    response = client.get("/api/analyses?search=002")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 1
+
+    response = client.get("/api/analyses?search=nonexistant")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 0
+
+
 # DELETE /api/analyses/:id
 
 

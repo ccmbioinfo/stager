@@ -100,21 +100,23 @@ export type DatasetDetailed = Dataset & DatasetDetails;
 
 export interface Analysis {
     analysis_id: string;
-    pipeline_id: string;
-    result_path: string;
-    assignee: string;
-    requester: string;
     analysis_state: PipelineStatus;
-    priority: AnalysisPriority;
-    updated: string;
-    notes: string;
+    assignee: string;
     dataset_id: string;
+    family_codenames: string[];
+    finished: string;
+    notes: string;
+    participant_codenames: string[];
+    pipeline: Pipeline;
+    pipeline_id: string;
+    priority: AnalysisPriority;
     qsubID: string;
     requested: string;
+    requester: string;
+    result_path: string;
     started: string;
-    finished: string;
+    updated: string;
     updated_by: number;
-    pipeline: Pipeline;
 }
 
 export interface AnalysisDetails {

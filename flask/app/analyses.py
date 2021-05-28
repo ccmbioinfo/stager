@@ -2,8 +2,8 @@ from dataclasses import asdict
 from datetime import datetime
 
 from flask_login import current_user, login_required
-from sqlalchemy import distinct, func
-from sqlalchemy.orm import aliased, contains_eager
+from sqlalchemy import distinct, func, or_
+from sqlalchemy.orm import aliased, contains_eager, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from sqlalchemy.orm.session import make_transient
@@ -82,6 +82,10 @@ def list_analyses(page: int, limit: int) -> Response:
     notes = request.args.get("notes", type=str)
     if notes:
         filters.append(func.instr(models.Analysis.notes, notes))
+    # this edges into the [GET] /:id endpoint, but the index/show payloads diverge, causing issues for the FE, and this is technically still a filter
+    analysis_id = request.args.get("analysis_id", type=str)
+    if analysis_id:
+        filters.append(func.instr(models.Analysis.analysis_id, analysis_id))
     priority = request.args.get("priority", type=str)
     if priority:
         filters.append(
@@ -124,7 +128,17 @@ def list_analyses(page: int, limit: int) -> Response:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
-    query = models.Analysis.query
+
+    query = models.Analysis.query.options(
+        selectinload(models.Analysis.datasets).options(
+            selectinload(models.Dataset.tissue_sample).options(
+                selectinload(models.TissueSample.participant).options(
+                    selectinload(models.Participant.family)
+                )
+            )
+        )
+    )
+
     if assignee:
         query = query.join(assignee_user, models.Analysis.assignee)
     if requester:
@@ -147,6 +161,66 @@ def list_analyses(page: int, limit: int) -> Response:
     else:  # Admin or LOGIN_DISABLED, authorized to query all analyses
         query = query.filter(*filters)
 
+    participant_codename = request.args.get("participant_codename", type=str)
+    if participant_codename:
+        # use a subquery on one-to-many-related fields instead of eager/filter so that the related fields themselves aren't excluded
+        # (we want all analyses that have at least 1 particpant that matches the search, along with *all* related participants)
+        subquery = (
+            models.Analysis.query.join(models.Analysis.datasets)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .filter(
+                func.instr(
+                    models.Participant.participant_codename, participant_codename
+                )
+            )
+            .with_entities(models.Analysis.analysis_id)
+            .subquery()
+        )
+        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+
+    family_codename = request.args.get("family_codename", type=str)
+    if family_codename:
+        subquery = (
+            models.Analysis.query.join(models.Analysis.datasets)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .filter(func.instr(models.Family.family_codename, family_codename))
+            .with_entities(models.Analysis.analysis_id)
+            .subquery()
+        )
+        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+
+    if request.args.get("search"):  # multifield search
+        subquery = (
+            models.Analysis.query.join(models.Analysis.datasets)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .filter(
+                or_(
+                    func.instr(
+                        models.Family.family_codename, request.args.get("search")
+                    ),
+                    func.instr(
+                        models.Family.family_aliases, request.args.get("search")
+                    ),
+                    func.instr(
+                        models.Participant.participant_codename,
+                        request.args.get("search"),
+                    ),
+                    func.instr(
+                        models.Participant.participant_aliases,
+                        request.args.get("search"),
+                    ),
+                )
+            )
+            .with_entities(models.Analysis.analysis_id)
+            .subquery()
+        )
+        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+
     total_count = query.with_entities(
         func.count(distinct(models.Analysis.analysis_id))
     ).scalar()
@@ -155,6 +229,14 @@ def list_analyses(page: int, limit: int) -> Response:
     results = [
         {
             **asdict(analysis),
+            "participant_codenames": [
+                d.tissue_sample.participant.participant_codename
+                for d in analysis.datasets
+            ],
+            "family_codenames": [
+                d.tissue_sample.participant.family.family_codename
+                for d in analysis.datasets
+            ],
             "requester": analysis.requester.username,
             "updated_by": analysis.updated_by.username,
             "assignee": analysis.assignee_id and analysis.assignee.username,
@@ -178,6 +260,8 @@ def list_analyses(page: int, limit: int) -> Response:
             colnames=[
                 "pipeline",
                 "analysis_state",
+                "participant_codenames",
+                "family_codenames",
                 "priority",
                 "requester",
                 "assignee",
