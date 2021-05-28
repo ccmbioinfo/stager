@@ -48,18 +48,24 @@ def jsonify_user(user: models.User) -> Response:
     Helper function for serializing individual users with their MinIO credentials
     for the remaining endpoints.
     """
-    return jsonify(
-        {
-            "username": user.username,
-            "email": user.email,
-            "is_admin": user.is_admin,
-            "last_login": user.last_login,
-            "deactivated": user.deactivated,
-            "groups": [group.group_code for group in user.groups],
-            "minio_access_key": user.minio_access_key,
-            "minio_secret_key": user.minio_secret_key,
-        }
-    )
+    user_dict = {
+        "username": user.username,
+        "email": user.email,
+        "is_admin": user.is_admin,
+        "last_login": user.last_login,
+        "deactivated": user.deactivated,
+        "groups": [group.group_code for group in user.groups],
+        "minio_access_key": user.minio_access_key,
+        "minio_secret_key": user.minio_secret_key,
+    }
+
+    if app.config.get("ENABLE_OIDC") and (
+        app.config.get("LOGIN_DISABLED") or current_user.is_admin
+    ):
+        user_dict["issuer"] = user.issuer
+        user_dict["subject"] = user.subject
+
+    return jsonify(user_dict)
 
 
 @users_blueprint.route("/api/users/<path:username>", methods=["GET"])
@@ -220,6 +226,31 @@ def create_user() -> Response:
             {"location": f"/api/users/{quote(user.username)}"},
         )
 
+    # OAuth fields (optional)
+    subject = None
+    issuer = None
+    app.logger.info(
+        "Validating OAuth subject '%s', issuer '%s'",
+        request.json.get("subject"),
+        request.json.get("issuer"),
+    )
+    if (
+        valid_strings(request.json, "subject")
+        and len(request.json.get("subject")) <= models.User.subject.type.length
+    ):
+        subject = request.json.get("subject")
+    else:
+        app.logger.error("subject field is invalid, ignoring..")
+    if (
+        valid_strings(request.json, "issuer")
+        and len(request.json.get("issuer")) <= models.User.issuer.type.length
+    ):
+        issuer = request.json.get("issuer")
+    else:
+        app.logger.error(
+            "issuer field is invalid, ignoring..",
+        )
+
     app.logger.debug(
         "User is not found in database through username or email, begin adding user."
     )
@@ -227,6 +258,8 @@ def create_user() -> Response:
         username=request.json["username"],
         email=request.json["email"],
         is_admin=request.json.get("is_admin"),
+        subject=subject,
+        issuer=issuer,
     )
     app.logger.debug("Setting password to user..")
     user.set_password(request.json["password"])
@@ -363,6 +396,15 @@ def update_user(username: str) -> Response:
         if valid_strings(request.json, "password"):
             app.logger.debug("Password is valid, assigning..")
             user.set_password(request.json["password"])
+
+        # OAuth fields
+        if valid_strings(request.json, "issuer"):
+            app.logger.debug("Issuer is valid, assigning..")
+            user.issuer = request.json["issuer"]
+        if valid_strings(request.json, "subject"):
+            app.logger.debug("Subject is valid, assigning..")
+            user.subject = request.json["subject"]
+
         app.logger.debug("Committing changes to the database..")
         transaction_or_abort(db.session.commit)
         app.logger.debug("Success")
