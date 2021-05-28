@@ -5,7 +5,7 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
-import { emptyUser, UserClient, UserContext } from "./contexts";
+import { emptyUser, OAuthContext, UserClient, UserContext } from "./contexts";
 import { clearQueryCache } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
@@ -82,32 +82,34 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     } else if (authenticated) {
         return (
             <UserContext.Provider value={userClient}>
-                <QueryClientProvider client={queryClient}>
-                    <SnackbarProvider
-                        ref={notistackRef}
-                        action={key => (
-                            <IconButton
-                                aria-label="close"
-                                color="inherit"
-                                onClick={onClickDismiss(key)}
-                            >
-                                <Close fontSize="small" />
-                            </IconButton>
-                        )}
-                        autoHideDuration={6000}
-                        anchorOrigin={{
-                            horizontal: "center",
-                            vertical: "bottom",
-                        }}
-                    >
-                        <Navigation
-                            signout={signout}
-                            darkMode={props.darkMode}
-                            toggleDarkMode={props.toggleDarkMode}
-                        />
-                        <ReactQueryDevtools initialIsOpen={false} />
-                    </SnackbarProvider>
-                </QueryClientProvider>
+                <OAuthContext.Provider value={oauthEnabled}>
+                    <QueryClientProvider client={queryClient}>
+                        <SnackbarProvider
+                            ref={notistackRef}
+                            action={key => (
+                                <IconButton
+                                    aria-label="close"
+                                    color="inherit"
+                                    onClick={onClickDismiss(key)}
+                                >
+                                    <Close fontSize="small" />
+                                </IconButton>
+                            )}
+                            autoHideDuration={6000}
+                            anchorOrigin={{
+                                horizontal: "center",
+                                vertical: "bottom",
+                            }}
+                        >
+                            <Navigation
+                                signout={signout}
+                                darkMode={props.darkMode}
+                                toggleDarkMode={props.toggleDarkMode}
+                            />
+                            <ReactQueryDevtools initialIsOpen={false} />
+                        </SnackbarProvider>
+                    </QueryClientProvider>
+                </OAuthContext.Provider>
             </UserContext.Provider>
         );
     } else {
