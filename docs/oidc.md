@@ -22,10 +22,10 @@ Stager maintains a database containing all users who are authorized to use the a
 
 Currently, adding new users via the `POST /api/users` endpoint will set the "issuer" and "subject" columns as `None`.
 
-Updating an existing user currently requires that you update the user's record in the `user` table in `mysql`. Instructions for accessing `mysql` are in [database.md](./database.md). From there, simply update your desired user as follows:
+Stager provides a CLI command for updating existing users' OAuth fields. Attach a shell to the running app container and run the command as follows:
 
-```mysql
-UPDATE user SET subject = "{YOUR_SUBJECT_ID}", issuer = "{YOUR_ISSUER_URL}" WHERE username = "{USERNAME}";
+```
+docker-compose exec app flask update-user --issuer={ISSUER} --subject={SUBJECT} {USERNAME}
 ```
 
 Ideally, the user's username in your Identity Provider should match their username in Stager, but this is not enforced.

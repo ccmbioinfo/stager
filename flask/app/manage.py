@@ -2,6 +2,7 @@ from datetime import datetime
 import random
 
 import click
+from click.exceptions import ClickException
 
 from flask import Flask, current_app as app
 from flask.cli import with_appcontext
@@ -18,10 +19,12 @@ def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
     app.cli.add_command(seed_database_minio_groups)
-    if app.config.get("ENABLE_OIDC") and os.getenv("KEYCLOAK_HOST") is not None:
-        app.cli.add_command(create_realm)
-        app.cli.add_command(create_client)
-        app.cli.add_command(add_user)
+    if app.config.get("ENABLE_OIDC"):
+        app.cli.add_command(update_user)
+        if os.getenv("KEYCLOAK_HOST") is not None:
+            app.cli.add_command(create_realm)
+            app.cli.add_command(create_client)
+            app.cli.add_command(add_user)
 
 
 @click.command("db-seed")
@@ -298,3 +301,27 @@ def seed_dev_data(force: bool) -> None:
 
         db.session.add(default_family)
         family_code_iter += 1
+
+
+@click.command("update-user")
+@click.argument("username", required=True, type=str)
+@click.option("--issuer", help="OAuth issuer claim (OAuth provider URL)")
+@click.option("--subject", help="OAuth subject claim (OAuth provider user ID)")
+@with_appcontext
+def update_user(username, issuer, subject):
+    """Update OAuth fields for user USERNAME."""
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        raise ClickException("Username not found")
+
+    if issuer:
+        user.issuer = issuer
+
+    if subject:
+        user.subject = subject
+
+    try:
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()
+        raise error
