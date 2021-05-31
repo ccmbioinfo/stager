@@ -161,3 +161,20 @@ def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
             },
         ],
     }
+
+
+def stager_admin_policy() -> Dict[str, Any]:
+    """
+    Return a policy for the 'admin' group in MinIO.
+    Admins have full visibility and delete permissions.
+    """
+    return {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": ["s3:*"],
+                "Resource": ["arn:aws:s3:::*"],
+            }
+        ],
+    }
