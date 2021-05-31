@@ -396,14 +396,17 @@ def get_analysis(id: int):
 @validate_json
 def create_analysis():
 
+    app.logger.debug("Validating pipeline_id parameter..")
     pipeline_id = request.json.get("pipeline_id")
     if not isinstance(pipeline_id, int):
         abort(400, description="Missing pipeline_id field or invalid type")
 
+    app.logger.debug("Validating datasets parameter..")
     datasets = request.json.get("datasets")
     if not (isinstance(datasets, list) and len(datasets)):
         abort(400, description="Missing datasets field or invalid type")
 
+    app.logger.debug("Validating notes parameter..")
     notes = request.json.get("notes")
     if notes and not isinstance(notes, str):
         abort(400, description="Invalid notes type")
@@ -411,10 +414,14 @@ def create_analysis():
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
+    app.logger.debug("Validating priority parameter..")
+
     enum_error = enum_validate(models.Analysis, request.json, ["priority"])
 
     if enum_error:
         abort(400, description=enum_error)
+
+    app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
@@ -425,7 +432,10 @@ def create_analysis():
     else:
         requester_id = updated_by_id = user_id = current_user.user_id
 
+    app.logger.debug("user_id: '%s'", user_id)
+
     if user_id:
+        app.logger.debug("Querying datasets based on group permissions..")
         found_datasets_query = (
             models.Dataset.query.join(
                 models.groups_datasets_table,
@@ -440,7 +450,12 @@ def create_analysis():
             .filter(models.users_groups_table.columns.user_id == user_id)
         )
     else:
+        app.logger.debug("Querying datasets freely with admin privileges..")
         found_datasets_query = models.Dataset.query
+
+    app.logger.debug(
+        "Verifying that requested datasets are available and permitted to this user.."
+    )
 
     found_datasets = found_datasets_query.filter(
         models.Dataset.dataset_id.in_(datasets)
@@ -448,6 +463,8 @@ def create_analysis():
 
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
+
+    app.logger.debug("Verifying that requested datasets are compatible with requested pipeline..")
 
     compatible_datasets_pipelines_query = (
         db.session.query(
@@ -473,6 +490,8 @@ def create_analysis():
     if len(compatible_datasets_pipelines_query) != len(datasets):
         abort(404, description="Requested pipelines are incompatible with datasets")
 
+    app.logger.debug("Creating analysis..")
+
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
@@ -488,6 +507,8 @@ def create_analysis():
 
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Analysis created successfully, returning JSON..")
 
     return (
         jsonify(
