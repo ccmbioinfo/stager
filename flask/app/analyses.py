@@ -36,6 +36,9 @@ analyses_blueprint = Blueprint(
 @login_required
 @paged
 def list_analyses(page: int, limit: int) -> Response:
+
+    app.logger.debug("Parsing query parameters..")
+
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
         "updated",
@@ -50,6 +53,7 @@ def list_analyses(page: int, limit: int) -> Response:
     ]
     assignee_user = aliased(models.User)
     requester_user = aliased(models.User)
+    app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
     elif order_by == "assignee":
@@ -64,6 +68,7 @@ def list_analyses(page: int, limit: int) -> Response:
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
     if order:
+        app.logger.debug("Validating 'order_dir' parameter..")
         order_dir = request.args.get("order_dir", type=str)
         if order_dir == "desc":
             order = order.desc()
@@ -71,23 +76,31 @@ def list_analyses(page: int, limit: int) -> Response:
             order = order.asc()
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
+        app.logger.debug("Ordering by '%s' in '%s' direction", order_by, order_dir)
+
+    app.logger.debug("Validating filter parameters..")
 
     filters = []
     assignee = request.args.get("assignee", type=str)
     if assignee:
+        app.logger.debug("Filter by assignee: '%s'", assignee)
         filters.append(func.instr(assignee_user.username, assignee))
     requester = request.args.get("requester", type=str)
     if requester:
+        app.logger.debug("Filter by requester: '%s'", requester)
         filters.append(func.instr(requester_user.username, requester))
     notes = request.args.get("notes", type=str)
     if notes:
+        app.logger.debug("Filter by notes: '%s'", notes)
         filters.append(func.instr(models.Analysis.notes, notes))
     # this edges into the [GET] /:id endpoint, but the index/show payloads diverge, causing issues for the FE, and this is technically still a filter
     analysis_id = request.args.get("analysis_id", type=str)
     if analysis_id:
+        app.logger.debug("Filter by analysis_id: '%s'", analysis_id)
         filters.append(func.instr(models.Analysis.analysis_id, analysis_id))
     priority = request.args.get("priority", type=str)
     if priority:
+        app.logger.debug("Filter by priority: '%s'", priority)
         filters.append(
             filter_in_enum_or_abort(
                 models.Analysis.priority,
@@ -97,15 +110,19 @@ def list_analyses(page: int, limit: int) -> Response:
         )
     result_path = request.args.get("result_path", type=str)
     if result_path:
+        app.logger.debug("Filter by result_path: '%s'", result_path)
         filters.append(func.instr(models.Analysis.result_path, result_path))
     updated = request.args.get("updated", type=str)
     if updated:
+        app.logger.debug("Filter by updated: '%s'", updated)
         filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
     requested = request.args.get("requested", type=str)
     if requested:
+        app.logger.debug("Filter by requested: '%s'", requested)
         filters.append(filter_updated_or_abort(models.Analysis.requested, requested))
     analysis_state = request.args.get("analysis_state", type=str)
     if analysis_state:
+        app.logger.debug("Filter by analysis_state: '%s'", analysis_state)
         filters.append(
             filter_in_enum_or_abort(
                 models.Analysis.analysis_state,
@@ -123,11 +140,18 @@ def list_analyses(page: int, limit: int) -> Response:
             )
         except ValueError as err:
             abort(400, description=err)
+        app.logger.debug("Filter by pipeline_id: '%s'", pipeline_id)
+
+    app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+
+    app.logger.debug("user_id: '%s'", user_id)
+
+    app.logger.debug("Querying and applying filters..")
 
     query = models.Analysis.query.options(
         selectinload(models.Analysis.datasets).options(
@@ -163,6 +187,9 @@ def list_analyses(page: int, limit: int) -> Response:
 
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
+        app.logger.debug(
+            "Filtering by participant_codename: '%s' (subquery)", participant_codename
+        )
         # use a subquery on one-to-many-related fields instead of eager/filter so that the related fields themselves aren't excluded
         # (we want all analyses that have at least 1 particpant that matches the search, along with *all* related participants)
         subquery = (
@@ -181,6 +208,9 @@ def list_analyses(page: int, limit: int) -> Response:
 
     family_codename = request.args.get("family_codename", type=str)
     if family_codename:
+        app.logger.debug(
+            "Filtering by family_codename: '%s' (subquery)", family_codename
+        )
         subquery = (
             models.Analysis.query.join(models.Analysis.datasets)
             .join(models.Dataset.tissue_sample)
@@ -193,6 +223,9 @@ def list_analyses(page: int, limit: int) -> Response:
         query = query.filter(models.Analysis.analysis_id.in_(subquery))
 
     if request.args.get("search"):  # multifield search
+        app.logger.debug(
+            "Searching across multiple fields by '%s'", request.args.get("search")
+        )
         subquery = (
             models.Analysis.query.join(models.Analysis.datasets)
             .join(models.Dataset.tissue_sample)
@@ -226,6 +259,8 @@ def list_analyses(page: int, limit: int) -> Response:
     ).scalar()
     analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
+    app.logger.info("Query successful")
+
     results = [
         {
             **asdict(analysis),
@@ -246,8 +281,10 @@ def list_analyses(page: int, limit: int) -> Response:
     ]
 
     if expects_json(request):
+        app.logger.debug("Returning paginated response..")
         return paginated_response(results, page, total_count, limit)
     elif expects_csv(request):
+        app.logger.debug("Returning paginated response..")
 
         results = [
             {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
