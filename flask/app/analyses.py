@@ -315,12 +315,17 @@ def list_analyses(page: int, limit: int) -> Response:
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
+    app.logger.debug("Getting user_id..")
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
 
+    app.logger.debug("user_id: '%s'", user_id)
+
     if user_id:
+        app.logger.debug("Querying based on group permissions..")
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .options(contains_eager(models.Analysis.datasets))
@@ -345,6 +350,7 @@ def get_analysis(id: int):
             .one_or_none()
         )
     else:
+        app.logger.debug("Querying freely with admin privileges..")
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .outerjoin(models.Analysis.datasets)
@@ -354,6 +360,8 @@ def get_analysis(id: int):
 
     if not analysis:
         return abort(404)
+
+    app.logger.debug("Query successful returning JSON..")
 
     return jsonify(
         {
