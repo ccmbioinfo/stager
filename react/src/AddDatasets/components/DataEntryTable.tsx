@@ -126,20 +126,6 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     ) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
-        } else if (col.field === "linked_files") {
-            // Remove the new values from the list of unlinked files to prevent reuse
-            // Readd the previous values that are not selected if there was one since it is available again
-            const notReselectedOldValue = props.data[rowIndex].linked_files?.filter(
-                oldValue => (newValue as string[]).find(value => oldValue === value) === undefined
-            );
-            const removeNewValue = files.filter(
-                file => (newValue as string[]).find(value => file === value) === undefined
-            );
-            setFiles(
-                notReselectedOldValue
-                    ? [...notReselectedOldValue, ...removeNewValue].sort()
-                    : removeNewValue
-            );
         }
         const newRows = props.data.map((value, index) => {
             if (autopopulate && index === rowIndex) {

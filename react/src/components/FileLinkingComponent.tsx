@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
     Box,
     Button,
-    Checkbox,
+    Chip,
     Grid,
     List,
     makeStyles,
@@ -13,6 +13,8 @@ import {
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
+import { toOption } from "../AddDatasets/components/utils";
+import { Note } from "../components";
 import { Option } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -34,25 +36,10 @@ const useStyles = makeStyles(theme => ({
         padding: 0,
     },
     autocomplete: {
+        width: "400px",
         flexGrow: 1,
     },
-
-    breakAll: {
-        wordBreak: "break-all",
-    },
 }));
-
-const compareOption = (a: Option, b: Option) => {
-    if (a.selected && b.selected) {
-        return 0;
-    } else if (a.selected) {
-        return -1;
-    } else if (b.selected) {
-        return 1;
-    } else {
-        return 0;
-    }
-};
 
 /* A cell for linking files to a dataset. */
 export default function FileLinkingComponent(props: {
@@ -74,17 +61,6 @@ export default function FileLinkingComponent(props: {
     const handleClose = () => {
         setAnchorEl(null);
     };
-
-    const options = useMemo(
-        () =>
-            props.options
-                .map(o => ({
-                    ...o,
-                    selected: props.values.includes(o.title),
-                }))
-                .sort(compareOption),
-        [props.options, props.values]
-    );
 
     return (
         <>
@@ -161,65 +137,60 @@ export default function FileLinkingComponent(props: {
                             </Typography>
                         ) : (
                             <Grid container direction="column">
-                                <div className={classes.autocomplete}>
-                                    <Autocomplete
-                                        inputValue={inputValue}
-                                        onInputChange={(_, value, reason) => {
-                                            if (reason === "reset") {
-                                                setInputValue("");
-                                            } else {
-                                                setInputValue(value);
-                                            }
-                                        }}
-                                        style={{ width: "400px" }}
-                                        disableCloseOnSelect
-                                        onChange={(_, selectedOption, reason) => {
-                                            if (selectedOption && reason === "select-option") {
-                                                if (selectedOption.selected) {
-                                                    props.onEdit(
-                                                        props.values.filter(
-                                                            v => v !== selectedOption.title
-                                                        )
-                                                    );
-                                                } else {
-                                                    props.onEdit(
-                                                        props.values.concat(selectedOption.title)
-                                                    );
-                                                }
-                                            }
-                                        }}
-                                        // this is technically an uncontrolled component b/c we are not providing a value prop
-                                        // we have multiple values but aren't using tags and are instead showing selected files within the dropdown itself by sorting them to the top
-                                        // we always return true here to avoid console warnings about the value prop being invalid
-                                        getOptionSelected={() => true}
-                                        renderOption={option => (
-                                            <Box>
-                                                <Grid container alignItems="center">
-                                                    <Checkbox checked={option.selected} />
-                                                    <Typography
-                                                        variant="body1"
-                                                        className={classes.breakAll}
-                                                    >
-                                                        {option.title}
-                                                    </Typography>
-                                                </Grid>
-                                            </Box>
-                                        )}
-                                        options={options}
-                                        filterOptions={createFilterOptions({
-                                            limit: 25,
-                                            stringify: o => o.title,
-                                        })}
-                                        getOptionLabel={option => option.title}
-                                        renderInput={params => (
-                                            <TextField
-                                                {...params}
-                                                label="Search Unlinked Files"
-                                                variant="outlined"
-                                            />
-                                        )}
-                                    />
-                                </div>
+                                <Autocomplete
+                                    autoComplete
+                                    className={classes.autocomplete}
+                                    inputValue={inputValue}
+                                    onInputChange={(_, value, reason) => {
+                                        if (reason === "input") {
+                                            setInputValue(value);
+                                        }
+                                    }}
+                                    disableClearable={true}
+                                    disableCloseOnSelect
+                                    onChange={(_, selectedOptions, reason) => {
+                                        if (
+                                            selectedOptions &&
+                                            ["select-option", "remove-option"].includes(reason)
+                                        ) {
+                                            props.onEdit(selectedOptions.map(o => o.title));
+                                            setInputValue("");
+                                        }
+                                    }}
+                                    renderTags={(tags, getTagProps) => (
+                                        <>
+                                            {tags.map((tag, i) => (
+                                                <Chip
+                                                    key={tag.title}
+                                                    {...getTagProps({ index: i })}
+                                                    label={<Note>{tag.title}</Note>}
+                                                />
+                                            ))}
+                                        </>
+                                    )}
+                                    renderOption={option => (
+                                        <span className={classes.fileName}>{option.title}</span>
+                                    )}
+                                    getOptionSelected={(option, value) =>
+                                        option.title === value.title
+                                    }
+                                    options={props.options}
+                                    filterOptions={createFilterOptions({
+                                        limit: 25,
+                                        stringify: o => o.title,
+                                    })}
+                                    filterSelectedOptions={true}
+                                    getOptionLabel={option => option.title}
+                                    renderInput={params => (
+                                        <TextField
+                                            {...params}
+                                            label="Search Unlinked Files"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                    multiple
+                                    value={props.values.map(v => toOption(v))}
+                                />
                             </Grid>
                         )}
                     </div>
