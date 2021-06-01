@@ -464,7 +464,9 @@ def create_analysis():
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
 
-    app.logger.debug("Verifying that requested datasets are compatible with requested pipeline..")
+    app.logger.debug(
+        "Verifying that requested datasets are compatible with requested pipeline.."
+    )
 
     compatible_datasets_pipelines_query = (
         db.session.query(
@@ -551,6 +553,8 @@ def create_reanalysis(id: int):
 
     datasets = [dataset.dataset_id for dataset in analysis.datasets]
 
+    app.logger.debug("Getting user_id..")
+
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
         requester_id = updated_by_id = user_id or 1
@@ -559,6 +563,8 @@ def create_reanalysis(id: int):
         requester_id = updated_by_id = user_id or current_user.user_id
     else:
         requester_id = updated_by_id = user_id = current_user.user_id
+
+    app.logger.debug("user_id: '%s'", user_id)
 
     app.logger.info("Checking if datasets are available to user...")
     if user_id:
@@ -630,6 +636,8 @@ def create_reanalysis(id: int):
     db.session.add(new_analysis)
     transaction_or_abort(db.session.commit)
 
+    app.logger.debug("Analysis creation successful, returning JSON..")
+
     return (
         jsonify(
             {
@@ -667,6 +675,7 @@ def create_reanalysis(id: int):
 @login_required
 @check_admin
 def delete_analysis(id: int):
+    app.logger.debug(f"Checking if analysis {id} exists..")
     analysis = models.Analysis.query.filter(
         models.Analysis.analysis_id == id
     ).first_or_404()
@@ -674,6 +683,7 @@ def delete_analysis(id: int):
     try:
         db.session.delete(analysis)
         db.session.commit()
+        app.logger.debug("Deletion successful")
         return "Updated", 204
     except:
         db.session.rollback()
@@ -684,6 +694,7 @@ def delete_analysis(id: int):
 @login_required
 @validate_json
 def update_analysis(id: int):
+    app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -697,8 +708,10 @@ def update_analysis(id: int):
                 403,
                 description="Analysis state changes are restricted to administrators",
             )
+    app.logger.debug("user_id: '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Querying based on group permissions..")
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .join(
@@ -721,6 +734,7 @@ def update_analysis(id: int):
             .first_or_404()
         )
     else:
+        app.logger.debug("Querying freely with admin privileges..")
         analysis = models.Analysis.query.filter(
             models.Analysis.analysis_id == id
         ).first_or_404()
@@ -736,6 +750,8 @@ def update_analysis(id: int):
         "notes",
         "priority",
     ]
+
+    app.logger.debug("Validating assignee parameter..")
 
     if "assignee" in request.json:
         if not request.json["assignee"]:
@@ -754,6 +770,8 @@ def update_analysis(id: int):
     if enum_error:
         abort(400, description=enum_error)
 
+    app.logger.debug("Validating other fields..")
+
     mixin(analysis, request.json, editable_columns)
 
     if request.json.get("analysis_state") == "Running":
@@ -766,6 +784,8 @@ def update_analysis(id: int):
         analysis.updated_by_id = user_id
 
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Update successful, returning JSON..")
 
     return jsonify(
         {
