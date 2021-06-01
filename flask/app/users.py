@@ -8,8 +8,8 @@ from sqlalchemy.orm import joinedload
 
 from . import models
 from .extensions import db
-from .madmin import MinioAdmin
-from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
+from .madmin import MinioAdmin, get_minio_admin
+from .utils import check_admin, transaction_or_abort, validate_json
 
 
 users_blueprint = Blueprint(

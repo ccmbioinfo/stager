@@ -1,6 +1,6 @@
 from csv import DictWriter, QUOTE_MINIMAL
 from dataclasses import asdict, dataclass
-from datetime import date, datetime, time
+from datetime import datetime
 from enum import Enum
 from functools import wraps
 from io import BytesIO, StringIO
@@ -14,7 +14,6 @@ from flask import (
     Request,
     send_file,
 )
-from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
 from sqlalchemy import exc
@@ -158,14 +157,6 @@ def filter_updated_or_abort(column: db.Column, value: str):
         abort(400, description=description)
 
 
-def get_minio_admin() -> MinioAdmin:
-    return MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
-
-
 def query_results_to_csv(results: List[dict or dataclass]):
     """ take a list of models and convert to csv """
     is_dict = isinstance(results[0], dict)
@@ -283,18 +274,3 @@ def stager_is_keycloak_admin():
     In other words, return true if Stager has the ability to create users in Keycloak.
     """
     return app.config.get("ENABLE_OIDC") and getenv("KEYCLOAK_HOST") is not None
-
-
-class DateTimeEncoder(JSONEncoder):
-    """
-    JSONEncoder override for encoding UTC datetimes in ISO format.
-    """
-
-    def default(self, obj):
-
-        # handle any variant of date
-        if isinstance(obj, (date, time, datetime)):
-            return obj.isoformat()
-
-        # default behaviour
-        return JSONEncoder.default(self, obj)

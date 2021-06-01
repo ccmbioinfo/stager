@@ -10,7 +10,12 @@ from minio import Minio
 
 from .models import *
 from .extensions import db
-from .madmin import MinioAdmin, stager_admin_policy, stager_buckets_policy
+from .madmin import (
+    MinioAdmin,
+    stager_admin_policy,
+    stager_buckets_policy,
+    get_minio_admin,
+)
 from .manage_keycloak import *
 from .utils import stager_is_keycloak_admin
 

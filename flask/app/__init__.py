@@ -1,7 +1,8 @@
 import logging
+from datetime import date, time, datetime
 from flask import Flask, logging as flask_logging
+from flask.json import JSONEncoder
 from .extensions import db, login, migrate, oauth
-from .utils import DateTimeEncoder
 
 from app import (
     buckets,
@@ -82,3 +83,18 @@ def config_logger(app):
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
 
     flask_logging.create_logger(app)
+
+
+class DateTimeEncoder(JSONEncoder):
+    """
+    JSONEncoder override for encoding UTC datetimes in ISO format.
+    """
+
+    def default(self, obj):
+
+        # handle any variant of date
+        if isinstance(obj, (date, time, datetime)):
+            return obj.isoformat()
+
+        # default behaviour
+        return JSONEncoder.default(self, obj)

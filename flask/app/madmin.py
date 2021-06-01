@@ -1,5 +1,6 @@
 import json, os, subprocess
 from typing import Any, Dict, List, Optional, Union
+from flask import current_app as app
 
 
 class MinioAdmin:
@@ -111,6 +112,14 @@ class MinioAdmin:
 
     def remove_policy(self, policy: str) -> None:
         self._exec(["policy", "remove"], [policy])
+
+
+def get_minio_admin() -> MinioAdmin:
+    return MinioAdmin(
+        endpoint=app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
+    )
 
 
 def readonly_buckets_policy(*buckets: str) -> Dict[str, Any]:
