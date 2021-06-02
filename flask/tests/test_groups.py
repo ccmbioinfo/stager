@@ -2,7 +2,7 @@ import pytest
 from app import db, models
 from sqlalchemy.orm import joinedload
 from conftest import TestConfig
-from app.madmin import MinioAdmin, stager_buckets_policy
+from app.madmin import MinioAdmin, stager_buckets_policy, stager_admin_policy
 from minio import Minio
 
 
@@ -17,8 +17,11 @@ def minio_admin():
     madmin.add_user("user", "useruser")
     madmin.add_user("admin", "adminadmin")
     madmin.group_add("ach", "user")
+    madmin.group_add("admin", "admin")
     madmin.add_policy("ach", stager_buckets_policy("ach"))
+    madmin.add_policy("admin", stager_admin_policy())
     madmin.set_policy("ach", group="ach")
+    madmin.set_policy("admin", group="admin")
     yield madmin
     # Teardown
     try:
@@ -34,7 +37,15 @@ def minio_admin():
     except:
         pass
     try:
+        madmin.group_remove("admin")
+    except:
+        pass
+    try:
         madmin.remove_policy("ach")
+    except:
+        pass
+    try:
+        madmin.remove_policy("admin")
     except:
         pass
 
@@ -105,6 +116,7 @@ def test_get_group(test_database, client, login_as):
 
 
 def test_delete_group(test_database, client, login_as, minio_admin):
+    prev_minio_groups = len(minio_admin.list_groups())
 
     # Test without permission
     login_as("user")
@@ -134,7 +146,7 @@ def test_delete_group(test_database, client, login_as, minio_admin):
     # Make sure it's gone
     group = models.Group.query.filter_by(group_code="ach").one_or_none()
     assert group == None
-    assert len(minio_admin.list_groups()) == 0
+    assert len(minio_admin.list_groups()) == prev_minio_groups - 1
 
 
 # PATCH /api/groups/:id
