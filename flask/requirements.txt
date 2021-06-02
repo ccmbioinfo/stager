@@ -40,8 +40,6 @@ gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via requests
-importlib-metadata==4.0.1
-    # via click
 itsdangerous==2.0.1
     # via flask
 jinja2==3.0.1
@@ -79,16 +77,12 @@ sqlalchemy==1.3.24
     #   -r requirements.in
     #   alembic
     #   flask-sqlalchemy
-typing-extensions==3.10.0.0
-    # via importlib-metadata
-urllib3==1.26.4
+urllib3==1.26.5
     # via
     #   minio
     #   requests
 werkzeug==2.0.1
     # via flask
-zipp==3.4.1
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
