@@ -148,7 +148,9 @@ export default function FileLinkingComponent(props: {
                                     }}
                                     disableClearable={true}
                                     disableCloseOnSelect
-                                    onChange={(_, selectedOptions, reason) => {
+                                    onChange={(event, selectedOptions, reason) => {
+                                        //prevent keypress events from propagating to parent listeners
+                                        event.stopPropagation();
                                         if (
                                             selectedOptions &&
                                             ["select-option", "remove-option"].includes(reason)
