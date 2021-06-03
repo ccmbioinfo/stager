@@ -27,6 +27,7 @@ services:
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
     volumes:
       - ${MINIO_VOLUME}:/data
     command: server /data
@@ -45,6 +46,7 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
     depends_on:
       - mysql
       - minio

@@ -23,6 +23,7 @@ class Config(object):
         "MINIO_SECRET_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     )
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
+    MINIO_REGION_NAME = os.getenv("MINIO_REGION_NAME", "hpc4health")
     TESTING = False
     ENABLE_OIDC = os.getenv("ENABLE_OIDC", "") != ""
     OIDC_PROVIDER = os.getenv("OIDC_PROVIDER", "keycloak")
