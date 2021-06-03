@@ -8,8 +8,8 @@ from sqlalchemy.orm import joinedload
 
 from . import models
 from .extensions import db
-from .madmin import MinioAdmin, get_minio_admin
-from .utils import check_admin, transaction_or_abort, validate_json
+from .madmin import MinioAdmin
+from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
 
 
 users_blueprint = Blueprint(
@@ -121,7 +121,7 @@ def reset_minio_credentials(user: models.User) -> None:
 
     if user.is_admin:
         minio_admin.group_add("admin", access_key)
-        minio_admin.set_policy("admin", group="admin")
+        minio_admin.set_policy("readwrite", group="admin")
 
     user.minio_access_key = access_key
     user.minio_secret_key = secret_key

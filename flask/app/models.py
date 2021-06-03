@@ -3,13 +3,11 @@ from datetime import date, datetime
 from enum import Enum
 from typing import List
 
-from flask import current_app as app
 from flask_login import UserMixin
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db, login
-from .madmin import MinioAdmin
 
 users_groups_table = db.Table(
     "users_groups",
@@ -39,20 +37,6 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(
             password, method="pbkdf2:sha256:50000"
         )
-
-    def set_admin(self, new_admin: bool):
-        if self.minio_access_key:
-            minio_admin = MinioAdmin(
-                endpoint=app.config["MINIO_ENDPOINT"],
-                access_key=app.config["MINIO_ACCESS_KEY"],
-                secret_key=app.config["MINIO_SECRET_KEY"],
-            )
-            if new_admin:
-                minio_admin.group_add("admin", self.minio_access_key)
-                minio_admin.set_policy("admin", group="admin")
-            else:
-                minio_admin.group_remove("admin", self.minio_access_key)
-        self.is_admin = new_admin
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)

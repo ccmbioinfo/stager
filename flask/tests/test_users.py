@@ -2,7 +2,7 @@ import json
 
 import pytest
 from app import db
-from app.madmin import MinioAdmin, stager_buckets_policy, stager_admin_policy
+from app.madmin import MinioAdmin, stager_buckets_policy
 from app.models import User
 from conftest import TestConfig
 
@@ -49,14 +49,9 @@ def minio_policy():
         secret_key=TestConfig.MINIO_SECRET_KEY,
     )
     madmin.add_policy("ach", stager_buckets_policy("ach"))
-    madmin.add_policy("admin", stager_admin_policy())
     yield madmin
     try:
         madmin.remove_policy("ach")
-    except:
-        pass
-    try:
-        madmin.remove_policy("admin")
     except:
         pass
     for user in madmin.list_users():

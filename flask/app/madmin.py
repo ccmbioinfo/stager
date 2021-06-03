@@ -114,14 +114,6 @@ class MinioAdmin:
         self._exec(["policy", "remove"], [policy])
 
 
-def get_minio_admin() -> MinioAdmin:
-    return MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
-
-
 def readonly_buckets_policy(*buckets: str) -> Dict[str, Any]:
     return {
         "Version": "2012-10-17",
@@ -168,22 +160,5 @@ def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
                 ],
                 "Resource": [f"arn:aws:s3:::{bucket}/*" for bucket in buckets],
             },
-        ],
-    }
-
-
-def stager_admin_policy() -> Dict[str, Any]:
-    """
-    Return a policy for the 'admin' group in MinIO.
-    Admins have full visibility and delete permissions.
-    """
-    return {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": ["s3:*"],
-                "Resource": ["arn:aws:s3:::*"],
-            }
         ],
     }

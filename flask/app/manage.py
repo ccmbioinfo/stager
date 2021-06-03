@@ -10,14 +10,10 @@ from minio import Minio
 
 from .models import *
 from .extensions import db
-from .madmin import (
-    MinioAdmin,
-    stager_admin_policy,
-    stager_buckets_policy,
-    get_minio_admin,
-)
+from .madmin import MinioAdmin, stager_buckets_policy
+
 from .manage_keycloak import *
-from .utils import stager_is_keycloak_admin
+from .utils import get_minio_admin, stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
@@ -69,13 +65,10 @@ def seed_database_minio_groups(force: bool) -> None:
 
 def seed_default_admin(force: bool) -> None:
     if force or User.query.count() == 0:
-        minio_admin = get_minio_admin()
-        admin_policy = stager_admin_policy()
-        minio_admin.add_policy("admin", admin_policy)
-
         default_admin = User(
             username=app.config.get("DEFAULT_ADMIN"),
             email=app.config.get("DEFAULT_ADMIN_EMAIL"),
+            is_admin=True,
             deactivated=False,
         )
         password = app.config.get("DEFAULT_PASSWORD")
@@ -84,7 +77,6 @@ def seed_default_admin(force: bool) -> None:
             access_token = obtain_admin_token()
             if access_token:
                 add_keycloak_user(access_token, default_admin, password)
-        default_admin.set_admin(True)
         db.session.add(default_admin)
         app.logger.info(
             f'Created default admin "{default_admin.username}" with email "{default_admin.email}"'

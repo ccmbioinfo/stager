@@ -6,8 +6,8 @@ from minio import Minio
 
 from . import models
 from .extensions import db
-from .madmin import stager_buckets_policy, get_minio_admin
-from .utils import check_admin, transaction_or_abort, validate_json
+from .madmin import stager_buckets_policy
+from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
 
 
 groups_blueprint = Blueprint(
