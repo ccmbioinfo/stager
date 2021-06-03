@@ -7,7 +7,7 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
       interval: weekly
   - package-ecosystem: npm
@@ -17,7 +17,7 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
       interval: weekly
   - package-ecosystem: docker
@@ -27,7 +27,7 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
       interval: weekly
   - package-ecosystem: github-actions
@@ -37,6 +37,6 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
       interval: weekly
