@@ -35,10 +35,6 @@ def minio_admin():
     except:
         pass
     try:
-        madmin.group_remove("admin")
-    except:
-        pass
-    try:
         madmin.remove_policy("ach")
     except:
         pass

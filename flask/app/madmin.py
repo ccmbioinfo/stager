@@ -1,6 +1,5 @@
 import json, os, subprocess
 from typing import Any, Dict, List, Optional, Union
-from flask import current_app as app
 
 
 class MinioAdmin:

@@ -1,6 +1,6 @@
 from csv import DictWriter, QUOTE_MINIMAL
 from dataclasses import asdict, dataclass
-from datetime import datetime, date, time
+from datetime import date, datetime, time
 from enum import Enum
 from functools import wraps
 from io import BytesIO, StringIO
