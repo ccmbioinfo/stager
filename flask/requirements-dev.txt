@@ -34,6 +34,8 @@ cryptography==3.4.7
     #   pymysql
 flask-login==0.5.0
     # via -r requirements.in
+flask-migrate==3.0.1
+    # via -r requirements.in
 flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
@@ -44,8 +46,6 @@ flask==2.0.1
     #   flask-login
     #   flask-migrate
     #   flask-sqlalchemy
-flask_migrate==3.0.1
-    # via -r requirements.in
 gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
@@ -86,7 +86,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.8.2
+pylint==2.8.3
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
