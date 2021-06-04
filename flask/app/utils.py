@@ -1,6 +1,6 @@
 from csv import DictWriter, QUOTE_MINIMAL
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, date, time
 from enum import Enum
 from functools import wraps
 from io import BytesIO, StringIO
@@ -14,6 +14,7 @@ from flask import (
     Request,
     send_file,
 )
+from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
 from sqlalchemy import exc
