@@ -204,7 +204,9 @@ def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
             policy = stager_buckets_policy(code)
             minio_admin.add_policy(code, policy)
             try:
-                minio_client.make_bucket(code)
+                minio_client.make_bucket(
+                    bucket_name=code, location=app.config["MINIO_REGION_NAME"]
+                )
             except:
                 app.logger.warn(f"MinIO bucket `{code}` already exists.")
             group = Group(group_code=code, group_name=name)

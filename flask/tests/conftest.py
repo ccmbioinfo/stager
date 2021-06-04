@@ -24,6 +24,7 @@ class TestConfig(Config):
         "TEST_MINIO_SECRET_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     )
     MINIO_ACCESS_KEY = os.getenv("TEST_MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
+    MINIO_REGION_NAME = os.getenv("MINIO_REGION_NAME", "hpc4health")
     TESTING = True
     LOGIN_DISABLED = False
 

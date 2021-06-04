@@ -24,6 +24,7 @@ services:
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
     ports:
       - "${MINIO_HOST_PORT}:9000"
     volumes:
@@ -39,6 +40,7 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
       ENABLE_OIDC: "${ENABLE_OIDC:-}"
       OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
       OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"

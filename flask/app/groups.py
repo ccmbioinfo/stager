@@ -190,7 +190,9 @@ def create_group():
         # Create minio bucket via mc, 422 if it already exists
         if minio_client.bucket_exists(group_code):
             abort(422, description="Minio bucket already exists")
-        minio_client.make_bucket(group_code)
+        minio_client.make_bucket(
+            bucket_name=group_code, location=app.config["MINIO_REGION_NAME"]
+        )
     except:
         abort(422, description="Invalid bucket name")
 
