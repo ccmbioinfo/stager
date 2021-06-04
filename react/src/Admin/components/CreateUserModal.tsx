@@ -13,7 +13,7 @@ import {
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 
-import { useOAuthContext } from "../../contexts";
+import { useAPIInfoContext } from "../../contexts";
 import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
 import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
@@ -95,7 +95,7 @@ function ErrorText(props: ErrorTextProps) {
 
 export default function CreateUserModal(props: CreateUserModalProps) {
     const classes = useStyles();
-    const oauthEnabled = useOAuthContext();
+    const apiInfo = useAPIInfoContext();
     const [state, dispatch] = useReducer(reducer, initState);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
@@ -208,7 +208,7 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     error={passwordsDiffer}
                     helperText={passwordErrorText}
                 />
-                {oauthEnabled && (
+                {apiInfo?.oauth && (
                     <>
                         <TextField
                             autoComplete="off"

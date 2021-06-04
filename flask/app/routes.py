@@ -26,9 +26,13 @@ routes = Blueprint("routes", __name__)
 
 @routes.route("/api", strict_slashes=False)
 def version():
-    return jsonify(
-        {"sha": app.config.get("GIT_SHA"), "oauth": app.config.get("ENABLE_OIDC")}
-    )
+    api_info = {
+        "sha": app.config.get("GIT_SHA"),
+        "oauth": app.config.get("ENABLE_OIDC"),
+    }
+    if app.config.get("ENABLE_OIDC"):
+        api_info["oauth_provider"] = app.config.get("OIDC_PROVIDER")
+    return jsonify(api_info)
 
 
 @routes.route("/api/login", methods=["POST"])
@@ -126,8 +130,26 @@ def authorize():
 @login_required
 @validate_json
 def logout():
+    username = current_user.username
     logout_user()
-    return "", 204
+
+    url = ""
+
+    if app.config.get("ENABLE_OIDC"):
+        # Log out of OAuth session as well as Stager session
+        client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+        client_id = app.config.get("OIDC_CLIENT_ID")
+        metadata = client.load_server_metadata()  # .well-known/openid-configuration
+
+        if app.config.get("OIDC_PROVIDER") == "auth0":
+            app.logger.debug(f"Logging user '{username}' out of Auth0 session..")
+            # Construct URL
+            url = metadata["issuer"] + f"v2/logout?client_id={client_id}"
+            app.logger.debug(f"Auth0 logout endpoint: '{url}'")
+        else:
+            app.logger.debug(f"Not Auth0")
+
+    return url, 204 if url == "" else 200
 
 
 def validate_user(request_user: dict):
