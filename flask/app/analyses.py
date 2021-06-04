@@ -36,6 +36,9 @@ analyses_blueprint = Blueprint(
 @login_required
 @paged
 def list_analyses(page: int, limit: int) -> Response:
+
+    app.logger.debug("Parsing query parameters..")
+
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
         "updated",
@@ -50,6 +53,7 @@ def list_analyses(page: int, limit: int) -> Response:
     ]
     assignee_user = aliased(models.User)
     requester_user = aliased(models.User)
+    app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
     elif order_by == "assignee":
@@ -64,6 +68,7 @@ def list_analyses(page: int, limit: int) -> Response:
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
     if order:
+        app.logger.debug("Validating 'order_dir' parameter..")
         order_dir = request.args.get("order_dir", type=str)
         if order_dir == "desc":
             order = order.desc()
@@ -71,23 +76,31 @@ def list_analyses(page: int, limit: int) -> Response:
             order = order.asc()
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
+        app.logger.debug("Ordering by '%s' in '%s' direction", order_by, order_dir)
+
+    app.logger.debug("Validating filter parameters..")
 
     filters = []
     assignee = request.args.get("assignee", type=str)
     if assignee:
+        app.logger.debug("Filter by assignee: '%s'", assignee)
         filters.append(func.instr(assignee_user.username, assignee))
     requester = request.args.get("requester", type=str)
     if requester:
+        app.logger.debug("Filter by requester: '%s'", requester)
         filters.append(func.instr(requester_user.username, requester))
     notes = request.args.get("notes", type=str)
     if notes:
+        app.logger.debug("Filter by notes: '%s'", notes)
         filters.append(func.instr(models.Analysis.notes, notes))
     # this edges into the [GET] /:id endpoint, but the index/show payloads diverge, causing issues for the FE, and this is technically still a filter
     analysis_id = request.args.get("analysis_id", type=str)
     if analysis_id:
+        app.logger.debug("Filter by analysis_id: '%s'", analysis_id)
         filters.append(func.instr(models.Analysis.analysis_id, analysis_id))
     priority = request.args.get("priority", type=str)
     if priority:
+        app.logger.debug("Filter by priority: '%s'", priority)
         filters.append(
             filter_in_enum_or_abort(
                 models.Analysis.priority,
@@ -97,15 +110,19 @@ def list_analyses(page: int, limit: int) -> Response:
         )
     result_path = request.args.get("result_path", type=str)
     if result_path:
+        app.logger.debug("Filter by result_path: '%s'", result_path)
         filters.append(func.instr(models.Analysis.result_path, result_path))
     updated = request.args.get("updated", type=str)
     if updated:
+        app.logger.debug("Filter by updated: '%s'", updated)
         filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
     requested = request.args.get("requested", type=str)
     if requested:
+        app.logger.debug("Filter by requested: '%s'", requested)
         filters.append(filter_updated_or_abort(models.Analysis.requested, requested))
     analysis_state = request.args.get("analysis_state", type=str)
     if analysis_state:
+        app.logger.debug("Filter by analysis_state: '%s'", analysis_state)
         filters.append(
             filter_in_enum_or_abort(
                 models.Analysis.analysis_state,
@@ -123,11 +140,18 @@ def list_analyses(page: int, limit: int) -> Response:
             )
         except ValueError as err:
             abort(400, description=err)
+        app.logger.debug("Filter by pipeline_id: '%s'", pipeline_id)
+
+    app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+
+    app.logger.debug("user_id: '%s'", user_id)
+
+    app.logger.debug("Querying and applying filters..")
 
     query = models.Analysis.query.options(
         selectinload(models.Analysis.datasets).options(
@@ -163,6 +187,9 @@ def list_analyses(page: int, limit: int) -> Response:
 
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
+        app.logger.debug(
+            "Filtering by participant_codename: '%s' (subquery)", participant_codename
+        )
         # use a subquery on one-to-many-related fields instead of eager/filter so that the related fields themselves aren't excluded
         # (we want all analyses that have at least 1 particpant that matches the search, along with *all* related participants)
         subquery = (
@@ -181,6 +208,9 @@ def list_analyses(page: int, limit: int) -> Response:
 
     family_codename = request.args.get("family_codename", type=str)
     if family_codename:
+        app.logger.debug(
+            "Filtering by family_codename: '%s' (subquery)", family_codename
+        )
         subquery = (
             models.Analysis.query.join(models.Analysis.datasets)
             .join(models.Dataset.tissue_sample)
@@ -193,6 +223,9 @@ def list_analyses(page: int, limit: int) -> Response:
         query = query.filter(models.Analysis.analysis_id.in_(subquery))
 
     if request.args.get("search"):  # multifield search
+        app.logger.debug(
+            "Searching across multiple fields by '%s'", request.args.get("search")
+        )
         subquery = (
             models.Analysis.query.join(models.Analysis.datasets)
             .join(models.Dataset.tissue_sample)
@@ -226,6 +259,8 @@ def list_analyses(page: int, limit: int) -> Response:
     ).scalar()
     analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
+    app.logger.info("Query successful")
+
     results = [
         {
             **asdict(analysis),
@@ -246,8 +281,10 @@ def list_analyses(page: int, limit: int) -> Response:
     ]
 
     if expects_json(request):
+        app.logger.debug("Returning paginated response..")
         return paginated_response(results, page, total_count, limit)
     elif expects_csv(request):
+        app.logger.debug("Returning paginated response..")
 
         results = [
             {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
@@ -278,12 +315,17 @@ def list_analyses(page: int, limit: int) -> Response:
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
+    app.logger.debug("Getting user_id..")
+
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
 
+    app.logger.debug("user_id: '%s'", user_id)
+
     if user_id:
+        app.logger.debug("Querying based on group permissions..")
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .options(contains_eager(models.Analysis.datasets))
@@ -308,6 +350,7 @@ def get_analysis(id: int):
             .one_or_none()
         )
     else:
+        app.logger.debug("Querying freely with admin privileges..")
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .outerjoin(models.Analysis.datasets)
@@ -317,6 +360,8 @@ def get_analysis(id: int):
 
     if not analysis:
         return abort(404)
+
+    app.logger.debug("Query successful returning JSON..")
 
     return jsonify(
         {
@@ -351,14 +396,17 @@ def get_analysis(id: int):
 @validate_json
 def create_analysis():
 
+    app.logger.debug("Validating pipeline_id parameter..")
     pipeline_id = request.json.get("pipeline_id")
     if not isinstance(pipeline_id, int):
         abort(400, description="Missing pipeline_id field or invalid type")
 
+    app.logger.debug("Validating datasets parameter..")
     datasets = request.json.get("datasets")
     if not (isinstance(datasets, list) and len(datasets)):
         abort(400, description="Missing datasets field or invalid type")
 
+    app.logger.debug("Validating notes parameter..")
     notes = request.json.get("notes")
     if notes and not isinstance(notes, str):
         abort(400, description="Invalid notes type")
@@ -366,10 +414,14 @@ def create_analysis():
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
+    app.logger.debug("Validating priority parameter..")
+
     enum_error = enum_validate(models.Analysis, request.json, ["priority"])
 
     if enum_error:
         abort(400, description=enum_error)
+
+    app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
@@ -380,7 +432,10 @@ def create_analysis():
     else:
         requester_id = updated_by_id = user_id = current_user.user_id
 
+    app.logger.debug("user_id: '%s'", user_id)
+
     if user_id:
+        app.logger.debug("Querying datasets based on group permissions..")
         found_datasets_query = (
             models.Dataset.query.join(
                 models.groups_datasets_table,
@@ -395,7 +450,12 @@ def create_analysis():
             .filter(models.users_groups_table.columns.user_id == user_id)
         )
     else:
+        app.logger.debug("Querying datasets freely with admin privileges..")
         found_datasets_query = models.Dataset.query
+
+    app.logger.debug(
+        "Verifying that requested datasets are available and permitted to this user.."
+    )
 
     found_datasets = found_datasets_query.filter(
         models.Dataset.dataset_id.in_(datasets)
@@ -403,6 +463,10 @@ def create_analysis():
 
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
+
+    app.logger.debug(
+        "Verifying that requested datasets are compatible with requested pipeline.."
+    )
 
     compatible_datasets_pipelines_query = (
         db.session.query(
@@ -428,6 +492,8 @@ def create_analysis():
     if len(compatible_datasets_pipelines_query) != len(datasets):
         abort(404, description="Requested pipelines are incompatible with datasets")
 
+    app.logger.debug("Creating analysis..")
+
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
@@ -443,6 +509,8 @@ def create_analysis():
 
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Analysis created successfully, returning JSON..")
 
     return (
         jsonify(
@@ -485,6 +553,8 @@ def create_reanalysis(id: int):
 
     datasets = [dataset.dataset_id for dataset in analysis.datasets]
 
+    app.logger.debug("Getting user_id..")
+
     if app.config.get("LOGIN_DISABLED"):
         user_id = request.args.get("user")
         requester_id = updated_by_id = user_id or 1
@@ -493,6 +563,8 @@ def create_reanalysis(id: int):
         requester_id = updated_by_id = user_id or current_user.user_id
     else:
         requester_id = updated_by_id = user_id = current_user.user_id
+
+    app.logger.debug("user_id: '%s'", user_id)
 
     app.logger.info("Checking if datasets are available to user...")
     if user_id:
@@ -564,6 +636,8 @@ def create_reanalysis(id: int):
     db.session.add(new_analysis)
     transaction_or_abort(db.session.commit)
 
+    app.logger.debug("Analysis creation successful, returning JSON..")
+
     return (
         jsonify(
             {
@@ -601,6 +675,7 @@ def create_reanalysis(id: int):
 @login_required
 @check_admin
 def delete_analysis(id: int):
+    app.logger.debug(f"Checking if analysis {id} exists..")
     analysis = models.Analysis.query.filter(
         models.Analysis.analysis_id == id
     ).first_or_404()
@@ -608,6 +683,7 @@ def delete_analysis(id: int):
     try:
         db.session.delete(analysis)
         db.session.commit()
+        app.logger.debug("Deletion successful")
         return "Updated", 204
     except:
         db.session.rollback()
@@ -618,6 +694,7 @@ def delete_analysis(id: int):
 @login_required
 @validate_json
 def update_analysis(id: int):
+    app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
@@ -631,8 +708,10 @@ def update_analysis(id: int):
                 403,
                 description="Analysis state changes are restricted to administrators",
             )
+    app.logger.debug("user_id: '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Querying based on group permissions..")
         analysis = (
             models.Analysis.query.filter(models.Analysis.analysis_id == id)
             .join(
@@ -655,6 +734,7 @@ def update_analysis(id: int):
             .first_or_404()
         )
     else:
+        app.logger.debug("Querying freely with admin privileges..")
         analysis = models.Analysis.query.filter(
             models.Analysis.analysis_id == id
         ).first_or_404()
@@ -670,6 +750,8 @@ def update_analysis(id: int):
         "notes",
         "priority",
     ]
+
+    app.logger.debug("Validating assignee parameter..")
 
     if "assignee" in request.json:
         if not request.json["assignee"]:
@@ -688,6 +770,8 @@ def update_analysis(id: int):
     if enum_error:
         abort(400, description=enum_error)
 
+    app.logger.debug("Validating other fields..")
+
     mixin(analysis, request.json, editable_columns)
 
     if request.json.get("analysis_state") == "Running":
@@ -700,6 +784,8 @@ def update_analysis(id: int):
         analysis.updated_by_id = user_id
 
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Update successful, returning JSON..")
 
     return jsonify(
         {
