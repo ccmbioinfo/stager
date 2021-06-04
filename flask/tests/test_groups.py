@@ -17,10 +17,9 @@ def minio_admin():
     madmin.add_user("user", "useruser")
     madmin.add_user("admin", "adminadmin")
     madmin.group_add("ach", "user")
-    madmin.group_add("admin", "admin")
     madmin.add_policy("ach", stager_buckets_policy("ach"))
     madmin.set_policy("ach", group="ach")
-    madmin.set_policy("readwrite", group="admin")
+    madmin.set_policy("readwrite", user="admin")
     yield madmin
     # Teardown
     try:

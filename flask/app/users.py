@@ -120,8 +120,7 @@ def reset_minio_credentials(user: models.User) -> None:
         minio_admin.set_policy(group.group_code, group=group.group_code)
 
     if user.is_admin:
-        minio_admin.group_add("admin", access_key)
-        minio_admin.set_policy("readwrite", group="admin")
+        minio_admin.set_policy("readwrite", user=access_key)
 
     user.minio_access_key = access_key
     user.minio_secret_key = secret_key
