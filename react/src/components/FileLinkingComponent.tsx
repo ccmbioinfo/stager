@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     Box,
     Button,
-    Checkbox,
-    FormControlLabel,
+    Chip,
     Grid,
     List,
     makeStyles,
@@ -12,8 +11,10 @@ import {
     Tooltip,
     Typography,
 } from "@material-ui/core";
-import { Description, DoneAll } from "@material-ui/icons";
+import { Description } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
+import { toOption } from "../AddDatasets/components/utils";
+import { Note } from "../components";
 import { Option } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -35,31 +36,10 @@ const useStyles = makeStyles(theme => ({
         padding: 0,
     },
     autocomplete: {
+        width: "400px",
         flexGrow: 1,
     },
-    selectAllIcon: {
-        marginRight: theme.spacing(1),
-    },
-    selectAllOption: {
-        wordBreak: "break-all",
-        fontWeight: "bold",
-    },
-    breakAll: {
-        wordBreak: "break-all",
-    },
 }));
-
-const compareOption = (a: Option, b: Option) => {
-    if (a.selected && b.selected) {
-        return 0;
-    } else if (a.selected) {
-        return -1;
-    } else if (b.selected) {
-        return 1;
-    } else {
-        return 0;
-    }
-};
 
 /* A cell for linking files to a dataset. */
 export default function FileLinkingComponent(props: {
@@ -71,14 +51,8 @@ export default function FileLinkingComponent(props: {
 }) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [options, setOptions] = useState<Option[]>(
-        [
-            ...props.values.map(value => ({ title: value, inputValue: value, selected: true })),
-            ...props.options.map(option => ({ ...option, selected: false })),
-        ].sort(compareOption)
-    );
-    let filteredOptions: Option[] = [];
-    const filter = createFilterOptions<Option>();
+    const [inputValue, setInputValue] = useState("");
+
     const open = Boolean(anchorEl);
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -86,30 +60,7 @@ export default function FileLinkingComponent(props: {
     };
     const handleClose = () => {
         setAnchorEl(null);
-        props.onEdit(
-            options.reduce<string[]>((fileList, option) => {
-                if (option.selected) fileList.push(option.title);
-                return fileList;
-            }, [])
-        );
     };
-    const getUnselectedOptions = () => {
-        const result: Option[] = [];
-        options.reduce<Option[]>((optionList, option) => {
-            if (!option.selected) optionList.push(option);
-            return optionList;
-        }, result);
-        return result;
-    };
-
-    useEffect(() => {
-        setOptions(
-            [
-                ...props.values.map(value => ({ title: value, inputValue: value, selected: true })),
-                ...props.options.map(option => ({ ...option, selected: false })),
-            ].sort(compareOption)
-        );
-    }, [props.options, props.values]);
 
     return (
         <>
@@ -185,124 +136,66 @@ export default function FileLinkingComponent(props: {
                                 No files available
                             </Typography>
                         ) : (
-                            <>
-                                <Typography variant="h6" className={classes.popoverTitle}>
-                                    Available files:
-                                </Typography>
-                                <div className={classes.autocomplete}>
-                                    <Autocomplete
-                                        disableCloseOnSelect
-                                        onChange={(e, newValue) => {
-                                            if (newValue?.title === "Select all") {
-                                                const filteredOptionTitles = filteredOptions.map(
-                                                    filteredOption => filteredOption.title
-                                                );
-                                                setOptions(
-                                                    options
-                                                        .map(option => {
-                                                            if (
-                                                                filteredOptionTitles.find(
-                                                                    o => o === option.title
-                                                                )
-                                                            ) {
-                                                                return {
-                                                                    ...option,
-                                                                    selected: true,
-                                                                };
-                                                            } else {
-                                                                return { ...option };
-                                                            }
-                                                        })
-                                                        .sort(compareOption)
-                                                );
-                                            } else if (newValue) {
-                                                const result = [...options];
-                                                result[
-                                                    result.findIndex(
-                                                        option => option.title === newValue.title
-                                                    )
-                                                ].selected = true;
-                                                setOptions(result.sort(compareOption));
-                                            }
-                                        }}
-                                        filterOptions={(options, params): Option[] => {
-                                            const filtered = filter(options, params);
-                                            filtered.length === 0
-                                                ? (filteredOptions = [])
-                                                : (filteredOptions = [
-                                                      {
-                                                          title: "Select all",
-                                                          inputValue: "Select all",
-                                                      },
-                                                      ...filtered,
-                                                  ]);
-                                            return filteredOptions;
-                                        }}
-                                        renderOption={option =>
-                                            option.title === "Select all" ? (
-                                                <>
-                                                    <DoneAll
-                                                        className={classes.selectAllIcon}
-                                                        color="primary"
-                                                    />
-                                                    <Typography
-                                                        variant="body1"
-                                                        color="primary"
-                                                        className={classes.selectAllOption}
-                                                    >
-                                                        SELECT ALL
-                                                    </Typography>
-                                                </>
-                                            ) : (
-                                                <Typography
-                                                    variant="body1"
-                                                    className={classes.breakAll}
-                                                >
-                                                    {option.title}
-                                                </Typography>
-                                            )
+                            <Grid container direction="column">
+                                <Autocomplete
+                                    autoComplete
+                                    className={classes.autocomplete}
+                                    inputValue={inputValue}
+                                    onInputChange={(_, value, reason) => {
+                                        if (reason === "input") {
+                                            setInputValue(value);
                                         }
-                                        options={getUnselectedOptions()}
-                                        getOptionLabel={option => option.title}
-                                        renderInput={params => (
-                                            <TextField
-                                                {...params}
-                                                label="Search"
-                                                variant="outlined"
-                                            />
-                                        )}
-                                    />
-                                </div>
-                            </>
+                                    }}
+                                    disableClearable={true}
+                                    disableCloseOnSelect
+                                    onChange={(event, selectedOptions, reason) => {
+                                        //prevent keypress events from propagating to parent listeners
+                                        event.stopPropagation();
+                                        if (
+                                            selectedOptions &&
+                                            ["select-option", "remove-option"].includes(reason)
+                                        ) {
+                                            props.onEdit(selectedOptions.map(o => o.title));
+                                            setInputValue("");
+                                        }
+                                    }}
+                                    renderTags={(tags, getTagProps) => (
+                                        <>
+                                            {tags.map((tag, i) => (
+                                                <Chip
+                                                    key={tag.title}
+                                                    {...getTagProps({ index: i })}
+                                                    label={<Note>{tag.title}</Note>}
+                                                />
+                                            ))}
+                                        </>
+                                    )}
+                                    renderOption={option => (
+                                        <span className={classes.fileName}>{option.title}</span>
+                                    )}
+                                    getOptionSelected={(option, value) =>
+                                        option.title === value.title
+                                    }
+                                    options={props.options}
+                                    filterOptions={createFilterOptions({
+                                        limit: 25,
+                                        stringify: o => o.title,
+                                    })}
+                                    filterSelectedOptions={true}
+                                    getOptionLabel={option => option.title}
+                                    renderInput={params => (
+                                        <TextField
+                                            {...params}
+                                            label="Search Unlinked Files"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                    multiple
+                                    value={props.values.map(v => toOption(v))}
+                                />
+                            </Grid>
                         )}
                     </div>
-                    {options.map((option, index) => (
-                        <Box key={index}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        color="primary"
-                                        checked={option.selected}
-                                        onChange={() => {
-                                            setOptions(
-                                                options
-                                                    .map(currOption =>
-                                                        currOption.title === option.title
-                                                            ? {
-                                                                  ...currOption,
-                                                                  selected: !currOption.selected,
-                                                              }
-                                                            : { ...currOption }
-                                                    )
-                                                    .sort(compareOption)
-                                            );
-                                        }}
-                                    />
-                                }
-                                label={option.title}
-                            />
-                        </Box>
-                    ))}
                 </Box>
             </Popover>
         </>

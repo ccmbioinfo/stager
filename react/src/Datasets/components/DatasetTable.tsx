@@ -260,6 +260,9 @@ export default function DatasetTable() {
                                         const removeUsed = files.filter(
                                             file => !receivedDataset.linked_files.includes(file)
                                         );
+                                        //refresh data
+                                        MTRef.current.onQueryChange();
+
                                         queryClient.setQueryData(
                                             "unlinked",
                                             oldDataset && oldDataset.linked_files.length > 0
