@@ -28,9 +28,10 @@ export default function PipelineFilter(props: FilterProps) {
         return undefined;
     }, [pipelinesQuery]);
 
-    const pipelineList = useMemo(() => (pipelinesQuery.isSuccess ? pipelinesQuery.data : []), [
-        pipelinesQuery,
-    ]);
+    const pipelineList = useMemo(
+        () => (pipelinesQuery.isSuccess ? pipelinesQuery.data : []),
+        [pipelinesQuery]
+    );
 
     // Filter value is a string of comma-separated pipeline IDs
     const filterValue: number[] =
