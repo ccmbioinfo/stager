@@ -118,6 +118,10 @@ def reset_minio_credentials(user: models.User) -> None:
         # we can guarantee from POST /api/groups that the policy exists in MinIO
         minio_admin.group_add(group.group_code, access_key)
         minio_admin.set_policy(group.group_code, group=group.group_code)
+
+    if user.is_admin:
+        minio_admin.set_policy("readwrite", user=access_key)
+
     user.minio_access_key = access_key
     user.minio_secret_key = secret_key
 

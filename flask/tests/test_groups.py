@@ -19,6 +19,7 @@ def minio_admin():
     madmin.group_add("ach", "user")
     madmin.add_policy("ach", stager_buckets_policy("ach"))
     madmin.set_policy("ach", group="ach")
+    madmin.set_policy("readwrite", user="admin")
     yield madmin
     # Teardown
     try:
@@ -105,6 +106,7 @@ def test_get_group(test_database, client, login_as):
 
 
 def test_delete_group(test_database, client, login_as, minio_admin):
+    prev_minio_groups = len(minio_admin.list_groups())
 
     # Test without permission
     login_as("user")
@@ -134,7 +136,7 @@ def test_delete_group(test_database, client, login_as, minio_admin):
     # Make sure it's gone
     group = models.Group.query.filter_by(group_code="ach").one_or_none()
     assert group == None
-    assert len(minio_admin.list_groups()) == 0
+    assert len(minio_admin.list_groups()) == prev_minio_groups - 1
 
 
 # PATCH /api/groups/:id

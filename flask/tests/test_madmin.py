@@ -110,7 +110,6 @@ def test_apply_policy(mc: MinioAdmin):
         mc.set_policy("too", "many", "arguments")
 
     num_prev_policies = len(mc.list_policies())
-    assert num_prev_policies == 5
 
     mc.add_policy("reader", readonly)
     assert len(mc.list_policies()) == num_prev_policies + 1

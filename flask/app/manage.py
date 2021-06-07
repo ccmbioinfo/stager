@@ -11,8 +11,9 @@ from minio import Minio
 from .models import *
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
+
 from .manage_keycloak import *
-from .utils import stager_is_keycloak_admin
+from .utils import get_minio_admin, stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
