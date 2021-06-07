@@ -2089,10 +2089,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@material-table/core@^2.3.39":
-  version "2.3.39"
-  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-2.3.39.tgz#da075fa4697cf6b7e5fbbc5b3b902514b4b9d3b9"
-  integrity sha512-Ie8ALCPbhmUjVF5h2kHnWx9+ZgXPDuIP/PL8XgfNJRd39u9tkPhlcsDx+1p+5vP0ML+6vjaihd+yh4cogBiKnQ==
+"@material-table/core@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-3.0.2.tgz#b784f4afedca1a3aa1d41147d9fd721e29ab782b"
+  integrity sha512-R+FCmaieW2eCzBKAuxj4npotPQYEXwfGz4Dm0a+ET6yh5Zx6jahvML8pTBOa+Rbn8DlSNLafPHlk1mBxeSK+vw==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@date-io/date-fns" "^1.3.13"
