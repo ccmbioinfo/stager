@@ -46,6 +46,14 @@ This launches the same backend stack as `docker-compose.yaml`, but with a dedica
 
 OIDC Support is enabled if and only if the backend stack is run using the `docker-compose.oidc.yaml` compose file, or if environment variable `ENABLE_OIDC` is set and non-empty.
 
+## Single Sign-Out
+
+Currently, OpenID Connect specifications for single sign-out are not yet finalized ([front-channel](https://openid.net/specs/openid-connect-frontchannel-1_0.html), [back-channel](https://openid.net/specs/openid-connect-backchannel-1_0.html), [session management](https://openid.net/specs/openid-connect-session-1_0.html)). This feature of signing out of an OAuth session is not always implemented by OIDC-compliant OAuth providers, and some who do implement it may not use these draft specifications.
+
+Stager's implementation supports signing out of Auth0 and Keycloak OAuth sessions. Each of these OAuth providers expose a logout url that the user's browser may be redirected to in order to sign them out of their OAuth session. When logging out of Stager, a logout URL may be returned as response text. React then uses this URL to redirect the browser to that URL so that the user is signed out of both Stager and Auth0/Keycloak.
+
+For single sign-out to work correctly with Auth0 or Keycloak, ensure that the environment variable `OIDC_PROVIDER` is set to `auth0` or `keycloak` respectively.
+
 ### Possible issues
 
 > GET /api/login responds with 500 Internal Server Error with response: `{"error": "Missing \"authorize_url\" value"}`

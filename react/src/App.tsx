@@ -49,10 +49,14 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     };
 
     async function signout() {
+        let body = {};
+        if (apiInfo?.oauth && apiInfo?.oauth_provider === "keycloak") {
+            body = { redirect_uri: window.location.origin };
+        }
         const result = await fetch("/api/logout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
+            body: JSON.stringify(body),
         });
         if (result.ok) {
             setAuthenticated(false);

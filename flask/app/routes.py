@@ -131,23 +131,30 @@ def authorize():
 @validate_json
 def logout():
     username = current_user.username
+    redirect_uri = request.json.get("redirect_uri")
     logout_user()
 
     url = ""
 
     if app.config.get("ENABLE_OIDC"):
         # Log out of OAuth session as well as Stager session
-        client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+        provider = app.config.get("OIDC_PROVIDER")
+        client = oauth.create_client(provider)
         client_id = app.config.get("OIDC_CLIENT_ID")
         metadata = client.load_server_metadata()  # .well-known/openid-configuration
+        app.logger.debug(f"Trying to provide logout url for user '{username}'..")
 
-        if app.config.get("OIDC_PROVIDER") == "auth0":
-            app.logger.debug(f"Logging user '{username}' out of Auth0 session..")
+        if provider == "auth0":
             # Construct URL
             url = metadata["issuer"] + f"v2/logout?client_id={client_id}"
             app.logger.debug(f"Auth0 logout endpoint: '{url}'")
-        else:
-            app.logger.debug(f"Not Auth0")
+        elif provider == "keycloak" and redirect_uri is not None:
+            try:
+                url = metadata["end_session_endpoint"] + f"?redirect_uri={redirect_uri}"
+
+                app.logger.debug(f"Keycloak logout endpoint: '{url}'")
+            except KeyError as err:
+                app.logger.error(err.args[0])
 
     return url, 204 if url == "" else 200
 
