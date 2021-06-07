@@ -6,7 +6,7 @@
 #
 alembic==1.5.8
     # via flask-migrate
-authlib==0.15.3
+authlib==0.15.4
     # via -r requirements.in
 certifi==2020.12.5
     # via
@@ -24,6 +24,8 @@ cryptography==3.4.7
     #   pymysql
 flask-login==0.5.0
     # via -r requirements.in
+flask-migrate==3.0.1
+    # via -r requirements.in
 flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
@@ -34,8 +36,6 @@ flask==2.0.1
     #   flask-login
     #   flask-migrate
     #   flask-sqlalchemy
-flask_migrate==3.0.1
-    # via -r requirements.in
 gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10

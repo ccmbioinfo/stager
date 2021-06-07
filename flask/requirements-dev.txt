@@ -12,7 +12,7 @@ astroid==2.5.6
     # via pylint
 attrs==20.3.0
     # via pytest
-authlib==0.15.3
+authlib==0.15.4
     # via -r requirements.in
 black==21.5b2
     # via -r requirements-dev.in
