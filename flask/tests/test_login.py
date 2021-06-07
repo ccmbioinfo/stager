@@ -17,7 +17,7 @@ def add_test_user():
 
 
 def login(client, username, password):
-    """ Attempt to login using the provided credentials with the client. """
+    """Attempt to login using the provided credentials with the client."""
     return client.post(
         "/api/login",
         json={"username": username, "password": password},
@@ -26,7 +26,7 @@ def login(client, username, password):
 
 
 def logout(client):
-    """ Logout this client. """
+    """Logout this client."""
     return client.post("/api/logout", json={"dummy": True}, follow_redirects=True)
 
 
@@ -34,7 +34,7 @@ def logout(client):
 
 
 def test_login_logout(client):
-    """ Tests logging in and out. Also tests last_login. """
+    """Tests logging in and out. Also tests last_login."""
     add_test_user()
 
     # Logging in with correct credentials
@@ -67,7 +67,7 @@ def test_login_logout(client):
 
 
 def test_wrong_credentials(client):
-    """ Tests response to invalid login credentials. """
+    """Tests response to invalid login credentials."""
     add_test_user()
 
     # Logging in with wrong username

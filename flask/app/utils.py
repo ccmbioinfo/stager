@@ -63,7 +63,7 @@ def check_admin(handler):
 def validate_json(handler):
     @wraps(handler)
     def decorated_handler(*args, **kwargs):
-        """ validate content-type header and run optional Validator on input """
+        """validate content-type header and run optional Validator on input"""
         if request.headers.get("Content-Type") != "application/json":
             abort(415, description="Content-Type must be application/json")
         return handler(*args, **kwargs)
@@ -167,7 +167,7 @@ def get_minio_admin() -> MinioAdmin:
 
 
 def query_results_to_csv(results: List[dict or dataclass]):
-    """ take a list of models and convert to csv """
+    """take a list of models and convert to csv"""
     is_dict = isinstance(results[0], dict)
 
     if not is_dict:
@@ -232,7 +232,7 @@ def csv_response(
     filename: str = "report",
     colnames: List[str] = None,
 ):
-    """ create a csv HTTP response from a list of query results or mapping """
+    """create a csv HTTP response from a list of query results or mapping"""
 
     if colnames:
         results = filter_keys_and_reorder(results, colnames)
@@ -248,7 +248,7 @@ def csv_response(
 
 
 def filter_keys_and_reorder(data: List[Dict[str, Any]] or List[Model], keys: List[str]):
-    """ filter list item mappings and key order according to list of keys """
+    """filter list item mappings and key order according to list of keys"""
     return [{key: row[key] for key in keys} for row in data]
 
 

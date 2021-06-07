@@ -5,7 +5,7 @@ from app.models import Gene, GeneAlias
 
 
 def setup_db():
-    """ seed db with minimal data """
+    """seed db with minimal data"""
     db.session.add(Gene(ensembl_id=1000, chromosome="X", start=2, end=4))
     db.session.flush()
     db.session.add(GeneAlias(ensembl_id=1000, name="FOOBAR"))
@@ -13,7 +13,7 @@ def setup_db():
 
 
 def test_fetch_genes_json(test_database, client, login_as):
-    """ can we fetch genes as json? """
+    """can we fetch genes as json?"""
     setup_db()
     login_as("user")
     response = client.get("/api/summary/genes", headers={"Accept": "*/*"})
@@ -24,7 +24,7 @@ def test_fetch_genes_json(test_database, client, login_as):
 
 
 def test_fetch_genes_csv(test_database, client, login_as):
-    """ can we fetch genes as csv? """
+    """can we fetch genes as csv?"""
     setup_db()
     login_as("user")
     response = client.get("/api/summary/genes", headers={"Accept": "text/csv"})
@@ -39,7 +39,7 @@ def test_fetch_genes_csv(test_database, client, login_as):
 
 
 def test_search_genes(test_database, client, login_as):
-    """ can we filter genes based on a search string? """
+    """can we filter genes based on a search string?"""
     setup_db()
     login_as("user")
     response = client.get(
@@ -57,7 +57,7 @@ def test_search_genes(test_database, client, login_as):
 
 
 def test_fetch_gene_by_alias(test_database, client, login_as):
-    """ can we fetch a gene by alias """
+    """can we fetch a gene by alias"""
     setup_db()
     login_as("user")
     response = client.get("/api/summary/genes/FOOBAR")
@@ -69,7 +69,7 @@ def test_fetch_gene_by_alias(test_database, client, login_as):
 
 
 def test_fetch_gene_by_ensembl_id(test_database, client, login_as):
-    """ can we fetch a gene by ensembl id """
+    """can we fetch a gene by ensembl id"""
     setup_db()
     login_as("user")
     response = client.get("/api/summary/genes/ensg/1000")

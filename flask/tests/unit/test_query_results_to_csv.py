@@ -9,7 +9,7 @@ db = SQLAlchemy()
 
 @dataclass
 class ModelFake(db.Model):
-    """ a class for testing the function """
+    """a class for testing the function"""
 
     __tablename__ = "faker"
     string_col: str = db.Column(db.String(50), primary_key=True)
@@ -17,7 +17,7 @@ class ModelFake(db.Model):
 
 
 def test_creates_a_valid_csv():
-    """ can we get a csv that csv.reader can process and whose contents are accurate? """
+    """can we get a csv that csv.reader can process and whose contents are accurate?"""
     csv = query_results_to_csv([ModelFake(string_col="foo", integer_col=2)])
     results_reader = reader(csv.split("\n"))
     cols = ModelFake.metadata.tables["faker"].columns.keys()
@@ -30,7 +30,7 @@ def test_creates_a_valid_csv():
 
 
 def test_can_pass_a_dictionary():
-    """ can we pass a dictionary in place of a model? """
+    """can we pass a dictionary in place of a model?"""
     test_dict = {"foo": "bar", "baz": 2}
     csv = query_results_to_csv([test_dict])
     results_reader = reader(csv.split("\n"))
