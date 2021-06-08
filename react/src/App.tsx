@@ -62,8 +62,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             setAuthenticated(false);
             clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
             if (result.status !== 204) {
-                const redirectUrl = await result.text();
-                window.location.href = redirectUrl;
+                const redirectUrl = (await result.json())?.["redirect_uri"];
+                if (redirectUrl) window.location.href = redirectUrl;
             }
         }
     }

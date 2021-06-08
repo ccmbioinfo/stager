@@ -161,7 +161,7 @@ def logout():
             except KeyError as err:
                 app.logger.error(err.args[0])
 
-    return url, 204 if url == "" else 200
+    return ("", 204) if url == "" else (jsonify({"redirect_uri": url}), 200)
 
 
 def validate_user(request_user: dict):
