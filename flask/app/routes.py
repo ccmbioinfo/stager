@@ -132,6 +132,11 @@ def authorize():
 def logout():
     username = current_user.username
     redirect_uri = request.json.get("redirect_uri")
+
+    if redirect_uri is not None:
+        if not isinstance(redirect_uri, str):
+            abort(400, description="Invalid redirect_uri")
+
     logout_user()
 
     url = ""
