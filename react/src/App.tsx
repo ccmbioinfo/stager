@@ -5,11 +5,11 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
-import { emptyUser, OAuthContext, UserClient, UserContext } from "./contexts";
+import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
 import { clearQueryCache } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
-import { CurrentUser } from "./typings";
+import { APIInfo, CurrentUser } from "./typings";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-    const [oauthEnabled, setOauthEnabled] = useState<boolean | null>(null);
+    const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
 
     // React Context needs the provider value to be a complete package in a state var
     // or else extra re-renders will happen apparently
@@ -49,14 +49,22 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     };
 
     async function signout() {
+        let body = {};
+        if (apiInfo?.oauth && apiInfo?.oauth_provider === "keycloak") {
+            body = { redirect_uri: window.location.origin };
+        }
         const result = await fetch("/api/logout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
+            body: JSON.stringify(body),
         });
         if (result.ok) {
             setAuthenticated(false);
             clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
+            if (result.status !== 204) {
+                const redirectUrl = (await result.json())?.["redirect_uri"];
+                if (redirectUrl) window.location.href = redirectUrl;
+            }
         }
     }
     // Check if already signed in
@@ -73,16 +81,14 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             const result = await fetch("/api");
             if (result.ok) {
                 const apiInfo = await result.json();
-                setOauthEnabled(apiInfo.oauth);
+                setApiInfo(apiInfo as APIInfo);
             }
         })();
     }, []);
-    if (authenticated === null || oauthEnabled === null) {
-        return <></>;
-    } else if (authenticated) {
+    if (authenticated && apiInfo) {
         return (
             <UserContext.Provider value={userClient}>
-                <OAuthContext.Provider value={oauthEnabled}>
+                <APIInfoContext.Provider value={apiInfo}>
                     <QueryClientProvider client={queryClient}>
                         <SnackbarProvider
                             ref={notistackRef}
@@ -109,17 +115,19 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                             <ReactQueryDevtools initialIsOpen={false} />
                         </SnackbarProvider>
                     </QueryClientProvider>
-                </OAuthContext.Provider>
+                </APIInfoContext.Provider>
             </UserContext.Provider>
         );
-    } else {
+    } else if (apiInfo) {
         return (
             <LoginPage
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
-                oauth={oauthEnabled}
+                oauth={apiInfo.oauth}
             />
         );
+    } else {
+        return <></>;
     }
 }
 

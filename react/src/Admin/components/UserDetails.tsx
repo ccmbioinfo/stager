@@ -14,7 +14,7 @@ import {
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { ConfirmModal, MinioKeyDisplay, MinioResetButton, NewPasswordForm } from "../../components";
-import { useOAuthContext, useUserContext } from "../../contexts";
+import { useAPIInfoContext, useUserContext } from "../../contexts";
 import { useGroupsQuery, useUserQuery } from "../../hooks";
 import { ConfirmPasswordAction, User } from "../../typings";
 import GroupSelect from "./GroupSelect";
@@ -74,7 +74,7 @@ export default function UserDetails(props: {
     const classes = useDetailStyles();
     const groupsResult = useGroupsQuery();
     const { user: currentUser } = useUserContext();
-    const oauthEnabled = useOAuthContext();
+    const apiInfo = useAPIInfoContext();
     const groups = groupsResult.data;
     const userResult = useUserQuery(props.user.username);
     const user = userResult.data;
@@ -179,7 +179,7 @@ export default function UserDetails(props: {
                                 minio_secret_key={user?.minio_secret_key}
                             />
                         </Grid>
-                        {oauthEnabled && (
+                        {apiInfo?.oauth && (
                             <Grid item sm={6} xs={12}>
                                 <Typography>
                                     <b>OAuth Fields</b>

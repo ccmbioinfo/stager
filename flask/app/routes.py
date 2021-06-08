@@ -26,9 +26,13 @@ routes = Blueprint("routes", __name__)
 
 @routes.route("/api", strict_slashes=False)
 def version():
-    return jsonify(
-        {"sha": app.config.get("GIT_SHA"), "oauth": app.config.get("ENABLE_OIDC")}
-    )
+    api_info = {
+        "sha": app.config.get("GIT_SHA"),
+        "oauth": app.config.get("ENABLE_OIDC"),
+    }
+    if app.config.get("ENABLE_OIDC"):
+        api_info["oauth_provider"] = app.config.get("OIDC_PROVIDER")
+    return jsonify(api_info)
 
 
 @routes.route("/api/login", methods=["POST"])
@@ -126,8 +130,38 @@ def authorize():
 @login_required
 @validate_json
 def logout():
+    username = current_user.username
+    redirect_uri = request.json.get("redirect_uri")
+
+    if redirect_uri is not None:
+        if not isinstance(redirect_uri, str):
+            abort(400, description="Invalid redirect_uri")
+
     logout_user()
-    return "", 204
+
+    url = ""
+
+    if app.config.get("ENABLE_OIDC"):
+        # Log out of OAuth session as well as Stager session
+        provider = app.config.get("OIDC_PROVIDER")
+        client = oauth.create_client(provider)
+        client_id = app.config.get("OIDC_CLIENT_ID")
+        metadata = client.load_server_metadata()  # .well-known/openid-configuration
+        app.logger.debug(f"Trying to provide logout url for user '{username}'..")
+
+        if provider == "auth0":
+            # Construct URL
+            url = metadata["issuer"] + f"v2/logout?client_id={client_id}"
+            app.logger.debug(f"Auth0 logout endpoint: '{url}'")
+        elif provider == "keycloak" and redirect_uri is not None:
+            try:
+                url = metadata["end_session_endpoint"] + f"?redirect_uri={redirect_uri}"
+
+                app.logger.debug(f"Keycloak logout endpoint: '{url}'")
+            except KeyError as err:
+                app.logger.error(err.args[0])
+
+    return ("", 204) if url == "" else (jsonify({"redirect_uri": url}), 200)
 
 
 def validate_user(request_user: dict):

@@ -279,3 +279,18 @@ export interface GeneAlias {
     name: string;
     kind?: string;
 }
+
+interface APIInfoBase {
+    sha: string;
+}
+
+interface APIInfoOAuth {
+    oauth: true;
+    oauth_provider: string;
+}
+
+interface APIInfoNoOauth {
+    oauth: false;
+}
+
+export type APIInfo = APIInfoBase & (APIInfoOAuth | APIInfoNoOauth);
