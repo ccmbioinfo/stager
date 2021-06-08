@@ -23,19 +23,25 @@ def list_groups() -> Response:
     Enumerates all permission groups visible to the current user. Administrators
     can see all groups; regular users can see groups that they are a member of.
     """
+    app.logger.debug("Getting user_id..")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+    app.logger.debug("user_id: '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Querying based on group membership..")
         groups = (
             models.Group.query.join(models.Group.users)
             .filter(models.User.user_id == user_id)
             .all()
         )
     else:
+        app.logger.debug("Querying all groups..")
         groups = models.Group.query.all()
+
+    app.logger.debug("Query successful; returning JSON..")
 
     return jsonify(
         [
@@ -52,12 +58,15 @@ def get_group(group_code) -> Response:
     Enumerate all activated users in a group and retrieve group metadata. Administrators
     can read all groups; regular users can only read groups that they are a member of.
     """
+    app.logger.debug("Getting user_id..")
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+    app.logger.debug("user_id: '%s'", user_id)
 
     if user_id:
+        app.logger.debug("Querying based on group membership..")
         group = (
             models.Group.query.filter(models.Group.group_code == group_code)
             .join(models.Group.users)
@@ -65,9 +74,12 @@ def get_group(group_code) -> Response:
             .first_or_404()
         )
     else:
+        app.logger.debug("Querying all groups..")
         group = models.Group.query.filter(
             models.Group.group_code == group_code
         ).first_or_404()
+
+    app.logger.debug("Query successful; returning JSON..")
 
     return jsonify(
         {
@@ -91,6 +103,8 @@ def update_group(group_code) -> Response:
 
     Potential problems: MinIO operations failing result in an inconsistent state.
     """
+
+    app.logger.debug("Getting new group users, if any..")
     strlist_users = (
         request.json.get("users")  # Ignores the empty list
         and type(request.json["users"]) is list
@@ -101,10 +115,14 @@ def update_group(group_code) -> Response:
     if "users" in request.json and not strlist_users:
         abort(400, description="users should be a string array")
 
+    app.logger.debug(f"Querying for group '{group_code}'..")
+
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
     if request.json.get("group_name"):
-        # Check if display name is in use, 422
+        app.logger.debug(
+            "Checking if display name '%s' is in use..", request.json["group_name"]
+        )
         conflicting_group = models.Group.query.filter_by(
             group_name=request.json["group_name"]
         ).one_or_none()
@@ -114,8 +132,8 @@ def update_group(group_code) -> Response:
 
     minio_admin = get_minio_admin()
 
-    # Check if a user to be added doesn't exist, 404
     if strlist_users:
+        app.logger.debug("Checking if users to be added exist..")
         users = models.User.query.filter(
             models.User.username.in_(request.json["users"])
         ).all()
@@ -123,12 +141,13 @@ def update_group(group_code) -> Response:
         if len(users) != len(request.json["users"]):
             abort(404, description="Invalid username provided")
 
-        # Clear users from db and minio group
+        app.logger.debug("Clearing users from db and minio group..")
         if len(group.users) != 0:
             group_info = minio_admin.get_group(group_code)
             minio_admin.group_remove(group_code, *group_info["members"])
             group.users = []
 
+        app.logger.debug("Adding users to group..")
         for user in users:
             # Add to db groups
             group.users.append(user)
@@ -138,6 +157,7 @@ def update_group(group_code) -> Response:
         minio_admin.set_policy(group_code, group=group_code)
 
     transaction_or_abort(db.session.commit)
+    app.logger.debug("Changes successful; returning JSON..")
     return jsonify(group)
 
 
@@ -153,6 +173,8 @@ def create_group():
     """
     group_name = request.json.get("group_name")
     group_code = request.json.get("group_code")
+
+    app.logger.debug("Getting new group users, if any..")
     strlist_users = (
         request.json.get("users")  # Ignores the empty list
         and type(request.json["users"]) is list
@@ -167,6 +189,7 @@ def create_group():
     if not group_code:
         abort(400, description="A group codename must be provided")
 
+    app.logger.debug("Checking if group already exists..")
     if (
         db.session.query(models.Group.group_id)
         .filter(
@@ -187,6 +210,7 @@ def create_group():
     minio_admin = get_minio_admin()
 
     try:
+        app.logger.debug(f"Creating minio bucket {group_code}..")
         # Create minio bucket via mc, 422 if it already exists
         if minio_client.bucket_exists(group_code):
             abort(422, description="Minio bucket already exists")
@@ -200,6 +224,7 @@ def create_group():
 
     # Add users to the db if they were given
     if strlist_users:
+        app.logger.debug("Checking if users to be added exist..")
         users = models.User.query.filter(
             models.User.username.in_(request.json["users"])
         ).all()
@@ -208,12 +233,15 @@ def create_group():
             abort(404, description="Invalid username provided")
         group.users += users
 
+    app.logger.debug("Adding minio policy for group..")
+
     # Make corresponding policy
     policy = stager_buckets_policy(group_code)
     minio_admin.add_policy(group_code, policy)
 
     # Add users to minio group if applicable, creating group as well
     if strlist_users:
+        app.logger.debug("Adding users to minio group..")
         for user in users:
             minio_admin.group_add(group_code, user.minio_access_key)
 
@@ -222,6 +250,9 @@ def create_group():
 
     db.session.add(group)
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Group created successfully; returning JSON..")
+
     return (
         jsonify(request.json),
         201,
@@ -237,15 +268,17 @@ def delete_group(group_code):
     If the permission group is empty, removes the permission group, but retains
     the MinIO bucket. Administrator-only.
     """
+    app.logger.debug(f"Checking if group '{group_code}' exists..")
     group = models.Group.query.filter_by(group_code=group_code).first_or_404()
 
     minio_admin = get_minio_admin()
 
-    # Check group users in db
+    app.logger.debug(f"Checking if group '{group_code}' has users..")
     if len(group.users) != 0:
         abort(422, description="Group has users, cannot delete!")
 
     # Check group users in minio, in case it is somehow different from db
+    app.logger.debug(f"Checking if group '{group_code}' has users in MinIO..")
     if group_code in minio_admin.list_groups():
         group_info = minio_admin.get_group(group_code)
         if "members" in group_info:
@@ -255,7 +288,7 @@ def delete_group(group_code):
             abort(422, description="Group has users, cannot delete!")
 
     try:
-        # Try deleting minio group as well
+        app.logger.debug(f"Deleting group {group_code}..")
         db.session.delete(group)
         db.session.commit()
     except:
@@ -264,6 +297,7 @@ def delete_group(group_code):
         abort(422, description="Deletion of entity failed!")
 
     try:
+        app.logger.debug(f"Deleting group {group_code} from MinIO..")
         minio_admin.group_remove(group_code)
     except:
         app.logger.exception(f"Removing MinIO group {group_code}")
