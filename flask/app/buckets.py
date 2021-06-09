@@ -25,10 +25,11 @@ def get_unlinked_files():
             secure=False,
         )
 
-    # Get all minio bucket names
+    app.logger.debug("Getting all minio bucket names..")
     all_bucket_names = [bucket.name for bucket in minioClient.list_buckets()]
 
     # Remove buckets the current user does not have access to assuming group_code.lower() == bucket name
+    app.logger.debug("Getting all buckets that user has access to..")
     user = (
         models.User.query.filter_by(user_id=current_user.user_id)
         .options(joinedload(models.User.groups))
@@ -41,14 +42,14 @@ def get_unlinked_files():
         if code in all_bucket_names:
             valid_bucket_names.append(code)
 
-    # Get all files in valid minio buckets
+    app.logger.debug("Getting all files in valid minio buckets..")
     all_files = []
     for bucket in valid_bucket_names:
         objs = minioClient.list_objects(bucket, recursive=True)
         for obj in objs:
             all_files.append(bucket + "/" + obj.object_name)
 
-    # Get all linked files
+    app.logger.debug("Getting all linked files..")
     linked_files = {f.path: ":)" for f in models.DatasetFile.query.all()}
 
     # Put all unlinked files in new list
@@ -56,5 +57,7 @@ def get_unlinked_files():
     for file_name in all_files:
         if file_name not in linked_files:
             unlinked_files.append(file_name)
+
+    app.logger.debug("Returning JSON array..")
 
     return jsonify(sorted(unlinked_files))
