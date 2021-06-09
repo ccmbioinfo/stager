@@ -28,28 +28,28 @@ def get_report_df(df: pd.DataFrame, type: str):
 
     app.logger.debug(df.head(3))
 
-    df = df[
-        [
-            "chromosome",
-            "position",
-            "reference_allele",
-            "alt_allele",
-            "variation",
-            "refseq_change",
-            "depth",
-            "conserved_in_20_mammals",
-            "sift_score",
-            "polyphen_score",
-            "cadd_score",
-            "gnomad_af",
-            "zygosity",
-            "burden",
-            "alt_depths",
-            "dataset_id",
-            "participant_codename",
-            "family_codename",
-        ]
+    # subsetting by a list of col names ensures ordering is consistent between the two report types
+    relevant_cols = [
+        "chromosome",
+        "position",
+        "reference_allele",
+        "alt_allele",
+        "variation",
+        "refseq_change",
+        "depth",
+        "conserved_in_20_mammals",
+        "sift_score",
+        "polyphen_score",
+        "cadd_score",
+        "gnomad_af",
+        "zygosity",
+        "burden",
+        "alt_depths",
+        "dataset_id",
+        "participant_codename",
+        "family_codename",
     ]
+    df = df[relevant_cols]
     df = df.loc[:, ~df.columns.duplicated()]
     # some columns are duplicated eg. dataset_id, is there a way to query so that this doesn't happen?
 
@@ -61,27 +61,31 @@ def get_report_df(df: pd.DataFrame, type: str):
         return df
 
     elif type == "variant":
-        df = df.groupby(["position", "reference_allele", "alt_allele"]).agg(
-            {
-                "variation": "first",
-                "chromosome": "first",
-                "refseq_change": "first",
-                "depth": list,
-                "conserved_in_20_mammals": "first",
-                "sift_score": "first",
-                "polyphen_score": "first",
-                "cadd_score": "first",
-                "gnomad_af": "first",
-                "zygosity": list,
-                "burden": list,
-                "alt_depths": list,
-                "dataset_id": list,
-                "participant_codename": list,
-                "family_codename": lambda x: set(x),
-            },
-            axis="columns",
+        df = (
+            df.groupby(["position", "reference_allele", "alt_allele"])
+            .agg(
+                {
+                    "chromosome": "first",
+                    "variation": "first",
+                    "refseq_change": "first",
+                    "depth": list,
+                    "conserved_in_20_mammals": "first",
+                    "sift_score": "first",
+                    "polyphen_score": "first",
+                    "cadd_score": "first",
+                    "gnomad_af": "first",
+                    "zygosity": list,
+                    "burden": list,
+                    "alt_depths": list,
+                    "dataset_id": list,
+                    "participant_codename": list,
+                    "family_codename": lambda x: set(x),
+                },
+                axis="columns",
+            )
+            .reset_index()
         )
-
+        df = df[relevant_cols]
         df["frequency"] = df["participant_codename"].str.len()
 
         for col in [
@@ -344,7 +348,7 @@ def variant_summary():
             abort(500, "Unexpected error")
 
         agg_df = get_report_df(sql_df, type="variant")
-        csv_data = agg_df.to_csv(encoding="utf-8")
+        csv_data = agg_df.to_csv(encoding="utf-8", index=False)
 
         response = Response(csv_data, mimetype="text/csv")
         response.headers.set(
