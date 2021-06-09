@@ -50,6 +50,7 @@ def list_analyses(page: int, limit: int) -> Response:
         "requester",
         "priority",
         "requested",
+        "analysis_id",
     ]
     assignee_user = aliased(models.User)
     requester_user = aliased(models.User)

@@ -60,6 +60,7 @@ def list_datasets(page: int, limit: int) -> Response:
         "tissue_sample_type",
         "participant_codename",
         "family_codename",
+        "dataset_id",
     ]
     if order_by is None:
         order = None  # system default, likely dataset_id
