@@ -57,7 +57,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
                 const { InputLabelProps, InputProps, ...rest } = params;
                 return (
                     <OutlinedInput
-                        placeholder="Search by gene identifier"
+                        placeholder="Search by Gene Name (eg. APOC, VEGFA)"
                         {...rest}
                         {...InputProps}
                         startAdornment={
