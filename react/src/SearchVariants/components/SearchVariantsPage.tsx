@@ -97,6 +97,8 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const classes = useStyles();
 
+    const disableControls = !selectedGenes.length;
+
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
@@ -122,7 +124,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         </Grid>
                         <Grid item>
                             <Button
-                                disabled={!selectedGenes.length}
+                                disabled={disableControls}
                                 onClick={downloadCsv}
                                 size="large"
                                 variant="contained"
@@ -138,6 +140,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 description="Each row is identified by a unique variant. If multiple participants have the same variant, column fields such as codename, depth, or zygosity are concatenated into a single list -- delimited by ';' -- for that variant's row."
                                 selected={downloadType === "variant"}
                                 onClick={() => setDownloadType("variant")}
+                                disabled={disableControls}
                             />
                         </Grid>
                         <Grid item xs={6}>
@@ -146,6 +149,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 description="Each row is identified by a participant's variant. Every column field is a single value, and variants may occur more than once if more than one participant has that variant."
                                 selected={downloadType === "participant"}
                                 onClick={() => setDownloadType("participant")}
+                                disabled={disableControls}
                             />
                         </Grid>
                     </Grid>
