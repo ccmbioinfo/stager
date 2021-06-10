@@ -68,19 +68,19 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         }
     }
     // Check if already signed in
+    // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const result = await fetch("/api/login", { method: "POST" });
-            if (result.ok) {
-                const loginInfo = await result.json();
+            const loginResult = await fetch("/api/login", { method: "POST" });
+            if (loginResult.ok) {
+                const loginInfo = await loginResult.json();
                 setCurrentUser(loginInfo);
             }
-            setAuthenticated(result.ok);
-        })();
-        (async () => {
-            const result = await fetch("/api");
-            if (result.ok) {
-                const apiInfo = await result.json();
+            setAuthenticated(loginResult.ok);
+
+            const apiInfoResult = await fetch("/api");
+            if (apiInfoResult.ok) {
+                const apiInfo = await apiInfoResult.json();
                 setApiInfo(apiInfo as APIInfo);
             }
         })();
