@@ -135,7 +135,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item xs={6}>
                             <CardButton
                                 title="Variant-wise Report"
-                                description="This is an example description of what variant-wise reports would look like. I don't actually know what they look like."
+                                description="Each row is identified by a unique variant. If multiple participants have the same variant, column fields such as codename, depth, or zygosity are concatenated into a single list -- delimited by ';' -- for that variant's row."
                                 selected={downloadType === "variant"}
                                 onClick={() => setDownloadType("variant")}
                             />
@@ -143,7 +143,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item xs={6}>
                             <CardButton
                                 title="Participant-wise Report"
-                                description="This is an example description of what participant-wise reports would look like. I don't actually know what they look like."
+                                description="Each row is identified by a participant's variant. Every column field is a single value, and variants may occur more than once if more than one participant has that variant."
                                 selected={downloadType === "participant"}
                                 onClick={() => setDownloadType("participant")}
                             />

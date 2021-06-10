@@ -20,8 +20,8 @@ const useStyles = makeStyles<Theme, CardButtonProps>(theme => ({
     root: props => ({
         borderColor: props.selected ? theme.palette.primary.light : undefined,
         borderWidth: props.selected ? 3 : 1,
-        margin: props.selected ? 0 : 2,
-        transition: "border-color 150ms, border-width 150ms, margin 150ms",
+        padding: props.selected ? 0 : 2,
+        transition: "border-color 150ms, border-width 150ms, padding 150ms",
     }),
 }));
 
