@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-    Button,
-    Chip,
-    Container,
-    FormControlLabel,
-    Grid,
-    makeStyles,
-    Radio,
-    RadioGroup,
-    Typography,
-} from "@material-ui/core";
+import { Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { useDownloadCsv } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
+import { CardButton } from "./CardButton";
 
 interface SearchVariantsPageProps {}
 
@@ -106,6 +97,8 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const classes = useStyles();
 
+    const disableControls = !selectedGenes.length;
+
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
@@ -131,7 +124,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         </Grid>
                         <Grid item>
                             <Button
-                                disabled={!selectedGenes.length}
+                                disabled={disableControls}
                                 onClick={downloadCsv}
                                 size="large"
                                 variant="contained"
@@ -140,26 +133,25 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             </Button>
                         </Grid>
                     </Grid>
-                    <Grid container item xs={12} md={6}>
-                        <RadioGroup
-                            row
-                            aria-label="report type"
-                            value={downloadType}
-                            onChange={event =>
-                                setDownloadType(event.target.value as "variant" | "participant")
-                            }
-                        >
-                            <FormControlLabel
-                                label="variant-wise"
-                                value="variant"
-                                control={<Radio color="primary" />}
+                    <Grid container item xs={12} md={6} spacing={1}>
+                        <Grid item xs={6}>
+                            <CardButton
+                                title="Variant-wise Report"
+                                description="Each row is identified by a unique variant. If multiple participants have the same variant, column fields such as codename, depth, or zygosity are concatenated into a single list -- delimited by ';' -- for that variant's row."
+                                selected={downloadType === "variant"}
+                                onClick={() => setDownloadType("variant")}
+                                disabled={disableControls}
                             />
-                            <FormControlLabel
-                                label="participant-wise"
-                                value="participant"
-                                control={<Radio color="primary" />}
+                        </Grid>
+                        <Grid item xs={6}>
+                            <CardButton
+                                title="Participant-wise Report"
+                                description="Each row is identified by a participant's variant. Every column field is a single value, and variants may occur more than once if more than one participant has that variant."
+                                selected={downloadType === "participant"}
+                                onClick={() => setDownloadType("participant")}
+                                disabled={disableControls}
                             />
-                        </RadioGroup>
+                        </Grid>
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
                         <Grid item>

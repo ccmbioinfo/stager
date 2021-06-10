@@ -255,7 +255,7 @@ def participant_summary():
 
         response = Response(csv_data, mimetype="text/csv")
         response.headers.set(
-            "Content-Disposition", "attachment", filename="sample_wise_report.csv"
+            "Content-Disposition", "attachment", filename="participant_wise_report.csv"
         )
         return response
     else:
