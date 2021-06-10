@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-    Button,
-    Chip,
-    Container,
-    FormControlLabel,
-    Grid,
-    makeStyles,
-    Radio,
-    RadioGroup,
-    Typography,
-} from "@material-ui/core";
+import { Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { useDownloadCsv } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
+import { CardButton } from "./CardButton";
 
 interface SearchVariantsPageProps {}
 
@@ -140,26 +131,23 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             </Button>
                         </Grid>
                     </Grid>
-                    <Grid container item xs={12} md={6}>
-                        <RadioGroup
-                            row
-                            aria-label="report type"
-                            value={downloadType}
-                            onChange={event =>
-                                setDownloadType(event.target.value as "variant" | "participant")
-                            }
-                        >
-                            <FormControlLabel
-                                label="variant-wise"
-                                value="variant"
-                                control={<Radio color="primary" />}
+                    <Grid container item xs={12} md={6} spacing={1}>
+                        <Grid item xs={6}>
+                            <CardButton
+                                title="Variant-wise Report"
+                                description="This is an example description of what variant-wise reports would look like. I don't actually know what they look like."
+                                selected={downloadType === "variant"}
+                                onClick={() => setDownloadType("variant")}
                             />
-                            <FormControlLabel
-                                label="participant-wise"
-                                value="participant"
-                                control={<Radio color="primary" />}
+                        </Grid>
+                        <Grid item xs={6}>
+                            <CardButton
+                                title="Participant-wise Report"
+                                description="This is an example description of what participant-wise reports would look like. I don't actually know what they look like."
+                                selected={downloadType === "participant"}
+                                onClick={() => setDownloadType("participant")}
                             />
-                        </RadioGroup>
+                        </Grid>
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
                         <Grid item>
