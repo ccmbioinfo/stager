@@ -18,10 +18,10 @@ export interface CardButtonProps {
 
 const useStyles = makeStyles<Theme, CardButtonProps>(theme => ({
     root: props => ({
-        borderColor: props.selected ? theme.palette.primary.light : undefined,
-        borderWidth: props.selected ? 3 : 1,
-        padding: props.selected ? 0 : 2,
-        transition: "border-color 150ms, border-width 150ms, padding 150ms",
+        outlineColor: theme.palette.primary.light,
+        outlineWidth: props.selected ? 3 : 0,
+        outlineStyle: "solid",
+        transition: "outline-width 150ms",
     }),
 }));
 
