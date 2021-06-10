@@ -11,8 +11,7 @@ import {
 export interface CardButtonProps {
     title: string;
     description?: string;
-    onClick?: (value: any) => void;
-    value?: any;
+    onClick?: () => void;
     selected?: boolean;
 }
 
