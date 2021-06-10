@@ -34,7 +34,7 @@ export function CardButton(props: CardButtonProps) {
 
     return (
         <Card className={classes.root} variant="outlined">
-            <CardActionArea onClick={props.onClick} disabled>
+            <CardActionArea onClick={props.onClick} disabled={props.disabled}>
                 <CardContent>
                     <Typography
                         gutterBottom
