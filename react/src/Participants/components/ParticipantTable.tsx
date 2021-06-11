@@ -35,9 +35,10 @@ export default function ParticipantTable() {
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
     const enumsQuery = useEnumsQuery();
-    const sexTypes = useMemo(() => enumsQuery.data && toKeyValue(enumsQuery.data.Sex), [
-        enumsQuery.data,
-    ]);
+    const sexTypes = useMemo(
+        () => enumsQuery.data && toKeyValue(enumsQuery.data.Sex),
+        [enumsQuery.data]
+    );
     const participantTypes = useMemo(
         () => enumsQuery.data && toKeyValue(enumsQuery.data.ParticipantType),
         [enumsQuery.data]

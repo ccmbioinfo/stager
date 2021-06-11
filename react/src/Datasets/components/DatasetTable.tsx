@@ -293,23 +293,23 @@ export default function DatasetTable() {
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
                                 {metadatasetTypes &&
-                                    Object.entries(
-                                        metadatasetTypes
-                                    ).map(([metatype, datasetTypes]) => (
-                                        <Chip
-                                            key={metatype}
-                                            label={metatype}
-                                            onClick={() =>
-                                                updateTableFilter(
-                                                    MTRef,
-                                                    "dataset_type",
-                                                    datasetTypes
-                                                )
-                                            }
-                                            clickable
-                                            className={classes.chip}
-                                        />
-                                    ))}
+                                    Object.entries(metadatasetTypes).map(
+                                        ([metatype, datasetTypes]) => (
+                                            <Chip
+                                                key={metatype}
+                                                label={metatype}
+                                                onClick={() =>
+                                                    updateTableFilter(
+                                                        MTRef,
+                                                        "dataset_type",
+                                                        datasetTypes
+                                                    )
+                                                }
+                                                clickable
+                                                className={classes.chip}
+                                            />
+                                        )
+                                    )}
                                 <IconButton
                                     onClick={() => updateTableFilter(MTRef, "dataset_type", "")}
                                     className={classes.chip}
