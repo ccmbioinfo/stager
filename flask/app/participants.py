@@ -154,6 +154,18 @@ def list_participants(page: int, limit: int) -> Response:
             .join(models.Participant.family)
             .filter(*filters)
         )
+
+    dataset_type = request.args.get("dataset_type", type=str)
+    if dataset_type:
+        subquery = (
+            models.Participant.query.join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets)
+            .filter(func.instr(models.Dataset.dataset_type, dataset_type))
+            .with_entities(models.Participant.participant_id)
+            .subquery()
+        )
+        query = query.filter(models.Participant.participant_id.in_(subquery))
+
     # .count() returns the number of rows in the SQL response. When we join across a one-to-many
     # relationship, each parent row is multiplied by the number of children it has. This causes
     # .count() to disagree with len() as SQLAlchemy reroutes the duplicated rows back into their
