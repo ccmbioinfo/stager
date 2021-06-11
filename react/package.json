@@ -17,7 +17,7 @@
     "@types/react-router": "^5.1.14",
     "@types/react-router-dom": "^5.1.7",
     "clsx": "^1.1.1",
-    "dayjs": "^1.10.4",
+    "dayjs": "^1.10.5",
     "eslint-plugin-import": "^2.23.2",
     "eslint-plugin-mui-unused-classes": "^1.0.3",
     "notistack": "^1.0.6",
