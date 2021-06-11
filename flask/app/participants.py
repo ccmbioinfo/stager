@@ -160,7 +160,7 @@ def list_participants(page: int, limit: int) -> Response:
         subquery = (
             models.Participant.query.join(models.Participant.tissue_samples)
             .join(models.TissueSample.datasets)
-            .filter(func.instr(models.Dataset.dataset_type, dataset_type))
+            .filter(models.Dataset.dataset_type.in_(dataset_type.split(",")))
             .with_entities(models.Participant.participant_id)
             .subquery()
         )
