@@ -20,7 +20,7 @@
     "dayjs": "^1.10.5",
     "eslint-plugin-import": "^2.23.2",
     "eslint-plugin-mui-unused-classes": "^1.0.3",
-    "notistack": "^1.0.6",
+    "notistack": "^1.0.9",
     "prettier": "^2.3.1",
     "re-resizable": "^6.9.0",
     "react": "^17.0.2",
