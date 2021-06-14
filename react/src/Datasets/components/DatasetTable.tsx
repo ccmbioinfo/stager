@@ -188,7 +188,6 @@ export default function DatasetTable() {
                 title: "Permission Groups",
                 field: "group_code",
                 editable: "never",
-                filtering: false,
                 sorting: false,
                 render: rowData => (
                     <ChipGroup
