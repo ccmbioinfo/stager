@@ -186,15 +186,7 @@ def list_datasets(page: int, limit: int) -> Response:
     group_code = request.args.get("group_code", type=str)
     if group_code:
         subquery = (
-            models.Dataset.query.join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.Group,
-                models.Group.group_id == models.groups_datasets_table.columns.group_id,
-            )
+            models.Dataset.query.join(models.Dataset.groups)
             .filter(func.instr(models.Group.group_code, group_code))
             .with_entities(models.Dataset.dataset_id)
             .subquery()
