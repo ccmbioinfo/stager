@@ -288,7 +288,7 @@ def summary(type: str):
         response.headers.set(
             "Content-Disposition",
             "attachment",
-            filename="{}_wise_report.csv".format(type),
+            filename="{}_wise_report.csv".format(type[:-1]),
         )
         return response
     else:
