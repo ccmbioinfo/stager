@@ -59,11 +59,10 @@ def get_report_df(df: pd.DataFrame, type: str, relevant_cols=relevant_cols):
     # some columns are duplicated eg. dataset_id, is there a way to query so that this doesn't happen?
 
     df = df[~df["zygosity"].str.contains("-|Insufficient")]
-
-    df = df.fillna('')
+    df = df.fillna("")
     df = df.astype(str)
-    df['ensembl_id'] = df['ensembl_id'].apply(lambda x: 'ENSG' + x.rjust(11, '0'))
-    
+    df["ensembl_id"] = df["ensembl_id"].apply(lambda x: "ENSG" + x.rjust(11, "0"))
+
     if type == "participants":
         return df
 
@@ -94,7 +93,6 @@ def get_report_df(df: pd.DataFrame, type: str, relevant_cols=relevant_cols):
             .reset_index()
         )
         df = df[relevant_cols]
-
 
         df["frequency"] = df["participant_codename"].str.len()
         for col in [
