@@ -85,12 +85,9 @@ def test_participant_wise_json_single_gene(test_database, client, login_as):
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
-    # of participants
-    assert len(response.get_json()) == 2
-    # of variants for LOXL4 for each participant's dataset
-    for ptp in response.get_json():
-        variants = ptp.get("dataset").get("variants")
-        assert len(variants) == 3
+    # num. of participant-variants
+    assert len(response.get_json()) == 6
+    # remove nested structure
 
 
 def test_participant_wise_json_multiple_genes(test_database, client, login_as):
@@ -100,12 +97,13 @@ def test_participant_wise_json_multiple_genes(test_database, client, login_as):
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
-    # # of participants
-    assert len(response.get_json()) == 2
-    # of variants for LOXL4 and RTEL1, for each participant's dataset
-    for ptp in response.get_json():
-        variants = ptp.get("dataset").get("variants")
-        assert len(variants) == 6
+    # num. of participant-variants
+    assert len(response.get_json()) == 12
+    
+    # # of variants for LOXL4 and RTEL1, for each participant's dataset
+    # for ptp in response.get_json():
+    #     variants = ptp.get("dataset").get("variants")
+    #     assert len(variants) == 6
 
 
 def test_participant_wise_json_invalid_gene(test_database, client, login_as):
@@ -164,4 +162,4 @@ def test_participant_wise_json_permissions(test_database, client, login_as):
         headers={"Accept": "application/json"},
     )
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    assert len(response.get_json()) == 6
