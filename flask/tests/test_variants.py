@@ -99,7 +99,6 @@ def test_participant_wise_json_multiple_genes(test_database, client, login_as):
     assert response.status_code == 200
     # num. of participant-variants (2x6)
     assert len(response.get_json()) == 12
-    
 
 
 def test_participant_wise_json_invalid_gene(test_database, client, login_as):
