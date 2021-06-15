@@ -60,8 +60,10 @@ def get_report_df(df: pd.DataFrame, type: str, relevant_cols=relevant_cols):
 
     df = df[~df["zygosity"].str.contains("-|Insufficient")]
 
+    df = df.fillna('')
     df = df.astype(str)
-
+    df['ensembl_id'] = df['ensembl_id'].apply(lambda x: 'ENSG' + x.rjust(11, '0'))
+    
     if type == "participants":
         return df
 
@@ -85,15 +87,18 @@ def get_report_df(df: pd.DataFrame, type: str, relevant_cols=relevant_cols):
                     "alt_depths": list,
                     "dataset_id": list,
                     "participant_codename": list,
-                    "family_codename": lambda x: set(x),
+                    "family_codename": set,
                 },
                 axis="columns",
             )
             .reset_index()
         )
         df = df[relevant_cols]
+
+
         df["frequency"] = df["participant_codename"].str.len()
         for col in [
+            "ensembl_id",
             "zygosity",
             "burden",
             "alt_depths",
