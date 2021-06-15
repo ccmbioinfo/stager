@@ -3,7 +3,7 @@ from dataclasses import asdict
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
@@ -137,24 +137,22 @@ def list_datasets(page: int, limit: int) -> Response:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+
+    query = models.Dataset.query.options(
+        joinedload(models.Dataset.tissue_sample)
+        .joinedload(models.TissueSample.participant)
+        .joinedload(models.Participant.family),
+        joinedload(models.Dataset.tissue_sample)
+        .joinedload(models.TissueSample.participant)
+        .joinedload(models.Participant.institution),
+        selectinload(models.Dataset.files),
+        joinedload(models.Dataset.updated_by),
+        selectinload(models.Dataset.groups),
+    )
+
     if user_id:  # Regular user or assumed identity, return only permitted datasets
         query = (
-            models.Dataset.query.options(
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .contains_eager(models.Participant.family),
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .joinedload(models.Participant.institution),
-                contains_eager(models.Dataset.files),
-                contains_eager(models.Dataset.updated_by),
-            )
-            .join(models.Dataset.tissue_sample)
-            .join(models.TissueSample.participant)
-            .join(models.Participant.family)
-            .outerjoin(models.Dataset.files)
-            .join(models.Dataset.updated_by)
-            .join(models.groups_datasets_table)
+            query.join(models.groups_datasets_table)
             .join(
                 models.users_groups_table,
                 models.groups_datasets_table.columns.group_id
@@ -163,25 +161,7 @@ def list_datasets(page: int, limit: int) -> Response:
             .filter(models.users_groups_table.columns.user_id == user_id, *filters)
         )
     else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
-        query = (
-            models.Dataset.query.options(
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .contains_eager(models.Participant.family),
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .joinedload(models.Participant.institution),
-                contains_eager(models.Dataset.files),
-                contains_eager(models.Dataset.updated_by),
-            )
-            .join(models.Dataset.tissue_sample)
-            .outerjoin(models.Dataset.groups)
-            .join(models.TissueSample.participant)
-            .join(models.Participant.family)
-            .outerjoin(models.Dataset.files)
-            .join(models.Dataset.updated_by)
-            .filter(*filters)
-        )
+        query = query.filter(*filters)
 
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
@@ -207,6 +187,20 @@ def list_datasets(page: int, limit: int) -> Response:
         }
         for dataset in datasets
     ]
+
+    app.logger.debug(
+        "%d datasets to be returned; %d limit; %d total_count",
+        len(datasets),
+        limit,
+        total_count,
+    )
+
+    if len(datasets) != min(limit, total_count):
+        app.logger.warning(
+            "Datasets to be returned is incorrect; expected: '%d', actual: '%d'",
+            min(limit, total_count),
+            len(datasets),
+        )
 
     if expects_json(request):
         return paginated_response(results, page, total_count, limit)
