@@ -341,3 +341,76 @@ def test_unauthenticated(client, test_database):
         assert response.status_code == 404
     for response in method_not_allowed:
         assert response.status_code == 405
+
+
+def test_dataset_count_with_many_related_models(client, test_database, login_as):
+    """
+    test that [GET] datasests count is true count of dataset models matching criteria
+    and `limit` does not count rows created by join to related models, in this case `groups`
+    """
+    user = models.User(
+        username="local_test_user", email="test_user@example.com", password_hash="123"
+    )
+    db.session.add(user)
+    db.session.commit()
+
+    group = models.Group(group_code="local", group_name="local")
+    group2 = models.Group(group_code="local2", group_name="local2")
+
+    family = models.Family(
+        family_codename="test",
+        created_by_id=user.user_id,
+        updated_by_id=user.user_id,
+    )
+
+    participant = models.Participant(
+        participant_codename="test",
+        sex=models.Sex.Female,
+        participant_type=models.ParticipantType.Proband,
+        institution_id=1,
+        created_by_id=user.user_id,
+        updated_by_id=user.user_id,
+    )
+
+    family.participants.append(participant)
+
+    sample = models.TissueSample(
+        tissue_sample_type=models.TissueSampleType.Blood,
+        created_by_id=user.user_id,
+        updated_by_id=user.user_id,
+    )
+
+    participant.tissue_samples.append(sample)
+
+    dataset_fields = {
+        "dataset_type": "WES",
+        "condition": models.DatasetCondition.Somatic,
+        "created_by_id": user.user_id,
+        "updated_by_id": user.user_id,
+        "notes": "test_dataset_counts",
+    }
+
+    dataset_1 = models.Dataset(**dataset_fields)
+    dataset_2 = models.Dataset(**dataset_fields)
+
+    # each dataset has 2 groups -- with a direct join on groups, this will lead to inaccurate result count
+    # when `limit` is provided
+    dataset_1.groups.extend([group, group2])
+    dataset_2.groups.extend([group, group2])
+    sample.datasets.extend([dataset_1, dataset_2])
+    db.session.add(dataset_1)
+    db.session.add(dataset_2)
+    db.session.commit()
+
+    # confirm that there are 2 models in the database meeting these conditions
+    # `notes` constraint excludes global test datasets from results
+    assert models.Dataset.query.filter(models.Dataset.notes == "test_dataset_counts").count() == 2
+
+    login_as("admin")
+
+    response = client.get("/api/datasets?notes=test_dataset_counts&limit=2")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    # confirm that our result count matches database count
+    assert len(body["data"]) == 2
