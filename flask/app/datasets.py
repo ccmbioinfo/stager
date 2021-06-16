@@ -191,14 +191,14 @@ def list_datasets(page: int, limit: int) -> Response:
     app.logger.debug(
         "%d datasets to be returned; %d limit; %d total_count",
         len(datasets),
-        limit,
+        limit or -1,
         total_count,
     )
 
-    if len(datasets) != min(limit, total_count):
+    if len(datasets) != min(limit or total_count, total_count):
         app.logger.warning(
             "Datasets to be returned is incorrect; expected: '%d', actual: '%d'",
-            min(limit, total_count),
+            min(limit or total_count, total_count),
             len(datasets),
         )
 
