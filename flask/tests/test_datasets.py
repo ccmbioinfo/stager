@@ -404,7 +404,12 @@ def test_dataset_count_with_many_related_models(client, test_database, login_as)
 
     # confirm that there are 2 models in the database meeting these conditions
     # `notes` constraint excludes global test datasets from results
-    assert models.Dataset.query.filter(models.Dataset.notes == "test_dataset_counts").count() == 2
+    assert (
+        models.Dataset.query.filter(
+            models.Dataset.notes == "test_dataset_counts"
+        ).count()
+        == 2
+    )
 
     login_as("admin")
 
