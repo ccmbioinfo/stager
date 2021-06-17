@@ -533,7 +533,7 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     assert response.status_code == 200
     body = response.get_json()
     assert len(body["data"]) == 4
-    assert body["data"][0]["participant_codename"] == "004"
+    assert body["data"][0]["participant_codename"] == "003"
 
     # check join with family
     response = client.get("/api/datasets?order_by=family_codename&order_dir=asc")
@@ -555,10 +555,10 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     assert response.status_code == 200
     body = response.get_json()
     assert len(body["data"]) == 4
-    assert body["data"][0]["tissue_sample_type"] == "WES"
+    assert body["data"][0]["tissue_sample_type"] == "Blood"
 
     response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
     assert len(body["data"]) == 4
-    assert body["data"][0]["tissue_sample_type"] == "WGS"
+    assert body["data"][0]["tissue_sample_type"] == "Blood"
