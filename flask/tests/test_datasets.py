@@ -343,11 +343,8 @@ def test_unauthenticated(client, test_database):
         assert response.status_code == 405
 
 
-def test_dataset_count_with_many_related_models(client, test_database, login_as):
-    """
-    test that [GET] datasests count is true count of dataset models matching criteria
-    and `limit` does not count rows created by join to related models, in this case `groups`
-    """
+@pytest.fixture
+def dataset_relationships(test_database):
     user = models.User(
         username="local_test_user", email="test_user@example.com", password_hash="123"
     )
@@ -411,6 +408,14 @@ def test_dataset_count_with_many_related_models(client, test_database, login_as)
         == 2
     )
 
+
+def test_dataset_count_with_many_related_models(
+    client, test_database, login_as, dataset_relationships
+):
+    """
+    test that [GET] datasests count is true count of dataset models matching criteria
+    and `limit` does not count rows created by join to related models, in this case `groups`
+    """
     login_as("admin")
 
     response = client.get("/api/datasets?notes=test_dataset_counts&limit=2")
