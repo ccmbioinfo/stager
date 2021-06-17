@@ -7,25 +7,91 @@ from click.exceptions import ClickException
 from flask import Flask, current_app as app
 from flask.cli import with_appcontext
 from minio import Minio
+from sqlalchemy import and_
 
 from .models import *
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
 
 from .manage_keycloak import *
-from .utils import get_minio_admin, stager_is_keycloak_admin
+from .utils import stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
     app.cli.add_command(seed_database_minio_groups)
+    app.cli.add_command(update_analysis_pipelines)
     if app.config.get("ENABLE_OIDC"):
         app.cli.add_command(update_user)
         if os.getenv("KEYCLOAK_HOST") is not None:
             app.cli.add_command(create_realm)
             app.cli.add_command(create_client)
             app.cli.add_command(add_user)
+
+
+@click.command("update-analysis-pipelines")
+@with_appcontext
+def update_analysis_pipelines() -> None:
+    """
+    A one-time command for associating analyses with the correct type of pipeline based on related dataset_type.
+    Fixes a transposition that occurred during the migration from SampleTracker
+    """
+    should_be_crg2 = (
+        Analysis.query.join(Dataset.analyses)
+        .join(Analysis.pipeline)
+        .filter(
+            and_(
+                Pipeline.pipeline_name == "cre",
+                Dataset.dataset_type.in_(["RGS", "CGS", "WGS"]),
+            )
+        )
+        .all()
+    )
+
+    should_be_cre = (
+        Analysis.query.join(Dataset.analyses)
+        .join(Analysis.pipeline)
+        .filter(
+            and_(
+                Pipeline.pipeline_name == "crg2",
+                Dataset.dataset_type.in_(["RES", "CES", "WES", "CPS", "RCS"]),
+            )
+        )
+        .all()
+    )
+
+    configs = [
+        ("cre", should_be_cre),
+        ("crg2", should_be_crg2),
+    ]
+
+    for config in configs:
+
+        new_pipeline_name, analyses = config
+
+        new_pipeline_id = (
+            Pipeline.query.filter(Pipeline.pipeline_name == new_pipeline_name)
+            .first()
+            .pipeline_id
+        )
+
+        """  
+        This is not the fastest or nicest way to do this, but the only way to override the onupdate setting on models.Analysis
+        seems to be passing in the the model's own current `updated` value. Otherwise sqlalchemy would touch the `updated` timestamp for each analysis.
+        # https://docs.sqlalchemy.org/en/14/core/defaults.html#metadata-defaults
+        """
+        for analysis in analyses:
+            Analysis.query.filter(Analysis.analysis_id == analysis.analysis_id).update(
+                {"pipeline_id": new_pipeline_id, "updated": analysis.updated},
+                synchronize_session=False,
+            )
+
+        db.session.commit()
+
+        app.logger.info(
+            f"Updated analyses ids: {[a.analysis_id for a in analyses]} to {new_pipeline_name} pipeline"
+        )
 
 
 @click.command("db-seed")
