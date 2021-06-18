@@ -177,11 +177,7 @@ def list_datasets(page: int, limit: int) -> Response:
     ).scalar()
 
     datasets = (
-        query.distinct(models.Dataset.dataset_id)
-        .order_by(*order)
-        .limit(limit)
-        .offset(page * (limit or 0))
-        .all()
+        query.distinct().order_by(*order).limit(limit).offset(page * (limit or 0)).all()
     )
 
     results = [
