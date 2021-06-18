@@ -84,11 +84,14 @@ def list_datasets(page: int, limit: int) -> Response:
     if order:
         order_dir = request.args.get("order_dir", type=str)
         if order_dir == "desc":
-            order = order.desc()
+            order = (order.desc(), models.Dataset.dataset_id.desc())
         elif order_dir == "asc":
-            order = order.asc()
+            order = (order.asc(), models.Dataset.dataset_id.asc())
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
+    else:
+        # Default ordering
+        order = (models.Dataset.dataset_id,)
     filters = []
     notes = request.args.get("notes", type=str)
     if notes:
@@ -175,7 +178,7 @@ def list_datasets(page: int, limit: int) -> Response:
 
     datasets = (
         query.distinct(models.Dataset.dataset_id)
-        .order_by(order, models.Dataset.dataset_id)
+        .order_by(*order)
         .limit(limit)
         .offset(page * (limit or 0))
         .all()
