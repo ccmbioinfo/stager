@@ -138,16 +138,22 @@ def list_datasets(page: int, limit: int) -> Response:
     else:
         user_id = current_user.user_id
 
-    query = models.Dataset.query.options(
-        joinedload(models.Dataset.tissue_sample)
-        .joinedload(models.TissueSample.participant)
-        .joinedload(models.Participant.family),
-        joinedload(models.Dataset.tissue_sample)
-        .joinedload(models.TissueSample.participant)
-        .joinedload(models.Participant.institution),
-        selectinload(models.Dataset.files),
-        joinedload(models.Dataset.updated_by),
-        selectinload(models.Dataset.groups),
+    query = (
+        models.Dataset.query.options(
+            contains_eager(models.Dataset.tissue_sample)
+            .contains_eager(models.TissueSample.participant)
+            .contains_eager(models.Participant.family),
+            contains_eager(models.Dataset.tissue_sample)
+            .contains_eager(models.TissueSample.participant)
+            .joinedload(models.Participant.institution),
+            contains_eager(models.Dataset.files),
+            contains_eager(models.Dataset.updated_by),
+        )
+        .join(models.Dataset.tissue_sample)
+        .join(models.TissueSample.participant)
+        .join(models.Participant.family)
+        .outerjoin(models.Dataset.files)
+        .join(models.Dataset.updated_by)
     )
 
     if user_id:  # Regular user or assumed identity, return only permitted datasets
@@ -161,13 +167,19 @@ def list_datasets(page: int, limit: int) -> Response:
             .filter(models.users_groups_table.columns.user_id == user_id, *filters)
         )
     else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
-        query = query.filter(*filters)
+        query = query.outerjoin(models.Dataset.groups).filter(*filters)
 
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
     ).scalar()
 
-    datasets = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
+    datasets = (
+        query.distinct(models.Dataset.dataset_id)
+        .order_by(order, models.Dataset.dataset_id)
+        .limit(limit)
+        .offset(page * (limit or 0))
+        .all()
+    )
 
     results = [
         {
