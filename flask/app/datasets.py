@@ -170,7 +170,7 @@ def list_datasets(page: int, limit: int) -> Response:
             .filter(models.users_groups_table.columns.user_id == user_id, *filters)
         )
     else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
-        query = query.outerjoin(models.Dataset.groups).filter(*filters)
+        query = query.options(joinedload(models.Dataset.groups)).filter(*filters)
 
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
