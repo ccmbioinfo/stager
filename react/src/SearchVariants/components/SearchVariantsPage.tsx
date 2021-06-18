@@ -134,7 +134,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         </Grid>
                     </Grid>
                     <Grid container item xs={12} md={6} spacing={1}>
-                        <Grid item xs={6}>
+                        <Grid container item xs={6}>
                             <CardButton
                                 title="Variant-wise Report"
                                 description="Each row is identified by a unique variant. If multiple participants have the same variant, column fields such as codename, depth, or zygosity are concatenated into a single list -- delimited by ';' -- for that variant's row."
@@ -143,7 +143,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 disabled={disableControls}
                             />
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid container item xs={6}>
                             <CardButton
                                 title="Participant-wise Report"
                                 description="Each row is identified by a participant's variant. Every column field is a single value, and variants may occur more than once if more than one participant has that variant."
