@@ -176,9 +176,7 @@ def list_datasets(page: int, limit: int) -> Response:
         func.count(distinct(models.Dataset.dataset_id))
     ).scalar()
 
-    datasets = (
-        query.distinct().order_by(*order).limit(limit).offset(page * (limit or 0)).all()
-    )
+    datasets = query.order_by(*order).limit(limit).offset(page * (limit or 0)).all()
 
     results = [
         {
