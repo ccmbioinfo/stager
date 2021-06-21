@@ -3,7 +3,7 @@ from dataclasses import asdict
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
@@ -84,11 +84,14 @@ def list_datasets(page: int, limit: int) -> Response:
     if order:
         order_dir = request.args.get("order_dir", type=str)
         if order_dir == "desc":
-            order = order.desc()
+            order = (order.desc(), models.Dataset.dataset_id.desc())
         elif order_dir == "asc":
-            order = order.asc()
+            order = (order.asc(), models.Dataset.dataset_id.asc())
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
+    else:
+        # Default ordering
+        order = (models.Dataset.dataset_id,)
     filters = []
     notes = request.args.get("notes", type=str)
     if notes:
@@ -137,24 +140,31 @@ def list_datasets(page: int, limit: int) -> Response:
         user_id = request.args.get("user")
     else:
         user_id = current_user.user_id
+
+    query = (
+        models.Dataset.query.options(
+            # tell the ORM that our join contains models we'd like to eager load, so it doesn't try to load them lazily
+            # in my test, this sped up loading time by ~3x
+            contains_eager(models.Dataset.tissue_sample)
+            .contains_eager(models.TissueSample.participant)
+            .contains_eager(models.Participant.family),
+            # eager load groups and files for speed, since we're not joining here, we can't order or search by these fields
+            # ordering is probably not a great loss b/c one-to-many makes it tough,
+            # but if we want to search, a solution might be a subquery (something similar to the filter in analyses.py:194-208)
+            # FE will have to be adjusted to disallow sorting/filtering on these fields
+            selectinload(models.Dataset.groups),
+            selectinload(models.Dataset.files),
+        )
+        # join with these since they are 1-to-1 and we want to order/filter on some of their fields
+        .join(models.Dataset.tissue_sample)
+        .join(models.TissueSample.participant)
+        .join(models.Participant.family)
+        .join(models.Dataset.updated_by)
+    )
+
     if user_id:  # Regular user or assumed identity, return only permitted datasets
         query = (
-            models.Dataset.query.options(
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .contains_eager(models.Participant.family),
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .joinedload(models.Participant.institution),
-                contains_eager(models.Dataset.files),
-                contains_eager(models.Dataset.updated_by),
-            )
-            .join(models.Dataset.tissue_sample)
-            .join(models.TissueSample.participant)
-            .join(models.Participant.family)
-            .outerjoin(models.Dataset.files)
-            .join(models.Dataset.updated_by)
-            .join(models.groups_datasets_table)
+            query.join(models.groups_datasets_table)
             .join(
                 models.users_groups_table,
                 models.groups_datasets_table.columns.group_id
@@ -163,25 +173,7 @@ def list_datasets(page: int, limit: int) -> Response:
             .filter(models.users_groups_table.columns.user_id == user_id, *filters)
         )
     else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
-        query = (
-            models.Dataset.query.options(
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .contains_eager(models.Participant.family),
-                contains_eager(models.Dataset.tissue_sample)
-                .contains_eager(models.TissueSample.participant)
-                .joinedload(models.Participant.institution),
-                contains_eager(models.Dataset.files),
-                contains_eager(models.Dataset.updated_by),
-            )
-            .join(models.Dataset.tissue_sample)
-            .outerjoin(models.Dataset.groups)
-            .join(models.TissueSample.participant)
-            .join(models.Participant.family)
-            .outerjoin(models.Dataset.files)
-            .join(models.Dataset.updated_by)
-            .filter(*filters)
-        )
+        query = query.options(joinedload(models.Dataset.groups)).filter(*filters)
 
     group_code = request.args.get("group_code", type=str)
     if group_code:
@@ -194,11 +186,12 @@ def list_datasets(page: int, limit: int) -> Response:
 
         query = query.filter(models.Dataset.dataset_id.in_(subquery))
 
+    # total_count always refers to the number of unique datasets in the database
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
     ).scalar()
 
-    datasets = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
+    datasets = query.order_by(*order).limit(limit).offset(page * (limit or 0)).all()
 
     results = [
         {
@@ -218,6 +211,13 @@ def list_datasets(page: int, limit: int) -> Response:
         }
         for dataset in datasets
     ]
+
+    app.logger.debug(
+        "%d datasets to be returned; %d limit; %d total_count",
+        len(datasets),
+        limit or -1,
+        total_count,
+    )
 
     if expects_json(request):
         return paginated_response(results, page, total_count, limit)

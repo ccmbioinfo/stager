@@ -341,3 +341,224 @@ def test_unauthenticated(client, test_database):
         assert response.status_code == 404
     for response in method_not_allowed:
         assert response.status_code == 405
+
+
+@pytest.fixture
+def dataset_relationships(test_database):
+    user = models.User(
+        username="local_test_user", email="test_user@example.com", password_hash="123"
+    )
+    db.session.add(user)
+    db.session.commit()
+
+    group = models.Group(group_code="local", group_name="local")
+    group2 = models.Group(group_code="local2", group_name="local2")
+
+    family = models.Family(
+        family_codename="test",
+        created_by_id=user.user_id,
+        updated_by_id=user.user_id,
+    )
+
+    participant = models.Participant(
+        participant_codename="test",
+        sex=models.Sex.Female,
+        participant_type=models.ParticipantType.Proband,
+        institution_id=1,
+        created_by_id=user.user_id,
+        updated_by_id=user.user_id,
+    )
+
+    family.participants.append(participant)
+
+    sample = models.TissueSample(
+        tissue_sample_type=models.TissueSampleType.Blood,
+        created_by_id=user.user_id,
+        updated_by_id=user.user_id,
+    )
+
+    participant.tissue_samples.append(sample)
+
+    dataset_fields = {
+        "dataset_type": "WES",
+        "condition": models.DatasetCondition.Somatic,
+        "created_by_id": user.user_id,
+        "updated_by_id": user.user_id,
+        "notes": "test_dataset_counts",
+    }
+
+    dataset_1 = models.Dataset(**dataset_fields)
+    dataset_2 = models.Dataset(**dataset_fields)
+
+    # each dataset has 2 groups -- with a direct join on groups, this will lead to inaccurate result count
+    # when `limit` is provided
+    dataset_1.groups.extend([group, group2])
+    dataset_2.groups.extend([group, group2])
+    sample.datasets.extend([dataset_1, dataset_2])
+    db.session.add(dataset_1)
+    db.session.add(dataset_2)
+    db.session.commit()
+
+    # confirm that there are 2 models in the database meeting these conditions
+    # `notes` constraint excludes global test datasets from results
+    assert (
+        models.Dataset.query.filter(
+            models.Dataset.notes == "test_dataset_counts"
+        ).count()
+        == 2
+    )
+
+
+def test_dataset_count_with_many_related_models(
+    client, test_database, login_as, dataset_relationships
+):
+    """
+    test that [GET] datasests count is true count of dataset models matching criteria
+    and `limit` does not count rows created by join to related models, in this case `groups`
+    """
+    login_as("admin")
+
+    response = client.get("/api/datasets?notes=test_dataset_counts&limit=2")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    # confirm that our result count matches database count
+    assert len(body["data"]) == 2
+
+
+def test_dataset_filter_on_dataset_column(
+    client, test_database, login_as, dataset_relationships
+):
+    login_as("admin")
+
+    # wrong format
+    # ignore irrelevant parameters
+    response = client.get("/api/datasets?fake_column=something_fake")
+    assert response.status_code == 200
+
+    # improper format of relevant parameters
+    response = client.get("/api/datasets?condition=25")
+    assert response.status_code == 400
+
+    # correct format
+    response = client.get("/api/datasets?notes=test_dataset_counts&dataset_type=WES")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 2
+
+    response = client.get("/api/datasets?notes=test_dataset_counts&dataset_type=RES")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 0
+
+
+def test_dataset_filter_on_related_column(
+    client, test_database, login_as, dataset_relationships
+):
+    login_as("admin")
+
+    # check join with participant
+    response = client.get(
+        "/api/datasets?notes=test_dataset_counts&participant_codename=test"
+    )
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 2
+
+    response = client.get(
+        "/api/datasets?notes=test_dataset_counts&participant_codename=doesntexisthaha"
+    )
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 0
+
+    # check join with family
+    response = client.get(
+        "/api/datasets?notes=test_dataset_counts&family_codename=test"
+    )
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 2
+
+    response = client.get(
+        "/api/datasets?notes=test_dataset_counts&family_codename=heygottem"
+    )
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 0
+
+    # check join with tissue sample
+    response = client.get(
+        "/api/datasets?notes=test_dataset_counts&tissue_sample_type=Blood"
+    )
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 2
+
+    response = client.get(
+        "/api/datasets?notes=test_dataset_counts&tissue_sample_type=Urine"
+    )
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 0
+
+
+def test_dataset_order_by_dataset_column(client, test_database, login_as):
+    login_as("admin")
+
+    # wrong format
+    response = client.get("/api/datasets?order_by=nothing")
+    assert response.status_code == 400
+
+    response = client.get("/api/datasets?order_by=dataset_type&order_dir=upsidedown")
+    assert response.status_code == 400
+
+    # correct format
+    response = client.get("/api/datasets?order_by=dataset_type&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WES"
+
+    response = client.get("/api/datasets?order_by=dataset_type&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WGS"
+
+
+def test_dataset_order_by_related_column(client, test_database, login_as):
+    login_as("admin")
+
+    # check join with participant
+    response = client.get("/api/datasets?order_by=participant_codename&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["participant_codename"] == "001"
+
+    response = client.get("/api/datasets?order_by=participant_codename&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["participant_codename"] == "003"
+
+    # check join with family
+    response = client.get("/api/datasets?order_by=family_codename&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert (
+        body["data"][0]["family_codename"] == body["data"][1]["family_codename"] == "A"
+    )
+
+    response = client.get("/api/datasets?order_by=family_codename&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["family_codename"] == "B"
+
+    # check join with tissue sample
+    response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["tissue_sample_type"] == "Blood"
+
+    response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 4
+    assert body["data"][0]["tissue_sample_type"] == "Blood"

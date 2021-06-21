@@ -106,7 +106,11 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
             if (isBoolean) {
                 value = stringToBoolean(filter.value);
             }
-            if (filter.column.field && (filter.value || isBoolean)) {
+            if (
+                filter.column.field &&
+                (!Array.isArray(filter.value) || filter.value.length > 0) &&
+                (filter.value || isBoolean)
+            ) {
                 searchParams[`${filter.column.field}`] = `${value}`;
             }
         }
