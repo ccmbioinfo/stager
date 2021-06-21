@@ -175,6 +175,17 @@ def list_datasets(page: int, limit: int) -> Response:
     else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
         query = query.options(joinedload(models.Dataset.groups)).filter(*filters)
 
+    group_code = request.args.get("group_code", type=str)
+    if group_code:
+        subquery = (
+            models.Dataset.query.join(models.Dataset.groups)
+            .filter(func.instr(models.Group.group_code, group_code))
+            .with_entities(models.Dataset.dataset_id)
+            .subquery()
+        )
+
+        query = query.filter(models.Dataset.dataset_id.in_(subquery))
+
     # total_count always refers to the number of unique datasets in the database
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
