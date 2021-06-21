@@ -3,7 +3,7 @@ from dataclasses import asdict
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
@@ -143,19 +143,22 @@ def list_datasets(page: int, limit: int) -> Response:
 
     query = (
         models.Dataset.query.options(
+            # tell the ORM that our join contains models we'd like to eager load, so it doesn't try to load them lazily
+            # in my test, this sped up loading time by ~3x
             contains_eager(models.Dataset.tissue_sample)
             .contains_eager(models.TissueSample.participant)
             .contains_eager(models.Participant.family),
-            contains_eager(models.Dataset.tissue_sample)
-            .contains_eager(models.TissueSample.participant)
-            .joinedload(models.Participant.institution),
-            contains_eager(models.Dataset.files),
-            contains_eager(models.Dataset.updated_by),
+            # eager load groups and files for speed, since we're not joining here, we can't order or search by these fields
+            # ordering is probably not a great loss b/c one-to-many makes it tough,
+            # but if we want to search, a solution might be a subquery (something similar to the filter in analyses.py:194-208)
+            # FE will have to be adjusted to disallow sorting/filtering on these fields
+            selectinload(models.Dataset.groups),
+            selectinload(models.Dataset.files),
         )
+        # join with these since they are 1-to-1 and we want to order/filter on some of their fields
         .join(models.Dataset.tissue_sample)
         .join(models.TissueSample.participant)
         .join(models.Participant.family)
-        .outerjoin(models.Dataset.files)
         .join(models.Dataset.updated_by)
     )
 
@@ -172,6 +175,7 @@ def list_datasets(page: int, limit: int) -> Response:
     else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
         query = query.options(joinedload(models.Dataset.groups)).filter(*filters)
 
+    # total_count always refers to the number of unique datasets in the database
     total_count = query.with_entities(
         func.count(distinct(models.Dataset.dataset_id))
     ).scalar()
@@ -203,13 +207,6 @@ def list_datasets(page: int, limit: int) -> Response:
         limit or -1,
         total_count,
     )
-
-    if len(datasets) != min(limit or total_count, total_count):
-        app.logger.warning(
-            "Datasets to be returned is incorrect; expected: '%d', actual: '%d'",
-            min(limit or total_count, total_count),
-            len(datasets),
-        )
 
     if expects_json(request):
         return paginated_response(results, page, total_count, limit)
