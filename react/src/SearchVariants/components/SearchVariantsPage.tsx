@@ -137,21 +137,21 @@ const temporaryListOfReportColumns = [
 ];
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
-    const loadPanel = () => {
-        const stored = localStorage.getItem("gene-panel");
+    const loadSavedArray = (key: string) => {
+        const stored = localStorage.getItem(key);
         if (stored === null) return [];
         try {
-            const panel = JSON.parse(stored);
-            if (Array.isArray(panel)) {
-                return panel;
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                return parsed;
             } else {
-                console.warn("Invalid localStorage format for `gene-panel`.", stored);
-                localStorage.removeItem("gene-panel");
+                console.warn(`Invalid localStorage format for '${key}'.`, stored);
+                localStorage.removeItem(key);
                 return [];
             }
         } catch (error) {
-            console.warn("Invalid localStorage format for `gene-panel`.", stored);
-            localStorage.removeItem("gene-panel");
+            console.warn(`Invalid localStorage format for '${key}'.`, stored);
+            localStorage.removeItem(key);
             return [];
         }
     };
@@ -161,10 +161,19 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const queryClient = useQueryClient();
     const queryCache = queryClient.getQueryCache();
 
-    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadPanel());
+    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadSavedArray("gene-panel"));
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
     const [loading, setLoading] = useState(false);
-    const [columns, setColumns] = useState<string[]>([]);
+    const [columns, setColumns] = useState<string[]>(
+        (loadSavedArray("report-columns") as string[]).filter(col =>
+            temporaryListOfReportColumns.includes(col)
+        )
+    );
+
+    const updateColumns = (newColumns: string[]) => {
+        setColumns(newColumns);
+        localStorage.setItem("report-columns", JSON.stringify(newColumns));
+    };
 
     const toggleGeneSelection = (gene: GeneAlias) => {
         const updated = !selectedGenes.includes(gene)
@@ -297,7 +306,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 <Select
                                     multiple
                                     value={columns}
-                                    onChange={e => setColumns(e.target.value as string[])}
+                                    onChange={e => updateColumns(e.target.value as string[])}
                                     renderValue={selected => (
                                         <div className={classes.selectChips}>
                                             {(selected as string[]).map(column => (
