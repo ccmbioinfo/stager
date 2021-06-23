@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from "react";
 import {
     Button,
+    Checkbox,
     Chip,
     CircularProgress,
     Container,
+    FormControl,
     Grid,
+    InputLabel,
+    ListItemText,
     makeStyles,
+    MenuItem,
+    Select,
     Typography,
 } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
 import { useSnackbar } from "notistack";
 import { QueryKey } from "react-query";
 import { useQueryClient } from "react-query";
+import { snakeCaseToTitle } from "../../functions";
 import { useDownloadCsv } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
@@ -54,11 +61,80 @@ const useStyles = makeStyles(theme => ({
         marginLeft: -12,
         marginTop: -12,
     },
+    selectChips: {
+        display: "flex",
+        flexWrap: "wrap",
+    },
+    selectChip: {
+        margin: theme.spacing(0.5),
+    },
 }));
 
 const GET_VARIANTS_SUMMARY_URL = "/api/summary/variants";
 
 const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
+
+// TODO: Get this list from the backend instead
+const temporaryListOfReportColumns = [
+    "Position",
+    "UCSC_Link",
+    "GNOMAD_Link",
+    "Ref",
+    "Alt",
+    "Zygosity.401_130105S",
+    "Zygosity.401_13_0451",
+    "Gene",
+    "Burden.401_130105S",
+    "Burden.401_13_0451",
+    "gts",
+    "Variation",
+    "Info",
+    "Refseq_change",
+    "Depth",
+    "Quality",
+    "Alt_depths.401_130105S",
+    "Alt_depths.401_13_0451",
+    "Trio_coverage",
+    "Ensembl_gene_id",
+    "Gene_description",
+    "Omim_gene_description",
+    "Omim_inheritance",
+    "Orphanet",
+    "Clinvar",
+    "Frequency_in_C4R",
+    "Seen_in_C4R_samples",
+    "HGMD_id",
+    "HGMD_gene",
+    "HGMD_tag",
+    "HGMD_ref",
+    "Gnomad_af_popmax",
+    "Gnomad_af",
+    "Gnomad_ac",
+    "Gnomad_hom",
+    "Ensembl_transcript_id",
+    "AA_position",
+    "Exon",
+    "Protein_domains",
+    "rsIDs",
+    "Gnomad_oe_lof_score",
+    "Gnomad_oe_mis_score",
+    "Exac_pli_score",
+    "Exac_prec_score",
+    "Exac_pnull_score",
+    "Conserved_in_20_mammals",
+    "Sift_score",
+    "Polyphen_score",
+    "Cadd_score",
+    "Vest3_score",
+    "Revel_score",
+    "Gerp_score",
+    "Imprinting_status",
+    "Imprinting_expressed_allele",
+    "Pseudoautosomal",
+    "Splicing",
+    "Number_of_callers",
+    "Old_multiallelic",
+];
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const loadPanel = () => {
@@ -88,6 +164,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadPanel());
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
     const [loading, setLoading] = useState(false);
+    const [columns, setColumns] = useState<string[]>([]);
 
     const toggleGeneSelection = (gene: GeneAlias) => {
         const updated = !selectedGenes.includes(gene)
@@ -126,9 +203,9 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
 
         /*
-            In react-query, the onSuccess callback is not triggered when the query is returning data from cache. 
+            In react-query, the onSuccess callback is not triggered when the query is returning data from cache.
             QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
-            If so, the loading indicator is deactivated. 
+            If so, the loading indicator is deactivated.
         */
 
         const key: QueryKey = [
@@ -213,6 +290,34 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                 onClick={() => setDownloadType("participant")}
                                 disabled={disableControls}
                             />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <InputLabel>Columns included in Report</InputLabel>
+                                <Select
+                                    multiple
+                                    value={columns}
+                                    onChange={e => setColumns(e.target.value as string[])}
+                                    renderValue={selected => (
+                                        <div className={classes.selectChips}>
+                                            {(selected as string[]).map(column => (
+                                                <Chip
+                                                    key={column}
+                                                    label={snakeCaseToTitle(column)}
+                                                    className={classes.selectChip}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                >
+                                    {temporaryListOfReportColumns.map(column => (
+                                        <MenuItem key={column} value={column}>
+                                            <Checkbox checked={columns.includes(column)} />
+                                            <ListItemText primary={snakeCaseToTitle(column)} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid>
                     </Grid>
                     <Grid container item xs={12} md={6} wrap="nowrap">
