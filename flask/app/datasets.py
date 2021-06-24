@@ -67,7 +67,7 @@ def list_datasets(page: int, limit: int) -> Response:
     elif order_by == "updated_by":
         order = models.User.username
     elif order_by == "linked_files":
-        order = models.DatasetFile.path
+        order = models.File.path
     elif order_by == "tissue_sample_type":
         order = models.TissueSample.tissue_sample_type
     elif order_by == "participant_codename":
@@ -104,7 +104,7 @@ def list_datasets(page: int, limit: int) -> Response:
         filters.append(models.Dataset.dataset_id == dataset_id)
     linked_files = request.args.get("linked_files", type=str)
     if linked_files:
-        filters.append(func.instr(models.DatasetFile.path, linked_files))
+        filters.append(func.instr(models.File.path, linked_files))
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
         filters.append(
@@ -348,7 +348,7 @@ def update_dataset(id: int):
                 db.session.delete(existing)
         for path in request.json["linked_files"]:
             if path not in dataset.linked_files:
-                dataset.files.append(models.DatasetFile(path=path))
+                dataset.files.append(models.File(path=path))
 
     if user_id:
         dataset.updated_by_id = user_id
@@ -440,7 +440,7 @@ def create_dataset():
     # TODO: add stricter checks?
     if request.json.get("linked_files"):
         for path in request.json["linked_files"]:
-            dataset.files.append(models.DatasetFile(path=path))
+            dataset.files.append(models.File(path=path))
     db.session.add(dataset)
     transaction_or_abort(db.session.commit)
     ds_id = dataset.dataset_id

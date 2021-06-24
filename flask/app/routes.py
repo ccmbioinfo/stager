@@ -548,7 +548,7 @@ def bulk_update():
                 row.get("linked_files", []),
             )
             files = row.get("linked_files", [])
-        dataset.files += [models.DatasetFile(path=path) for path in files if path]
+        dataset.files += [models.File(path=path) for path in files if path]
 
         app.logger.debug("\tAdding users groups to the dataset")
         dataset.groups += groups
