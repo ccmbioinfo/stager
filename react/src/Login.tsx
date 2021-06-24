@@ -206,12 +206,10 @@ function LoginForm({
 }
 
 /**
- * A button whose href is derived from the backend API endpoint.
- * Used for redirecting to OAuth login.
+ * An empty page meant for redirecting the user directly to the OAuth login page.
  */
 function OauthLoginForm() {
     const classes = useStyles();
-    const [loginUrl, setLoginUrl] = useState("");
 
     useEffect(() => {
         if (process.env.REACT_APP_API_ENDPOINT) {
@@ -219,28 +217,18 @@ function OauthLoginForm() {
             const redirect = new URL(`${window.location.origin}/oidc_callback`);
             const login = new URL(`${process.env.REACT_APP_API_ENDPOINT}/api/login`);
             login.searchParams.append("redirect_uri", redirect.href);
-            setLoginUrl(login.href);
+            window.location.replace(login.href);
         }
     }, []);
 
     return (
         <>
             <Typography variant="h5" component="h2" gutterBottom className={classes.center}>
-                Sign in to {process.env.REACT_APP_NAME}
+                Redirecting to OAuth login for {process.env.REACT_APP_NAME || "Stager"}...
             </Typography>
-            <form>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    type="submit"
-                    disabled={!loginUrl}
-                    href={loginUrl}
-                    fullWidth
-                >
-                    Sign in using OAuth
-                </Button>
-            </form>
+            <Container className={classes.center}>
+                <CircularProgress />
+            </Container>
         </>
     );
 }
