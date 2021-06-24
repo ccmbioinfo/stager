@@ -110,7 +110,6 @@ def authorize():
     # Use issuer, subject to uniquely identify End-User
     user = models.User.query.filter_by(subject=subject, issuer=issuer).first()
     if user is None:
-        # TODO: Figure out what to do if user exists in OpenID provider but not in Stager
         app.logger.error(
             f"OIDC user with subject ID {subject} and issuer {issuer} is not tracked by Stager."
         )

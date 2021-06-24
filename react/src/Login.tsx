@@ -4,6 +4,7 @@ import {
     Button,
     CircularProgress,
     Container,
+    Link,
     makeStyles,
     Paper,
     TextField,
@@ -77,7 +78,13 @@ function OIDCRedirectHandler(props: LoginProps) {
                     }
                 } else {
                     setIsLoading(false);
-                    setError("Failed to authorize. Please try again.");
+                    if (response.status === 404) {
+                        setError(
+                            "You do not have permission to access Stager. Please contact an administrator to request access."
+                        );
+                    } else {
+                        setError("Failed to authorize. Please try again.");
+                    }
                 }
             }
         })();
@@ -99,8 +106,17 @@ function OIDCRedirectHandler(props: LoginProps) {
                             <CircularProgress className={classes.center} />
                         </Container>
                     )}
+
                     {!isLoading && error && (
-                        <Button onClick={() => history.push("/")}>Go back to Login</Button>
+                        <span>
+                            <Button onClick={() => history.push("/")}>Go back to Login</Button>
+                            <Link
+                                href={`mailto:${process.env.REACT_APP_EMAIL}`}
+                                color="textSecondary"
+                            >
+                                {process.env.REACT_APP_EMAIL}
+                            </Link>
+                        </span>
                     )}
                 </Paper>
             </Container>
