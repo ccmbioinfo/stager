@@ -4,6 +4,7 @@ import {
     Button,
     CircularProgress,
     Container,
+    Grid,
     Link,
     makeStyles,
     Paper,
@@ -108,15 +109,19 @@ function OIDCRedirectHandler(props: LoginProps) {
                     )}
 
                     {!isLoading && error && (
-                        <span>
-                            <Button onClick={() => history.push("/")}>Go back to Login</Button>
-                            <Link
-                                href={`mailto:${process.env.REACT_APP_EMAIL}`}
-                                color="textSecondary"
-                            >
-                                {process.env.REACT_APP_EMAIL}
-                            </Link>
-                        </span>
+                        <Grid container alignItems="baseline" justify="space-between" spacing={1}>
+                            <Grid item>
+                                <Button onClick={() => history.push("/")}>Go back to Login</Button>
+                            </Grid>
+                            <Grid item>
+                                <Link
+                                    href={`mailto:${process.env.REACT_APP_EMAIL}`}
+                                    color="textSecondary"
+                                >
+                                    {process.env.REACT_APP_EMAIL}
+                                </Link>
+                            </Grid>
+                        </Grid>
                     )}
                 </Paper>
             </Container>
