@@ -110,6 +110,7 @@ def authorize():
     # Use issuer, subject to uniquely identify End-User
     user = models.User.query.filter_by(subject=subject, issuer=issuer).first()
     if user is None:
+        # Do not login if the user is not tracked in Stager
         app.logger.error(
             f"OIDC user with subject ID {subject} and issuer {issuer} is not tracked by Stager."
         )
