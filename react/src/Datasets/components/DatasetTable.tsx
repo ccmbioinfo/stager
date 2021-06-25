@@ -30,7 +30,7 @@ import {
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
-import { Dataset } from "../../typings";
+import { Dataset, LinkedFile } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import LinkedFilesButton from "./LinkedFilesButton";
@@ -50,7 +50,7 @@ const useStyles = makeStyles(theme => ({
 const customFileFilterAndSearch = (filter: string, rowData: Dataset) => {
     return (
         filter === "" + rowData.linked_files.length ||
-        rowData.linked_files.some(name => name.includes(filter))
+        rowData.linked_files.some(f => f.path.includes(filter))
     );
 };
 
@@ -61,19 +61,19 @@ const EditFilesComponent = (props: EditComponentProps<Dataset>) => {
         <FileLinkingComponent
             values={props.rowData.linked_files}
             options={files.map(file => ({ title: file, inputValue: file }))}
-            onEdit={(newValue: string[]) => props.onChange(newValue)}
+            onEdit={newValue => props.onChange(newValue)}
             disableTooltip
         />
     );
 };
 
-const linkedFileSort = (a: { linked_files: string[] }, b: { linked_files: string[] }) =>
+const linkedFileSort = (a: { linked_files: LinkedFile[] }, b: { linked_files: LinkedFile[] }) =>
     a.linked_files.length - b.linked_files.length;
 
 const RenderDatePicker = (rowData: Dataset) => <DateTimeText datetime={rowData.updated} />;
 
 const RenderLinkedFilesButton = (props: Dataset) => (
-    <LinkedFilesButton fileNames={props.linked_files} />
+    <LinkedFilesButton fileNames={(props.linked_files || []).map(f => f.path)} />
 );
 
 const RenderNotes = (rowData: Dataset) => <Note>{rowData.notes}</Note>;
@@ -259,7 +259,10 @@ export default function DatasetTable() {
                                 {
                                     onSuccess: receivedDataset => {
                                         const removeUsed = files.filter(
-                                            file => !receivedDataset.linked_files.includes(file)
+                                            file =>
+                                                !receivedDataset.linked_files
+                                                    .map(f => f.path)
+                                                    .includes(file)
                                         );
                                         //refresh data
                                         MTRef.current.onQueryChange();

@@ -8,7 +8,7 @@ Create Date: 2021-06-23 13:30:06.701210
 from alembic import op
 import sqlalchemy as sa
 
-from app.models import DatasetFile
+from app import models
 from app.extensions import db
 
 
@@ -45,7 +45,7 @@ def upgrade():
             ),
         )
 
-        for file in DatasetFile.query.all():
+        for file in models.DatasetFile.query.all():
             stmt = file_table.insert().values(path=file.path)
             result = db.session.execute(stmt)
             db.session.commit()
@@ -56,6 +56,7 @@ def upgrade():
 
     except Exception as e:
         print(e)
+
 
 def downgrade():
 

@@ -304,26 +304,13 @@ class Dataset(db.Model):
     )
     updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
     created_by = db.relationship("User", foreign_keys=[created_by_id], lazy="joined")
-    files = db.relationship(
+    linked_files = db.relationship(
         "File",
         secondary=datasets_files_table,
         backref="datasets",
+        #todo: test this
         passive_deletes=True,
     )
-
-    """ files = db.relationship(
-        "DatasetFile",
-        backref="dataset",
-        cascade="all, delete",
-        passive_deletes=True,
-        lazy="joined",
-    ) """
-
-    linked_files: List[str]
-
-    @property
-    def linked_files(self) -> List[str]:
-        return [x.path for x in self.files]
 
 
 @dataclass

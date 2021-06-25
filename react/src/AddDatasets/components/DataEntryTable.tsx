@@ -14,7 +14,14 @@ import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
 import { createEmptyRows, getDataEntryHeaders, setProp } from "../../functions";
 import { useEnumsQuery, useInstitutionsQuery, useUnlinkedFilesQuery } from "../../hooks";
-import { DataEntryHeader, DataEntryRow, DataEntryRowOptional, Family, Option } from "../../typings";
+import {
+    DataEntryHeader,
+    DataEntryRow,
+    DataEntryRowOptional,
+    Family,
+    Option,
+    PossiblyLinkedFile,
+} from "../../typings";
 import DataEntryTableRow from "./DataEntryTableRow";
 import DataEntryToolbar from "./DataEntryToolbar";
 import { HeaderCell } from "./TableCells";
@@ -118,7 +125,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }, [filesQuery]);
 
     function onEdit(
-        newValue: string | boolean | string[],
+        newValue: string | boolean | PossiblyLinkedFile,
         rowIndex: number,
         col: DataEntryHeader,
         families: Family[],

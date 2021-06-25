@@ -1,7 +1,9 @@
+from dataclasses import asdict
 from flask import jsonify, Blueprint, current_app as app
 from flask_login import current_user, login_required
 from minio import Minio
 from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
 
 from . import models
 
@@ -50,14 +52,21 @@ def get_unlinked_files():
             all_files.append(bucket + "/" + obj.object_name)
 
     app.logger.debug("Getting all linked files..")
-    linked_files = {f.path: ":)" for f in models.File.query.all()}
+    
+    linked_files = [
+        f.path
+        for f in models.File.query.all()
+    ]
 
-    # Put all unlinked files in new list
-    unlinked_files = []
+    linkable_files = [
+        asdict(f)
+        for f in models.File.query.filter(models.File.multiplexed == True).all()
+    ]
+
     for file_name in all_files:
         if file_name not in linked_files:
-            unlinked_files.append(file_name)
+            linkable_files.append({"path": file_name, "multiplexed": False})
 
     app.logger.debug("Returning JSON array..")
 
-    return jsonify(sorted(unlinked_files))
+    return jsonify(sorted(linkable_files, key=lambda f: f["path"]))

@@ -15,6 +15,7 @@ from .utils import (
     expects_json,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
+    find,
     mixin,
     paged,
     paginated_response,
@@ -153,7 +154,7 @@ def list_datasets(page: int, limit: int) -> Response:
             # but if we want to search, a solution might be a subquery (something similar to the filter in analyses.py:194-208)
             # FE will have to be adjusted to disallow sorting/filtering on these fields
             selectinload(models.Dataset.groups),
-            selectinload(models.Dataset.files),
+            selectinload(models.Dataset.linked_files),
         )
         # join with these since they are 1-to-1 and we want to order/filter on some of their fields
         .join(models.Dataset.tissue_sample)
@@ -196,6 +197,7 @@ def list_datasets(page: int, limit: int) -> Response:
     results = [
         {
             **asdict(dataset),
+            "linked_files": dataset.linked_files,
             "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
             "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
@@ -343,12 +345,50 @@ def update_dataset(id: int):
         abort(400, description=enum_error)
 
     if "linked_files" in request.json:
-        for existing in dataset.files:
-            if existing.path not in request.json["linked_files"]:
-                db.session.delete(existing)
-        for path in request.json["linked_files"]:
-            if path not in dataset.linked_files:
-                dataset.files.append(models.File(path=path))
+
+        existing_files = (
+            models.File.query.filter(
+                models.File.path.in_([f["path"] for f in request.json["linked_files"]])
+            )
+            .options(selectinload(models.File.datasets))
+            .all()
+        )
+
+        # delete orphan files
+        for file in dataset.linked_files:
+            if (
+                file.path not in [f["path"] for f in request.json["linked_files"]]
+                and len(file.datasets) == 1
+            ):
+                db.session.delete(file)
+
+        # for simplicity, we'll rebuild relationship, since really we're updating both the dataset model AND related file models
+        dataset.linked_files = []
+
+        # update or insert
+        for file_model in request.json["linked_files"]:
+            existing = find(
+                existing_files,
+                lambda existing, path=file_model["path"]: existing.path == path,
+            )
+
+            if existing:
+                # existing were either previously attached or multiplex
+                if (not file_model.get("multiplexed")) and len(existing.datasets) > 0:
+                    abort(
+                        400,
+                        description="Attempting to add non-multiplexed file to multiple datasets or remove multiplex flag from multiplexed file",
+                    )
+                existing.multiplexed = file_model["multiplexed"]
+                dataset.linked_files.append(existing)
+            else:
+                # insert new files
+                dataset.linked_files.append(
+                    models.File(
+                        path=file_model["path"],
+                        multiplexed=file_model.get("multiplexed"),
+                    )
+                )
 
     if user_id:
         dataset.updated_by_id = user_id
@@ -358,6 +398,7 @@ def update_dataset(id: int):
     return jsonify(
         {
             **asdict(dataset),
+            "linked_files": dataset.linked_files,
             "updated_by": dataset.updated_by.username,
             "created_by": dataset.created_by.username,
         }
@@ -440,7 +481,7 @@ def create_dataset():
     # TODO: add stricter checks?
     if request.json.get("linked_files"):
         for path in request.json["linked_files"]:
-            dataset.files.append(models.File(path=path))
+            dataset.linked_files.append(models.File(path=path))
     db.session.add(dataset)
     transaction_or_abort(db.session.commit)
     ds_id = dataset.dataset_id

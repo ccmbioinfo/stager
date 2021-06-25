@@ -145,7 +145,10 @@ def test_update_dataset_admin(client, test_database, login_as):
 
     changes = [
         {"notes": "stop the count"},
-        {"dataset_type": "WES", "linked_files": ["/path/to/file"]},
+        {
+            "dataset_type": "WES",
+            "linked_files": [{"path": "/path/to/file", "multiplexed": False}],
+        },
     ]
     for body in changes:
         response = client.patch("/api/datasets/2", json=body)
@@ -168,7 +171,10 @@ def test_update_dataset_user(client, test_database, login_as):
 
     changes = [
         {"notes": "stop the count"},
-        {"dataset_type": "WES", "linked_files": ["/path/to/file"]},
+        {
+            "dataset_type": "WES",
+            "linked_files": [{"path": "/path/to/file", "multiplexed": False}],
+        },
     ]
     for body in changes:
         response = client.patch("/api/datasets/2", json=body)
