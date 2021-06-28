@@ -472,14 +472,14 @@ class Variant(db.Model):
     gnomad_link: str = db.Column(db.String(300), nullable=True)
     # can be hgnc, ensembl or null depending on age of report. reports from 2020-08 onwards are guaranteed to have either hgnc or ensembl id in this, exists to facilitate comparison
     gene: str = db.Column(db.String(50), nullable=True)
-    info: str = db.column(db.String(500), nullable=True)
+    info: str = db.Column(db.String(500), nullable=True)
     quality: int = db.Column(db.Integer, nullable=True)
-    clinvar: str = db.column(db.String(50), nullable=True)
+    clinvar: str = db.Column(db.String(50), nullable=True)
     gnomad_af_popmax: int = db.Column(db.Float, nullable=True)
     gnomad_ac: int = db.Column(db.Integer, nullable=True)
     gnomad_hom: int = db.Column(db.Integer, nullable=True)
     ensembl_transcript_id: int = db.Column(db.Integer, nullable=True)
-    aa_position: str = db.column(db.String(50), nullable=True)
+    aa_position: str = db.Column(db.String(50), nullable=True)
     exon: str = db.Column(db.String(50), nullable=True)
     protein_domains: str = db.Column(db.String(50), nullable=True)
     rsid: int = db.Column(db.Integer, nullable=True)
@@ -538,7 +538,7 @@ class Genotype(db.Model):
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
     alt_depths: int = db.Column(db.Integer)
-    genotype: str = db.column(db.String(50), nullable=True)  # from gts
+    genotype: str = db.Column(db.String(50), nullable=True)  # from gts
     depth: int = db.Column(db.Integer, nullable=True)  # from trio_coverage
 
     __table_args__ = (
