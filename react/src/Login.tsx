@@ -72,8 +72,8 @@ function OIDCRedirectHandler(props: LoginProps) {
                     if (user.username) {
                         setMessage(user.username);
                         setCurrentUser(user);
-                        history.push("/");
                         setAuthenticated(true);
+                        history.push("/");
                     } else {
                         setError("Failed to authorize. Please try again.");
                     }
