@@ -1,9 +1,13 @@
+from app.users import reset_minio_credentials
 import json
+from io import BytesIO
+
+from minio import Minio
 
 import pytest
 from app import db
 from app.madmin import MinioAdmin, stager_buckets_policy
-from app.models import User
+from app.models import User, Group
 from conftest import TestConfig
 
 # Common response values between list and individual get endpoints
@@ -190,6 +194,62 @@ def test_reset_minio_user(test_database, minio_policy, client, login_as):
     )
 
     assert_reset("user", client)
+
+
+def test_reset_minio_credentials_allows_admins_to_delete(minio_policy, test_database):
+    minio_admin = minio_policy
+    # group created in conftest, policy created in minio_policy
+    group = Group.query.filter(Group.group_code == "ach").first()
+    minio_admin.set_policy("ach", group=group.group_code)
+    user = User(username="local_user", email="local_test@sickkids.ca")
+    user.set_password("user")
+    user.groups.append(group)
+    db.session.commit()
+    # create minio account
+    reset_minio_credentials(user)
+    user_client = Minio(
+        TestConfig.MINIO_ENDPOINT,
+        user.minio_access_key,
+        user.minio_secret_key,
+        secure=False,
+    )
+    # for cleaunup if necessary
+    admin_client = Minio(
+        TestConfig.MINIO_ENDPOINT,
+        TestConfig.MINIO_ACCESS_KEY,
+        TestConfig.MINIO_SECRET_KEY,
+        secure=False,
+    )
+
+    user_client.make_bucket("ach", TestConfig.MINIO_REGION_NAME)
+
+    user_client.put_object("ach", "foo.txt", BytesIO(b"foo"), 3)
+
+    # base group permissions prevent user from deleting
+    with pytest.raises(Exception) as e:
+        user_client.remove_object("ach", "foo.txt")
+    assert e.value.code == "AccessDenied"
+
+    user.is_admin = True
+
+    reset_minio_credentials(user)
+
+    # refresh client after reset
+    user_client = Minio(
+        TestConfig.MINIO_ENDPOINT,
+        user.minio_access_key,
+        user.minio_secret_key,
+        secure=False,
+    )
+
+    try:
+        user_client.remove_object("ach", "foo.txt")
+        # cleanup
+        user_client.remove_bucket("ach")
+    except Exception as e:
+        admin_client.remove_object("ach", "foo.txt")
+        admin_client.remove_bucket("ach")
+        raise e
 
 
 def assert_new_user(body, client, login_as):

@@ -112,15 +112,20 @@ def reset_minio_credentials(user: models.User) -> None:
     secret_key = os.urandom(16).hex()  # 32 ASCII characters
     # Probability of conflict is negligible and not considered
     minio_admin.add_user(access_key, secret_key)
-    for group in user.groups:
-        # MinIO requires a user to exist to create the group so the access policy
-        # might not be set on a group if this is the first user to be added, however
-        # we can guarantee from POST /api/groups that the policy exists in MinIO
-        minio_admin.group_add(group.group_code, access_key)
-        minio_admin.set_policy(group.group_code, group=group.group_code)
-
     if user.is_admin:
+        """
+        Users with readwrite policy should not get group policies b/c
+        the explicit denies in the group policy will override the allows in the individual policy
+        https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html
+        """
         minio_admin.set_policy("readwrite", user=access_key)
+    else:
+        for group in user.groups:
+            # MinIO requires a user to exist to create the group so the access policy
+            # might not be set on a group if this is the first user to be added, however
+            # we can guarantee from POST /api/groups that the policy exists in MinIO
+            minio_admin.group_add(group.group_code, access_key)
+            minio_admin.set_policy(group.group_code, group=group.group_code)
 
     user.minio_access_key = access_key
     user.minio_secret_key = secret_key
