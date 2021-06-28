@@ -468,6 +468,40 @@ class Variant(db.Model):
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
 
+    ucsc_link: str = db.Column(db.String(300), nullable=True)
+    gnomad_link: str = db.Column(db.String(300), nullable=True)
+    # can be hgnc, ensembl or null depending on age of report. reports from 2020-08 onwards are guaranteed to have either hgnc or ensembl id in this, exists to facilitate comparison
+    gene: str = db.Column(db.String(50), nullable=True)
+    info: str = db.column(db.String(500), nullable=True)
+    quality: int = db.Column(db.Integer, nullable=True)
+    clinvar: str = db.column(db.String(50), nullable=True)
+    gnomad_af_popmax: int = db.Column(db.Float, nullable=True)
+    gnomad_ac: int = db.Column(db.Integer, nullable=True)
+    gnomad_hom: int = db.Column(db.Integer, nullable=True)
+    ensembl_transcript_id: int = db.Column(db.Integer, nullable=True)
+    aa_position: str = db.column(db.String(50), nullable=True)
+    exon: str = db.Column(db.String(50), nullable=True)
+    protein_domains: str = db.Column(db.String(50), nullable=True)
+    rsid: int = db.Column(db.Integer, nullable=True)
+    gnomad_oe_lof_score: int = db.Column(db.Float, nullable=True)
+    gnomad_oe_mis_score: int = db.Column(db.Float, nullable=True)
+    exac_pli_score: int = db.Column(db.Float, nullable=True)
+    exac_prec_score: int = db.Column(db.Float, nullable=True)
+    exac_pnull_score: int = db.Column(db.Float, nullable=True)
+    spliceai_impact: str = db.Column(db.String(50), nullable=True)
+    spliceai_score: str = db.Column(db.String(50), nullable=True)
+    # what do the .'s mean?
+    vest3_score: int = db.Column(db.Float, nullable=True)
+    revel_score: int = db.Column(db.Float, nullable=True)
+    gerp_score: int = db.Column(db.Float, nullable=True)
+    imprinting_status: str = db.Column(db.String(50), nullable=True)
+    imprinting_expressed_allele: str = db.Column(db.String(50), nullable=True)
+    pseudoautosomal: str = db.Column(db.String(50), nullable=True)
+    number_of_callers: int = db.Column(db.Integer, nullable=True)
+    old_multiallelic: str = db.Column(db.String(50), nullable=True)
+    uce_100bp: bool = db.Column(db.Boolean, nullable=True)
+    uce_200bp: bool = db.Column(db.Boolean, nullable=True)
+
 
 @dataclass
 class Genotype(db.Model):
@@ -504,6 +538,8 @@ class Genotype(db.Model):
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
     alt_depths: int = db.Column(db.Integer)
+    genotype: str = db.column(db.String(50), nullable=True)  # from gts
+    depth: int = db.Column(db.Integer, nullable=True)  # from trio_coverage
 
     __table_args__ = (
         db.ForeignKeyConstraint(
