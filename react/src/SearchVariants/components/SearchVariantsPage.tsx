@@ -1,25 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
     Button,
-    Checkbox,
     Chip,
     CircularProgress,
     Container,
-    FormControl,
     Grid,
-    InputLabel,
-    ListItemText,
     makeStyles,
-    MenuItem,
-    Select,
+    Paper,
     Typography,
 } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
+import { Edit } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { QueryKey } from "react-query";
 import { useQueryClient } from "react-query";
-import { snakeCaseToTitle } from "../../functions";
-import { Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { useDownloadCsv, useModalState } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
@@ -63,12 +57,11 @@ const useStyles = makeStyles(theme => ({
         marginLeft: -12,
         marginTop: -12,
     },
-    selectChips: {
+    paper: {
+        padding: theme.spacing(1),
         display: "flex",
-        flexWrap: "wrap",
-    },
-    selectChip: {
-        margin: theme.spacing(0.5),
+        justifyContent: "space-between",
+        alignItems: "baseline",
     },
 }));
 
@@ -260,6 +253,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const classes = useStyles();
 
     const disableControls = !selectedGenes.length;
+    const columnText = `${columns.length} of ${temporaryListOfReportColumns.length} Report Columns selected`;
 
     return (
         <>
@@ -327,10 +321,16 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             {process.env.NODE_ENV === "development" && (
                                 // TODO: Remove dev-only rendering when endpoint is updated to accept report columns
                                 <Grid item xs={12}>
-                                    <Typography variant="h6">Add/Remove columns</Typography>
-                                    <Button variant="contained" onClick={columnModal.onOpen}>
-                                        Open Modal
-                                    </Button>
+                                    <Paper variant="outlined" className={classes.paper}>
+                                        <Typography variant="h6">{columnText}</Typography>
+                                        <Button
+                                            variant="outlined"
+                                            onClick={columnModal.onOpen}
+                                            endIcon={<Edit />}
+                                        >
+                                            Add / Remove Columns
+                                        </Button>
+                                    </Paper>
                                 </Grid>
                             )}
                         </Grid>
