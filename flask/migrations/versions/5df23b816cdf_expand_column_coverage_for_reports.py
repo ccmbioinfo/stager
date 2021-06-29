@@ -1,8 +1,8 @@
 """Expand column coverage for reports
 
-Revision ID: 8983c4226b7f
+Revision ID: 5df23b816cdf
 Revises: 5e69ca582792
-Create Date: 2021-06-28 20:30:48.398709
+Create Date: 2021-06-29 15:10:08.648267
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "8983c4226b7f"
+revision = "5df23b816cdf"
 down_revision = "5e69ca582792"
 branch_labels = None
 depends_on = None
@@ -25,7 +25,7 @@ def upgrade():
     op.add_column(
         "variant", sa.Column("aa_position", sa.String(length=50), nullable=True)
     )
-    op.add_column("variant", sa.Column("clinvar", sa.String(length=50), nullable=True))
+    op.add_column("variant", sa.Column("clinvar", sa.String(length=200), nullable=True))
     op.add_column(
         "variant", sa.Column("ensembl_transcript_id", sa.Integer(), nullable=True)
     )
@@ -39,7 +39,7 @@ def upgrade():
     op.add_column("variant", sa.Column("gnomad_af_popmax", sa.Float(), nullable=True))
     op.add_column("variant", sa.Column("gnomad_hom", sa.Integer(), nullable=True))
     op.add_column(
-        "variant", sa.Column("gnomad_link", sa.String(length=300), nullable=True)
+        "variant", sa.Column("gnomad_link", sa.String(length=500), nullable=True)
     )
     op.add_column(
         "variant", sa.Column("gnomad_oe_lof_score", sa.Float(), nullable=True)
@@ -54,28 +54,24 @@ def upgrade():
     op.add_column(
         "variant", sa.Column("imprinting_status", sa.String(length=50), nullable=True)
     )
-    op.add_column("variant", sa.Column("info", sa.String(length=500), nullable=True))
+    op.add_column("variant", sa.Column("info", sa.Text(length=15000), nullable=True))
     op.add_column(
         "variant", sa.Column("number_of_callers", sa.Integer(), nullable=True)
     )
     op.add_column(
-        "variant", sa.Column("old_multiallelic", sa.String(length=50), nullable=True)
+        "variant", sa.Column("old_multiallelic", sa.String(length=500), nullable=True)
     )
     op.add_column(
-        "variant", sa.Column("protein_domains", sa.String(length=50), nullable=True)
+        "variant", sa.Column("protein_domains", sa.String(length=750), nullable=True)
     )
-    op.add_column(
-        "variant", sa.Column("pseudoautosomal", sa.String(length=50), nullable=True)
-    )
+    op.add_column("variant", sa.Column("pseudoautosomal", sa.Boolean(), nullable=True))
     op.add_column("variant", sa.Column("quality", sa.Integer(), nullable=True))
     op.add_column("variant", sa.Column("revel_score", sa.Float(), nullable=True))
-    op.add_column("variant", sa.Column("rsid", sa.Integer(), nullable=True))
+    op.add_column("variant", sa.Column("rsids", sa.String(length=500), nullable=True))
     op.add_column(
         "variant", sa.Column("spliceai_impact", sa.String(length=50), nullable=True)
     )
-    op.add_column(
-        "variant", sa.Column("spliceai_score", sa.String(length=50), nullable=True)
-    )
+    op.add_column("variant", sa.Column("spliceai_score", sa.Float(), nullable=True))
     op.add_column("variant", sa.Column("uce_100bp", sa.Boolean(), nullable=True))
     op.add_column("variant", sa.Column("uce_200bp", sa.Boolean(), nullable=True))
     op.add_column(
@@ -93,7 +89,7 @@ def downgrade():
     op.drop_column("variant", "uce_100bp")
     op.drop_column("variant", "spliceai_score")
     op.drop_column("variant", "spliceai_impact")
-    op.drop_column("variant", "rsid")
+    op.drop_column("variant", "rsids")
     op.drop_column("variant", "revel_score")
     op.drop_column("variant", "quality")
     op.drop_column("variant", "pseudoautosomal")
