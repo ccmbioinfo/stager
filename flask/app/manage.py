@@ -16,18 +16,281 @@ from .madmin import MinioAdmin, stager_buckets_policy
 from .manage_keycloak import *
 from .utils import stager_is_keycloak_admin
 
+# for report mapping and insertion
+from .mapping_utils import (
+    get_report_paths,
+    preprocess_report,
+    get_analysis_ids,
+    check_result_paths,
+)
+import pandas as pd
+from app import models  # duplicated - how to best account for this
+from sqlalchemy import exc
+from pprint import pprint
+
 
 def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
     app.cli.add_command(seed_database_minio_groups)
     app.cli.add_command(update_analysis_pipelines)
+    app.cli.add_command(map_insert_c4r_reports)
     if app.config.get("ENABLE_OIDC"):
         app.cli.add_command(update_user)
         if os.getenv("KEYCLOAK_HOST") is not None:
             app.cli.add_command(create_realm)
             app.cli.add_command(create_client)
             app.cli.add_command(add_user)
+
+
+@click.command("map-insert-c4r-reports")
+@click.argument("report_root_path")
+@with_appcontext
+def map_insert_c4r_reports(report_root_path) -> None:
+    """
+    Map dccforge C4R WES reports back to Stager, collapse datasets to a single analysis, and inserts reports
+
+    In Stager's schema, an analysis can involve multiple datasets (which accurately reflects the real world), unfortunately this is not true
+    for old SampleTracker, where an analysis is uniquely mapped to a single dataset. This script attempts to reconcile ST's 1:1 mapping with Stager's 1: many mapping.
+    Without the 1: many mapping between analysis and datasets, the reports (and therefore variants) cannot be mapped back to an an analysis and their datasets.
+    The script uses the report output and works backwards to best identify the participants and its datasets, collapses these analyses into a single analysis ID across datasets,
+    then inserts the report (hopefully) matching the analysis.
+    Assumptions and/or conditions that need to be met for a report (analysis) to be mapped back to Stager:
+    - it is difficult, if not impossible to account for re-analyses so here the latest analysis is taken and assumed to be the corresponding report for a dataset
+    - an analysis id must be present for the report ptp, tissue samples, datasets
+    - the result path across participants datasets is primarily used to determine whether a report matches those individuals
+        - across the datasets for a family, the analysis results path must either
+            - end with .bam (meaning we can dirname the family)
+            - end with the family dirname, eg. 2x/200. regardless the resulting dirname must be identical across the samples
+            - contain ALL NONEs (rescues ~ 60 reports)
+    - the number of participants in the reports matches the number of participants for the family in the db
+    - participant and family aliases are accounted for but not if the participant codename =/= the sample name in the report
+        - ie. the sample name matches the alias, not the participant_codename field in Stager, this currently affects 2 reports?
+    If a report's family and samples matches the above condition, then
+    - the analyses for the datasets under the family will be collapsed such that the same analysis id is given to the datasets involved in the analysis
+    - inserts the report, variant by variant into the Variant table
+    - updates the genotype for each dataset, for each analysis ,for each variant
+    Currently maps ~1100 reports using a Stager dump from 04-28-2021.
+    TODO: add clause to check whether analysis IDs are identical across datasets to prevent re-insertion of reports?
+    """
+    click.echo(report_root_path)
+    report_paths = get_report_paths(results_path=report_root_path)
+    app.logger.info("There are {} reports available".format(len(report_paths)))
+
+    fam_dict = {}
+    mappable_families = {}
+    start = time.time()
+
+    engine = db.session.get_bind()
+    conn = engine.connect()
+
+    app.logger.info("Deleting Genotype table..")
+    models.Genotype.query.delete()
+    db.session.commit()
+    app.logger.info("Done")
+
+    app.logger.info("Deleting Variant table..")
+    models.Variant.query.delete()
+    db.session.commit()
+    app.logger.info("Done")
+
+    for i, report in enumerate(report_paths):
+
+        if report in [
+            "./results/9x/933R/933R.wes.2019-07-24.csv",
+            "./results/4x/411/411.wes.2019-07-24.csv",
+        ]:
+            # stager has 141584 as ptp instead of CH0567 -> these reports match aliases but can't be subsetted as the sample name in report doesn't match the participant_codename
+            continue
+
+        if len(mappable_families) == 5:
+            end = time.time()
+            break
+
+        # ---- obtain sample and family codenames from reports -----
+        samples, df = preprocess_report(report)
+        family_codename = str(os.path.basename(os.path.dirname(report)))
+
+        pprint(samples)
+
+        dataset_analysis_ids = get_analysis_ids(family_codename, samples, verbose=True)
+
+        fam_dict[family_codename] = dataset_analysis_ids
+
+        results_good, ends_in_fam_folder = check_result_paths(
+            dataset_analysis_ids, samples, family_codename
+        )
+
+        if results_good:
+
+            # if everything looks good the family will have their analyses collapsed
+
+            pprint(fam_dict[family_codename])
+            mappable_families[family_codename] = fam_dict[family_codename]
+
+            family_analyses = [
+                fam_dict[family_codename][ptps][0] for ptps in fam_dict[family_codename]
+            ]  # first element is the analysis id to collapse towards
+            dataset_ids = set(
+                [
+                    fam_dict[family_codename][ptps][3]
+                    for ptps in fam_dict[family_codename]
+                ]
+            )
+
+            pprint("Dataset IDs: {}".format(dataset_ids))
+
+            # collapse each dataset - analysis to the same analysis
+            for ptp in fam_dict[family_codename]:
+
+                dataset_ptp_id = fam_dict[family_codename][ptp][3]
+                analysis_ptp_id = fam_dict[family_codename][ptp][0]
+
+                update_stmt = (
+                    models.datasets_analyses_table.update()
+                    .where(
+                        (models.datasets_analyses_table.c.dataset_id == dataset_ptp_id)
+                        & (
+                            models.datasets_analyses_table.c.analysis_id
+                            == analysis_ptp_id
+                        )
+                    )
+                    .values(analysis_id=family_analyses[0])
+                )
+
+                conn.execute(update_stmt)
+                db.session.flush()
+
+            # ---- updating the result path -----
+            # only update if the paths don't already end in the family folder eg. .../2x/216/
+            if not all(ends_in_fam_folder):
+                analysis_query = models.Analysis.query.filter(
+                    models.Analysis.analysis_id == family_analyses[0]
+                ).first()
+                if analysis_query.result_path is not None:
+                    pprint(analysis_query.result_path)
+                    analysis_query.result_path = os.path.dirname(
+                        analysis_query.result_path
+                    )
+                db.session.flush()
+                pprint(analysis_query.result_path)
+                print("\n")
+
+            # --- inserting a variant -----
+            ## wrap this up?
+            df2 = df.copy()
+            # convert columns to lowercase
+            df2.columns = map(str.lower, df2.columns)
+            # rename ref and alt alleles to match model
+            df2 = df2.rename(columns={"ref": "reference_allele", "alt": "alt_allele"})
+            # replace str None's where applicable
+            df2 = df2.replace({"None", None})
+            # convert variation values to lowercase
+            df2["variation"] = df2["variation"].str.lower()
+            # split 'position' into chromosome and position columns
+            df2[["chromosome", "position"]] = df2["position"].str.split(
+                ":", expand=True
+            )
+            # convert dataframe to a dict to iterate over
+            sample_dict = df2.to_dict(orient="records")
+
+            for i, row in enumerate(sample_dict):
+
+                if i % 1000 == 0:
+                    print("\t\t Variant # {}".format(str(i)))
+
+                # ---- variant logic ----
+
+                for k in row:
+                    if row[k] == "None" or pd.isna(row[k]):
+                        row[k] = None
+                if row.get("conserved_in_20_mammals") == ".":
+                    row["conserved_in_20_mammals"] = None
+
+                if row.get("depth") is None:
+                    row["depth"] = 0
+
+                variant_obj = models.Variant(
+                    analysis_id=family_analyses[0],
+                    chromosome=row.get("chromosome"),
+                    position=row.get("position"),
+                    reference_allele=row.get("reference_allele"),
+                    alt_allele=row.get("alt_allele"),
+                    variation=row.get("variation"),
+                    refseq_change=row.get("refseq_change"),
+                    depth=row.get("depth"),
+                    conserved_in_20_mammals=row.get("conserved_in_20_mammals"),
+                    sift_score=row.get("sift_score"),
+                    polyphen_score=row.get("polyphen_score"),
+                    cadd_score=row.get("cadd_score"),
+                    gnomad_af=row.get("gnomad_af"),
+                )
+
+                db.session.add(variant_obj)
+                db.session.flush()
+
+                for sample in samples:
+                    # replaces family name and underscore prefixed to sample
+                    sample_for_datasetid = str(
+                        sample.replace(str(family_codename) + "_", "")
+                    )
+                    # if any underscores in the name they are dashes in the database, likely because of the R script used to generate the reports
+                    sample_for_datasetid = sample_for_datasetid.replace("_", "-")
+
+                    # get participant id from dict
+                    dataset_ptp_id = None
+                    dataset_ptp_id = fam_dict[family_codename][sample_for_datasetid][3]
+
+                    gt_cols = [
+                        "%s%s" % (col, sample)
+                        for col in ["zygosity.", "burden.", "alt_depths."]
+                    ]
+
+                    zygosity, burden, alt_depths = [
+                        row.get(col.lower()) for col in gt_cols
+                    ]
+
+                    try:
+                        burden = int(burden)
+                    except ValueError:
+                        burden = None
+
+                    try:
+                        alt_depths = int(alt_depths)
+                    except ValueError:
+                        alt_depths = None
+
+                    analyzed_variant_dataset = models.Genotype(
+                        variant_id=variant_obj.variant_id,
+                        analysis_id=family_analyses[0],
+                        dataset_id=dataset_ptp_id,
+                        zygosity=zygosity,
+                        burden=burden,
+                        alt_depths=alt_depths,
+                    )
+                    db.session.add(analyzed_variant_dataset)
+
+                try:
+                    db.session.flush()
+                #   db.session.commit()
+                except exc.IntegrityError as e:
+                    db.session.rollback()
+                    print(str(e))
+
+        try:
+            db.session.commit()
+        except exc.IntegrityError as e:
+            db.session.rollback()
+            print(str(e))
+
+        print("Done inserting %s" % report)
+    db.session.commit()
+
+    end = time.time()
+
+    app.logger.info("Done inserting reports in {} minutes".format((end - start) / 60))
+    app.logger.info("Mapped Families: {}".format(len(mappable_families)))
+    app.logger.info("Total Families: {}".format(len(fam_dict)))
 
 
 @click.command("update-analysis-pipelines")
@@ -76,7 +339,7 @@ def update_analysis_pipelines() -> None:
             .pipeline_id
         )
 
-        """  
+        """
         This is not the fastest or nicest way to do this, but the only way to override the onupdate setting on models.Analysis
         seems to be passing in the the model's own current `updated` value. Otherwise sqlalchemy would touch the `updated` timestamp for each analysis.
         # https://docs.sqlalchemy.org/en/14/core/defaults.html#metadata-defaults
