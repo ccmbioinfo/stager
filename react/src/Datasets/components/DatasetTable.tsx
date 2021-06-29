@@ -60,7 +60,7 @@ const EditFilesComponent = (props: EditComponentProps<Dataset>) => {
     return (
         <FileLinkingComponent
             values={props.rowData.linked_files}
-            options={files.map(file => ({ title: file, inputValue: file }))}
+            options={files}
             onEdit={newValue => props.onChange(newValue)}
             disableTooltip
         />
@@ -262,7 +262,7 @@ export default function DatasetTable() {
                                             file =>
                                                 !receivedDataset.linked_files
                                                     .map(f => f.path)
-                                                    .includes(file)
+                                                    .includes(file.path)
                                         );
                                         //refresh data
                                         MTRef.current.onQueryChange();

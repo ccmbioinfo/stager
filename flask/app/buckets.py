@@ -52,21 +52,26 @@ def get_unlinked_files():
             all_files.append(bucket + "/" + obj.object_name)
 
     app.logger.debug("Getting all linked files..")
-    
+
+    files = []
+
     linked_files = [
         f.path
-        for f in models.File.query.all()
+        for f in models.File.query.filter(
+            or_(models.File.multiplexed == None, models.File.multiplexed == False)
+        ).all()
     ]
 
     linkable_files = [
-        asdict(f)
-        for f in models.File.query.filter(models.File.multiplexed == True).all()
+        f.path for f in models.File.query.filter(models.File.multiplexed == True).all()
     ]
 
     for file_name in all_files:
-        if file_name not in linked_files:
-            linkable_files.append({"path": file_name, "multiplexed": False})
+        if file_name in linkable_files:
+            files.append({"path": file_name, "multiplexed": True})
+        elif file_name not in linked_files:
+            files.append({"path": file_name, "multiplexed": False})
 
     app.logger.debug("Returning JSON array..")
 
-    return jsonify(sorted(linkable_files, key=lambda f: f["path"]))
+    return jsonify(sorted(files, key=lambda f: f["path"]))

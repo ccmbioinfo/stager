@@ -61,17 +61,12 @@ export interface Sample {
     updated_by: number;
 }
 
-//todo: cleanup
 export interface UnlinkedFile {
     path: string;
     multiplexed?: boolean;
 }
 export interface LinkedFile extends UnlinkedFile {
     file_id: number;
-}
-
-export interface PossiblyLinkedFile extends UnlinkedFile {
-    file_id?: number;
 }
 
 export interface Dataset {

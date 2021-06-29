@@ -19,8 +19,7 @@ import {
     DataEntryRow,
     DataEntryRowOptional,
     Family,
-    Option,
-    PossiblyLinkedFile,
+    UnlinkedFile,
 } from "../../typings";
 import DataEntryTableRow from "./DataEntryTableRow";
 import DataEntryToolbar from "./DataEntryToolbar";
@@ -114,7 +113,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
 
     const filesQuery = useUnlinkedFilesQuery();
-    const [files, setFiles] = useState<string[]>([]);
+    const [files, setFiles] = useState<UnlinkedFile[]>([]);
     const institutionResult = useInstitutionsQuery();
     const institutions = institutionResult.data || [];
     const { data: enums } = useEnumsQuery();
@@ -125,7 +124,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }, [filesQuery]);
 
     function onEdit(
-        newValue: string | boolean | PossiblyLinkedFile,
+        newValue: string | boolean | UnlinkedFile[],
         rowIndex: number,
         col: DataEntryHeader,
         families: Family[],
@@ -167,7 +166,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     // Return the options for a given cell based on row, column
-    function getOptions(rowIndex: number, col: DataEntryHeader, families: Family[]): Option[] {
+    function getOptions(rowIndex: number, col: DataEntryHeader, families: Family[]) {
         return _getOptions(props.data, col, rowIndex, families, enums, files, institutions);
     }
 

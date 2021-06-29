@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     Box,
     Button,
+    Checkbox,
     Chip,
+    FormControlLabel,
     Grid,
     List,
     makeStyles,
@@ -14,7 +16,7 @@ import {
 import { Description } from "@material-ui/icons";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { Note } from "../components";
-import { LinkedFile, Option, PossiblyLinkedFile } from "../typings";
+import { LinkedFile, UnlinkedFile } from "../typings";
 
 const useStyles = makeStyles(theme => ({
     popoverBox: {
@@ -43,15 +45,14 @@ const useStyles = makeStyles(theme => ({
 /* A cell for linking files to a dataset. */
 const FileLinkingComponent: React.FC<{
     values: LinkedFile[];
-    options: Option[];
-    onEdit: (newValue: PossiblyLinkedFile[]) => void;
+    options: UnlinkedFile[];
+    onEdit: (newValue: UnlinkedFile[]) => void;
     disabled?: boolean;
     disableTooltip?: boolean;
-}> = ({ values, options: parentOptions, onEdit, disabled, disableTooltip }) => {
+}> = ({ values, options, onEdit, disabled, disableTooltip }) => {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [inputValue, setInputValue] = useState("");
-    const [options, setOptions] = useState<Omit<LinkedFile, "file_id">[]>([]);
 
     const open = Boolean(anchorEl);
 
@@ -61,12 +62,6 @@ const FileLinkingComponent: React.FC<{
     const handleClose = () => {
         setAnchorEl(null);
     };
-
-    useEffect(() => {
-        //fix this as things solidify
-        setOptions(parentOptions.map(o => ({ path: o.title, multiplexed: false })));
-    }, [parentOptions]);
-
 
     return (
         <>
@@ -109,6 +104,7 @@ const FileLinkingComponent: React.FC<{
                 }
             >
                 <span>
+                    {/* prevent mui warnings about tooltip wrapping disabled button */}
                     <Button
                         variant="contained"
                         color="default"
@@ -171,7 +167,40 @@ const FileLinkingComponent: React.FC<{
                                                 <Chip
                                                     key={tag.path}
                                                     {...getTagProps({ index: i })}
-                                                    label={<Note>{tag.path}</Note>}
+                                                    label={
+                                                        <Note
+                                                            DetailComponent={
+                                                                <Box margin={1}>
+                                                                    <FormControlLabel
+                                                                        label="Multiplexed?"
+                                                                        control={
+                                                                            <Checkbox
+                                                                                checked={
+                                                                                    tag.multiplexed
+                                                                                }
+                                                                                onChange={() => {
+                                                                                    onEdit(
+                                                                                        tags.map(
+                                                                                            t => ({
+                                                                                                ...t,
+                                                                                                multiplexed:
+                                                                                                    t.path ===
+                                                                                                    tag.path
+                                                                                                        ? !t.multiplexed
+                                                                                                        : t.multiplexed,
+                                                                                            })
+                                                                                        )
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        }
+                                                                    />
+                                                                </Box>
+                                                            }
+                                                        >
+                                                            {tag.path}
+                                                        </Note>
+                                                    }
                                                 />
                                             ))}
                                         </>
