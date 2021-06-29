@@ -308,7 +308,6 @@ class Dataset(db.Model):
         "File",
         secondary=datasets_files_table,
         backref="datasets",
-        #todo: test this
         passive_deletes=True,
     )
 

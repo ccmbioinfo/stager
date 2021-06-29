@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from csv import DictReader
 from io import StringIO
 from pytest import raises

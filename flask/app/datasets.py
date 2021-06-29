@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from typing import List
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
@@ -103,9 +104,7 @@ def list_datasets(page: int, limit: int) -> Response:
     dataset_id = request.args.get("dataset_id", type=str)
     if dataset_id:
         filters.append(models.Dataset.dataset_id == dataset_id)
-    linked_files = request.args.get("linked_files", type=str)
-    if linked_files:
-        filters.append(func.instr(models.File.path, linked_files))
+
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
         filters.append(
@@ -185,6 +184,16 @@ def list_datasets(page: int, limit: int) -> Response:
             .subquery()
         )
 
+        query = query.filter(models.Dataset.dataset_id.in_(subquery))
+
+    linked_files = request.args.get("linked_files", type=str)
+    if linked_files:
+        subquery = (
+            models.Dataset.query.join(models.Dataset.linked_files)
+            .filter(func.instr(models.File.path, linked_files))
+            .with_entities(models.Dataset.dataset_id)
+            .subquery()
+        )
         query = query.filter(models.Dataset.dataset_id.in_(subquery))
 
     # total_count always refers to the number of unique datasets in the database
@@ -345,50 +354,7 @@ def update_dataset(id: int):
         abort(400, description=enum_error)
 
     if "linked_files" in request.json:
-
-        existing_files = (
-            models.File.query.filter(
-                models.File.path.in_([f["path"] for f in request.json["linked_files"]])
-            )
-            .options(selectinload(models.File.datasets))
-            .all()
-        )
-
-        # delete orphan files
-        for file in dataset.linked_files:
-            if (
-                file.path not in [f["path"] for f in request.json["linked_files"]]
-                and len(file.datasets) == 1
-            ):
-                db.session.delete(file)
-
-        # for simplicity, we'll rebuild relationship, since really we're updating both the dataset model AND related file models
-        dataset.linked_files = []
-
-        # update or insert
-        for file_model in request.json["linked_files"]:
-            existing = find(
-                existing_files,
-                lambda existing, path=file_model["path"]: existing.path == path,
-            )
-
-            if existing:
-                # existing were either previously attached or multiplex
-                if (not file_model.get("multiplexed")) and len(existing.datasets) > 0:
-                    abort(
-                        400,
-                        description="Attempting to add non-multiplexed file to multiple datasets or remove multiplex flag from multiplexed file",
-                    )
-                existing.multiplexed = file_model["multiplexed"]
-                dataset.linked_files.append(existing)
-            else:
-                # insert new files
-                dataset.linked_files.append(
-                    models.File(
-                        path=file_model["path"],
-                        multiplexed=file_model.get("multiplexed"),
-                    )
-                )
+        dataset = update_dataset_linked_files(dataset, request.json["linked_files"])
 
     if user_id:
         dataset.updated_by_id = user_id
@@ -498,3 +464,54 @@ def create_dataset():
         201,
         {"location": location_header},
     )
+
+
+def update_dataset_linked_files(
+    dataset: models.Dataset, linked_files: List[models.File]
+):
+    """ update linked file relationship, validating input and deleting orphans """
+    existing_files = (
+        models.File.query.filter(
+            models.File.path.in_([f["path"] for f in linked_files])
+        )
+        .options(selectinload(models.File.datasets))
+        .all()
+    )
+
+    # delete orphan files, including multiplexed
+    for file in dataset.linked_files:
+        if (
+            file.path not in [f["path"] for f in linked_files]
+            and len(file.datasets) == 1
+        ):
+            db.session.delete(file)
+
+    # for simplicity, we'll rebuild relationship, since really we're updating both the dataset model AND related file models
+    dataset.linked_files = []
+
+    # update or insert
+    for file_model in linked_files:
+        existing = find(
+            existing_files,
+            lambda existing, path=file_model["path"]: existing.path == path,
+        )
+
+        if existing:
+            # existing were either previously attached or multiplex
+            if (not file_model.get("multiplexed")) and len(existing.datasets) > 0:
+                abort(
+                    400,
+                    description="Attempting to add non-multiplexed file to multiple datasets or remove multiplex flag from multiplexed file",
+                )
+            existing.multiplexed = file_model["multiplexed"]
+            dataset.linked_files.append(existing)
+        else:
+            # insert new files
+            dataset.linked_files.append(
+                models.File(
+                    path=file_model["path"],
+                    multiplexed=file_model.get("multiplexed"),
+                )
+            )
+
+    return dataset
