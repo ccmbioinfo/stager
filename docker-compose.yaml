@@ -53,3 +53,4 @@ services:
       - minio
     volumes:
       - ./flask:/usr/src/stager
+      - ./migration/variants/results:/usr/reports/results
