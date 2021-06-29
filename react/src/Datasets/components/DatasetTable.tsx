@@ -166,7 +166,7 @@ export default function DatasetTable() {
                 render: RenderLinkedFilesButton,
                 editComponent: EditFilesComponent,
                 sorting: false,
-                filtering: false,
+                filtering: true,
             },
             {
                 title: "Updated",
