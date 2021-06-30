@@ -469,7 +469,7 @@ def create_dataset():
 def update_dataset_linked_files(
     dataset: models.Dataset, linked_files: List[models.File]
 ):
-    """ update linked file relationship, validating input and deleting orphans """
+    """update linked file relationship, validating input and deleting orphans"""
     existing_files = (
         models.File.query.filter(
             models.File.path.in_([f["path"] for f in linked_files])
