@@ -50,7 +50,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 
     async function signout() {
         let body = {};
-        if (apiInfo?.oauth && apiInfo?.oauth_provider === "keycloak") {
+        if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
         const result = await fetch("/api/logout", {
@@ -59,12 +59,12 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             body: JSON.stringify(body),
         });
         if (result.ok) {
-            setAuthenticated(false);
             clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
             if (result.status !== 204) {
                 const redirectUrl = (await result.json())?.["redirect_uri"];
                 if (redirectUrl) window.location.href = redirectUrl;
             }
+            setAuthenticated(false);
         }
     }
     // Check if already signed in
