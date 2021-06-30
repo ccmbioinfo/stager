@@ -4,8 +4,8 @@ from typing import Any, List
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, selectinload
-from sqlalchemy.sql import and_, or_
+from sqlalchemy.orm import contains_eager
+from sqlalchemy.sql import and_
 
 import pandas as pd
 from . import models
