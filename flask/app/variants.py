@@ -3,14 +3,13 @@ from typing import Any, List
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
+import pandas as pd
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager
+from sqlalchemy.orm import aliased, contains_eager
 from sqlalchemy.sql import and_
 
-import pandas as pd
 from . import models
 from .extensions import db
-
 from .utils import expects_csv, expects_json
 
 
@@ -187,7 +186,12 @@ def summary(type: str):
 
     ensgs = parse_gene_panel()
 
-    # app.logger.debug(ensgs)
+    alias_subquery = aliased(
+        models.GeneAlias,
+        models.GeneAlias.query.filter(
+            models.GeneAlias.kind == "current_approved_symbol"
+        ).subquery(),
+    )
 
     # returns a tuple (Genes, Variants)
     query = (
@@ -199,7 +203,7 @@ def summary(type: str):
             .contains_eager(models.Dataset.tissue_sample)
             .contains_eager(models.TissueSample.participant)
             .contains_eager(models.Participant.family),
-            contains_eager(models.Gene.aliases),
+            contains_eager(models.Gene.aliases.of_type(alias_subquery)),
         )
         .join(
             models.Variant,
@@ -214,9 +218,8 @@ def summary(type: str):
         .join(models.Dataset.tissue_sample)
         .join(models.TissueSample.participant)
         .join(models.Participant.family)
-        .join(models.Gene.aliases)
+        .outerjoin(alias_subquery)
         .filter(models.Gene.ensembl_id.in_(ensgs))
-        .filter(models.GeneAlias.kind == "current_approved_symbol")
     )
 
     if user_id:
