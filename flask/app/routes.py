@@ -127,17 +127,19 @@ def authorize():
 
 
 @routes.route("/api/logout", methods=["POST"])
-@login_required
 @validate_json
 def logout():
-    username = current_user.username
     redirect_uri = request.json.get("redirect_uri")
 
     if redirect_uri is not None:
         if not isinstance(redirect_uri, str):
             abort(400, description="Invalid redirect_uri")
+    username = None
 
-    logout_user()
+    app.logger.debug("Destroying Stager session..")
+    if current_user.is_authenticated:
+        username = current_user.username
+        logout_user()
 
     url = ""
 
@@ -147,7 +149,10 @@ def logout():
         client = oauth.create_client(provider)
         client_id = app.config.get("OIDC_CLIENT_ID")
         metadata = client.load_server_metadata()  # .well-known/openid-configuration
-        app.logger.debug(f"Trying to provide logout url for user '{username}'..")
+        if username:
+            app.logger.debug(f"Trying to provide logout url for user '{username}'..")
+        else:
+            app.logger.debug(f"Trying to provide logout url for non-Stager user..")
 
         if provider == "auth0":
             # Construct URL

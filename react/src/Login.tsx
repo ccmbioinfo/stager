@@ -15,6 +15,7 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import { CurrentUser } from "./typings";
 
 interface LoginProps {
+    signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
@@ -111,7 +112,13 @@ function OIDCRedirectHandler(props: LoginProps) {
                     {!isLoading && error && (
                         <Grid container alignItems="baseline" justify="space-between" spacing={1}>
                             <Grid item>
-                                <Button onClick={() => history.push("/")}>Go back to Login</Button>
+                                <Button
+                                    onClick={() => {
+                                        props.signout();
+                                    }}
+                                >
+                                    Go back to Login
+                                </Button>
                             </Grid>
                             <Grid item>
                                 <Link
@@ -217,6 +224,7 @@ function OauthLoginForm() {
             const redirect = new URL(`${window.location.origin}/oidc_callback`);
             const login = new URL(`${process.env.REACT_APP_API_ENDPOINT}/api/login`);
             login.searchParams.append("redirect_uri", redirect.href);
+            console.log(`Redirecting to '${login.href}'`);
             window.location.replace(login.href);
         }
     }, []);

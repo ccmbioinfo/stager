@@ -62,7 +62,11 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
             if (result.status !== 204) {
                 const redirectUrl = (await result.json())?.["redirect_uri"];
-                if (redirectUrl) window.location.href = redirectUrl;
+                if (redirectUrl) {
+                    console.log(redirectUrl);
+                    window.location.replace(redirectUrl);
+                    return;
+                }
             }
             setAuthenticated(false);
         }
@@ -121,6 +125,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     } else if (apiInfo) {
         return (
             <LoginPage
+                signout={signout}
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
                 oauth={apiInfo.oauth}
