@@ -13,6 +13,15 @@ from app import models
 from app.extensions import db
 
 from typing import List
+import numpy as np
+
+
+def try_int(value: str):
+    try:
+        int_value = int(value)
+    except ValueError as e:
+        int_value = None
+    return int_value
 
 
 def get_report_paths(
@@ -98,16 +107,40 @@ def preprocess_report(
     for key in d:
         d[key].extend([col for col in df.columns if col.startswith(key)])
 
-        # get sample names
+    # get sample names - preserved order for genotype and trio coverage
     samples = [col.replace("Zygosity.", "").strip() for col in d["Zygosity"]]
 
-    # don't need this if we're keeping all columns
-    # final_cols = [
-    #     col
-    #     for col in df.columns
-    #     if col in wes_report_fields
-    #     or col in [item for sublist in d.values() for item in sublist]
-    # ]
+    # convert columns to lowercase
+    df.columns = map(str.lower, df.columns)
+
+    # rename ref and alt alleles to match model
+    df = df.rename(columns={"ref": "reference_allele", "alt": "alt_allele"})
+
+    # convert variation values to lowercase
+    df["variation"] = df["variation"].str.lower()
+
+    # split 'position' into chromosome and position columns
+    df[["chromosome", "position"]] = df["position"].str.split(":", expand=True)
+
+    # make None's consistent (doesn't account for 0's though)
+    df = df.replace({"None": None, np.nan: None})
+
+    for col in ["conserved_in_20_mammals", "vest3_score", "revel_score", "gerp_score"]:
+        df[col] = df[col].replace({".": None})
+
+    df["depth"] = df["depth"].fillna(0)
+
+    # weird column in that there are only Yes or NA's
+    if "pseudoautosomal" in df.columns:
+        df["pseudoautosomal"] = df["pseudoautosomal"].replace(
+            {"Yes": 1, None: 0, np.nan: 0}
+        )
+
+    # remove hyperlink formatting (we're going to have to add this back in at report generation time)
+    for link_col in ["ucsc_link", "gnomad_link"]:
+        df[link_col] = df[link_col].apply(
+            lambda x: x.split('"')[1::2][0]
+        )  # extract odd values b/w quotes
 
     return samples, df
 

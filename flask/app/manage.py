@@ -22,6 +22,7 @@ from .mapping_utils import (
     preprocess_report,
     get_analysis_ids,
     check_result_paths,
+    try_int,
 )
 import pandas as pd
 from app import models  # duplicated - how to best account for this
@@ -103,7 +104,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
             # stager has 141584 as ptp instead of CH0567 -> these reports match aliases but can't be subsetted as the sample name in report doesn't match the participant_codename
             continue
 
-        if len(mappable_families) == 5:
+        if len(mappable_families) == 300:
             end = time.time()
             break
 
@@ -177,22 +178,9 @@ def map_insert_c4r_reports(report_root_path) -> None:
                 print("\n")
 
             # --- inserting a variant -----
-            ## wrap this up?
-            df2 = df.copy()
-            # convert columns to lowercase
-            df2.columns = map(str.lower, df2.columns)
-            # rename ref and alt alleles to match model
-            df2 = df2.rename(columns={"ref": "reference_allele", "alt": "alt_allele"})
-            # replace str None's where applicable
-            df2 = df2.replace({"None", None})
-            # convert variation values to lowercase
-            df2["variation"] = df2["variation"].str.lower()
-            # split 'position' into chromosome and position columns
-            df2[["chromosome", "position"]] = df2["position"].str.split(
-                ":", expand=True
-            )
             # convert dataframe to a dict to iterate over
-            sample_dict = df2.to_dict(orient="records")
+            app.logger.debug(df.head(5))
+            sample_dict = df.to_dict(orient="records")
 
             for i, row in enumerate(sample_dict):
 
@@ -200,15 +188,6 @@ def map_insert_c4r_reports(report_root_path) -> None:
                     print("\t\t Variant # {}".format(str(i)))
 
                 # ---- variant logic ----
-
-                for k in row:
-                    if row[k] == "None" or pd.isna(row[k]):
-                        row[k] = None
-                if row.get("conserved_in_20_mammals") == ".":
-                    row["conserved_in_20_mammals"] = None
-
-                if row.get("depth") is None:
-                    row["depth"] = 0
 
                 variant_obj = models.Variant(
                     analysis_id=family_analyses[0],
@@ -224,12 +203,55 @@ def map_insert_c4r_reports(report_root_path) -> None:
                     polyphen_score=row.get("polyphen_score"),
                     cadd_score=row.get("cadd_score"),
                     gnomad_af=row.get("gnomad_af"),
+                    ucsc_link=row.get("ucsc_link"),
+                    gnomad_link=row.get("gnomad_link"),
+                    gene=row.get("gene"),
+                    info=row.get("info"),
+                    quality=row.get("quality"),
+                    # clinvar=row.get("clinvar"),
+                    gnomad_af_popmax=row.get("gnomad_af_popmax"),
+                    gnomad_ac=row.get("gnomad_ac"),
+                    gnomad_hom=row.get("gnomad_hom"),
+                    report_ensembl_gene_id=row.get("ensembl_gene_id"),
+                    ensembl_transcript_id=row.get("ensembl_transcript_id"),
+                    aa_position=row.get("aa_position"),
+                    exon=row.get("exon"),
+                    protein_domains=row.get("protein_domains"),
+                    rsids=row.get("rsids"),
+                    gnomad_oe_lof_score=row.get("gnomad_oe_lof_score"),
+                    gnomad_oe_mis_score=row.get("gnomad_oe_mis_score"),
+                    exac_pli_score=row.get("gnomad_oe_mis_score"),
+                    exac_prec_score=row.get("exac_prec_score"),
+                    exac_pnull_score=row.get("exac_pnull_score"),
+                    spliceai_impact=row.get("spliceai_impact"),
+                    spliceai_score=row.get("spliceai_score"),
+                    vest3_score=row.get("vest3_score"),
+                    revel_score=row.get("revel_score"),
+                    gerp_score=row.get("gerp_score"),
+                    imprinting_status=row.get("imprinting_status"),
+                    imprinting_expressed_allele=row.get("imprinting_expressed_allele"),
+                    pseudoautosomal=row.get("pseudoautosomal"),
+                    number_of_callers=row.get("number_of_callers"),
+                    old_multiallelic=row.get("old_multiallelic"),
+                    uce_100bp=row.get("uce_100bp"),
+                    uce_200bp=row.get("uce_200bp"),
                 )
 
                 db.session.add(variant_obj)
                 db.session.flush()
 
-                for sample in samples:
+                # convert to str incase it's a singleton
+                gts_row = str(row.get("gts"))
+                coverage_row = str(row.get("trio_coverage"))
+
+                # assume the ordering of the samples in the columns matches these two fields
+                if gts_row is not None:
+                    gts_list = gts_row.split(",")
+
+                if coverage_row is not None:
+                    coverage_list = coverage_row.split("_")
+
+                for i, sample in enumerate(samples):
                     # replaces family name and underscore prefixed to sample
                     sample_for_datasetid = str(
                         sample.replace(str(family_codename) + "_", "")
@@ -250,23 +272,15 @@ def map_insert_c4r_reports(report_root_path) -> None:
                         row.get(col.lower()) for col in gt_cols
                     ]
 
-                    try:
-                        burden = int(burden)
-                    except ValueError:
-                        burden = None
-
-                    try:
-                        alt_depths = int(alt_depths)
-                    except ValueError:
-                        alt_depths = None
-
                     analyzed_variant_dataset = models.Genotype(
                         variant_id=variant_obj.variant_id,
                         analysis_id=family_analyses[0],
                         dataset_id=dataset_ptp_id,
                         zygosity=zygosity,
-                        burden=burden,
-                        alt_depths=alt_depths,
+                        burden=try_int(burden),
+                        alt_depths=try_int(alt_depths),
+                        coverage=try_int(coverage_list[i]),
+                        genotype=gts_list[i],
                     )
                     db.session.add(analyzed_variant_dataset)
 
@@ -275,13 +289,13 @@ def map_insert_c4r_reports(report_root_path) -> None:
                 #   db.session.commit()
                 except exc.IntegrityError as e:
                     db.session.rollback()
-                    print(str(e))
+                    app.logger.error(str(e))
 
         try:
             db.session.commit()
         except exc.IntegrityError as e:
             db.session.rollback()
-            print(str(e))
+            app.logger.error(str(e))
 
         print("Done inserting %s" % report)
     db.session.commit()
