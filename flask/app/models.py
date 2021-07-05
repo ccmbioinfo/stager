@@ -481,7 +481,10 @@ class Variant(db.Model):
     gnomad_af_popmax: int = db.Column(db.Float, nullable=True)
     gnomad_ac: int = db.Column(db.Integer, nullable=True)
     gnomad_hom: int = db.Column(db.Integer, nullable=True)
-    ensembl_transcript_id: int = db.Column(db.Integer, nullable=True)
+    # unfortunately, not always an ensembl gene id
+    report_ensembl_gene_id: str = db.Column(db.String(50), nullable=True)
+    # unfortunately, not always an ensembl transcript id
+    ensembl_transcript_id: str = db.Column(db.String(50), nullable=True)
     aa_position: str = db.Column(db.String(50), nullable=True)
     exon: str = db.Column(db.String(50), nullable=True)
     protein_domains: str = db.Column(db.String(750), nullable=True)
@@ -540,8 +543,8 @@ class Genotype(db.Model):
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
     alt_depths: int = db.Column(db.Integer)
-    genotype: str = db.Column(db.String(50), nullable=True)  # from gts
-    depth: int = db.Column(db.Integer, nullable=True)  # from trio_coverage
+    genotype: str = db.Column(db.String(2500), nullable=True)  # from gts
+    coverage: int = db.Column(db.Integer, nullable=True)  # from trio_coverage
 
     __table_args__ = (
         db.ForeignKeyConstraint(
