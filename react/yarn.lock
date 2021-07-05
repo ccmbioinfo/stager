@@ -2100,10 +2100,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@material-table/core@^3.0.7":
-  version "3.0.7"
-  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-3.0.7.tgz#6cf5ac2095bbf6a44255c9524b07e8c8cb44d70e"
-  integrity sha512-US5NiuE7AmtRZZ3BbI+Ry3NjD+60PYQ/+wZ2KAGvLPwgFgJBq0B6+W/ElJtcVNQqFEMomp5VsNtWTXuXDA7LHg==
+"@material-table/core@^3.0.13":
+  version "3.0.13"
+  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-3.0.13.tgz#9265f46f642d6040de6570213a67225d16a796f4"
+  integrity sha512-iNq9RiYPKvqd7mm+vK2t2yRVllr8YHlcpFpyFfmCHuvXrB8A2avO79EsSgatymscBQ8LpNSlZvXyOnyLO1ObqQ==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@date-io/date-fns" "^1.3.13"
