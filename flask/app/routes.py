@@ -282,7 +282,7 @@ def bulk_update():
         try:
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
-            dat = dat.where(pd.notnull(dat), None)
+            dat = dat.where(cond=pd.notnull(dat), other=None)
             dat = dat.to_dict(orient="records")
         except Exception as err:
             app.logger.error(
