@@ -73,10 +73,8 @@ const GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL = "/api/summary/participants";
 const temporaryListOfReportColumns = [
     "AA_position",
     "Alt",
-    "Alt_depths.401_130105S",
-    "Alt_depths.401_13_0451",
-    "Burden.401_130105S",
-    "Burden.401_13_0451",
+    "Alt_depths",
+    "Burden",
     "Cadd_score",
     "Clinvar",
     "Conserved_in_20_mammals",
@@ -127,8 +125,7 @@ const temporaryListOfReportColumns = [
     "UCSC_Link",
     "Variation",
     "Vest3_score",
-    "Zygosity.401_130105S",
-    "Zygosity.401_13_0451",
+    "Zygosity",
 ];
 
 const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
