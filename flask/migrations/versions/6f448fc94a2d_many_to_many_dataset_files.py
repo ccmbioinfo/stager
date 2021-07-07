@@ -21,9 +21,10 @@ depends_on = None
 
 @dataclass
 class LegacyDatasetTable(db.Model):
+    __tablename__ = "dataset_file"
     file_id = db.Column(db.Integer, primary_key=True)
     dataset_id = db.Column(db.Integer)
-    path: db.Column(db.String(500), nullable=False, unique=True)
+    path = db.Column(db.String(500), nullable=False, unique=True)
 
 
 def upgrade():

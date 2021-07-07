@@ -163,46 +163,43 @@ const FileLinkingComponent: React.FC<{
                                     }}
                                     renderTags={(tags, getTagProps) => (
                                         <>
-                                            {tags.map((tag, i) => (
-                                                <Chip
-                                                    key={tag.path}
-                                                    {...getTagProps({ index: i })}
-                                                    label={
-                                                        <Note
-                                                            DetailComponent={
-                                                                <Box margin={1}>
-                                                                    <FormControlLabel
-                                                                        label="Multiplexed?"
-                                                                        control={
-                                                                            <Checkbox
-                                                                                checked={
-                                                                                    tag.multiplexed
-                                                                                }
-                                                                                onChange={() => {
-                                                                                    onEdit(
-                                                                                        tags.map(
-                                                                                            t => ({
-                                                                                                ...t,
-                                                                                                multiplexed:
-                                                                                                    t.path ===
-                                                                                                    tag.path
-                                                                                                        ? !t.multiplexed
-                                                                                                        : t.multiplexed,
-                                                                                            })
-                                                                                        )
-                                                                                    );
-                                                                                }}
-                                                                            />
-                                                                        }
-                                                                    />
-                                                                </Box>
+                                            {tags.map((tag, i) => {
+                                                const onChange = () => {
+                                                    onEdit(
+                                                        tags.map(t => ({
+                                                            ...t,
+                                                            multiplexed:
+                                                                t.path === tag.path
+                                                                    ? !t.multiplexed
+                                                                    : t.multiplexed,
+                                                        }))
+                                                    );
+                                                };
+                                                const detail = (
+                                                    <Box margin={1}>
+                                                        <FormControlLabel
+                                                            label="Multiplexed?"
+                                                            control={
+                                                                <Checkbox
+                                                                    checked={tag.multiplexed}
+                                                                    onChange={onChange}
+                                                                />
                                                             }
-                                                        >
-                                                            {tag.path}
-                                                        </Note>
-                                                    }
-                                                />
-                                            ))}
+                                                        />
+                                                    </Box>
+                                                );
+                                                return (
+                                                    <Chip
+                                                        key={tag.path}
+                                                        {...getTagProps({ index: i })}
+                                                        label={
+                                                            <Note DetailComponent={detail}>
+                                                                {tag.path}
+                                                            </Note>
+                                                        }
+                                                    />
+                                                );
+                                            })}
                                         </>
                                     )}
                                     renderOption={option => (

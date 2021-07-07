@@ -470,23 +470,20 @@ def update_dataset_linked_files(
     dataset: models.Dataset, linked_files: List[models.File]
 ):
     """update linked file relationship, validating input and deleting orphans"""
+    linked_file_paths = [f["path"] for f in linked_files]
+
     existing_files = (
-        models.File.query.filter(
-            models.File.path.in_([f["path"] for f in linked_files])
-        )
+        models.File.query.filter(models.File.path.in_(linked_file_paths))
         .options(selectinload(models.File.datasets))
         .all()
     )
 
     # delete orphan files, including multiplexed
     for file in dataset.linked_files:
-        if (
-            file.path not in [f["path"] for f in linked_files]
-            and len(file.datasets) == 1
-        ):
+        if file.path not in linked_file_paths and len(file.datasets) == 1:
             db.session.delete(file)
 
-    # for simplicity, we'll rebuild relationship, since really we're updating both the dataset model AND related file models
+    # for simplicity, we'll rebuild the relationship, since really we're updating both the dataset model AND related file models
     dataset.linked_files = []
 
     # update or insert

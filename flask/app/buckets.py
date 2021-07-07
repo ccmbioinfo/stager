@@ -55,21 +55,23 @@ def get_unlinked_files():
 
     files = []
 
-    linked_files = [
-        f.path
+    linked_files = {
+        f.path: True
         for f in models.File.query.filter(
             or_(models.File.multiplexed == None, models.File.multiplexed == False)
         ).all()
-    ]
+    }
 
-    linkable_files = [
-        f.path for f in models.File.query.filter(models.File.multiplexed == True).all()
-    ]
+    linkable_files = {
+        f.path: True
+        for f in models.File.query.filter(models.File.multiplexed == True).all()
+    }
 
     for file_name in all_files:
-        if file_name in linkable_files:
+        if linkable_files.get(file_name):
             files.append({"path": file_name, "multiplexed": True})
-        elif file_name not in linked_files:
+        elif not linked_files.get(file_name):
+            app.logger.debug(file_name)
             files.append({"path": file_name, "multiplexed": False})
 
     app.logger.debug("Returning JSON array..")
