@@ -28,6 +28,7 @@ import pandas as pd
 from app import models  # duplicated - how to best account for this
 from sqlalchemy import exc
 from pprint import pprint
+import pickle
 
 
 def register_commands(app: Flask) -> None:
@@ -71,8 +72,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
     - the analyses for the datasets under the family will be collapsed such that the same analysis id is given to the datasets involved in the analysis
     - inserts the report, variant by variant into the Variant table
     - updates the genotype for each dataset, for each analysis ,for each variant
-    Currently maps ~1100 reports using a Stager dump from 04-28-2021.
-    TODO: add clause to check whether analysis IDs are identical across datasets to prevent re-insertion of reports?
+    Currently maps ~1100 reports using a Stager production dump from 06-28-2021.
     """
     click.echo(report_root_path)
     report_paths = get_report_paths(results_path=report_root_path)
@@ -95,8 +95,11 @@ def map_insert_c4r_reports(report_root_path) -> None:
     db.session.commit()
     app.logger.info("Done")
 
+    mapped_inserted_reports = []
+
     for i, report in enumerate(report_paths):
 
+        app.logger.info(report)
         if report in [
             "./results/9x/933R/933R.wes.2019-07-24.csv",
             "./results/4x/411/411.wes.2019-07-24.csv",
@@ -104,17 +107,15 @@ def map_insert_c4r_reports(report_root_path) -> None:
             # stager has 141584 as ptp instead of CH0567 -> these reports match aliases but can't be subsetted as the sample name in report doesn't match the participant_codename
             continue
 
-        if len(mappable_families) == 300:
-            end = time.time()
-            break
-
         # ---- obtain sample and family codenames from reports -----
         samples, df = preprocess_report(report)
         family_codename = str(os.path.basename(os.path.dirname(report)))
 
         pprint(samples)
 
-        dataset_analysis_ids = get_analysis_ids(family_codename, samples, verbose=True)
+        dataset_analysis_ids = get_analysis_ids(
+            family_codename, samples, report, verbose=True
+        )
 
         fam_dict[family_codename] = dataset_analysis_ids
 
@@ -179,7 +180,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
 
             # --- inserting a variant -----
             # convert dataframe to a dict to iterate over
-            app.logger.debug(df.head(5))
+            # app.logger.debug(df.head(5))
             sample_dict = df.to_dict(orient="records")
 
             for i, row in enumerate(sample_dict):
@@ -208,7 +209,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
                     gene=row.get("gene"),
                     info=row.get("info"),
                     quality=row.get("quality"),
-                    # clinvar=row.get("clinvar"),
+                    clinvar=row.get("clinvar"),
                     gnomad_af_popmax=row.get("gnomad_af_popmax"),
                     gnomad_ac=row.get("gnomad_ac"),
                     gnomad_hom=row.get("gnomad_hom"),
@@ -231,7 +232,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
                     imprinting_status=row.get("imprinting_status"),
                     imprinting_expressed_allele=row.get("imprinting_expressed_allele"),
                     pseudoautosomal=row.get("pseudoautosomal"),
-                    number_of_callers=row.get("number_of_callers"),
+                    number_of_callers=try_int(row.get("number_of_callers")),
                     old_multiallelic=row.get("old_multiallelic"),
                     uce_100bp=row.get("uce_100bp"),
                     uce_200bp=row.get("uce_200bp"),
@@ -249,6 +250,8 @@ def map_insert_c4r_reports(report_root_path) -> None:
                     gts_list = gts_row.split(",")
 
                 if coverage_row is not None:
+                    # replace forward slashes with underscores where applicable
+                    coverage_row = coverage_row.replace("/", "_")
                     coverage_list = coverage_row.split("_")
 
                 for i, sample in enumerate(samples):
@@ -297,6 +300,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
             db.session.rollback()
             app.logger.error(str(e))
 
+        mapped_inserted_reports.append(report)
         print("Done inserting %s" % report)
     db.session.commit()
 
@@ -305,6 +309,16 @@ def map_insert_c4r_reports(report_root_path) -> None:
     app.logger.info("Done inserting reports in {} minutes".format((end - start) / 60))
     app.logger.info("Mapped Families: {}".format(len(mappable_families)))
     app.logger.info("Total Families: {}".format(len(fam_dict)))
+
+    # --- save down mapped reports as csv, a dictionary of dictionarys of mapped reports + metadata, and a dictionary of dictionaries of all families --
+    pd.DataFrame(mapped_inserted_reports).to_csv("./mapped_reports.csv")
+    with open("./mapped_families.p", "wb") as handle:
+        pickle.dump(mappable_families, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("./all_families.p", "wb") as handle:
+        pickle.dump(fam_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    pd.DataFrame.from_dict(mappable_families).reset_index().to_csv(
+        "./mapped_families.csv"
+    )
 
 
 @click.command("update-analysis-pipelines")

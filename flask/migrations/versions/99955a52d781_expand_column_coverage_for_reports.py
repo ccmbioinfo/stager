@@ -74,7 +74,7 @@ def upgrade():
     op.add_column("variant", sa.Column("revel_score", sa.Float(), nullable=True))
     op.add_column("variant", sa.Column("rsids", sa.String(length=500), nullable=True))
     op.add_column(
-        "variant", sa.Column("spliceai_impact", sa.String(length=50), nullable=True)
+        "variant", sa.Column("spliceai_impact", sa.String(length=1000), nullable=True)
     )
     op.add_column("variant", sa.Column("spliceai_score", sa.Float(), nullable=True))
     op.add_column("variant", sa.Column("uce_100bp", sa.Boolean(), nullable=True))

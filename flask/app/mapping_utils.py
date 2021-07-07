@@ -17,11 +17,14 @@ import numpy as np
 
 
 def try_int(value: str):
-    try:
-        int_value = int(value)
-    except ValueError as e:
-        int_value = None
-    return int_value
+    if value is not None:
+        try:
+            int_value = int(value)
+        except ValueError as e:
+            int_value = None
+        return int_value
+    else:
+        return value
 
 
 def get_report_paths(
@@ -126,7 +129,8 @@ def preprocess_report(
     df = df.replace({"None": None, np.nan: None})
 
     for col in ["conserved_in_20_mammals", "vest3_score", "revel_score", "gerp_score"]:
-        df[col] = df[col].replace({".": None})
+        if col in df.columns:
+            df[col] = df[col].replace({".": None})
 
     df["depth"] = df["depth"].fillna(0)
 
@@ -138,15 +142,59 @@ def preprocess_report(
 
     # remove hyperlink formatting (we're going to have to add this back in at report generation time)
     for link_col in ["ucsc_link", "gnomad_link"]:
-        df[link_col] = df[link_col].apply(
-            lambda x: x.split('"')[1::2][0]
-        )  # extract odd values b/w quotes
+
+        try:
+            df[link_col] = df[link_col].apply(
+                lambda x: x.split('"')[1::2][0]
+            )  # extract odd values b/w quotes
+        # some columns don't actually have a link and therefore aren't splittable, eg. # results/14x/1473/1473.wes.2018-09-25.csv
+        except IndexError as e:
+            pass
+
+    df["clinvar"] = df["clinvar"].map(
+        lambda x: str(x).split(";")[-1]
+    )  # take the last element after splitting on ';', won't affect non ';' delimited values
+
+    # if coding persists. replace with appropriate value
+    df["clinvar"] = df["clinvar"].replace(
+        {
+            "255": "other",
+            "0": "uncertain",
+            "1": "not-provided",
+            "2": "benign",
+            "3": "likely-benign",
+            "4": "likely-pathogenic",
+            "5": "pathogenic",
+            "6": "drug-response",
+            "7": "histocompatability",
+        },
+        regex=True,
+    )
+    # replace all forward slashes with a '|' to ensure consistency
+    df["clinvar"].replace({"\\/": "|"}, regex=True)
+
+    # lower case
+    df["clinvar"] = df["clinvar"].replace({"None": None, np.nan: None})
+    df["clinvar"] = df["clinvar"].str.lower()
+
+    # looks like report changed around 2021-01. before, spliceai_score contains | delimited impact and spliceai_impact contains a float
+    # afterwards spliceai_score contains the float and spliceai_impact contains the | delimited score
+    if "spliceai_score" in df.columns:
+        print(df["spliceai_score"])
+        try:
+            if any(df["spliceai_score"].str.contains("|")):
+                df["spliceai_impact"] = df["spliceai_score"]
+                df["spliceai_score"] = None
+        # is a proper spliceai_score ie float. use a try catch since type checks don't work well (can be object, string or even sometimes numeric)
+        # could force the dtype when reading in the csv but would prefer not to
+        except AttributeError as e:
+            pass
 
     return samples, df
 
 
 def get_analysis_ids(
-    family_codename: str, samples: List[str], verbose: bool = False
+    family_codename: str, samples: List[str], report_path: str, verbose: bool = False
 ) -> List[str]:
     """
     Given a family codename and list of samples from a report, traverses the Family -> Analysis Stager schema, accounting for family and participant aliases,
@@ -285,6 +333,7 @@ def get_analysis_ids(
                     analyses.updated,
                     analyses.result_path,
                     dataset.dataset_id,
+                    report_path,
                 )
                 # dataset_analysis_d[sample] = {'analysis_id': analyses.analysis_id, 'analysis_updated': analyses.updated, 'result_path' : analyses.result_path, 'dataset_id' : dataset.dataset_id}
     return dataset_analysis_d

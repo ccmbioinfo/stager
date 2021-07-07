@@ -494,7 +494,7 @@ class Variant(db.Model):
     exac_pli_score: int = db.Column(db.Float, nullable=True)
     exac_prec_score: int = db.Column(db.Float, nullable=True)
     exac_pnull_score: int = db.Column(db.Float, nullable=True)
-    spliceai_impact: str = db.Column(db.String(50), nullable=True)
+    spliceai_impact: str = db.Column(db.String(1000), nullable=True)
     spliceai_score: str = db.Column(db.Float, nullable=True)
     vest3_score: int = db.Column(db.Float, nullable=True)
     revel_score: int = db.Column(db.Float, nullable=True)
