@@ -21,6 +21,8 @@ from . import models
 from .extensions import db, oauth
 from .utils import enum_validate, transaction_or_abort, validate_json, update_last_login
 
+import numpy as np
+
 routes = Blueprint("routes", __name__)
 
 
@@ -282,7 +284,7 @@ def bulk_update():
         try:
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
-            dat = dat.where(pd.notnull(dat), None)
+            dat = dat.replace({np.nan: None})
             dat = dat.to_dict(orient="records")
         except Exception as err:
             app.logger.error(
@@ -553,6 +555,7 @@ def bulk_update():
         app.logger.debug("\tAdding users groups to the dataset")
         dataset.groups += groups
         app.logger.debug("\tCreating dataset entry in the database..")
+        app.logger.debug(dataset.__dict__)
         db.session.add(dataset)
         transaction_or_abort(db.session.flush)
         app.logger.debug("\tDone")
