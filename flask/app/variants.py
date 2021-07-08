@@ -186,6 +186,8 @@ def summary(type: str):
 
     ensgs = parse_gene_panel()
 
+    # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
+    # so that ORM recognizes it as the GeneAlias model when joining and eager loading
     alias_subquery = aliased(
         models.GeneAlias,
         models.GeneAlias.query.filter(
@@ -252,6 +254,7 @@ def summary(type: str):
                 [
                     {
                         **asdict(tup[0]),  # gene
+                        "name": tup[0].aliases[0].name if tup[0].aliases else None,
                         **asdict(tup[1]),  # variants
                         "genotype": [
                             {

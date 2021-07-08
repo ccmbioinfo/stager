@@ -21,4 +21,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("gene_alias_ensembl_id_IDX")
+    op.drop_index("gene_alias_ensembl_id_IDX", "gene_alias")
