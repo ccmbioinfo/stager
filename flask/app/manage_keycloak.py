@@ -14,6 +14,7 @@ from typing import Any
 from flask import current_app as app, g
 from flask.cli import with_appcontext
 
+from .extensions import db
 from .models import User
 from .utils import stager_is_keycloak_admin
 
@@ -240,6 +241,7 @@ def add_keycloak_user(access_token: str, user: User, password: str = None):
             issuer = endpoints["issuer"]
             subject = added_user["id"]
             user.set_oidc_fields(issuer, subject)
+            db.session.commit()
             print(f"User {user.username} successfully updated with OIDC fields.")
             return True
         app.logger.error(

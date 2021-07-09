@@ -90,7 +90,7 @@ function OIDCRedirectHandler(props: LoginProps) {
                 }
             }
         })();
-    }, [location.search, history, setAuthenticated, setCurrentUser]);
+    }, [location.search, history, setAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Box className={classes.root}>
