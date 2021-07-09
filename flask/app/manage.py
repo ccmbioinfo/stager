@@ -29,6 +29,7 @@ from app import models  # duplicated - how to best account for this
 from sqlalchemy import exc
 from pprint import pprint
 import pickle
+import datetime
 
 
 def register_commands(app: Flask) -> None:
@@ -75,6 +76,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
     Currently maps ~1100 reports using a Stager production dump from 06-28-2021.
     """
     click.echo(report_root_path)
+
     report_paths = get_report_paths(results_path=report_root_path)
     app.logger.info("There are {} reports available".format(len(report_paths)))
 
@@ -311,14 +313,16 @@ def map_insert_c4r_reports(report_root_path) -> None:
     app.logger.info("Total Families: {}".format(len(fam_dict)))
 
     # --- save down mapped reports as csv, a dictionary of dictionarys of mapped reports + metadata, and a dictionary of dictionaries of all families --
-    pd.DataFrame(mapped_inserted_reports).to_csv("./mapped_reports.csv")
-    with open("./mapped_families.p", "wb") as handle:
-        pickle.dump(mappable_families, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("./all_families.p", "wb") as handle:
-        pickle.dump(fam_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    pd.DataFrame.from_dict(mappable_families).reset_index().to_csv(
-        "./mapped_families.csv"
+    current_date = datetime.date.today()
+
+    pd.DataFrame(mapped_inserted_reports).to_csv(
+        "./mapped_reports_{}.csv".format(current_date)
     )
+    with open("./mapped_families_{}.p".format(current_date), "wb") as handle:
+        pickle.dump(mappable_families, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    with open("./all_families_{}.p".format(current_date), "wb") as handle:
+        pickle.dump(fam_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 @click.command("update-analysis-pipelines")
