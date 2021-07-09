@@ -29,6 +29,7 @@ from app import models  # duplicated - how to best account for this
 from sqlalchemy import exc
 from pprint import pprint
 import pickle
+import gzip
 import datetime
 
 
@@ -318,10 +319,10 @@ def map_insert_c4r_reports(report_root_path) -> None:
     pd.DataFrame(mapped_inserted_reports).to_csv(
         "./mapped_reports_{}.csv".format(current_date)
     )
-    with open("./mapped_families_{}.p".format(current_date), "wb") as handle:
+    with gzip.open("./mapped_families_{}.p.gz".format(current_date), "wb") as handle:
         pickle.dump(mappable_families, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open("./all_families_{}.p".format(current_date), "wb") as handle:
+    with gzip.open("./all_families_{}.p.gz".format(current_date), "wb") as handle:
         pickle.dump(fam_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
