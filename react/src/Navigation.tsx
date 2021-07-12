@@ -318,6 +318,7 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             <Redirect key={index} to="/participants" />
                         )
                     )}
+                    <Route path="/oidc_callback*" render={() => <Redirect to="/" />} />
                     <Route path="*" render={() => <NotFoundPage />} />
                 </Switch>
             </BrowserRouter>

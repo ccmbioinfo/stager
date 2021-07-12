@@ -76,7 +76,7 @@ def update_analysis_pipelines() -> None:
             .pipeline_id
         )
 
-        """  
+        """
         This is not the fastest or nicest way to do this, but the only way to override the onupdate setting on models.Analysis
         seems to be passing in the the model's own current `updated` value. Otherwise sqlalchemy would touch the `updated` timestamp for each analysis.
         # https://docs.sqlalchemy.org/en/14/core/defaults.html#metadata-defaults
@@ -295,6 +295,18 @@ def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
                 user.groups.append(group)
                 db.session.add(user)
                 app.logger.info(f"Created user {user.username} in group {code}")
+
+    # Add user unknown to Stager for testing
+    if stager_is_keycloak_admin():
+        user = User(
+            username=f"unknown-user",
+            email=f"user@unknown.com",
+            is_admin=False,
+            deactivated=False,
+        )
+        access_token = obtain_admin_token()
+        if access_token:
+            add_keycloak_user(access_token, user, "unknown")
 
 
 def seed_dev_data(force: bool) -> None:

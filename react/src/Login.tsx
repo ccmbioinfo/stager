@@ -4,6 +4,8 @@ import {
     Button,
     CircularProgress,
     Container,
+    Grid,
+    Link,
     makeStyles,
     Paper,
     TextField,
@@ -13,6 +15,7 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import { CurrentUser } from "./typings";
 
 interface LoginProps {
+    signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
@@ -70,18 +73,24 @@ function OIDCRedirectHandler(props: LoginProps) {
                     if (user.username) {
                         setMessage(user.username);
                         setCurrentUser(user);
-                        history.push("/");
                         setAuthenticated(true);
+                        history.push("/");
                     } else {
                         setError("Failed to authorize. Please try again.");
                     }
                 } else {
                     setIsLoading(false);
-                    setError("Failed to authorize. Please try again.");
+                    if (response.status === 404) {
+                        setError(
+                            "You do not have permission to access Stager. Please contact an administrator to request access."
+                        );
+                    } else {
+                        setError("Failed to authorize. Please try again.");
+                    }
                 }
             }
         })();
-    }, [location.search, history, setAuthenticated, setCurrentUser]);
+    }, [location.search, history, setAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Box className={classes.root}>
@@ -99,8 +108,27 @@ function OIDCRedirectHandler(props: LoginProps) {
                             <CircularProgress className={classes.center} />
                         </Container>
                     )}
+
                     {!isLoading && error && (
-                        <Button onClick={() => history.push("/")}>Go back to Login</Button>
+                        <Grid container alignItems="baseline" justify="space-between" spacing={1}>
+                            <Grid item>
+                                <Button
+                                    onClick={() => {
+                                        props.signout();
+                                    }}
+                                >
+                                    Go back to Login
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Link
+                                    href={`mailto:${process.env.REACT_APP_EMAIL}`}
+                                    color="textSecondary"
+                                >
+                                    {process.env.REACT_APP_EMAIL}
+                                </Link>
+                            </Grid>
+                        </Grid>
                     )}
                 </Paper>
             </Container>
@@ -185,12 +213,10 @@ function LoginForm({
 }
 
 /**
- * A button whose href is derived from the backend API endpoint.
- * Used for redirecting to OAuth login.
+ * An empty page meant for redirecting the user directly to the OAuth login page.
  */
 function OauthLoginForm() {
     const classes = useStyles();
-    const [loginUrl, setLoginUrl] = useState("");
 
     useEffect(() => {
         if (process.env.REACT_APP_API_ENDPOINT) {
@@ -198,28 +224,19 @@ function OauthLoginForm() {
             const redirect = new URL(`${window.location.origin}/oidc_callback`);
             const login = new URL(`${process.env.REACT_APP_API_ENDPOINT}/api/login`);
             login.searchParams.append("redirect_uri", redirect.href);
-            setLoginUrl(login.href);
+            console.log(`Redirecting to '${login.href}'`);
+            window.location.replace(login.href);
         }
     }, []);
 
     return (
         <>
             <Typography variant="h5" component="h2" gutterBottom className={classes.center}>
-                Sign in to {process.env.REACT_APP_NAME}
+                Redirecting to OAuth login for {process.env.REACT_APP_NAME || "Stager"}...
             </Typography>
-            <form>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    type="submit"
-                    disabled={!loginUrl}
-                    href={loginUrl}
-                    fullWidth
-                >
-                    Sign in using OAuth
-                </Button>
-            </form>
+            <Container className={classes.center}>
+                <CircularProgress />
+            </Container>
         </>
     );
 }
