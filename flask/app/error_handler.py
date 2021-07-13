@@ -1,5 +1,6 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, current_app as app
 from werkzeug.exceptions import HTTPException
+import traceback
 
 error_blueprint = Blueprint("error_handler", __name__)
 
@@ -11,4 +12,5 @@ def handle_error(error: Exception):
     if isinstance(error, HTTPException):
         code = error.code
         msg = error.description
+        app.logger.error(traceback.format_exc())
     return jsonify(error=str(msg)), code
