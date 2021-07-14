@@ -1,7 +1,7 @@
 """add_index_to_gene_alias_ensembl_id
 
 Revision ID: 184f5edd4719
-Revises: 5e69ca582792
+Revises: 99955a52d781
 Create Date: 2021-06-30 20:35:45.293750
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "184f5edd4719"
-down_revision = "5e69ca582792"
+down_revision = "99955a52d781"
 branch_labels = None
 depends_on = None
 
