@@ -187,7 +187,7 @@ def get_report_df(df: pd.DataFrame, type: str, relevant_cols=relevant_cols):
         return df
 
 
-def parse_gene_panel(genes: str) -> List[Any]:
+def parse_gene_panel(genes: str):
     """
     Parses query string parameter ?panel=ENSGXXXXXXXX,ENSGXXXXXXX.
     We abort if the panel parameter is missing or malformed. If any specified gene isn't
@@ -227,9 +227,9 @@ def parse_gene_panel(genes: str) -> List[Any]:
         app.logger.error("Not all requested genes were found.")
         abort(400, description="Not all requested genes were found.")
 
-    genes_list = query.all()  # TODO: is this line necessary?
+    # genes_list = query.all()
 
-    return gene_filter
+    return gene_filter, found_genes
 
 
 def parse_region(region: str):
@@ -277,7 +277,7 @@ def parse_region(region: str):
     if found_variants == 0:
         app.logger.warning("No requested variants were found")
 
-    return region_filter
+    return region_filter, found_variants
 
 
 def parse_position(position: str):
@@ -319,7 +319,7 @@ def parse_position(position: str):
     if found_variants == 0:
         app.logger.warning("No requested variants were found")
 
-    return position_filter
+    return position_filter, found_variants
 
 
 @variants_blueprint.route("/api/summary/<string:type>", methods=["GET"])
@@ -363,16 +363,26 @@ def summary(type: str):
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
 
-    variant_filter = None
+    variant_filter, num_matched = None, 0
 
     if search_type == "genes":
-        variant_filter = parse_gene_panel(request.args.get("genes", type=str))
+        variant_filter, num_matched = parse_gene_panel(
+            request.args.get("genes", type=str)
+        )
 
     elif search_type == "regions":
-        variant_filter = parse_region(request.args.get("regions", type=str))
+        variant_filter, num_matched = parse_region(
+            request.args.get("regions", type=str)
+        )
 
     elif search_type == "positions":
-        variant_filter = parse_position(request.args.get("positions", type=str))
+        variant_filter, num_matched = parse_position(
+            request.args.get("positions", type=str)
+        )
+
+    if num_matched == 0:
+        app.logger.error("No genes/variants found")
+        abort(404, description="No variants found")
 
     # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
     # so that ORM recognizes it as the GeneAlias model when joining and eager loading
