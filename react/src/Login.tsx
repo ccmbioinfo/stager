@@ -15,7 +15,6 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import cover from "./assets/cover.png";
 import { CurrentUser } from "./typings";
 
-
 interface LoginProps {
     signout: () => void;
     setAuthenticated: (auth: boolean) => void;
@@ -30,13 +29,13 @@ const useStyles = makeStyles(theme => ({
         justifyContent: "center",
         height: "100%",
         backgroundColor: theme.palette.background.default,
-        overflow: "hidden"
+        overflow: "hidden",
     },
     container: {
         display: "flex",
         flexDirection: "row",
         justifyContent: "center",
-        width: "100%"
+        width: "100%",
     },
     heading: {
         minHeight: 45,
@@ -47,7 +46,7 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.text.primary,
         fontSize: 26,
         letterSpacing: 0,
-        textAlign: "center"
+        textAlign: "center",
     },
     subtitle: {
         minHeight: 21,
@@ -57,21 +56,21 @@ const useStyles = makeStyles(theme => ({
         color: "rgba(147, 145, 145, 1)",
         fontSize: 16,
         textAlign: "center",
-        letterSpacing: 0
+        letterSpacing: 0,
     },
     graphics: {
         width: 802,
-        height: 980, 
+        height: 980,
         position: "relative",
         marginLeft: 300,
         marginTop: -80,
-        borderRadius: "309px/420.5px"
+        borderRadius: "309px/420.5px",
     },
     img: {
         objectFit: "cover",
-        width: 481, 
+        width: 481,
         height: "100%",
-        position: "absolute"
+        position: "absolute",
     },
     ellipse: {
         position: "absolute",
@@ -80,7 +79,7 @@ const useStyles = makeStyles(theme => ({
         top: 0,
         left: 0,
         backgroundColor: "#8e54e933",
-        borderRadius: "305.5px/420.5px"
+        borderRadius: "305.5px/420.5px",
     },
     column: {
         width: "406px",
@@ -88,7 +87,7 @@ const useStyles = makeStyles(theme => ({
         flexDirection: "column",
         alignItems: "center",
         minHeight: "373px",
-        marginTop: "155px"
+        marginTop: "155px",
     },
     form: {
         padding: theme.spacing(2),
@@ -97,7 +96,7 @@ const useStyles = makeStyles(theme => ({
         alignItems: "center",
         justifyContent: "center",
         background: theme.palette.background.default,
-        boxShadow: "none"
+        boxShadow: "none",
     },
     center: {
         display: "flex",
@@ -108,16 +107,16 @@ const useStyles = makeStyles(theme => ({
     },
     button: {
         marginTop: theme.spacing(3),
-        fontFamily: 'Poppins',
+        fontFamily: "Poppins",
         fontSize: 14,
         fontWeight: 700,
         width: "404px",
         height: "58px",
         background: "linear-gradient(90deg, #4776E6 0%, #8E54E9 100%)",
         borderRadius: "5px",
-        '&:hover': {
-            opacity: 0.8
-        }
+        "&:hover": {
+            opacity: 0.8,
+        },
     },
 }));
 
@@ -170,7 +169,6 @@ function OIDCRedirectHandler(props: LoginProps) {
     }, [location.search, history, setAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-
         <Box className={classes.root}>
             <Container maxWidth="sm">
                 <Paper component="form" className={classes.form}>
@@ -256,9 +254,7 @@ function LoginForm({
                         {error}
                     </Typography>
                 )}
-                <div className={classes.subtitle}>
-                    Sample Tracking and Genomics Resources
-                </div>
+                <div className={classes.subtitle}>Sample Tracking and Genomics Resources</div>
                 <form>
                     <TextField
                         required
@@ -292,7 +288,7 @@ function LoginForm({
                 </form>
             </div>
             <div className={classes.graphics}>
-                <img className={classes.img} src={cover} alt=""/>
+                <img className={classes.img} src={cover} alt="" />
                 <div className={classes.ellipse} />
             </div>
         </div>
