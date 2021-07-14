@@ -326,10 +326,9 @@ def parse_position(position: str):
 @login_required
 def summary(type: str):
     """
-    GET /api/summary/participants\?panel=ENSG00000138131&search_by=gene
-    GET /api/summary/variants\?panel=ENSG00000138131&search_by=gene
-    GET /api/summary/participants\?panel=chr1:5000,chr2:6000&search_by=position
-    GET /api/summary/participants\?panel=chr1:5000-6000,chrX:5000-6000&search_by=region
+    GET /api/summary/participants\?genes=ENSG00000138131
+    GET /api/summary/participants\?positions=chr1:5000,chr2:6000
+    GET /api/summary/participants\?regions=chr1:5000-6000,chrX:5000-6000
 
     The same sqlalchemy query is used for both endpoints as the participant-wise report is the precursor to the variant-wise report.
 
@@ -340,7 +339,19 @@ def summary(type: str):
     The variant csv output is a summary - each row is a unique variant with various columns collapsed and ';' delimited indicating for example, all participants that had such a variant.
 
     """
-    valid_search_types = {"gene", "position", "region"}
+    # validate parameters such that only one search type is requested
+    valid_search_types = {"genes", "positions", "regions"}
+    requested_types = list(
+        filter(lambda type: request.args.get(type) is not None, valid_search_types)
+    )
+    if len(requested_types) > 1:
+        app.logger.error("Too many search types requested: %s", str(requested_types))
+        abort(400, description="Too many search types requested")
+    if len(requested_types) == 0:
+        app.logger.error("No search types requested")
+        abort(400, description="No search types requested")
+
+    search_type = requested_types[0]
 
     if type not in ["variants", "participants"]:
         abort(404)
@@ -352,30 +363,16 @@ def summary(type: str):
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
 
-    search_type = request.args.get("search_by", type=str)
-    if search_type is None:
-        app.logger.error("Search type missing")
-        abort(400, description="Search field missing")
-
-    if search_type not in valid_search_types:
-        app.logger.error("Invalid search type: %s", search_type)
-        abort(400, description="Invalid search field")
-
-    panel = request.args.get("panel", type=str)
-    if panel is None or len(panel) == 0:
-        app.logger.error("Missing panel field")
-        abort(400, description="Missing panel field")
-
     variant_filter = None
 
-    if search_type == "gene":
-        variant_filter = parse_gene_panel(panel)
+    if search_type == "genes":
+        variant_filter = parse_gene_panel(request.args.get("genes", type=str))
 
-    elif search_type == "region":
-        variant_filter = parse_region(panel)
+    elif search_type == "regions":
+        variant_filter = parse_region(request.args.get("regions", type=str))
 
-    elif search_type == "position":
-        variant_filter = parse_position(panel)
+    elif search_type == "positions":
+        variant_filter = parse_position(request.args.get("positions", type=str))
 
     # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
     # so that ORM recognizes it as the GeneAlias model when joining and eager loading
