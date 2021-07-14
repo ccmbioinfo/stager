@@ -12,7 +12,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
+import cover from "./assets/cover.png";
 import { CurrentUser } from "./typings";
+
 
 interface LoginProps {
     signout: () => void;
@@ -24,13 +26,78 @@ interface LoginProps {
 const useStyles = makeStyles(theme => ({
     root: {
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         justifyContent: "center",
         height: "100%",
         backgroundColor: theme.palette.background.default,
+        overflow: "hidden"
+    },
+    container: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        width: "100%"
+    },
+    heading: {
+        minHeight: 45,
+        marginLeft: 1,
+        minWidth: 379,
+        fontFamily: "Poppins",
+        fontWeight: 700,
+        color: theme.palette.text.primary,
+        fontSize: 26,
+        letterSpacing: 0,
+        textAlign: "center"
+    },
+    subtitle: {
+        minHeight: 21,
+        marginBottom: 20,
+        minWidth: 344,
+        fontFamily: "Roboto",
+        color: "rgba(147, 145, 145, 1)",
+        fontSize: 16,
+        textAlign: "center",
+        letterSpacing: 0
+    },
+    graphics: {
+        width: 802,
+        height: 980, 
+        position: "relative",
+        marginLeft: 300,
+        marginTop: -80,
+        borderRadius: "309px/420.5px"
+    },
+    img: {
+        objectFit: "cover",
+        width: 481, 
+        height: "100%",
+        position: "absolute"
+    },
+    ellipse: {
+        position: "absolute",
+        width: 619,
+        height: "100%",
+        top: 0,
+        left: 0,
+        backgroundColor: "#8e54e933",
+        borderRadius: "305.5px/420.5px"
+    },
+    column: {
+        width: "406px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: "373px",
+        marginTop: "155px"
     },
     form: {
         padding: theme.spacing(2),
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: theme.palette.background.default,
+        boxShadow: "none"
     },
     center: {
         display: "flex",
@@ -40,7 +107,17 @@ const useStyles = makeStyles(theme => ({
         display: "block",
     },
     button: {
-        marginTop: theme.spacing(1),
+        marginTop: theme.spacing(3),
+        fontFamily: 'Poppins',
+        fontSize: 14,
+        fontWeight: 700,
+        width: "404px",
+        height: "58px",
+        background: "linear-gradient(90deg, #4776E6 0%, #8E54E9 100%)",
+        borderRadius: "5px",
+        '&:hover': {
+            opacity: 0.8
+        }
     },
 }));
 
@@ -93,6 +170,7 @@ function OIDCRedirectHandler(props: LoginProps) {
     }, [location.search, history, setAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
+
         <Box className={classes.root}>
             <Container maxWidth="sm">
                 <Paper component="form" className={classes.form}>
@@ -168,47 +246,56 @@ function LoginForm({
     }
     const classes = useStyles();
     return (
-        <>
-            <Typography variant="h5" component="h2" gutterBottom className={classes.center}>
-                Sign in to {process.env.REACT_APP_NAME}
-            </Typography>
-            {error && (
-                <Typography component="p" color="error">
-                    {error}
-                </Typography>
-            )}
-            <form>
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="normal"
-                    className={classes.textField}
-                    label="Username"
-                    onChange={bind(setUsername)}
-                />
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="normal"
-                    className={classes.textField}
-                    type="password"
-                    label="Password"
-                    onChange={bind(setPassword)}
-                    autoComplete="current-password"
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    type="submit"
-                    onClick={authenticate}
-                >
-                    Sign in
-                </Button>
-            </form>
-        </>
+        <div className={classes.container}>
+            <div className={classes.column}>
+                <h1 className={classes.heading}>
+                    Welcome back to {process.env.REACT_APP_NAME || "Stager"}.
+                </h1>
+                {error && (
+                    <Typography component="p" color="error">
+                        {error}
+                    </Typography>
+                )}
+                <div className={classes.subtitle}>
+                    Sample Tracking and Genomics Resources
+                </div>
+                <form>
+                    <TextField
+                        required
+                        variant="filled"
+                        fullWidth
+                        margin="normal"
+                        className={classes.textField}
+                        label="Username"
+                        onChange={bind(setUsername)}
+                    />
+                    <TextField
+                        required
+                        variant="filled"
+                        fullWidth
+                        margin="normal"
+                        className={classes.textField}
+                        type="password"
+                        label="Password"
+                        onChange={bind(setPassword)}
+                        autoComplete="current-password"
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        type="submit"
+                        onClick={authenticate}
+                    >
+                        Sign in
+                    </Button>
+                </form>
+            </div>
+            <div className={classes.graphics}>
+                <img className={classes.img} src={cover} alt=""/>
+                <div className={classes.ellipse} />
+            </div>
+        </div>
     );
 }
 
