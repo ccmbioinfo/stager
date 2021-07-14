@@ -3,14 +3,13 @@ from typing import Any, List
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import current_user, login_required
-from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager
-from sqlalchemy.sql import and_, or_
-
 import pandas as pd
+from sqlalchemy import distinct, func
+from sqlalchemy.orm import aliased, contains_eager
+from sqlalchemy.sql import and_
+
 from . import models
 from .extensions import db
-
 from .utils import expects_csv, expects_json
 
 
@@ -21,6 +20,7 @@ variants_blueprint = Blueprint(
 
 relevant_cols = [
     "ensembl_id",
+    "name",
     "chromosome",
     "position",
     "reference_allele",
@@ -155,6 +155,7 @@ def get_report_df(df: pd.DataFrame, type: str, relevant_cols=relevant_cols):
                     "dataset_id": list,
                     "participant_codename": list,
                     "family_codename": set,
+                    "name": "first",
                 },
                 axis="columns",
             )
@@ -261,7 +262,14 @@ def summary(type: str):
 
     ensgs = parse_gene_panel()
 
-    # app.logger.debug(ensgs)
+    # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
+    # so that ORM recognizes it as the GeneAlias model when joining and eager loading
+    alias_subquery = aliased(
+        models.GeneAlias,
+        models.GeneAlias.query.filter(
+            models.GeneAlias.kind == "current_approved_symbol"
+        ).subquery(),
+    )
 
     # returns a tuple (Genes, Variants)
     query = (
@@ -272,7 +280,8 @@ def summary(type: str):
             .contains_eager(models.Analysis.datasets)
             .contains_eager(models.Dataset.tissue_sample)
             .contains_eager(models.TissueSample.participant)
-            .contains_eager(models.Participant.family)
+            .contains_eager(models.Participant.family),
+            contains_eager(models.Gene.aliases.of_type(alias_subquery)),
         )
         .join(
             models.Variant,
@@ -287,6 +296,7 @@ def summary(type: str):
         .join(models.Dataset.tissue_sample)
         .join(models.TissueSample.participant)
         .join(models.Participant.family)
+        .outerjoin(alias_subquery)
         .filter(models.Gene.ensembl_id.in_(ensgs))
     )
 
@@ -320,6 +330,7 @@ def summary(type: str):
                 [
                     {
                         **asdict(tup[0]),  # gene
+                        "name": tup[0].aliases[0].name if tup[0].aliases else None,
                         **asdict(tup[1]),  # variants
                         "genotype": [
                             {
