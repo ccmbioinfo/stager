@@ -26,37 +26,11 @@ const useStyles = makeStyles(theme => ({
     root: {
         display: "flex",
         flexDirection: "row",
+        alignItems: "center",
         justifyContent: "center",
         height: "100%",
         backgroundColor: theme.palette.background.default,
         overflow: "hidden",
-    },
-    container: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        width: "100%",
-    },
-    heading: {
-        minHeight: 45,
-        marginLeft: 1,
-        minWidth: 379,
-        fontFamily: "Poppins",
-        fontWeight: 700,
-        color: theme.palette.text.primary,
-        fontSize: 26,
-        letterSpacing: 0,
-        textAlign: "center",
-    },
-    subtitle: {
-        minHeight: 21,
-        marginBottom: 20,
-        minWidth: 344,
-        fontFamily: "Roboto",
-        color: "rgba(147, 145, 145, 1)",
-        fontSize: 16,
-        textAlign: "center",
-        letterSpacing: 0,
     },
     graphics: {
         width: 802,
@@ -81,20 +55,10 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: "#8e54e933",
         borderRadius: "300px/500px",
     },
-    column: {
-        width: "406px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        minHeight: "373px",
-        marginTop: "155px",
-    },
     form: {
-        padding: theme.spacing(2),
+        padding: theme.spacing(1),
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
         background: theme.palette.background.default,
         boxShadow: "none",
     },
@@ -107,9 +71,6 @@ const useStyles = makeStyles(theme => ({
     },
     button: {
         marginTop: theme.spacing(3),
-        fontFamily: "Poppins",
-        fontSize: 14,
-        fontWeight: 700,
         width: "404px",
         height: "58px",
         background: "linear-gradient(90deg, #4776E6 0%, #8E54E9 100%)",
@@ -244,17 +205,21 @@ function LoginForm({
     }
     const classes = useStyles();
     return (
-        <div className={classes.container}>
-            <div className={classes.column}>
-                <h1 className={classes.heading}>
-                    Welcome back to {process.env.REACT_APP_NAME || "Stager"}.
-                </h1>
+        <Grid container wrap="nowrap" direction="row" justify="space-around" alignItems="center">
+            <Grid item>
+                <Typography variant="h4" align="center">
+                    <Box fontWeight="fontWeightBold" m={1}>
+                        Welcome back to {process.env.REACT_APP_NAME || "Stager"}.
+                    </Box>
+                </Typography>
                 {error && (
                     <Typography component="p" color="error">
                         {error}
                     </Typography>
                 )}
-                <div className={classes.subtitle}>Sample Tracking and Genomics Resources</div>
+                <Typography variant="subtitle1" align="center">
+                    <Box fontWeight="fontWeightLight">Sample Tracking and Genomics Resources</Box>
+                </Typography>
                 <form>
                     <TextField
                         required
@@ -286,12 +251,12 @@ function LoginForm({
                         Sign in
                     </Button>
                 </form>
-            </div>
-            <div className={classes.graphics}>
+            </Grid>
+            <Grid item className={classes.graphics}>
                 <img className={classes.img} src={cover} alt="" />
                 <div className={classes.ellipse} />
-            </div>
-        </div>
+            </Grid>
+        </Grid>
     );
 }
 

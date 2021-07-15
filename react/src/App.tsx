@@ -166,9 +166,6 @@ export default function App() {
                     background: {
                         default: darkMode ? "#2A2A2B" : "#fafafa",
                     },
-                    text: {
-                        primary: darkMode ? "#fff" : "#000",
-                    },
                 },
                 overrides: {
                     MuiFilledInput: {
