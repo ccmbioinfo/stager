@@ -314,7 +314,7 @@ export default function LoginPage(props: LoginProps) {
                     render={() => (
                         <Box className={classes.root}>
                             <Container maxWidth="sm">
-                                <Paper component="form" className={classes.form}>
+                                <Paper className={classes.form}>
                                     {props.oauth === true ? (
                                         <OauthLoginForm />
                                     ) : (
