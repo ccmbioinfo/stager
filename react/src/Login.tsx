@@ -60,11 +60,11 @@ const useStyles = makeStyles(theme => ({
     },
     graphics: {
         width: 802,
-        height: 980,
+        height: 900,
         position: "relative",
         marginLeft: 300,
-        marginTop: -80,
-        borderRadius: "309px/420.5px",
+        marginTop: -40,
+        borderRadius: "350px/500px",
     },
     img: {
         objectFit: "cover",
@@ -79,7 +79,7 @@ const useStyles = makeStyles(theme => ({
         top: 0,
         left: 0,
         backgroundColor: "#8e54e933",
-        borderRadius: "305.5px/420.5px",
+        borderRadius: "300px/500px",
     },
     column: {
         width: "406px",
