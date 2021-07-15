@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 import random
 
 import click
@@ -30,7 +30,6 @@ from sqlalchemy import exc
 from pprint import pprint
 import pickle
 import gzip
-import datetime
 
 
 def register_commands(app: Flask) -> None:
@@ -314,7 +313,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
     app.logger.info("Total Families: {}".format(len(fam_dict)))
 
     # --- save down mapped reports as csv, a dictionary of dictionarys of mapped reports + metadata, and a dictionary of dictionaries of all families --
-    current_date = datetime.date.today()
+    current_date = date.today()
 
     pd.DataFrame(mapped_inserted_reports).to_csv(
         "./mapped_reports_{}.csv".format(current_date)
