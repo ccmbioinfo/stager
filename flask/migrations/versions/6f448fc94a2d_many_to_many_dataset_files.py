@@ -1,7 +1,7 @@
 """many_to_many_dataset_files
 
 Revision ID: 6f448fc94a2d
-Revises: 5e69ca582792
+Revises: 184f5edd4719
 Create Date: 2021-06-23 13:30:06.701210
 
 """
@@ -14,7 +14,7 @@ from app.extensions import db
 
 # revision identifiers, used by Alembic.
 revision = "6f448fc94a2d"
-down_revision = "5e69ca582792"
+down_revision = "184f5edd4719"
 branch_labels = None
 depends_on = None
 
