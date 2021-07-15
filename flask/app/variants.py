@@ -241,7 +241,7 @@ def parse_region(region: str):
     CHR, START, END = 0, 1, 2
     # format check
     # 1: chromosome, 2: start position, 3: end position
-    region_pattern = re.compile("chr([\da-zA-Z]+):([\d]+)-([\d]+)")
+    region_pattern = re.compile(r"chr([\da-zA-Z]+):([\d]+)-([\d]+)")
     matches = [region_pattern.match(r) for r in region.split(",")]
 
     app.logger.info("Requested region: %s", region)
@@ -251,11 +251,13 @@ def parse_region(region: str):
         abort(400, description="Invalid region format")
 
     # prepare set of regions
-    region_set = set([match.groups() for match in matches])
-    for r in region_set:
+    region_list = []
+    for i, r in enumerate(set([match.groups() for match in matches])):
         # fix regions to be consistent (start-end)
         if int(r[START]) > int(r[END]):
-            r = (r[CHR], r[END], r[START])
+            region_list.append((r[CHR], r[END], r[START]))
+        else:
+            region_list.append(r)
 
     # query
     region_filter = or_(
@@ -265,7 +267,7 @@ def parse_region(region: str):
                 int(tup[START]) <= models.Variant.position,
                 models.Variant.position <= int(tup[END]),
             )
-            for tup in region_set
+            for tup in region_list
         ]
     )
 
@@ -289,7 +291,7 @@ def parse_position(position: str):
     CHR, POS = 0, 1
     # format check
     # 1: chromosome, 2: position
-    position_pattern = re.compile("chr([\da-zA-Z]+):([\d]+)")
+    position_pattern = re.compile(r"chr([\da-zA-Z]+):([\d]+)")
     matches = [position_pattern.match(p) for p in position.split(",")]
 
     app.logger.info("Requested position: %s", position)
@@ -326,9 +328,9 @@ def parse_position(position: str):
 @login_required
 def summary(type: str):
     """
-    GET /api/summary/participants\?genes=ENSG00000138131
-    GET /api/summary/participants\?positions=chr1:5000,chr2:6000
-    GET /api/summary/participants\?regions=chr1:5000-6000,chrX:5000-6000
+    GET /api/summary/participants?genes=ENSG00000138131
+    GET /api/summary/participants?positions=chr1:5000,chr2:6000
+    GET /api/summary/participants?regions=chr1:5000-6000,chrX:5000-6000
 
     The same sqlalchemy query is used for both endpoints as the participant-wise report is the precursor to the variant-wise report.
 
