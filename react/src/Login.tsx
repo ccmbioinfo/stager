@@ -66,6 +66,9 @@ const useStyles = makeStyles(theme => ({
         display: "flex",
         justifyContent: "center",
     },
+    flex: {
+        display: "flex",
+    },
     textField: {
         display: "block",
     },
@@ -313,7 +316,7 @@ export default function LoginPage(props: LoginProps) {
                     path="/"
                     render={() => (
                         <Box className={classes.root}>
-                            <Container maxWidth="sm">
+                            <Container maxWidth="sm" className={classes.flex}>
                                 <Paper className={classes.form}>
                                     {props.oauth === true ? (
                                         <OauthLoginForm />
