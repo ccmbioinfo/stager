@@ -48,12 +48,13 @@ const useStyles = makeStyles(theme => ({
     },
     ellipse: {
         position: "absolute",
-        width: 619,
-        height: "100%",
+        width: 650,
+        height: 650,
         top: 0,
         left: 0,
-        backgroundColor: "#8e54e933",
-        borderRadius: "300px/500px",
+        background:
+            "linear-gradient(90deg, rgba(167, 112, 239, 0.7) 0%, rgba(207, 139, 243, 0.7) 50%, rgba(253, 185, 155, 0.7) 100%)",
+        filter: "blur(200px)",
     },
     form: {
         padding: theme.spacing(1),
