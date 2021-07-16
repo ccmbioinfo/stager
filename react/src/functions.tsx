@@ -385,7 +385,7 @@ export const updateFiltersAndRequery = (tableRef: React.MutableRefObject<any>) =
     tableRef.current.dataManager.filterData();
     tableRef.current.onFilterChangeDebounce();
     // sometimes with lots of filters we see timing issues, maybe b/c of mt's internal callbacks?
-    // if we requery inside a microtask the issue seems to go away
+    // if we move the requery step to the next tick the issues seem to go away
     setTimeout(() => tableRef.current.onQueryChange);
 };
 
