@@ -1,25 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { useQueryClient } from 'react-query';
-
-import clsx from "clsx";
 import {
     Button,
     Chip,
+    CircularProgress,
     Container,
+    Fab,
     Grid,
     makeStyles,
     Typography,
-    CircularProgress,
-    Fab,
 } from "@material-ui/core";
-import { Check, CloudDownload } from "@material-ui/icons";
 import { green } from "@material-ui/core/colors";
+import { Check, CloudDownload } from "@material-ui/icons";
+import clsx from "clsx";
 import { useSnackbar } from "notistack";
+import { QueryKey } from "react-query";
+import { useQueryClient } from "react-query";
 import { useDownloadCsv } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
 import { CardButton } from "./CardButton";
-import { QueryKey } from "react-query";
 
 interface SearchVariantsPageProps {}
 
@@ -140,14 +139,14 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const downloadCsv = () => {
         const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
-        const key:QueryKey = [
+        const key: QueryKey = [
             {
-                panel: panel
+                panel: panel,
             },
             `csv`,
-            `/api/summary/${downloadType}s`
-        ]
-        const data = queryCache.find(key)
+            `/api/summary/${downloadType}s`,
+        ];
+        const data = queryCache.find(key);
         if (data === undefined && !loading) {
             setLoading(true);
             setSuccess(false);
