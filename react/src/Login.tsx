@@ -12,6 +12,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
+import cover from "./assets/cover.png";
 import { CurrentUser } from "./typings";
 
 interface LoginProps {
@@ -24,23 +25,63 @@ interface LoginProps {
 const useStyles = makeStyles(theme => ({
     root: {
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
+        alignItems: "center",
         justifyContent: "center",
         height: "100%",
         backgroundColor: theme.palette.background.default,
+        overflow: "hidden",
+    },
+    graphics: {
+        width: 802,
+        height: 900,
+        position: "relative",
+        marginLeft: 300,
+        marginTop: -40,
+        borderRadius: "350px/500px",
+    },
+    img: {
+        objectFit: "cover",
+        width: 481,
+        height: "100%",
+        position: "absolute",
+    },
+    ellipse: {
+        position: "absolute",
+        width: 650,
+        height: 650,
+        top: 0,
+        left: 0,
+        background:
+            "linear-gradient(90deg, rgba(167, 112, 239, 0.7) 0%, rgba(207, 139, 243, 0.7) 50%, rgba(253, 185, 155, 0.7) 100%)",
+        filter: "blur(200px)",
     },
     form: {
-        padding: theme.spacing(2),
+        padding: theme.spacing(1),
+        display: "flex",
+        flexDirection: "column",
+        background: theme.palette.background.default,
+        boxShadow: "none",
     },
     center: {
         display: "flex",
         justifyContent: "center",
     },
+    flex: {
+        display: "flex",
+    },
     textField: {
         display: "block",
     },
     button: {
-        marginTop: theme.spacing(1),
+        marginTop: theme.spacing(3),
+        width: "404px",
+        height: "58px",
+        background: "linear-gradient(90deg, #4776E6 0%, #8E54E9 100%)",
+        borderRadius: "5px",
+        "&:hover": {
+            opacity: 0.8,
+        },
     },
 }));
 
@@ -168,47 +209,58 @@ function LoginForm({
     }
     const classes = useStyles();
     return (
-        <>
-            <Typography variant="h5" component="h2" gutterBottom className={classes.center}>
-                Sign in to {process.env.REACT_APP_NAME}
-            </Typography>
-            {error && (
-                <Typography component="p" color="error">
-                    {error}
+        <Grid container wrap="nowrap" direction="row" justify="space-around" alignItems="center">
+            <Grid item>
+                <Typography variant="h4" align="center">
+                    <Box fontWeight="fontWeightBold" m={1}>
+                        Welcome back to {process.env.REACT_APP_NAME || "Stager"}.
+                    </Box>
                 </Typography>
-            )}
-            <form>
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="normal"
-                    className={classes.textField}
-                    label="Username"
-                    onChange={bind(setUsername)}
-                />
-                <TextField
-                    required
-                    variant="filled"
-                    fullWidth
-                    margin="normal"
-                    className={classes.textField}
-                    type="password"
-                    label="Password"
-                    onChange={bind(setPassword)}
-                    autoComplete="current-password"
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    className={classes.button}
-                    type="submit"
-                    onClick={authenticate}
-                >
-                    Sign in
-                </Button>
-            </form>
-        </>
+                {error && (
+                    <Typography component="p" color="error">
+                        {error}
+                    </Typography>
+                )}
+                <Typography variant="subtitle1" align="center">
+                    <Box fontWeight="fontWeightLight">Sample Tracking and Genomics Resources</Box>
+                </Typography>
+                <form>
+                    <TextField
+                        required
+                        variant="filled"
+                        fullWidth
+                        margin="normal"
+                        className={classes.textField}
+                        label="Username"
+                        onChange={bind(setUsername)}
+                    />
+                    <TextField
+                        required
+                        variant="filled"
+                        fullWidth
+                        margin="normal"
+                        className={classes.textField}
+                        type="password"
+                        label="Password"
+                        onChange={bind(setPassword)}
+                        autoComplete="current-password"
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        type="submit"
+                        onClick={authenticate}
+                    >
+                        Sign in
+                    </Button>
+                </form>
+            </Grid>
+            <Grid item className={classes.graphics}>
+                <img className={classes.img} src={cover} alt="" />
+                <div className={classes.ellipse} />
+            </Grid>
+        </Grid>
     );
 }
 
@@ -265,8 +317,8 @@ export default function LoginPage(props: LoginProps) {
                     path="/"
                     render={() => (
                         <Box className={classes.root}>
-                            <Container maxWidth="sm">
-                                <Paper component="form" className={classes.form}>
+                            <Container maxWidth="sm" className={classes.flex}>
+                                <Paper className={classes.form}>
                                     {props.oauth === true ? (
                                         <OauthLoginForm />
                                     ) : (
