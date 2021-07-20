@@ -4,14 +4,11 @@ import {
     Chip,
     CircularProgress,
     Container,
-    Fab,
     Grid,
     makeStyles,
     Typography,
 } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
-import { Check, CloudDownload } from "@material-ui/icons";
-import clsx from "clsx";
 import { useSnackbar } from "notistack";
 import { QueryKey } from "react-query";
 import { useQueryClient } from "react-query";
@@ -48,24 +45,10 @@ const useStyles = makeStyles(theme => ({
         display: "flex",
         alignItems: "center",
     },
-    buttonSuccess: {
-        backgroundColor: green[500],
-        "&:hover": {
-            backgroundColor: green[700],
-        },
-    },
-    fabProgress: {
-        color: green[500],
-        position: "absolute",
-        zIndex: 1,
-    },
     buttonProgress: {
         color: green[500],
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        marginTop: -12,
-        marginLeft: 8,
+        marginLeft: 50,
     },
 }));
 
@@ -101,7 +84,6 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadPanel());
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState<Boolean>(false);
 
     const toggleGeneSelection = (gene: GeneAlias) => {
         const updated = !selectedGenes.includes(gene)
@@ -124,7 +106,6 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const onSuccess = () => {
         setLoading(false);
-        setSuccess(true);
     };
 
     const downloadVariantwiseCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
@@ -139,6 +120,13 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const downloadCsv = () => {
         const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
+
+        /*
+            In react-query, the onSuccess callback is not triggered when the query is returning data from cache. 
+            QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
+            If so, the loading indicator is deactivated. 
+        */
+
         const key: QueryKey = [
             {
                 panel: panel,
@@ -146,10 +134,10 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
             `csv`,
             `/api/summary/${downloadType}s`,
         ];
+
         const data = queryCache.find(key);
         if (data === undefined && !loading) {
             setLoading(true);
-            setSuccess(false);
         }
         if (downloadType === "participant") {
             return downloadParticipantwiseCsv({ panel });
@@ -162,10 +150,6 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     }, []);
 
     const classes = useStyles();
-
-    const buttonClassname = clsx({
-        [classes.buttonSuccess]: success,
-    });
 
     const disableControls = !selectedGenes.length;
 
@@ -193,25 +177,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             <GeneAutocomplete fullWidth={true} onSelect={toggleGeneSelection} />
                         </Grid>
                         <div className={classes.wrapper}>
-                            <Fab
-                                aria-label="save"
-                                color="primary"
-                                size="small"
-                                className={buttonClassname}
-                                onClick={downloadCsv}
-                            >
-                                {success ? <Check /> : <CloudDownload />}
-                            </Fab>
-                            {loading && (
-                                <CircularProgress size={40} className={classes.fabProgress} />
-                            )}
                             <Button
                                 disabled={disableControls || loading}
                                 onClick={downloadCsv}
                                 size="large"
                                 variant="contained"
                                 color="primary"
-                                className={buttonClassname}
                             >
                                 Download
                             </Button>
