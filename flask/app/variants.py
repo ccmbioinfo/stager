@@ -6,8 +6,8 @@ from flask import Blueprint, Response, abort, current_app as app, jsonify, reque
 from flask_login import current_user, login_required
 import pandas as pd
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import aliased, contains_eager
-from sqlalchemy.sql import and_
+from sqlalchemy.orm import aliased, contains_eager, load_only
+from sqlalchemy.sql import and_, or_
 
 from . import models
 from .extensions import db
@@ -229,6 +229,8 @@ def parse_gene_panel(genes: str):
 
     # genes_list = query.all()
 
+    app.logger.debug("Found %d genes with panel %s", found_genes, ensgs)
+
     return gene_filter, found_genes
 
 
@@ -324,6 +326,30 @@ def parse_position(position: str):
     return position_filter, found_variants
 
 
+def jsonify_variant_wise(tup, columns):
+
+    base_dict = {
+        **asdict(tup[0]),
+        **asdict(tup[1]),
+    }
+
+    if "name" in columns[2]:
+        base_dict["name"] = tup[0].aliases[0].name if tup[0].aliases else None
+
+    try:
+        base_dict["genotype"] = [
+            {
+                **asdict(genotype),
+                "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
+            }
+            for genotype in tup[1].genotype
+        ]
+    except KeyError:
+        pass
+
+    return base_dict
+
+
 @variants_blueprint.route("/api/summary/<string:type>", methods=["GET"])
 @login_required
 def summary(type: str):
@@ -386,6 +412,33 @@ def summary(type: str):
         app.logger.error("No genes/variants found")
         abort(404, description="No variants found")
 
+    columns = request.args.get("columns", type=str)
+    if columns is not None:
+        columns = columns.split(",")
+        # filter out faulty columns
+        invalid_columns = {"variant_id", "analysis_id"}
+
+        gene_columns = set(models.Gene.__table__.columns.keys())
+        variant_columns = set(models.Variant.__table__.columns.keys())
+        other_columns = {"name"}
+
+        valid_columns = (
+            gene_columns | variant_columns | other_columns
+        ) - invalid_columns
+        fixed_columns = {col for col in columns if col in valid_columns}
+        if len(fixed_columns) < len(columns):
+            app.logger.warn(
+                "Ignoring invalid columns from request: {}".format(
+                    set(columns) ^ set(fixed_columns)
+                )
+            )
+        # gene, variant, others (name)
+        columns = (
+            {getattr(models.Gene, col) for col in fixed_columns & gene_columns},
+            {getattr(models.Variant, col) for col in fixed_columns & variant_columns},
+            fixed_columns & other_columns,
+        )
+
     # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
     # so that ORM recognizes it as the GeneAlias model when joining and eager loading
     alias_subquery = aliased(
@@ -395,10 +448,14 @@ def summary(type: str):
         ).subquery(),
     )
 
+    if columns is None:
+        query = db.session.query(models.Gene, models.Variant)
+    else:
+        query = db.session.query(*columns[0], *columns[1])
+
     # returns a tuple (Genes, Variants)
     query = (
-        db.session.query(models.Gene, models.Variant)
-        .options(
+        query.options(
             contains_eager(models.Variant.genotype)
             .contains_eager(models.Genotype.analysis)
             .contains_eager(models.Analysis.datasets)
@@ -450,23 +507,7 @@ def summary(type: str):
 
         if type == "variants":
 
-            return jsonify(
-                [
-                    {
-                        **asdict(tup[0]),  # gene
-                        "name": tup[0].aliases[0].name if tup[0].aliases else None,
-                        **asdict(tup[1]),  # variants
-                        "genotype": [
-                            {
-                                **asdict(genotype),
-                                "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
-                            }
-                            for genotype in tup[1].genotype
-                        ],
-                    }
-                    for tup in query.all()
-                ]
-            )
+            return jsonify([jsonify_variant_wise(tup, columns) for tup in query.all()])
 
         elif type == "participants":
             try:
@@ -494,19 +535,19 @@ def summary(type: str):
 
         agg_df = get_report_df(sql_df, type=type)
 
-        columns = request.args.get("columns", type=str)
-        if columns is not None:
-            columns = columns.split(",")
-            # filter out faulty columns
-            valid_columns = {col for col in agg_df.columns.values}
-            fixed_columns = [col for col in columns if col in valid_columns]
-            if len(fixed_columns) < len(columns):
-                app.logger.warn(
-                    "Ignoring invalid columns from request: {}".format(
-                        set(columns) ^ set(fixed_columns)
-                    )
-                )
-            agg_df = agg_df.loc[:, fixed_columns]
+        # columns = request.args.get("columns", type=str)
+        # if columns is not None:
+        #     columns = columns.split(",")
+        #     # filter out faulty columns
+        #     valid_columns = {col for col in agg_df.columns.values}
+        #     fixed_columns = [col for col in columns if col in valid_columns]
+        #     if len(fixed_columns) < len(columns):
+        #         app.logger.warn(
+        #             "Ignoring invalid columns from request: {}".format(
+        #                 set(columns) ^ set(fixed_columns)
+        #             )
+        #         )
+        #     agg_df = agg_df.loc[:, fixed_columns]
 
         csv_data = agg_df.to_csv(encoding="utf-8", index=False)
 
