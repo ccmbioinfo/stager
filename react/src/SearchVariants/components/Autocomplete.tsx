@@ -16,7 +16,7 @@ import { snakeCaseToTitle } from "../../functions";
 import { useGenesQuery } from "../../hooks/genes";
 import { GeneAlias } from "../../typings";
 
-type SearchCategory = "gene" | "region" | "variant_position" | "rsid";
+export type SearchCategory = "gene" | "region" | "variant_position" | "rsid";
 const searchCategoryMap: Map<SearchCategory, string> = new Map([
     ["gene", "Gene"],
     ["region", "Region"],
@@ -28,6 +28,8 @@ interface GeneAutocompleteProps {
     fullWidth?: boolean;
     onSearch?: () => void;
     onSelect: (result: GeneAlias) => void;
+    searchCategory: SearchCategory;
+    onCategoryChange: (newCategory: SearchCategory) => void;
 }
 
 interface SearchCategorySelectProps {
@@ -90,14 +92,13 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch, onSelect }) => {
+const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocompleteProps) => {
     const [search, setSearch] = useState<string>("");
     const [selectedValue, setSelectedValue] = useState<GeneAlias>();
-    const [searchCategory, setSearchCategory] = useState<SearchCategory>("gene");
     const classes = useStyles();
 
     const placeholderText = useMemo(() => {
-        switch (searchCategory) {
+        switch (props.searchCategory) {
             case "gene":
                 return "Search by Gene Name (eg. APOE, VEGFA)";
             case "region":
@@ -110,7 +111,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
                 console.error("Unexpected search category");
                 return "";
         }
-    }, [searchCategory]);
+    }, [props.searchCategory]);
 
     // TODO: add searchCategory to params once backend is updated to support other search categories
     const { data: results, isFetching } = useGenesQuery(
@@ -128,7 +129,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
             forcePopupIcon={false}
             autoComplete
             clearOnEscape
-            fullWidth={fullWidth}
+            fullWidth={props.fullWidth}
             getOptionSelected={(option, value) => option.ensembl_id === value.ensembl_id}
             getOptionLabel={option => option.name || ""}
             includeInputInList={true}
@@ -141,14 +142,14 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
                     setSearch("");
                 } else if (reason === "input") {
                     setSearch(newInputValue);
-                    if (onSearch) {
-                        onSearch();
+                    if (props.onSearch) {
+                        props.onSearch();
                     }
                 }
             }}
             onChange={(event, selectedValue, reason) => {
                 if (search && reason !== "clear" && selectedValue) {
-                    onSelect(selectedValue);
+                    props.onSelect(selectedValue);
                     //persisting selected value will lead to option mismatch warnings
                     setSelectedValue(undefined);
                 }
@@ -164,8 +165,8 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = ({ fullWidth, onSearch
                             process.env.NODE_ENV === "development" && (
                                 // TODO: Remove dev-only rendering when endpoint is updated to accept search category
                                 <SearchCategorySelect
-                                    value={searchCategory}
-                                    onSelect={setSearchCategory}
+                                    value={props.searchCategory}
+                                    onSelect={props.onCategoryChange}
                                 />
                             )
                         }

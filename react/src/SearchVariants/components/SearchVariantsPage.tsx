@@ -16,7 +16,7 @@ import { QueryKey } from "react-query";
 import { useQueryClient } from "react-query";
 import { useDownloadCsv, useModalState } from "../../hooks";
 import { GeneAlias } from "../../typings";
-import GeneAutocomplete from "./Autocomplete";
+import GeneAutocomplete, { SearchCategory } from "./Autocomplete";
 import { CardButton } from "./CardButton";
 import { ReportColumnModal } from "./ReportColumnModal";
 
@@ -155,6 +155,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(
         loadSavedArray("gene-panel") || []
     );
+    const [searchCategory, setSearchCategory] = useState<SearchCategory>("gene");
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
     const [columns, setColumns] = useState<string[]>(() => {
         const array = loadSavedArray("report-columns");
@@ -272,7 +273,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             wrap="nowrap"
                         >
                             <Grid item xs={12}>
-                                <GeneAutocomplete fullWidth={true} onSelect={toggleGeneSelection} />
+                                <GeneAutocomplete
+                                    fullWidth={true}
+                                    onSelect={toggleGeneSelection}
+                                    searchCategory={searchCategory}
+                                    onCategoryChange={setSearchCategory}
+                                />
                             </Grid>
                             <Grid item>
                                 <div className={classes.wrapper}>
