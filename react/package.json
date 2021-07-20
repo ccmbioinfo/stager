@@ -15,7 +15,7 @@
     "@types/react": "^17.0.14",
     "@types/react-dom": "^17.0.8",
     "@types/react-router": "^5.1.16",
-    "@types/react-router-dom": "^5.1.7",
+    "@types/react-router-dom": "^5.1.8",
     "clsx": "^1.1.1",
     "dayjs": "^1.10.6",
     "eslint-plugin-import": "^2.23.4",
@@ -26,7 +26,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-file-drop": "^3.0.7",
-    "react-query": "^3.18.1",
+    "react-query": "^3.19.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "4.0.3",
     "typescript": "~4.3.5"
