@@ -432,6 +432,7 @@ def summary(type: str):
                     set(columns) ^ set(fixed_columns)
                 )
             )
+        app.logger.debug("Columns requested: {}".format(fixed_columns))
         # gene, variant, others (name)
         columns = (
             {getattr(models.Gene, col) for col in fixed_columns & gene_columns},
@@ -448,14 +449,15 @@ def summary(type: str):
         ).subquery(),
     )
 
-    if columns is None:
-        query = db.session.query(models.Gene, models.Variant)
-    else:
-        query = db.session.query(*columns[0], *columns[1])
+    # if columns is None:
+    #     query = db.session.query(models.Gene, models.Variant)
+    # else:
+    #     query = db.session.query(*columns[0], *columns[1])
 
     # returns a tuple (Genes, Variants)
     query = (
-        query.options(
+        db.session.query(models.Gene, models.Variant)
+        .options(
             contains_eager(models.Variant.genotype)
             .contains_eager(models.Genotype.analysis)
             .contains_eager(models.Analysis.datasets)
@@ -507,7 +509,23 @@ def summary(type: str):
 
         if type == "variants":
 
-            return jsonify([jsonify_variant_wise(tup, columns) for tup in query.all()])
+            return jsonify(
+                [
+                    {
+                        **asdict(tup[0]),  # gene
+                        "name": tup[0].aliases[0].name if tup[0].aliases else None,
+                        **asdict(tup[1]),  # variants
+                        "genotype": [
+                            {
+                                **asdict(genotype),
+                                "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
+                            }
+                            for genotype in tup[1].genotype
+                        ],
+                    }
+                    for tup in query.all()
+                ]
+            )
 
         elif type == "participants":
             try:
