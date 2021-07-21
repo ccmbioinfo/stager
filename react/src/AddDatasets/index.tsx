@@ -6,7 +6,7 @@ import { useHistory } from "react-router";
 import { ConfirmModal } from "../components";
 import { useUserContext } from "../contexts";
 import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
-import { useBulkCreateMutation } from "../hooks";
+import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import { DataEntryRow, DataEntryRowBase } from "../typings";
 import DataEntryTable from "./components/DataEntryTable";
 import { participantColumns } from "./components/utils";
@@ -41,6 +41,7 @@ export default function AddParticipants() {
     const [errorMessage, setErrorMessage] = useState("");
     const [asGroups, setAsGroups] = useState<string[]>([]); // "submitting as these groups"
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     useEffect(() => {
         document.title = `Add Datasets | ${process.env.REACT_APP_NAME}`;
@@ -130,11 +131,8 @@ export default function AddParticipants() {
                     setData(createEmptyRows(1));
                     history.push("/datasets");
                 },
-                onError: async response => {
-                    const message = `Error: ${response.status} - ${
-                        response.statusText
-                    } "${await response.text()}"`;
-                    enqueueSnackbar(message, { variant: "error" });
+                onError: async (response: Response) => {
+                    enqueueErrorSnackbar(response, `${await response.text()}`);
                 },
             }
         );

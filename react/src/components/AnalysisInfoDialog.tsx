@@ -4,7 +4,12 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Dns, Replay } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { createFieldObj, formatDateString, getDatasetInfoList } from "../functions";
-import { useAnalysisCreateMutation, useAnalysisQuery, useEnumsQuery } from "../hooks";
+import {
+    useAnalysisCreateMutation,
+    useAnalysisQuery,
+    useEnumsQuery,
+    useErrorSnackbar,
+} from "../hooks";
 import { Analysis, Pipeline } from "../typings";
 import DetailSection from "./DetailSection";
 import DialogHeader from "./DialogHeader";
@@ -57,6 +62,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const labeledBy = "analysis-info-dialog-slide-title";
     const { data: enums } = useEnumsQuery();
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     return (
         <Dialog
@@ -83,10 +89,9 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                                     );
                                 },
                                 onError: async response => {
-                                    const error = (await response.json()).error;
-                                    enqueueSnackbar(
-                                        `Failed to request re-analysis of ${props.analysis.analysis_id}: ${response.status} - ${error}`,
-                                        { variant: "error" }
+                                    enqueueErrorSnackbar(
+                                        response,
+                                        `Failed to request re-analysis of ${props.analysis.analysis_id}`
                                     );
                                 },
                             }

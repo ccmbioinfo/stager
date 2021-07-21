@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Box, Container, Fab, Grid, makeStyles, Theme } from "@material-ui/core";
 import { GroupAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { useGroupDeleteMutation, useGroupsQuery, useGroupUpdateMutation } from "../hooks";
+import {
+    useErrorSnackbar,
+    useGroupDeleteMutation,
+    useGroupsQuery,
+    useGroupUpdateMutation,
+} from "../hooks";
 import CreateGroupModal from "./components/CreateGroupModal";
 import { Group as GroupCard } from "./components/Group";
 
@@ -30,6 +35,7 @@ export default function Groups() {
     const groupDelete = useGroupDeleteMutation();
     const [openNewGroup, setOpenNewGroup] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     useEffect(() => {
         document.title = `Groups | ${process.env.REACT_APP_NAME}`;
@@ -57,9 +63,9 @@ export default function Groups() {
                                                 );
                                             },
                                             onError: response => {
-                                                enqueueSnackbar(
-                                                    `Failed to edit group ${group.group_name}. Error: ${response.status} - ${response.statusText}`,
-                                                    { variant: "error" }
+                                                enqueueErrorSnackbar(
+                                                    response,
+                                                    `Failed to edit group ${group.group_name}.`
                                                 );
                                             },
                                         }
@@ -74,9 +80,9 @@ export default function Groups() {
                                             );
                                         },
                                         onError: response => {
-                                            enqueueSnackbar(
-                                                `Group ${group.group_name} deletion failed. Error: ${response.status} - ${response.statusText}`,
-                                                { variant: "error" }
+                                            enqueueErrorSnackbar(
+                                                response,
+                                                `Group ${group.group_name} deletion failed.`
                                             );
                                         },
                                     });

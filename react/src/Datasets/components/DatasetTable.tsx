@@ -23,6 +23,7 @@ import {
     useDatasetUpdateMutation,
     useDownloadCsv,
     useEnumsQuery,
+    useErrorSnackbar,
     useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useSortOrderCache,
@@ -105,6 +106,7 @@ export default function DatasetTable() {
     const [infoDataset, setInfoDataset] = useState<Dataset>();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
 
@@ -282,10 +284,7 @@ export default function DatasetTable() {
                                         console.error(
                                             `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
                                         );
-                                        enqueueSnackbar(
-                                            `Failed to edit Dataset ID ${oldDataset?.dataset_id} - ${response.status} ${response.statusText}`,
-                                            { variant: "error" }
-                                        );
+                                        enqueueErrorSnackbar(response, `Failed to edit Dataset ID ${oldDataset?.dataset_id}`)
                                     },
                                 }
                             );

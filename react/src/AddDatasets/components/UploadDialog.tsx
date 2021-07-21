@@ -9,6 +9,7 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
+import { useErrorSnackbar } from "../../hooks";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -36,6 +37,7 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
     const classes = useStyles();
     const [file, setFile] = React.useState<File | null>(null);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     // File reference gets set here
     function onFileAdd(files: FileList | null) {
@@ -66,10 +68,7 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
                 console.error(
                     `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
                 );
-                enqueueSnackbar(
-                    `Failed to upload file ${file.name}. Error: ${response.status} - ${response.statusText}`,
-                    { variant: "error" }
-                );
+                enqueueErrorSnackbar(response, `Failed to upload file ${file.name}.`)
             }
         }
     }
