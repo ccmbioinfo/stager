@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Button, Chip, Container, Grid, makeStyles, Typography } from "@material-ui/core";
+import {
+    Button,
+    Chip,
+    CircularProgress,
+    Container,
+    Grid,
+    makeStyles,
+    Typography,
+} from "@material-ui/core";
+import { green } from "@material-ui/core/colors";
 import { useSnackbar } from "notistack";
+import { QueryKey } from "react-query";
+import { useQueryClient } from "react-query";
 import { useDownloadCsv } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
@@ -25,6 +36,23 @@ const useStyles = makeStyles(theme => ({
         paddingBottom: theme.spacing(3),
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1),
+    },
+    wrapper: {
+        margin: theme.spacing(1, 0.5, 1, 1),
+        // minWidth: 166,
+        justifyContent: "space-between",
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+    },
+    buttonProgress: {
+        color: green[500],
+        position: "absolute",
+        // marginLeft: 50,
+        top: "50%",
+        left: "50%",
+        marginLeft: -12,
+        marginTop: -12,
     },
 }));
 
@@ -54,8 +82,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const { enqueueSnackbar } = useSnackbar();
 
+    const queryClient = useQueryClient();
+    const queryCache = queryClient.getQueryCache();
+
     const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(loadPanel());
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
+    const [loading, setLoading] = useState(false);
 
     const toggleGeneSelection = (gene: GeneAlias) => {
         const updated = !selectedGenes.includes(gene)
@@ -66,6 +98,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     };
 
     const onError = async (response: Response) => {
+        setLoading(false);
         try {
             const payload = await response.json();
             enqueueSnackbar(`${response.status} ${response.statusText}: ${payload.error}`);
@@ -75,16 +108,41 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
+    const onSuccess = () => {
+        setLoading(false);
+    };
+
     const downloadVariantwiseCsv = useDownloadCsv(GET_VARIANTS_SUMMARY_URL, {
         onError,
+        onSuccess,
     });
 
     const downloadParticipantwiseCsv = useDownloadCsv(GET_VARIANTS_BY_PARTICIPANTS_SUMMARY_URL, {
         onError,
+        onSuccess,
     });
 
     const downloadCsv = () => {
         const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
+
+        /*
+            In react-query, the onSuccess callback is not triggered when the query is returning data from cache. 
+            QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
+            If so, the loading indicator is deactivated. 
+        */
+
+        const key: QueryKey = [
+            {
+                panel: panel,
+            },
+            `csv`,
+            `/api/summary/${downloadType}s`,
+        ];
+
+        const data = queryCache.find(key);
+        if (data === undefined && !loading) {
+            setLoading(true);
+        }
         if (downloadType === "participant") {
             return downloadParticipantwiseCsv({ panel });
         }
@@ -122,16 +180,20 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         <Grid item xs={12}>
                             <GeneAutocomplete fullWidth={true} onSelect={toggleGeneSelection} />
                         </Grid>
-                        <Grid item>
+                        <div className={classes.wrapper}>
                             <Button
-                                disabled={disableControls}
+                                disabled={disableControls || loading}
                                 onClick={downloadCsv}
                                 size="large"
                                 variant="contained"
+                                color="primary"
                             >
                                 Download
                             </Button>
-                        </Grid>
+                            {loading && (
+                                <CircularProgress size={24} className={classes.buttonProgress} />
+                            )}
+                        </div>
                     </Grid>
                     <Grid container item xs={12} md={6} spacing={1}>
                         <Grid container item xs={6}>
