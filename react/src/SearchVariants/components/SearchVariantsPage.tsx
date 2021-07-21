@@ -38,8 +38,8 @@ const useStyles = makeStyles(theme => ({
         paddingRight: theme.spacing(1),
     },
     wrapper: {
-        margin: theme.spacing(1),
-        minWidth: 166,
+        margin: theme.spacing(1, 0.5, 1, 1),
+        // minWidth: 166,
         justifyContent: "space-between",
         position: "relative",
         display: "flex",
@@ -48,7 +48,11 @@ const useStyles = makeStyles(theme => ({
     buttonProgress: {
         color: green[500],
         position: "absolute",
-        marginLeft: 50,
+        // marginLeft: 50,
+        top: "50%",
+        left: "50%",
+        marginLeft: -12,
+        marginTop: -12,
     },
 }));
 
