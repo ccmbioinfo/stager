@@ -11,13 +11,19 @@ export function useErrorSnackbar() {
     const { enqueueSnackbar } = useSnackbar();
 
     const enqueueErrorSnackbar = async (response: Response, message?: string | undefined) => {
-        const payload = await response.json();
+        var payload;
+        try {
+            payload = await response.json();
+        } catch (error) {
+            console.error(error, response);
+        }
         const userMessage = `Error: ${message ? message : "Your request can't be processed."}`;
-        const errorMessage = `Details: ${response.status} - ${response.statusText}. ${payload.error}`;
+        const errorMessage = `Details: ${response.status} - ${response.statusText}. ${
+            payload ? payload.error : ""
+        }`;
 
         enqueueSnackbar(errorMessage, {
             content: () => <ErrorSnackbar userMessage={userMessage} errorMessage={errorMessage} />,
-            preventDuplicate: true,
         });
     };
     return enqueueErrorSnackbar;

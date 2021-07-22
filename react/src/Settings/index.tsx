@@ -80,15 +80,13 @@ export default function Settings() {
         passwordMutation.mutate(
             { username: currentUser.username, current: currentPassword, password: newPassword },
             {
-                onSuccess: newUser => {
+                onSuccess: () => {
                     setCurrentPassword("");
                     setNewPassword("");
                     setConfirmPassword("");
                     enqueueSnackbar("Password changed successfully.", { variant: "success" });
                 },
-                onError: async response => {
-                    enqueueErrorSnackbar(response, await response.text());
-                },
+                onError: (response: Response) => enqueueErrorSnackbar(response),
                 onSettled: () => {
                     setUpdating(false);
                 },
