@@ -16,18 +16,18 @@ import { snakeCaseToTitle } from "../../functions";
 import { useGenesQuery } from "../../hooks/genes";
 import { GeneAlias } from "../../typings";
 
-export type SearchCategory = "gene" | "region" | "variant_position" | "rsid";
+export type SearchCategory = "genes" | "regions" | "positions" | "rsids";
 const searchCategoryMap: Map<SearchCategory, string> = new Map([
-    ["gene", "Gene"],
-    ["region", "Region"],
-    ["variant_position", "Variant Position"],
-    ["rsid", "refSNP ID"],
+    ["genes", "Gene"],
+    ["regions", "Region"],
+    ["positions", "Variant Position"],
+    ["rsids", "refSNP ID"],
 ]);
 
 interface GeneAutocompleteProps {
     fullWidth?: boolean;
     onSearch?: () => void;
-    onSelect: (result: GeneAlias) => void;
+    onSelect: (result: GeneAlias | string) => void;
     searchCategory: SearchCategory;
     onCategoryChange: (newCategory: SearchCategory) => void;
 }
@@ -99,13 +99,13 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
 
     const placeholderText = useMemo(() => {
         switch (props.searchCategory) {
-            case "gene":
+            case "genes":
                 return "Search by Gene Name (eg. APOE, VEGFA)";
-            case "region":
+            case "regions":
                 return "Search by Region";
-            case "variant_position":
+            case "positions":
                 return "Search by Variant Position";
-            case "rsid":
+            case "rsids":
                 return "Search by refSNP ID";
             default:
                 console.error("Unexpected search category");
@@ -118,7 +118,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
         {
             search,
         },
-        search.length > 2
+        search.length > 2 && props.searchCategory === "genes"
     );
 
     const theme = useTheme();

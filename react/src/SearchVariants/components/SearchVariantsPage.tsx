@@ -14,6 +14,7 @@ import { Edit } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { QueryKey } from "react-query";
 import { useQueryClient } from "react-query";
+import { snakeCaseToTitle } from "../../functions";
 import { useDownloadCsv, useModalState } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete, { SearchCategory } from "./Autocomplete";
@@ -152,10 +153,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     const queryCache = queryClient.getQueryCache();
 
     const [loading, setLoading] = useState(false);
-    const [selectedGenes, setSelectedGenes] = useState<GeneAlias[]>(
+    const [searchCategory, setSearchCategory] = useState<SearchCategory>("genes");
+    // In practice, searchTerms is distinctly an array of strings or an array of GeneAliases
+    const [searchTerms, setSearchTerms] = useState<Array<string | GeneAlias>>(
         loadSavedArray("gene-panel") || []
     );
-    const [searchCategory, setSearchCategory] = useState<SearchCategory>("gene");
+
     const [downloadType, setDownloadType] = useState<"variant" | "participant">("variant");
     const [columns, setColumns] = useState<string[]>(() => {
         const array = loadSavedArray("report-columns");
@@ -182,12 +185,21 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const toggleGeneSelection = (gene: GeneAlias) => {
-        const updated = !selectedGenes.includes(gene)
-            ? selectedGenes.concat(gene)
-            : selectedGenes.filter(g => g !== gene);
-        setSelectedGenes(updated);
-        localStorage.setItem("gene-panel", JSON.stringify(updated));
+    const handleAutocompleteSelect = (term: string | GeneAlias) => {
+        // Is there a way to do this when searchTerms has type string[] | GeneAlias[] ?
+        // Could not find a way to do it with discriminated unions, so we make do with this
+        setSearchTerms(oldSearchTerms => {
+            const updated = !oldSearchTerms.includes(term)
+                ? oldSearchTerms.concat(term)
+                : oldSearchTerms.filter(t => t !== term);
+            localStorage.setItem(`${searchCategory}-panel`, JSON.stringify(updated));
+            return updated;
+        });
+    };
+
+    const handleCategoryChange = (newCategory: SearchCategory) => {
+        setSearchTerms([]);
+        setSearchCategory(newCategory);
     };
 
     const onError = async (response: Response) => {
@@ -216,26 +228,30 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
     });
 
     const downloadCsv = () => {
-        const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
+        let panel: string;
+        if (searchCategory === "genes") {
+            panel = (searchTerms as GeneAlias[]).map(gene => `ENSG${gene.ensembl_id}`).join(",");
+            /*
+                In react-query, the onSuccess callback is not triggered when the query is returning data from cache.
+                QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
+                If so, the loading indicator is deactivated.
+            */
+            const key: QueryKey = [
+                {
+                    panel: panel,
+                },
+                `csv`,
+                `/api/summary/${downloadType}s`,
+            ];
 
-        /*
-            In react-query, the onSuccess callback is not triggered when the query is returning data from cache.
-            QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
-            If so, the loading indicator is deactivated.
-        */
-
-        const key: QueryKey = [
-            {
-                panel: panel,
-            },
-            `csv`,
-            `/api/summary/${downloadType}s`,
-        ];
-
-        const data = queryCache.find(key);
-        if (data === undefined && !loading) {
-            setLoading(true);
+            const data = queryCache.find(key);
+            if (data === undefined && !loading) {
+                setLoading(true);
+            }
+        } else {
+            panel = (searchTerms as string[]).join(",");
         }
+
         if (downloadType === "participant") {
             return downloadParticipantwiseCsv({ panel });
         }
@@ -248,7 +264,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const classes = useStyles();
 
-    const disableControls = !selectedGenes.length;
+    const disableControls = !searchTerms.length;
     const columnText = `${columns.length} of ${temporaryListOfReportColumns.length} Report Columns selected`;
 
     return (
@@ -275,9 +291,9 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                             <Grid item xs={12}>
                                 <GeneAutocomplete
                                     fullWidth={true}
-                                    onSelect={toggleGeneSelection}
+                                    onSelect={handleAutocompleteSelect}
                                     searchCategory={searchCategory}
-                                    onCategoryChange={setSearchCategory}
+                                    onCategoryChange={handleCategoryChange}
                                 />
                             </Grid>
                             <Grid item>
@@ -337,26 +353,44 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                         </Grid>
                         <Grid container item xs={12} md={6} wrap="nowrap">
                             <Grid item>
-                                {!!selectedGenes.length && <Typography>Selected Genes</Typography>}
+                                {!!searchTerms.length && (
+                                    <Typography>
+                                        Selected {snakeCaseToTitle(searchCategory)}
+                                    </Typography>
+                                )}
                             </Grid>
                             <Grid item container xs={12}>
-                                {selectedGenes.map(g => (
-                                    <Grid item key={g.name}>
-                                        <Chip
-                                            className={classes.chip}
-                                            label={
-                                                <>
-                                                    <b>{g.name}</b>
-                                                    <br />
-                                                    <small>
-                                                        ENSG{`${g.ensembl_id}`.padStart(11, "0")}
-                                                    </small>
-                                                </>
-                                            }
-                                            onDelete={() => toggleGeneSelection(g)}
-                                        />
-                                    </Grid>
-                                ))}
+                                {searchTerms.map(term => {
+                                    let key;
+                                    let label;
+                                    if (searchCategory === "genes") {
+                                        const alias = term as GeneAlias;
+                                        key = `${searchCategory}-${alias.name}`;
+                                        label = (
+                                            <>
+                                                <b>{alias.name}</b>
+                                                <br />
+                                                <small>
+                                                    ENSG
+                                                    {`${alias.ensembl_id}`.padStart(11, "0")}
+                                                </small>
+                                            </>
+                                        );
+                                    } else {
+                                        const alias = term as string;
+                                        key = `${searchCategory}-${alias}`;
+                                        label = alias;
+                                    }
+                                    return (
+                                        <Grid item key={key}>
+                                            <Chip
+                                                className={classes.chip}
+                                                label={label}
+                                                onDelete={() => handleAutocompleteSelect(term)}
+                                            />
+                                        </Grid>
+                                    );
+                                })}
                             </Grid>
                         </Grid>
                     </Grid>
