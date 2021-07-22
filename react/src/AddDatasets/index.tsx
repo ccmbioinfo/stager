@@ -131,9 +131,8 @@ export default function AddParticipants() {
                     setData(createEmptyRows(1));
                     history.push("/datasets");
                 },
-                onError: (response: Response) => enqueueErrorSnackbar(response)
-            },
-            
+                onError: (response: Response) => enqueueErrorSnackbar(response),
+            }
         );
     }
 
