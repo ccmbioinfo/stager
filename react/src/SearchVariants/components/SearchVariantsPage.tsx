@@ -251,11 +251,12 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         } else {
             panel = (searchTerms as string[]).join(",");
         }
+        const params = { [searchCategory]: panel };
 
         if (downloadType === "participant") {
-            return downloadParticipantwiseCsv({ panel });
+            return downloadParticipantwiseCsv(params);
         }
-        return downloadVariantwiseCsv({ panel });
+        return downloadVariantwiseCsv(params);
     };
 
     useEffect(() => {

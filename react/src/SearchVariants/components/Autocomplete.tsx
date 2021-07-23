@@ -8,6 +8,7 @@ import {
     Menu,
     MenuItem,
     OutlinedInput,
+    Theme,
     useTheme,
 } from "@material-ui/core";
 import { ArrowDropDown, Check, Search } from "@material-ui/icons";
@@ -21,14 +22,14 @@ const searchCategoryMap: Map<SearchCategory, string> = new Map([
     ["genes", "Gene"],
     ["regions", "Region"],
     ["positions", "Variant Position"],
-    ["rsids", "refSNP ID"],
+    // ["rsids", "refSNP ID"],
 ]);
 
 interface GeneAutocompleteProps {
+    searchCategory: SearchCategory;
     fullWidth?: boolean;
     onSearch?: () => void;
     onSelect: (result: GeneAlias | string) => void;
-    searchCategory: SearchCategory;
     onCategoryChange: (newCategory: SearchCategory) => void;
 }
 
@@ -86,34 +87,56 @@ function SearchCategorySelect(props: SearchCategorySelectProps) {
     );
 }
 
-const useStyles = makeStyles(theme => ({
+interface GeneAutocompleteOption {
+    label: string;
+    value: string | GeneAlias;
+}
+
+const useStyles = makeStyles<Theme, GeneAutocompleteProps>(theme => ({
     adornment: {
         margin: theme.spacing(0, 1),
     },
+    // popper: {
+    //     display: props => (props.searchCategory !== "gene" ? "" : "none"),
+    // },
 }));
+
+// Return whether the provided search string is valid for the given category
+function validateSearch(searchCategory: SearchCategory, search: string) {
+    switch (searchCategory) {
+        case "regions":
+            return /^chr[\da-zA-Z]+:[\d]+-[\d]+$/g.test(search);
+        case "positions":
+            return /^chr[\da-zA-Z]+:[\d]+$/.test(search);
+        case "rsids":
+            // TODO
+            return false;
+        default:
+            return false;
+    }
+}
 
 const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocompleteProps) => {
     const [search, setSearch] = useState<string>("");
-    const [selectedValue, setSelectedValue] = useState<GeneAlias>();
-    const classes = useStyles();
+    const [selectedValue, setSelectedValue] = useState<GeneAutocompleteOption>();
+    const classes = useStyles(props);
 
     const placeholderText = useMemo(() => {
         switch (props.searchCategory) {
             case "genes":
                 return "Search by Gene Name (eg. APOE, VEGFA)";
             case "regions":
-                return "Search by Region";
+                return "Search by Region (eg. chr1:11111-22222, chrX:333333-444444)";
             case "positions":
-                return "Search by Variant Position";
-            case "rsids":
-                return "Search by refSNP ID";
+                return "Search by Position (eg. chr1:11111, chrX:3333333)";
+            // case "rsids":
+            //     return "Search by refSNP ID";
             default:
                 console.error("Unexpected search category");
                 return "";
         }
     }, [props.searchCategory]);
 
-    // TODO: add searchCategory to params once backend is updated to support other search categories
     const { data: results, isFetching } = useGenesQuery(
         {
             search,
@@ -123,6 +146,15 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
 
     const theme = useTheme();
 
+    const options: GeneAutocompleteOption[] =
+        props.searchCategory === "genes"
+            ? results?.data.filter(d => d.name).map(d => ({ label: d.name, value: d })) || []
+            : validateSearch(props.searchCategory, search)
+            ? [{ label: search, value: search }]
+            : [];
+
+    const noResultsText = props.searchCategory === "genes" ? "No Results" : "Invalid Format";
+
     return (
         <Autocomplete
             disableClearable
@@ -130,15 +162,15 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
             autoComplete
             clearOnEscape
             fullWidth={props.fullWidth}
-            getOptionSelected={(option, value) => option.ensembl_id === value.ensembl_id}
-            getOptionLabel={option => option.name || ""}
+            getOptionSelected={(option, value) => option.value === value.value}
+            getOptionLabel={option => option.label || ""}
             includeInputInList={true}
             inputValue={search}
             loading={isFetching}
-            noOptionsText="No Results"
-            options={results?.data.filter(d => d.name) || []}
+            noOptionsText={noResultsText}
+            options={options}
             onInputChange={(event, newInputValue, reason) => {
-                if (reason === "reset") {
+                if (reason === "reset" || reason === "clear") {
                     setSearch("");
                 } else if (reason === "input") {
                     setSearch(newInputValue);
@@ -149,7 +181,11 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
             }}
             onChange={(event, selectedValue, reason) => {
                 if (search && reason !== "clear" && selectedValue) {
-                    props.onSelect(selectedValue);
+                    if (typeof selectedValue === "string") {
+                        props.onSelect(selectedValue);
+                    } else {
+                        props.onSelect(selectedValue.value);
+                    }
                     //persisting selected value will lead to option mismatch warnings
                     setSelectedValue(undefined);
                 }
