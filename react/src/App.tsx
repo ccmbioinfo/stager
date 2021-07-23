@@ -110,6 +110,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                                 horizontal: "center",
                                 vertical: "bottom",
                             }}
+                            hideIconVariant={true}
                         >
                             <Navigation
                                 signout={signout}
