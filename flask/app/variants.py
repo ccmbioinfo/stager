@@ -412,34 +412,6 @@ def summary(type: str):
         app.logger.error("No genes/variants found")
         abort(404, description="No variants found")
 
-    columns = request.args.get("columns", type=str)
-    if columns is not None:
-        columns = columns.split(",")
-        # filter out faulty columns
-        invalid_columns = {"variant_id", "analysis_id"}
-
-        gene_columns = set(models.Gene.__table__.columns.keys())
-        variant_columns = set(models.Variant.__table__.columns.keys())
-        other_columns = {"name"}
-
-        valid_columns = (
-            gene_columns | variant_columns | other_columns
-        ) - invalid_columns
-        fixed_columns = {col for col in columns if col in valid_columns}
-        if len(fixed_columns) < len(columns):
-            app.logger.warn(
-                "Ignoring invalid columns from request: {}".format(
-                    set(columns) ^ set(fixed_columns)
-                )
-            )
-        app.logger.debug("Columns requested: {}".format(fixed_columns))
-        # gene, variant, others (name)
-        columns = (
-            {getattr(models.Gene, col) for col in fixed_columns & gene_columns},
-            {getattr(models.Variant, col) for col in fixed_columns & variant_columns},
-            fixed_columns & other_columns,
-        )
-
     # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
     # so that ORM recognizes it as the GeneAlias model when joining and eager loading
     alias_subquery = aliased(
@@ -448,11 +420,6 @@ def summary(type: str):
             models.GeneAlias.kind == "current_approved_symbol"
         ).subquery(),
     )
-
-    # if columns is None:
-    #     query = db.session.query(models.Gene, models.Variant)
-    # else:
-    #     query = db.session.query(*columns[0], *columns[1])
 
     # returns a tuple (Genes, Variants)
     query = (
@@ -553,19 +520,19 @@ def summary(type: str):
 
         agg_df = get_report_df(sql_df, type=type)
 
-        # columns = request.args.get("columns", type=str)
-        # if columns is not None:
-        #     columns = columns.split(",")
-        #     # filter out faulty columns
-        #     valid_columns = {col for col in agg_df.columns.values}
-        #     fixed_columns = [col for col in columns if col in valid_columns]
-        #     if len(fixed_columns) < len(columns):
-        #         app.logger.warn(
-        #             "Ignoring invalid columns from request: {}".format(
-        #                 set(columns) ^ set(fixed_columns)
-        #             )
-        #         )
-        #     agg_df = agg_df.loc[:, fixed_columns]
+        columns = request.args.get("columns", type=str)
+        if columns is not None:
+            columns = columns.split(",")
+            # filter out faulty columns
+            valid_columns = {col for col in agg_df.columns.values}
+            fixed_columns = [col for col in columns if col in valid_columns]
+            if len(fixed_columns) < len(columns):
+                app.logger.warn(
+                    "Ignoring invalid columns from request: {}".format(
+                        set(columns) ^ set(fixed_columns)
+                    )
+                )
+            agg_df = agg_df.loc[:, fixed_columns]
 
         csv_data = agg_df.to_csv(encoding="utf-8", index=False)
 
