@@ -71,7 +71,7 @@ export default function SampleTable(props: {
             ]}
             data={props.samples}
             title="Tissue Samples"
-            detailPanel={rowData => {
+            detailPanel={({ rowData }) => {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
                     return {
                         fields: getFields(dataset),
