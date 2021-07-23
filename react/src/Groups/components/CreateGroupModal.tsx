@@ -51,7 +51,7 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
                 });
                 onClose();
             },
-            onError: (response: Response) => enqueueErrorSnackbar(response)
+            onError: (response: Response) => enqueueErrorSnackbar(response),
         });
     }
 

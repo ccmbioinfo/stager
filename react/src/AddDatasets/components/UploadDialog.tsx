@@ -68,7 +68,7 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
                 console.error(
                     `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
                 );
-                enqueueErrorSnackbar(response, `Failed to upload file ${file.name}.`)
+                enqueueErrorSnackbar(response, `Failed to upload file ${file.name}.`);
             }
         }
     }

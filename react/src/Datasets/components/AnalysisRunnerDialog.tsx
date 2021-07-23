@@ -23,7 +23,12 @@ import {
     Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { useAnalysisCreateMutation, useEnumsQuery, useErrorSnackbar, usePipelinesQuery } from "../../hooks";
+import {
+    useAnalysisCreateMutation,
+    useEnumsQuery,
+    useErrorSnackbar,
+    usePipelinesQuery,
+} from "../../hooks";
 import { AnalysisPriority, Dataset } from "../../typings";
 
 interface AnalysisRunnerDialogProps {
@@ -206,7 +211,10 @@ export default function AnalysisRunnerDialog({
                                     );
                                 },
                                 onError: async response => {
-                                    enqueueErrorSnackbar(response, `Analysis could not be requested.`);
+                                    enqueueErrorSnackbar(
+                                        response,
+                                        `Analysis could not be requested.`
+                                    );
                                 },
                             }
                         );

@@ -284,7 +284,10 @@ export default function DatasetTable() {
                                         console.error(
                                             `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
                                         );
-                                        enqueueErrorSnackbar(response, `Failed to edit Dataset ID ${oldDataset?.dataset_id}`)
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Dataset ID ${oldDataset?.dataset_id}`
+                                        );
                                     },
                                 }
                             );

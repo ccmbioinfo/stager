@@ -12,7 +12,12 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { useErrorSnackbar, useUsersDeleteMutation, useUsersQuery, useUsersUpdateMutation } from "../../hooks";
+import {
+    useErrorSnackbar,
+    useUsersDeleteMutation,
+    useUsersQuery,
+    useUsersUpdateMutation,
+} from "../../hooks";
 import CreateUserModal from "./CreateUserModal";
 import UserRow from "./UserRow";
 
@@ -73,7 +78,10 @@ export default function UserList() {
                                             );
                                         },
                                         onError: async response => {
-                                            enqueueErrorSnackbar(response, `User ${newUser.username} update failed.`)
+                                            enqueueErrorSnackbar(
+                                                response,
+                                                `User ${newUser.username} update failed.`
+                                            );
                                         },
                                     });
                                 }}
@@ -86,7 +94,10 @@ export default function UserList() {
                                             );
                                         },
                                         onError: async response => {
-                                            enqueueErrorSnackbar(response, `User ${newUser.username} deletion failed.`);
+                                            enqueueErrorSnackbar(
+                                                response,
+                                                `User ${newUser.username} deletion failed.`
+                                            );
                                         },
                                     });
                                 }}

@@ -258,7 +258,10 @@ export default function ParticipantTable() {
                             console.error(
                                 `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
                             );
-                            enqueueErrorSnackbar(response, `Failed to edit Participant ${oldParticipant?.participant_codename}`);
+                            enqueueErrorSnackbar(
+                                response,
+                                `Failed to edit Participant ${oldParticipant?.participant_codename}`
+                            );
                         }
                     },
                 }}

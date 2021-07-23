@@ -25,7 +25,7 @@ export function useErrorSnackbar() {
 
         enqueueSnackbar(`${userMessage} (${errorMessage})`, {
             variant: "error",
-            preventDuplicate: true
+            preventDuplicate: true,
         });
     };
     return enqueueErrorSnackbar;
