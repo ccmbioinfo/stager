@@ -252,6 +252,9 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
             panel = (searchTerms as string[]).join(",");
         }
         const params = { [searchCategory]: panel };
+        if (columns.length < temporaryListOfReportColumns.length) {
+            params["columns"] = columns.join(",");
+        }
 
         if (downloadType === "participant") {
             return downloadParticipantwiseCsv(params);
