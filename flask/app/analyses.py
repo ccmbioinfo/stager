@@ -374,6 +374,7 @@ def get_analysis(id: int):
             "datasets": [
                 {
                     **asdict(dataset),
+                    "linked_files": dataset.linked_files,
                     "group_code": [group.group_code for group in dataset.groups],
                     "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                     "participant_codename": dataset.tissue_sample.participant.participant_codename,
