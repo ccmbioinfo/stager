@@ -31,6 +31,7 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useErrorSnackbar,
     useHiddenColumnCache,
     useSortOrderCache,
     useTableFilterCache,
@@ -155,6 +156,7 @@ export default function Analyses() {
     const history = useHistory();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
     const { id: paramID } = useParams<{ id: string }>();
 
     const tableRef = useRef<any>();
@@ -607,9 +609,9 @@ export default function Analyses() {
                                         tableRef.current.onQueryChange();
                                     },
                                     onError: response => {
-                                        enqueueSnackbar(
-                                            `Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`,
-                                            { variant: "error" }
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Analysis ID ${oldData?.analysis_id}`
                                         );
                                         console.error(response);
                                     },

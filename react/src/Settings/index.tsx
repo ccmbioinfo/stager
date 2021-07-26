@@ -13,7 +13,7 @@ import {
 import { useSnackbar } from "notistack";
 import { ChipGroup, MinioKeyDisplay, MinioResetButton } from "../components";
 import { useUserContext } from "../contexts";
-import { useUserQuery, useUsersUpdateMutation } from "../hooks";
+import { useErrorSnackbar, useUserQuery, useUsersUpdateMutation } from "../hooks";
 import Instructions from "./components/Instructions";
 
 const useStyles = makeStyles(theme => ({
@@ -72,6 +72,7 @@ export default function Settings() {
     const [groups, setGroups] = useState<string[]>([]);
     const [updating, setUpdating] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     async function changePassword(e: React.MouseEvent) {
         e.preventDefault();
@@ -79,15 +80,13 @@ export default function Settings() {
         passwordMutation.mutate(
             { username: currentUser.username, current: currentPassword, password: newPassword },
             {
-                onSuccess: newUser => {
+                onSuccess: () => {
                     setCurrentPassword("");
                     setNewPassword("");
                     setConfirmPassword("");
                     enqueueSnackbar("Password changed successfully.", { variant: "success" });
                 },
-                onError: async response => {
-                    enqueueSnackbar(await response.text(), { variant: "error" });
-                },
+                onError: (response: Response) => enqueueErrorSnackbar(response),
                 onSettled: () => {
                     setUpdating(false);
                 },

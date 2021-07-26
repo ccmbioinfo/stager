@@ -19,6 +19,7 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useErrorSnackbar,
     useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useParticipantsPage,
@@ -158,6 +159,7 @@ export default function ParticipantTable() {
     const dataFetch = useParticipantsPage();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     async function copyToClipboard(event: React.MouseEvent, rowData: Participant | Participant[]) {
         if (!Array.isArray(rowData)) {
@@ -256,9 +258,9 @@ export default function ParticipantTable() {
                             console.error(
                                 `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
                             );
-                            enqueueSnackbar(
-                                `Failed to edit Participant ${oldParticipant?.participant_codename} - ${response.status} ${response.statusText}`,
-                                { variant: "error" }
+                            enqueueErrorSnackbar(
+                                response,
+                                `Failed to edit Participant ${oldParticipant?.participant_codename}`
                             );
                         }
                     },

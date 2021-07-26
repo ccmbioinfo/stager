@@ -9,10 +9,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
-import { useSnackbar } from "notistack";
 import { QueryKey } from "react-query";
 import { useQueryClient } from "react-query";
-import { useDownloadCsv } from "../../hooks";
+import { useDownloadCsv, useErrorSnackbar } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete from "./Autocomplete";
 import { CardButton } from "./CardButton";
@@ -80,7 +79,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     const queryClient = useQueryClient();
     const queryCache = queryClient.getQueryCache();
@@ -97,15 +96,9 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         localStorage.setItem("gene-panel", JSON.stringify(updated));
     };
 
-    const onError = async (response: Response) => {
+    const onError = (response: Response) => {
         setLoading(false);
-        try {
-            const payload = await response.json();
-            enqueueSnackbar(`${response.status} ${response.statusText}: ${payload.error}`);
-        } catch (error) {
-            console.error(error, response);
-            enqueueSnackbar(`${response.status} ${response.statusText}`);
-        }
+        enqueueErrorSnackbar(response);
     };
 
     const onSuccess = () => {
