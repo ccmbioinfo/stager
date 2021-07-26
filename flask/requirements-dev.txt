@@ -8,7 +8,7 @@ alembic==1.5.8
     # via flask-migrate
 appdirs==1.4.4
     # via black
-astroid==2.6.2
+astroid==2.6.5
     # via pylint
 attrs==20.3.0
     # via pytest
@@ -86,7 +86,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.9.3
+pylint==2.9.5
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
