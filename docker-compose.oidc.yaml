@@ -19,7 +19,7 @@ services:
       - ${MYSQL_VOLUME}:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d
   minio:
-    image: minio/minio:RELEASE.2021-02-11T08-23-43Z
+    image: minio/minio
     user: "${MINIO_UIDGID:-}"
     restart: on-failure
     environment:
@@ -58,6 +58,7 @@ services:
       ENABLE_OIDC: "true"
       OIDC_CLIENT_ID: "ccm-stager"
       OIDC_CLIENT_SECRET: "$$not_a_secret"
+      OIDC_HOST: "${KEYCLOAK_HOST}"
       OIDC_WELL_KNOWN: "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration"
       OIDC_PROVIDER: "keycloak"
       KEYCLOAK_HOST: "http://keycloak:8080"

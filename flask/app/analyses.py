@@ -6,7 +6,7 @@ from sqlalchemy import distinct, func, or_
 from sqlalchemy.orm import aliased, contains_eager, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
-from sqlalchemy.orm.session import make_transient
+from werkzeug.exceptions import Unauthorized
 
 from . import models
 from .extensions import db
@@ -22,6 +22,7 @@ from .utils import (
     mixin,
     paged,
     paginated_response,
+    require_login_or_token_with_role,
     transaction_or_abort,
     validate_json,
 )
@@ -692,9 +693,15 @@ def delete_analysis(id: int):
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["PATCH"])
-@login_required
+@require_login_or_token_with_role("analysis-management")
 @validate_json
-def update_analysis(id: int):
+def update_analysis(id: int, client_user: models.User = None):
+
+    if client_user is not None:
+        return update_analysis_state_from_client(
+            id, request.json.get("status"), client_user
+        )
+
     app.logger.debug("Getting user_id..")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
@@ -795,4 +802,29 @@ def update_analysis(id: int):
             "requester": analysis.requester_id and analysis.requester.username,
             "updated_by_id": analysis.updated_by_id and analysis.updated_by.username,
         }
+    )
+
+
+def update_analysis_state_from_client(
+    analysis_id: int, status: str, client_user: models.User
+):
+
+    if status not in [state for state in models.AnalysisState]:
+        abort(400, description="Invalid Status!")
+
+    analysis = models.Analysis.query.filter(
+        models.Analysis.analysis_id == analysis_id
+    ).first_or_404()
+
+    if status == "Running":
+        analysis.started = datetime.now()
+    elif status == "Done":
+        analysis.finished = datetime.now()
+
+    analysis.analysis_state = status
+    analysis.updated_by = client_user
+    db.session.commit()
+
+    return jsonify(
+        f"analysis id {analysis_id} now has had its status updated to {status} by {client_user.username}"
     )

@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from flask import jsonify, Blueprint, current_app as app
 from flask_login import current_user, login_required
 from minio import Minio
