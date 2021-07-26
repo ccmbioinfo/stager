@@ -231,7 +231,7 @@ def parse_gene_panel(genes: str):
 
     app.logger.debug("Found %d genes with panel %s", found_genes, ensgs)
 
-    return gene_filter, found_genes
+    return gene_filter
 
 
 def parse_region(region: str):
@@ -273,15 +273,7 @@ def parse_region(region: str):
         ]
     )
 
-    query = models.Variant.query.filter(region_filter)
-
-    found_variants = query.with_entities(
-        func.count(distinct(models.Variant.variant_id))
-    ).scalar()
-    if found_variants == 0:
-        app.logger.warning("No requested variants were found")
-
-    return region_filter, found_variants
+    return region_filter
 
 
 def parse_position(position: str):
@@ -316,14 +308,7 @@ def parse_position(position: str):
         ]
     )
 
-    query = models.Variant.query.filter(position_filter)
-    found_variants = query.with_entities(
-        func.count(distinct(models.Variant.variant_id))
-    ).scalar()
-    if found_variants == 0:
-        app.logger.warning("No requested variants were found")
-
-    return position_filter, found_variants
+    return position_filter
 
 
 def parse_rsid(rsid: str):
@@ -338,14 +323,22 @@ def parse_rsid(rsid: str):
 
     rsid_filter = or_(*[models.Variant.rsids.like(r) for r in rsid_set])
 
-    query = models.Variant.query.filter(rsid_filter)
-    found_variants = query.with_entities(
-        func.count(distinct(models.Variant.variant_id))
-    ).scalar()
-    if found_variants == 0:
-        app.logger.warning("No requested variants were found")
+    return rsid_filter
 
-    return rsid_filter, found_variants
+
+def parse_requested_filter(search_type: str, param: str):
+    if search_type == "genes":
+        return parse_gene_panel(param)
+    if search_type == "regions":
+        return parse_region(param)
+    if search_type == "positions":
+        return parse_position(param)
+    if search_type == "rsids":
+        return parse_rsid(param)
+
+    # This shouldn't happen
+    app.logger.error("Invalid search type '%s'", search_type)
+    abort(400, description="Invalid parameter")
 
 
 def jsonify_variant_wise(tup, columns):
@@ -413,28 +406,15 @@ def summary(type: str):
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
 
-    variant_filter, num_matched = None, 0
+    variant_filter = parse_requested_filter(search_type, request.args.get(search_type, type=str))
 
-    if search_type == "genes":
-        variant_filter, num_matched = parse_gene_panel(
-            request.args.get("genes", type=str)
-        )
-
-    elif search_type == "regions":
-        variant_filter, num_matched = parse_region(
-            request.args.get("regions", type=str)
-        )
-
-    elif search_type == "positions":
-        variant_filter, num_matched = parse_position(
-            request.args.get("positions", type=str)
-        )
-
-    elif search_type == "rsids":
-        variant_filter, num_matched = parse_rsid(request.args.get("rsids", type=str))
+    query = models.Variant.query.filter(variant_filter)
+    num_matched = query.with_entities(
+        func.count(distinct(models.Variant.variant_id))
+    ).scalar()
 
     if num_matched == 0:
-        app.logger.error("No genes/variants found")
+        app.logger.error("No variants found")
         abort(404, description="No variants found")
 
     # filter out all gene aliases except current_approved_symbol and make result an `aliased` subquery \
