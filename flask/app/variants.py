@@ -243,7 +243,7 @@ def parse_region(region: str):
     CHR, START, END = 0, 1, 2
     # format check
     # 1: chromosome, 2: start position, 3: end position
-    region_pattern = re.compile(r"chr([\da-zA-Z]+):([\d]+)-([\d]+)")
+    region_pattern = re.compile(r"^chr([\da-zA-Z]+):([\d]+)-([\d]+)$")
     matches = [region_pattern.match(r) for r in region.split(",")]
 
     app.logger.info("Requested region: %s", region)
@@ -254,7 +254,7 @@ def parse_region(region: str):
 
     # prepare set of regions
     region_list = []
-    for i, r in enumerate(set([match.groups() for match in matches])):
+    for r in set([match.groups() for match in matches]):
         # fix regions to be consistent (start-end)
         if int(r[START]) > int(r[END]):
             region_list.append((r[CHR], r[END], r[START]))
@@ -293,7 +293,7 @@ def parse_position(position: str):
     CHR, POS = 0, 1
     # format check
     # 1: chromosome, 2: position
-    position_pattern = re.compile(r"chr([\da-zA-Z]+):([\d]+)")
+    position_pattern = re.compile(r"^chr([\da-zA-Z]+):([\d]+)$")
     matches = [position_pattern.match(p) for p in position.split(",")]
 
     app.logger.info("Requested position: %s", position)
@@ -324,6 +324,28 @@ def parse_position(position: str):
         app.logger.warning("No requested variants were found")
 
     return position_filter, found_variants
+
+
+def parse_rsid(rsid: str):
+    rsid_pattern = re.compile(r"^rs[\d]+$")
+    matches = [rsid_pattern.match(p) for p in rsid.split(",")]
+
+    if not all(match is not None for match in matches):
+        app.logger.error("Invalid rsID format: %s", rsid)
+        abort(400, description="Invalid rsID format")
+
+    rsid_set = set(["%{}%".format(match.group()) for match in matches])
+
+    rsid_filter = or_(*[models.Variant.rsids.like(r) for r in rsid_set])
+
+    query = models.Variant.query.filter(rsid_filter)
+    found_variants = query.with_entities(
+        func.count(distinct(models.Variant.variant_id))
+    ).scalar()
+    if found_variants == 0:
+        app.logger.warning("No requested variants were found")
+
+    return rsid_filter, found_variants
 
 
 def jsonify_variant_wise(tup, columns):
@@ -368,7 +390,7 @@ def summary(type: str):
 
     """
     # validate parameters such that only one search type is requested
-    valid_search_types = {"genes", "positions", "regions"}
+    valid_search_types = {"genes", "positions", "regions", "rsids"}
     requested_types = list(
         filter(lambda type: request.args.get(type) is not None, valid_search_types)
     )
@@ -407,6 +429,9 @@ def summary(type: str):
         variant_filter, num_matched = parse_position(
             request.args.get("positions", type=str)
         )
+
+    elif search_type == "rsids":
+        variant_filter, num_matched = parse_rsid(request.args.get("rsids", type=str))
 
     if num_matched == 0:
         app.logger.error("No genes/variants found")
@@ -522,14 +547,17 @@ def summary(type: str):
 
         columns = request.args.get("columns", type=str)
         if columns is not None:
-            columns = columns.split(",")
+            columns = {*columns.split(",")}
             # filter out faulty columns
             valid_columns = {col for col in agg_df.columns.values}
-            fixed_columns = [col for col in columns if col in valid_columns]
+            # maintain the order set by relevant_cols
+            fixed_columns = [
+                col for col in relevant_cols if col in valid_columns and col in columns
+            ]
             if len(fixed_columns) < len(columns):
                 app.logger.warn(
                     "Ignoring invalid columns from request: {}".format(
-                        set(columns) ^ set(fixed_columns)
+                        columns ^ set(fixed_columns)
                     )
                 )
             agg_df = agg_df.loc[:, fixed_columns]
