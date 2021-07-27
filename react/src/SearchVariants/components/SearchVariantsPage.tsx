@@ -11,7 +11,6 @@ import {
 } from "@material-ui/core";
 import { green } from "@material-ui/core/colors";
 import { Edit } from "@material-ui/icons";
-import { useSnackbar } from "notistack";
 import { QueryKey, useQueryClient } from "react-query";
 import { snakeCaseToTitle } from "../../functions";
 import { useDownloadCsv, useErrorSnackbar, useModalState } from "../../hooks";
