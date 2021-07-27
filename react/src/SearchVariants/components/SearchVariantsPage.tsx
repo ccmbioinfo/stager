@@ -340,21 +340,18 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                     disabled={disableControls}
                                 />
                             </Grid>
-                            {process.env.NODE_ENV === "development" && (
-                                // TODO: Remove dev-only rendering when endpoint is updated to accept report columns
-                                <Grid item xs={12}>
-                                    <Paper variant="outlined" className={classes.paper}>
-                                        <Typography variant="h6">{columnText}</Typography>
-                                        <Button
-                                            variant="outlined"
-                                            onClick={columnModal.onOpen}
-                                            endIcon={<Edit />}
-                                        >
-                                            Add / Remove Columns
-                                        </Button>
-                                    </Paper>
-                                </Grid>
-                            )}
+                            <Grid item xs={12}>
+                                <Paper variant="outlined" className={classes.paper}>
+                                    <Typography variant="h6">{columnText}</Typography>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={columnModal.onOpen}
+                                        endIcon={<Edit />}
+                                    >
+                                        Add / Remove Columns
+                                    </Button>
+                                </Paper>
+                            </Grid>
                         </Grid>
                         <Grid container item xs={12} md={6} wrap="nowrap">
                             <Grid item>
