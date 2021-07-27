@@ -11,6 +11,7 @@ import {
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
+import { useErrorSnackbar } from "../hooks";
 import { Field } from "../typings";
 import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
 
@@ -65,6 +66,7 @@ export default function DetailSection(props: DetailSectionProps) {
         props.collapsibleFields ? props.collapsibleFields : []
     );
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     // Props are the main source of truth about the state of the fields
     useEffect(() => {
@@ -138,9 +140,9 @@ export default function DetailSection(props: DetailSectionProps) {
             console.error(
                 `PATCH /api/${props.dataInfo?.type}s/${props.dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
             );
-            enqueueSnackbar(
-                `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier} - ${response.status} ${response.statusText}`,
-                { variant: "error" }
+            enqueueErrorSnackbar(
+                response,
+                `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier}`
             );
         }
     }

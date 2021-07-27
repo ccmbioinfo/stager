@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
 import { Chip, IconButton, makeStyles } from "@material-ui/core";
-import { Cancel, Delete, PlayArrow, Visibility } from "@material-ui/icons";
+import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
@@ -15,7 +15,7 @@ import {
     Note,
 } from "../../components";
 import { useUserContext } from "../../contexts";
-import { rowDiff, toKeyValue, updateTableFilter } from "../../functions";
+import { resetAllTableFilters, rowDiff, toKeyValue, updateTableFilter } from "../../functions";
 import {
     GET_DATASETS_URL,
     useColumnOrderCache,
@@ -23,10 +23,10 @@ import {
     useDatasetUpdateMutation,
     useDownloadCsv,
     useEnumsQuery,
+    useErrorSnackbar,
     useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useSortOrderCache,
-    useTableFilterCache,
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
@@ -105,6 +105,7 @@ export default function DatasetTable() {
     const [infoDataset, setInfoDataset] = useState<Dataset>();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     const { id: paramID } = useParams<{ id?: string }>();
 
@@ -120,9 +121,7 @@ export default function DatasetTable() {
     const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched, filesQuery.isFetched];
 
     const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
-    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Dataset>(
-        "datasetTableDefaultFilters"
-    );
+
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Dataset>(
         "datasetTableDefaultHidden"
     );
@@ -201,7 +200,6 @@ export default function DatasetTable() {
         }
         setInitialSorting(columns);
         setHiddenColumns(columns);
-        setInitialFilters(columns);
         return columns;
     }, [
         conditions,
@@ -209,7 +207,6 @@ export default function DatasetTable() {
         paramID,
         tissueSampleTypes,
         currentUser,
-        setInitialFilters,
         setInitialSorting,
         setHiddenColumns,
     ]);
@@ -234,10 +231,7 @@ export default function DatasetTable() {
                 title="Datasets"
                 tableRef={MTRef}
                 columns={columns}
-                data={query => {
-                    if (query) handleFilterChange(query.filters);
-                    return dataFetch(query);
-                }}
+                data={dataFetch}
                 options={{
                     selection: true,
                     exportMenu: [
@@ -282,9 +276,9 @@ export default function DatasetTable() {
                                         console.error(
                                             `PATCH /api/datasets/${newDataset.dataset_id} failed with ${response.status}: ${response.statusText}`
                                         );
-                                        enqueueSnackbar(
-                                            `Failed to edit Dataset ID ${oldDataset?.dataset_id} - ${response.status} ${response.statusText}`,
-                                            { variant: "error" }
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Dataset ID ${oldDataset?.dataset_id}`
                                         );
                                     },
                                 }
@@ -326,6 +320,12 @@ export default function DatasetTable() {
                     ),
                 }}
                 actions={[
+                    {
+                        tooltip: "Clear All Filters",
+                        icon: Refresh,
+                        position: "toolbar",
+                        onClick: () => resetAllTableFilters(MTRef),
+                    },
                     {
                         tooltip: "Delete selected datasets",
                         icon: Delete,

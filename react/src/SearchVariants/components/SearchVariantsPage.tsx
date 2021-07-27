@@ -12,10 +12,9 @@ import {
 import { green } from "@material-ui/core/colors";
 import { Edit } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { QueryKey } from "react-query";
-import { useQueryClient } from "react-query";
+import { QueryKey, useQueryClient } from "react-query";
 import { snakeCaseToTitle } from "../../functions";
-import { useDownloadCsv, useModalState } from "../../hooks";
+import { useDownloadCsv, useErrorSnackbar, useModalState } from "../../hooks";
 import { GeneAlias } from "../../typings";
 import GeneAutocomplete, { SearchCategory } from "./Autocomplete";
 import { CardButton } from "./CardButton";
@@ -147,7 +146,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         }
     };
 
-    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     const queryClient = useQueryClient();
     const queryCache = queryClient.getQueryCache();
@@ -202,15 +201,9 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         setSearchCategory(newCategory);
     };
 
-    const onError = async (response: Response) => {
+    const onError = (response: Response) => {
         setLoading(false);
-        try {
-            const payload = await response.json();
-            enqueueSnackbar(`${response.status} ${response.statusText}: ${payload.error}`);
-        } catch (error) {
-            console.error(error, response);
-            enqueueSnackbar(`${response.status} ${response.statusText}`);
-        }
+        enqueueErrorSnackbar(response);
     };
 
     const onSuccess = () => {
@@ -231,27 +224,21 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
         let panel: string;
         if (searchCategory === "genes") {
             panel = (searchTerms as GeneAlias[]).map(gene => `ENSG${gene.ensembl_id}`).join(",");
-            /*
-                In react-query, the onSuccess callback is not triggered when the query is returning data from cache.
-                QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
-                If so, the loading indicator is deactivated.
-            */
-            const key: QueryKey = [
-                {
-                    panel: panel,
-                },
-                `csv`,
-                `/api/summary/${downloadType}s`,
-            ];
-
-            const data = queryCache.find(key);
-            if (data === undefined && !loading) {
-                setLoading(true);
-            }
         } else {
             panel = (searchTerms as string[]).join(",");
         }
         const params = { [searchCategory]: panel };
+        /*
+            In react-query, the onSuccess callback is not triggered when the query is returning data from cache.
+            QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
+            If so, the loading indicator is deactivated.
+        */
+        const key: QueryKey = [params, `csv`, `/api/summary/${downloadType}s`];
+
+        const data = queryCache.find(key);
+        if (data === undefined && !loading) {
+            setLoading(true);
+        }
         if (columns.length < temporaryListOfReportColumns.length) {
             params["columns"] = columns.join(",");
         }

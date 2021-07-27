@@ -123,13 +123,14 @@ def list_participants(page: int, limit: int) -> Response:
             models.Participant.query.options(
                 joinedload(models.Participant.institution),
                 contains_eager(models.Participant.family),
-                contains_eager(models.Participant.tissue_samples).contains_eager(
-                    models.TissueSample.datasets
-                ),
+                contains_eager(models.Participant.tissue_samples)
+                .contains_eager(models.TissueSample.datasets)
+                .contains_eager(models.Dataset.linked_files),
             )
             .join(models.Participant.family)
             .outerjoin(models.Participant.tissue_samples)
             .outerjoin(models.TissueSample.datasets)
+            .outerjoin(models.Dataset.linked_files)
             .join(
                 models.groups_datasets_table,
                 models.Dataset.dataset_id
@@ -147,9 +148,9 @@ def list_participants(page: int, limit: int) -> Response:
             models.Participant.query.options(
                 joinedload(models.Participant.institution),
                 contains_eager(models.Participant.family),
-                joinedload(models.Participant.tissue_samples).joinedload(
-                    models.TissueSample.datasets
-                ),
+                joinedload(models.Participant.tissue_samples)
+                .joinedload(models.TissueSample.datasets)
+                .joinedload(models.Dataset.linked_files),
             )
             .join(models.Participant.family)
             .filter(*filters)
@@ -188,7 +189,13 @@ def list_participants(page: int, limit: int) -> Response:
             "updated_by": participant.updated_by.username,
             "created_by": participant.created_by.username,
             "tissue_samples": [
-                {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
+                {
+                    **asdict(tissue_sample),
+                    "datasets": [
+                        {**asdict(d), "linked_files": d.linked_files}
+                        for d in tissue_sample.datasets
+                    ],
+                }
                 for tissue_sample in participant.tissue_samples
             ],
         }

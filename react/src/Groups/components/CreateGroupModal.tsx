@@ -10,7 +10,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { useGroupCreateMutation } from "../../hooks";
+import { useErrorSnackbar, useGroupCreateMutation } from "../../hooks";
 import { Group } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -33,6 +33,7 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
     const groupPost = useGroupCreateMutation();
     const submitting = groupPost.status === "loading";
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     function onClose() {
         setGroup(emptyGroup);
@@ -50,9 +51,7 @@ export default function CreateGroupModal(props: CreateGroupModalProps) {
                 });
                 onClose();
             },
-            onError: async response => {
-                setErrorText(await response.text());
-            },
+            onError: (response: Response) => enqueueErrorSnackbar(response),
         });
     }
 

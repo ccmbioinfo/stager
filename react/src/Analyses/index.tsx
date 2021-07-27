@@ -9,6 +9,7 @@ import {
     Error,
     PersonPin,
     PlayArrow,
+    Refresh,
     Visibility,
 } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
@@ -22,7 +23,12 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
-import { checkPipelineStatusChange, isRowSelected, toKeyValue } from "../functions";
+import {
+    checkPipelineStatusChange,
+    isRowSelected,
+    resetAllTableFilters,
+    toKeyValue,
+} from "../functions";
 import {
     AnalysisOptions,
     GET_ANALYSES_URL,
@@ -31,9 +37,9 @@ import {
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
+    useErrorSnackbar,
     useHiddenColumnCache,
     useSortOrderCache,
-    useTableFilterCache,
 } from "../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../hooks/utils";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
@@ -155,6 +161,7 @@ export default function Analyses() {
     const history = useHistory();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
     const { id: paramID } = useParams<{ id: string }>();
 
     const tableRef = useRef<any>();
@@ -165,9 +172,7 @@ export default function Analyses() {
     const cacheDeps = [enumsQuery.isFetched];
 
     const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
-    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Analysis>(
-        "analysisTableDefaultFilters"
-    );
+
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
         "analysisTableDefaultHidden"
     );
@@ -311,14 +316,12 @@ export default function Analyses() {
         ];
         setHiddenColumns(columns);
         setInitialSorting(columns);
-        setInitialFilters(columns);
         return columns;
     }, [
         enums?.PriorityType,
         paramID,
         pipelineStatusLookup,
         priorityLookup,
-        setInitialFilters,
         setHiddenColumns,
         setInitialSorting,
     ]);
@@ -434,10 +437,7 @@ export default function Analyses() {
                     tableRef={tableRef}
                     columns={columns}
                     isLoading={analysisUpdateMutation.isLoading}
-                    data={query => {
-                        if (query) handleFilterChange(query.filters);
-                        return dataFetch(query);
-                    }}
+                    data={dataFetch}
                     options={{
                         rowStyle: data =>
                             getHighlightColor(theme, data.priority, data.analysis_state),
@@ -462,6 +462,19 @@ export default function Analyses() {
                             },
                         },
                         {
+                            icon: Add,
+                            tooltip: "Add New Analysis",
+                            position: "toolbar",
+                            isFreeAction: true,
+                            onClick: () => setDirect(true),
+                        },
+                        {
+                            tooltip: "Clear All Filters",
+                            icon: Refresh,
+                            position: "toolbar",
+                            onClick: () => resetAllTableFilters(tableRef),
+                        },
+                        {
                             icon: Cancel,
                             tooltip: "Cancel analysis",
                             position: "toolbarOnSelect",
@@ -469,13 +482,6 @@ export default function Analyses() {
                                 setActiveRows(rowData as Analysis[]);
                                 setCancel(true);
                             },
-                        },
-                        {
-                            icon: Add,
-                            tooltip: "Add New Analysis",
-                            position: "toolbar",
-                            isFreeAction: true,
-                            onClick: () => setDirect(true),
                         },
                         {
                             icon: PlayArrow,
@@ -607,9 +613,9 @@ export default function Analyses() {
                                         tableRef.current.onQueryChange();
                                     },
                                     onError: response => {
-                                        enqueueSnackbar(
-                                            `Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`,
-                                            { variant: "error" }
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Analysis ID ${oldData?.analysis_id}`
                                         );
                                         console.error(response);
                                     },
