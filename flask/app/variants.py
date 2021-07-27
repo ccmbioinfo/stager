@@ -406,7 +406,9 @@ def summary(type: str):
         user_id = current_user.user_id
         app.logger.debug("User is regular with ID '%s'", user_id)
 
-    variant_filter = parse_requested_filter(search_type, request.args.get(search_type, type=str))
+    variant_filter = parse_requested_filter(
+        search_type, request.args.get(search_type, type=str)
+    )
 
     query = models.Variant.query.filter(variant_filter)
     num_matched = query.with_entities(
