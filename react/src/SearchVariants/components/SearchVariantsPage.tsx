@@ -117,29 +117,24 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
 
     const downloadCsv = () => {
         const panel = selectedGenes.map(gene => `ENSG${gene.ensembl_id}`).join(",");
-
+        const params = { genes: panel };
         /*
-            In react-query, the onSuccess callback is not triggered when the query is returning data from cache. 
+            In react-query, the onSuccess callback is not triggered when the query is returning data from cache.
             QueryCache can be used to find whether a specific query key has already existed in cache and can be immediately returned.
-            If so, the loading indicator is deactivated. 
+            If so, the loading indicator is deactivated.
         */
 
-        const key: QueryKey = [
-            {
-                panel: panel,
-            },
-            `csv`,
-            `/api/summary/${downloadType}s`,
-        ];
+        const key: QueryKey = [params, `csv`, `/api/summary/${downloadType}s`];
 
         const data = queryCache.find(key);
         if (data === undefined && !loading) {
             setLoading(true);
         }
+
         if (downloadType === "participant") {
-            return downloadParticipantwiseCsv({ panel });
+            return downloadParticipantwiseCsv(params);
         }
-        return downloadVariantwiseCsv({ panel });
+        return downloadVariantwiseCsv(params);
     };
 
     useEffect(() => {
