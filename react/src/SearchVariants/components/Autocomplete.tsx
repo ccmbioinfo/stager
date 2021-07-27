@@ -22,7 +22,7 @@ const searchCategoryMap: Map<SearchCategory, string> = new Map([
     ["genes", "Gene"],
     ["regions", "Region"],
     ["positions", "Variant Position"],
-    // ["rsids", "refSNP ID"],
+    ["rsids", "refSNP ID"],
 ]);
 
 interface GeneAutocompleteProps {
@@ -107,10 +107,9 @@ function validateSearch(searchCategory: SearchCategory, search: string) {
         case "regions":
             return /^chr[\da-zA-Z]+:[\d]+-[\d]+$/g.test(search);
         case "positions":
-            return /^chr[\da-zA-Z]+:[\d]+$/.test(search);
+            return /^chr[\da-zA-Z]+:[\d]+$/g.test(search);
         case "rsids":
-            // TODO
-            return false;
+            return /^rs[\d]+$/g.test(search);
         default:
             return false;
     }
@@ -129,8 +128,8 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
                 return "Search by Region (eg. chr1:11111-22222, chrX:333333-444444)";
             case "positions":
                 return "Search by Position (eg. chr1:11111, chrX:3333333)";
-            // case "rsids":
-            //     return "Search by refSNP ID";
+            case "rsids":
+                return "Search by refSNP ID (eg. rs55555555)";
             default:
                 console.error("Unexpected search category");
                 return "";
