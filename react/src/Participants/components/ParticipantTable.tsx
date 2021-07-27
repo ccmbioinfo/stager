@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Column } from "@material-table/core";
-import { FileCopy, Visibility } from "@material-ui/icons";
+import { FileCopy, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
 import {
@@ -13,7 +13,13 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
-import { countArray, rowDiff, stringToBoolean, toKeyValue } from "../../functions";
+import {
+    countArray,
+    resetAllTableFilters,
+    rowDiff,
+    stringToBoolean,
+    toKeyValue,
+} from "../../functions";
 import {
     GET_PARTICIPANTS_URL,
     useColumnOrderCache,
@@ -24,7 +30,6 @@ import {
     useMetadatasetTypesQuery,
     useParticipantsPage,
     useSortOrderCache,
-    useTableFilterCache,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
@@ -66,9 +71,6 @@ export default function ParticipantTable() {
         "participantTableSortOrder"
     );
 
-    const { handleFilterChange, setInitialFilters } = useTableFilterCache<Participant>(
-        "participantTableDefaultFilters"
-    );
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Participant>(
         "participantTableDefaultHidden"
     );
@@ -142,17 +144,8 @@ export default function ParticipantTable() {
         ];
         setInitialSorting(columns);
         setHiddenColumns(columns);
-        setInitialFilters(columns);
         return columns;
-    }, [
-        datasetTypes,
-        sexTypes,
-        participantTypes,
-        paramID,
-        setInitialFilters,
-        setInitialSorting,
-        setHiddenColumns,
-    ]);
+    }, [datasetTypes, sexTypes, participantTypes, paramID, setInitialSorting, setHiddenColumns]);
 
     const downloadCsv = useDownloadCsv(GET_PARTICIPANTS_URL);
 
@@ -205,10 +198,7 @@ export default function ParticipantTable() {
             <MaterialTablePrimary
                 tableRef={tableRef}
                 columns={columns}
-                data={query => {
-                    if (query) handleFilterChange(query.filters);
-                    return dataFetch(query);
-                }}
+                data={dataFetch}
                 title="Participants"
                 options={{
                     selection: false,
@@ -266,6 +256,12 @@ export default function ParticipantTable() {
                     },
                 }}
                 actions={[
+                    {
+                        tooltip: "Clear All Filters",
+                        icon: Refresh,
+                        position: "toolbar",
+                        onClick: () => resetAllTableFilters(tableRef),
+                    },
                     {
                         tooltip: "View participant details",
                         icon: Visibility,

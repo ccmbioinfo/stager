@@ -370,12 +370,23 @@ export const updateTableFilter = (
         const col = tableRef.current.dataManager.columns.find((c: any) => c.field === column);
         if (col) {
             col.tableData.filterValue = filterVal;
-            tableRef.current.dataManager.changeApplyFilters(true);
-            tableRef.current.dataManager.filterData();
-            tableRef.current.onFilterChangeDebounce();
-            tableRef.current.onQueryChange();
+            updateFiltersAndRequery(tableRef);
         }
     }
+};
+
+export const resetAllTableFilters = (tableRef: React.MutableRefObject<any>) => {
+    tableRef.current.dataManager.columns.forEach((col: any) => (col.tableData.filterValue = ""));
+    updateFiltersAndRequery(tableRef);
+};
+
+export const updateFiltersAndRequery = (tableRef: React.MutableRefObject<any>) => {
+    tableRef.current.dataManager.changeApplyFilters(true);
+    tableRef.current.dataManager.filterData();
+    tableRef.current.onFilterChangeDebounce();
+    // sometimes with lots of filters we see timing issues, maybe b/c of mt's internal callbacks?
+    // if we move the requery step to the next tick the issues seem to go away
+    setTimeout(() => tableRef.current.onQueryChange);
 };
 
 /**

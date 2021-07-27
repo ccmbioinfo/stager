@@ -16,7 +16,7 @@ export default function BooleanFilter<RowData extends object>(props: {
         <FormControl>
             <Select
                 fullWidth
-                value={(props.columnDef as any).tableData.filterValue}
+                value={(props.columnDef as any).tableData.filterValue || ""}
                 onChange={e => {
                     props.onFilterChanged((props.columnDef as any).tableData.id, e.target.value);
                 }}
