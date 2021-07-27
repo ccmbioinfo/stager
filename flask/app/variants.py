@@ -6,7 +6,7 @@ from flask import Blueprint, Response, abort, current_app as app, jsonify, reque
 from flask_login import current_user, login_required
 import pandas as pd
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import aliased, contains_eager, load_only
+from sqlalchemy.orm import aliased, contains_eager
 from sqlalchemy.sql import and_, or_
 
 from . import models
@@ -339,30 +339,6 @@ def parse_requested_filter(search_type: str, param: str):
     # This shouldn't happen
     app.logger.error("Invalid search type '%s'", search_type)
     abort(400, description="Invalid parameter")
-
-
-def jsonify_variant_wise(tup, columns):
-
-    base_dict = {
-        **asdict(tup[0]),
-        **asdict(tup[1]),
-    }
-
-    if "name" in columns[2]:
-        base_dict["name"] = tup[0].aliases[0].name if tup[0].aliases else None
-
-    try:
-        base_dict["genotype"] = [
-            {
-                **asdict(genotype),
-                "participant_codename": genotype.dataset.tissue_sample.participant.participant_codename,
-            }
-            for genotype in tup[1].genotype
-        ]
-    except KeyError:
-        pass
-
-    return base_dict
 
 
 @variants_blueprint.route("/api/summary/<string:type>", methods=["GET"])
