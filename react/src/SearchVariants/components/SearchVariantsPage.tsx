@@ -298,6 +298,7 @@ const SearchVariantsPage: React.FC<SearchVariantsPageProps> = () => {
                                     onSelect={handleAutocompleteSelect}
                                     searchCategory={searchCategory}
                                     onCategoryChange={handleCategoryChange}
+                                    selected={searchTerms}
                                 />
                             </Grid>
                             <Grid item>

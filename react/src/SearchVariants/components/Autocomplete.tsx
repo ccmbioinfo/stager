@@ -31,6 +31,7 @@ interface GeneAutocompleteProps {
     onSearch?: () => void;
     onSelect: (result: GeneAlias | string) => void;
     onCategoryChange: (newCategory: SearchCategory) => void;
+    selected: (GeneAlias | string)[];
 }
 
 interface SearchCategorySelectProps {
@@ -102,17 +103,27 @@ const useStyles = makeStyles<Theme, GeneAutocompleteProps>(theme => ({
 }));
 
 // Return whether the provided search string is valid for the given category
-function validateSearch(searchCategory: SearchCategory, search: string) {
+// except for genes
+function validateSearch(
+    searchCategory: SearchCategory,
+    search: string,
+    selected: (GeneAlias | string)[]
+) {
+    let validFormat = false;
     switch (searchCategory) {
         case "regions":
-            return /^chr[\da-zA-Z]+:[\d]+-[\d]+$/g.test(search);
+            validFormat = /^chr[\da-zA-Z]+:[\d]+-[\d]+$/g.test(search);
+            break;
         case "positions":
-            return /^chr[\da-zA-Z]+:[\d]+$/g.test(search);
+            validFormat = /^chr[\da-zA-Z]+:[\d]+$/g.test(search);
+            break;
         case "rsids":
-            return /^rs[\d]+$/g.test(search);
+            validFormat = /^rs[\d]+$/g.test(search);
+            break;
         default:
             return false;
     }
+    return validFormat && !selected.includes(search);
 }
 
 const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocompleteProps) => {
@@ -148,11 +159,16 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
     const options: GeneAutocompleteOption[] =
         props.searchCategory === "genes"
             ? results?.data.filter(d => d.name).map(d => ({ label: d.name, value: d })) || []
-            : validateSearch(props.searchCategory, search)
+            : validateSearch(props.searchCategory, search, props.selected)
             ? [{ label: search, value: search }]
             : [];
 
-    const noResultsText = props.searchCategory === "genes" ? "No Results" : "Invalid Format";
+    const noResultsText =
+        props.searchCategory === "genes"
+            ? "No Results"
+            : props.selected.includes(search)
+            ? `${search} already selected`
+            : "Invalid Format";
 
     return (
         <Autocomplete
