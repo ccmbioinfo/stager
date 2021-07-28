@@ -151,7 +151,12 @@ function OIDCRedirectHandler(props: LoginProps) {
                     )}
 
                     {!isLoading && error && (
-                        <Grid container alignItems="baseline" justify="space-between" spacing={1}>
+                        <Grid
+                            container
+                            alignItems="baseline"
+                            justifyContent="space-between"
+                            spacing={1}
+                        >
                             <Grid item>
                                 <Button
                                     onClick={() => {
@@ -209,7 +214,13 @@ function LoginForm({
     }
     const classes = useStyles();
     return (
-        <Grid container wrap="nowrap" direction="row" justify="space-around" alignItems="center">
+        <Grid
+            container
+            wrap="nowrap"
+            direction="row"
+            justifyContent="space-around"
+            alignItems="center"
+        >
             <Grid item>
                 <Typography variant="h4" align="center">
                     <Box fontWeight="fontWeightBold" m={1}>

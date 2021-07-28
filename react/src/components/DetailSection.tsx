@@ -149,7 +149,7 @@ export default function DetailSection(props: DetailSectionProps) {
 
     return (
         <>
-            <Grid container spacing={gridSpacing} justify="space-between">
+            <Grid container spacing={gridSpacing} justifyContent="space-between">
                 {props.title && (
                     <Grid item xs={titleWidth}>
                         <Typography variant="h6">{props.title}</Typography>
@@ -160,7 +160,7 @@ export default function DetailSection(props: DetailSectionProps) {
                     spacing={gridSpacing}
                     item
                     xs={props.dataInfo ? 10 : 12}
-                    justify="space-evenly"
+                    justifyContent="space-evenly"
                 >
                     <GridFieldsDisplay
                         fields={primaryFields}
@@ -206,7 +206,7 @@ export default function DetailSection(props: DetailSectionProps) {
             {props.collapsibleFields && (
                 <>
                     <Collapse in={moreDetails}>
-                        <Grid container spacing={gridSpacing} justify="space-evenly">
+                        <Grid container spacing={gridSpacing} justifyContent="space-evenly">
                             <GridFieldsDisplay
                                 fields={secondaryFields}
                                 columnWidth={props.columnWidth}
