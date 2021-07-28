@@ -458,7 +458,7 @@ class Variant(db.Model):
     )
     chromosome: str = db.Column(db.String(2), nullable=False)
     # GRCh37 coordinates, incompatible with others
-    position: int = db.Column(db.Integer, nullable=False)
+    position: int = db.Column(db.Integer, nullable=False, index=True)
     reference_allele: str = db.Column(db.String(300), nullable=False)
     alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
