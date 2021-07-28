@@ -136,11 +136,11 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
             case "genes":
                 return "Search by Gene Name (eg. APOE, VEGFA)";
             case "regions":
-                return "Search by Region (eg. chr1:11111-22222, chrX:333333-444444)";
+                return "Search by Region (eg. chr1:11111-22222)";
             case "positions":
-                return "Search by Position (eg. chr1:11111, chrX:3333333)";
+                return "Search by Position (eg. chr1:5555555)";
             case "rsids":
-                return "Search by refSNP ID (eg. rs55555555)";
+                return "Search by refSNP ID (eg. rs5555555)";
             default:
                 console.error("Unexpected search category");
                 return "";
@@ -203,6 +203,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
                     }
                     //persisting selected value will lead to option mismatch warnings
                     setSelectedValue(undefined);
+                    setSearch("");
                 }
             }}
             renderInput={params => {
