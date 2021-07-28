@@ -43,3 +43,5 @@ export * from "./useErrorSnackbar";
 export { useColumnOrderCache } from "./useColumnOrderCache";
 export { useSortOrderCache } from "./useSortOrderCache";
 export { useHiddenColumnCache } from "./useHiddenColumnCache";
+
+export * from "./useModalState";
