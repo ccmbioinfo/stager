@@ -441,7 +441,10 @@ class GeneAlias(db.Model):
     # Optional flexible type label, e.g., current hgnc gene symbol, previous gene symbol, synonyms
     kind: str = db.Column(db.String(50))
     # No point in allowing dupes for the same identifier though
-    __table_args__ = (db.UniqueConstraint("ensembl_id", "name"),)
+    __table_args__ = (
+        db.UniqueConstraint("ensembl_id", "name"),
+        db.Index("gene_alias_ensembl_id_IDX", "ensembl_id"),
+    )
 
 
 @dataclass
@@ -455,7 +458,7 @@ class Variant(db.Model):
     )
     chromosome: str = db.Column(db.String(2), nullable=False)
     # GRCh37 coordinates, incompatible with others
-    position: int = db.Column(db.Integer, nullable=False)
+    position: int = db.Column(db.Integer, nullable=False, index=True)
     reference_allele: str = db.Column(db.String(300), nullable=False)
     alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
