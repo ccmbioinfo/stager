@@ -27,17 +27,7 @@ What you will need to get started:
 -   A realm that isn't the default Master realm ([`docker-compose.oidc.yaml`](../docker-compose.oidc.yaml) creates a "ccm" realm for you)
 -   Admin access to a third-party identity provider with OpenID Connect v1.0 support (eg. Auth0)
 
-1. Access the **Identity Providers screen** in the Keycloak Admin Console and **add an OpenID Connect v1.0 provider**
-
-    - Log into the Keycloak Admin Console
-    - Navigate to your non-master realm from the top-left dropdown menu
-    - Navigate to the Identity Providers screen from the left-hand menu
-    - Open the "Add Provider..." dropdown menu in the centre of the screen
-    - Select "OpenID Connect v1.0" from the dropdown menu, under "User-Defined"
-        - (If your provider is listed under Social, then select that option instead.
-          For this setup, we assume that social ID providers will not be used.)
-
-1. In a different tab/window, login to your **third-party provider** and **add Keycloak as a Client**
+1. Login to your **third-party provider** and **add Keycloak as a Client**
 
     - (This process varies depending on the provider used, so the steps below are generalized)
     - Login to your third-party ID provider's Admin or Management page
@@ -52,8 +42,15 @@ What you will need to get started:
             - _Authorization Endpoint_
             - _Token Endpoint_
 
-1. Fill out the Keycloak Provider form with your provider's client credentials
+1. Login to **Keycloak** Admin Console and **add an OpenID Connect v1.0 provider**
 
+    - Log into the Keycloak Admin Console
+    - Navigate to your non-master realm from the top-left dropdown menu
+    - Navigate to the Identity Providers screen from the left-hand menu
+    - Open the "Add Provider..." dropdown menu in the centre of the screen
+    - Select "OpenID Connect v1.0" from the dropdown menu, under "User-Defined"
+        - (If your provider is listed under Social, then select that option instead.
+          For this setup, we assume that social ID providers will not be used.)
     - Fill out the _Client ID_, _Client Secret_, and _Client Authentication Method_ fields
       in the Keycloak form with those from your ID provider
     - Copy-paste your provider's _OpenID Configuration_ URL to the "Import from
@@ -67,7 +64,8 @@ What you will need to get started:
           button to import the metadata
     - Click "Save" at the bottom of the form
 
-1. Link third-party providers to your Keycloak users
+1. **Link third-party providers** to your Keycloak users
+
     - Navigate to the Users screen from the left-hand menu
     - Choose a user to edit and click "Edit"
     - Navigate to the "Identity Provider Links" tab
