@@ -53,6 +53,7 @@ What you will need to get started:
             - _Token Endpoint_
 
 1. Fill out the Keycloak Provider form with your provider's client credentials
+
     - Fill out the _Client ID_, _Client Secret_, and _Client Authentication Method_ fields
       in the Keycloak form with those from your ID provider
     - Copy-paste your provider's _OpenID Configuration_ URL to the "Import from
@@ -65,3 +66,19 @@ What you will need to get started:
           JSON response to a `.json` file. From there, use the "Import from File"
           button to import the metadata
     - Click "Save" at the bottom of the form
+
+1. Link third-party providers to your Keycloak users
+    - Navigate to the Users screen from the left-hand menu
+    - Choose a user to edit and click "Edit"
+    - Navigate to the "Identity Provider Links" tab
+    - Click "Create"
+    - Fill out the form with the Identity Provider name, User ID and
+      Username for that user
+        - User ID corresponds to the subject claim that the identity provider would
+          provide for this user
+        - If there is no username for this user for whatever reason, simply enter the
+          User ID in the username field too
+    - Click "Save" at the bottom of the form
+
+After completing all these steps, your users should now be able to sign into Stager via Keycloak,
+using login credentials from whichever provider that you make available to them.
