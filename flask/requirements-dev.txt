@@ -86,7 +86,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.9.5
+pylint==2.9.6
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
