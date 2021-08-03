@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { createMuiTheme, IconButton, ThemeProvider } from "@material-ui/core";
+import { createTheme, IconButton, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -153,7 +153,7 @@ export default function App() {
 
     const globalTheme = useMemo(
         () =>
-            createMuiTheme({
+            createTheme({
                 typography: {
                     fontSize: 12,
                 },

@@ -45,7 +45,7 @@ export default function UserRow(props: {
     const [open, setOpen] = useState(false);
 
     const gridProps: GridProps = {
-        justify: "space-between",
+        justifyContent: "space-between",
         alignItems: "baseline",
         spacing: 2,
     };

@@ -22,13 +22,15 @@ export default function SecretDisplay(props: {
             <Typography>
                 <b>{props.title}</b>
                 <Tooltip title={`${open ? "Hide" : "Show"} key`}>
-                    <IconButton onClick={() => isOpen(!open)} disabled={!props.secret}>
-                        {open ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
+                    {/* Tooltip needs to listen to the child element's events to display the title, not a disabled button. Adding an empty wrapper fixes this.*/}
+                    <>
+                        <IconButton onClick={() => isOpen(!open)} disabled={!props.secret}>
+                            {open ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                    </>
                 </Tooltip>
                 <Tooltip title="Copy to clipboard">
-                    {/* prevent mui warnings about tooltip wrapping disabled button */}
-                    <span>
+                    <>
                         <IconButton
                             disabled={!props.secret}
                             onClick={() => {
@@ -41,7 +43,7 @@ export default function SecretDisplay(props: {
                         >
                             <FileCopy />
                         </IconButton>
-                    </span>
+                    </>
                 </Tooltip>
             </Typography>
             {props.loading ? (
