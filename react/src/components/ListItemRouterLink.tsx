@@ -23,7 +23,7 @@ export default function ListItemRouterLink(props: ListItemRouterLinkProps) {
                     {...linkProps}
                     onMouseEnter={() => setOpenTooltip(true)}
                     onMouseLeave={() => setOpenTooltip(false)}
-                ></Link>
+                />
             )),
         [props.to]
     );
