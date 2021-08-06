@@ -21,10 +21,10 @@ import {
     Family,
     UnlinkedFile,
 } from "../../typings";
+import { getOptions as _getOptions, getColumns, objArrayToCSV, participantColumns } from "../utils";
 import DataEntryTableRow from "./DataEntryTableRow";
 import DataEntryToolbar from "./DataEntryToolbar";
 import { HeaderCell } from "./TableCells";
-import { getOptions as _getOptions, getColumns, objArrayToCSV, participantColumns } from "./utils";
 
 export interface DataEntryTableProps {
     data: DataEntryRow[];

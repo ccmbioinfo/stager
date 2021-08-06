@@ -3,8 +3,8 @@ import { TableRow } from "@material-ui/core";
 import { Delete, LibraryAdd } from "@material-ui/icons";
 import { useFamiliesQuery } from "../../hooks";
 import { DataEntryHeader, DataEntryRow, Family, UnlinkedFile } from "../../typings";
+import { participantColumns } from "../utils";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
-import { participantColumns } from "./utils";
 
 interface DataEntryTableRowProps {
     row: DataEntryRow;

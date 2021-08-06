@@ -9,7 +9,7 @@ import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
 import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import { DataEntryRow, DataEntryRowBase } from "../typings";
 import DataEntryTable from "./components/DataEntryTable";
-import { participantColumns } from "./components/utils";
+import { participantColumns } from "./utils";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,

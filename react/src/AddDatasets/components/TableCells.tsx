@@ -13,7 +13,7 @@ import { Resizable } from "re-resizable";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
 import { strIsEmpty } from "../../functions";
 import { DataEntryHeader, DataEntryRow, Option, UnlinkedFile } from "../../typings";
-import { booleanColumns, dateColumns, enumerableColumns, toOption } from "./utils";
+import { booleanColumns, dateColumns, enumerableColumns, toOption } from "../utils";
 
 const useCellStyles = makeStyles(theme => ({
     textField: {
