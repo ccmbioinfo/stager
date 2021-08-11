@@ -2,7 +2,7 @@
  * Types used in data entry table.
  */
 
-import { DataEntryRow } from "../../typings";
+import { DataEntryHeader, DataEntryRow } from "../../typings";
 
 /**
  * The state of table data that the user has entered.
@@ -10,21 +10,39 @@ import { DataEntryRow } from "../../typings";
 export interface DataEntryTableState {
     rows: DataEntryRow[];
     groups: string[];
+    columns: DataEntryColumn[];
 }
 
 /**
  * The initial properties for the data entry table.
  */
-export interface DataEntryTableProperties {
+export interface DataEntryTableParameters {
+    columns: DataEntryHeader[];
+    initialRows: DataEntryRow[];
     columnRequirements: ColumnRequirement[];
-    permissionGroups: string[]; // group_code
+    permissionGroups: string[]; // Group.group_code
+}
+
+// Matches the fields in DataEntryColumn
+export type ColumnActionType = "required" | "disabled" | "hidden";
+
+/**
+ * A set of columns that can be required, disabled, or hidden.
+ * If a condition is provided, then that condition must be met
+ * for the action to occur. Otherwise, the action is always
+ * active.
+ */
+export interface ColumnRequirement {
+    columns: (keyof DataEntryRow)[];
+    condition?: (state: DataEntryTableState) => boolean;
+    action: ColumnActionType;
 }
 
 /**
- * A set of required columns. If a condition is provided, then
- * the columns are only required if the condition is met.
+ * Internal column state for DataEntryHeaders
  */
-export interface ColumnRequirement {
-    columns: Array<keyof DataEntryRow>;
-    condition?: (row: DataEntryRow) => boolean;
+export interface DataEntryColumn extends DataEntryHeader {
+    required?: boolean;
+    hidden?: boolean;
+    disabled?: boolean;
 }
