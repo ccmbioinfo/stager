@@ -1,16 +1,23 @@
-import { RowingSharp } from "@material-ui/icons";
-import { useEffect, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { createEmptyRows } from "../../functions";
 import { DataEntryRow } from "../../typings";
 import {
-    ColumnActionType,
     ColumnRequirement,
     DataEntryColumn,
     DataEntryTableParameters,
     DataEntryTableState,
 } from "./typings";
 
-export interface DataEntryClient {}
+type DataEntryValue = DataEntryRow[keyof DataEntryRow];
+
+export interface DataEntryClient {
+    rows: DataEntryRow[];
+    groups: string[];
+    columns: DataEntryColumn[];
+    handleDelete: (index: number) => void;
+    handleDuplicate: (index: number) => void;
+    handleEdit: (value: DataEntryValue, field: keyof DataEntryRow, rowIndex: number) => void;
+}
 
 // Duplicate a given row, if it exists
 interface DuplicateAction {
@@ -34,7 +41,7 @@ interface EditAction {
     type: "edit";
     index: number; // row index
     field: keyof DataEntryRow; // column field
-    value: DataEntryRow[EditAction["field"]];
+    value: DataEntryValue;
 }
 
 // Update permission groups to new array of groups
@@ -85,6 +92,7 @@ function reducer(state: DataEntryTableState, action: DataEntryStateAction) {
             // Add a new empty row to the end of the row array
             return { ...state, rows: state.rows.concat(createEmptyRows(1)) };
         case "edit":
+            // Edit a given field for a given row
             if (action.index < 0 || action.index >= state.rows.length) {
                 console.error(`Invalid row index to edit: ${action.index}`);
                 return state;
@@ -131,23 +139,27 @@ export function useDataEntryClient(params: DataEntryTableParameters): DataEntryC
     // Handle column requirements when row data changes
     useEffect(() => {
         dispatch({ type: "requirement", requirements: params.columnRequirements });
-    }, [state.rows, params.columnRequirements]);
+    }, [state.rows, state.groups, params.columnRequirements]);
 
-    const handleDuplicate = (index: number) =>
-        dispatch({
-            type: "duplicate",
-            index: index,
-        });
+    // prevent re-renders by using same memoized object
+    const client = useMemo<DataEntryClient>(
+        () => ({
+            ...state,
+            handleDuplicate: (index: number) =>
+                dispatch({
+                    type: "duplicate",
+                    index: index,
+                }),
+            handleDelete: (index: number) =>
+                dispatch({
+                    type: "delete",
+                    index: index,
+                }),
+            handleEdit: (value: DataEntryValue, field: keyof DataEntryRow, rowIndex: number) =>
+                dispatch({ type: "edit", value, field, index: rowIndex }),
+        }),
+        [state, dispatch]
+    );
 
-    const handleDelete = (index: number) =>
-        dispatch({
-            type: "delete",
-            index: index,
-        });
-
-    return {
-        ...state,
-        handleDuplicate,
-        handleDelete,
-    };
+    return client;
 }
