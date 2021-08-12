@@ -58,7 +58,6 @@ services:
       ENABLE_OIDC: "true"
       OIDC_CLIENT_ID: "ccm-stager"
       OIDC_CLIENT_SECRET: "$$not_a_secret"
-      OIDC_HOST: "${KEYCLOAK_HOST}"
       OIDC_WELL_KNOWN: "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration"
       OIDC_PROVIDER: "keycloak"
       KEYCLOAK_HOST: "http://keycloak:8080"

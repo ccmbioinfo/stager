@@ -322,8 +322,12 @@ def fetch_userinfo(token: str):
     return userinfo_response
 
 
-def get_realm_roles_from_userinfo(user_info: dict):
-    return user_info.get("realm_access", {}).get("roles")
+def get_client_roles_from_userinfo(user_info: dict):
+    clients = user_info.get("resource_access", {})
+    print(clients)
+    roles = [clients[key].get("roles", []) for key in clients.keys()]
+    print(roles)
+    return [role for role in roles for role in role]
 
 
 def get_user_identity_from_userinfo(user_info: dict):
@@ -350,7 +354,7 @@ def require_login_or_token_with_role(role: str):
                     raise unauthorized
                 token = auth_header[7:]
                 user_info = fetch_userinfo(token)
-                realm_roles = get_realm_roles_from_userinfo(user_info)
+                realm_roles = get_client_roles_from_userinfo(user_info)
                 if role not in realm_roles:
                     raise unauthorized
                 kwargs["client_user"] = get_user_identity_from_userinfo(user_info)

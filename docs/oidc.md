@@ -65,8 +65,7 @@ To create a client, do the following in the Keycloak admin GUI:
 -   select "create"
 -   name the client and save
 -   on the "Settings" tab, set "access type" to "Confidential" and set "Service Accounts" to "enabled" (Service accounts are the client account itself, unassociated with a user in the realm). The other settings, besides "enabled", can be switched off.
--   if you need to create a new role (such as "analysis-management") go back to the main realm menu and select "Roles" from the left-hand-side menu, select "Add Role" and create it.
--   then grant the role to your new client by navigating to Clients > client-name > Service Account roles and adding the role
+-   if you need to create a new role (such as "analysis-management") navigate to the client you wish to give the role, select "Roles" from the overhead menu, enter the role information, and save. The select "Service Account Roles" from the overhead menu and select the client from the "Client Roles" dropdown, and then add the appropriate role to the account.
 
 You can get an access token using the client id and secret listed in the "Credentials" tab in the client menu. For example:
 
@@ -88,7 +87,7 @@ curl --location --request GET '<keycloak host>/auth/realms/ccm/protocol/openid-c
 
 ```
 
-To fit with our currently auth protocol, enhance security, and ensure good record keeping, a Stager user should be created with the subscriber id of the new client. The client can then perform actions on endpoints decorated with the `require_login_or_token_with_role` function, as long as the client has the appropirate role.
+In order to fit with our current auth protocol, enhance security, and ensure good record keeping, a Stager user should be created with the subscriber id of the new client. The client can then perform actions on endpoints decorated with the `require_login_or_token_with_role` function, as long as the client has the appropriate role.
 
 **Note** that this is definitely still a work in progress. To explore:
 

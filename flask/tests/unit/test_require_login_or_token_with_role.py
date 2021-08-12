@@ -85,7 +85,7 @@ def test_require_login_or_token_with_role_authorizes_request_when_user_has_appro
     mock_manager.unauthorized.side_effect = Unauthorized
     mock_local_request.headers = {"Authorization": "Bearer testtest"}
     mock_userinfo_endpoint.return_value = {
-        "realm_access": {"roles": ["test"]},
+        "resource_access": {"test-client-1": {"roles": ["test"]}},
         "sub": client_user_proxy_sub,
     }
 
@@ -135,7 +135,7 @@ def test_require_login_or_token_with_role_fails_request_when_user_has_wrong_role
     mock_manager.unauthorized.side_effect = Unauthorized
     mock_local_request.headers = {"Authorization": "Bearer testtest"}
     mock_userinfo_endpoint.return_value = {
-        "realm_access": {"roles": ["wrong"]},
+        "resource_access": {"test-client-1": {"roles": ["wrong"]}},
         "sub": client_user_proxy_sub,
     }
 
