@@ -8,7 +8,7 @@ from flask_login import UserMixin
 from flask import current_app as app, Request
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.exceptions import check_password_hash, Unauthorized
+from werkzeug.exceptions import Unauthorized
 
 from .extensions import db, login, oauth
 
