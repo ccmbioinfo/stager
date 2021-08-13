@@ -22,7 +22,6 @@ from .utils import (
     mixin,
     paged,
     paginated_response,
-    require_login_or_token_with_role,
     transaction_or_abort,
     validate_json,
 )
@@ -693,7 +692,7 @@ def delete_analysis(id: int):
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["PATCH"])
-@require_login_or_token_with_role("analysis-management")
+@login_required
 @validate_json
 def update_analysis(id: int, client_user: models.User = None):
 

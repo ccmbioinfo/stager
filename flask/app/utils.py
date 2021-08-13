@@ -14,14 +14,13 @@ from flask import (
     Request,
     send_file,
 )
-from requests import get
 from flask.json import JSONEncoder
-from flask_login import current_user, login_required
+from flask_login import current_user
 from flask_sqlalchemy import Model
 from sqlalchemy import exc
-from werkzeug.exceptions import HTTPException, Unauthorized
+from werkzeug.exceptions import HTTPException
 
-from .extensions import db, oauth
+from .extensions import db
 from .madmin import MinioAdmin
 from .models import User
 
@@ -307,59 +306,3 @@ def find(collection: Iterable[Mapping[str, Any]], pred: Callable):
         return next((item for item in collection if pred(item)))
     except StopIteration:
         return None
-
-
-def fetch_userinfo(token: str):
-    """get roles and other information from the userinfo endpoint"""
-    provider = app.config.get("OIDC_PROVIDER")
-    client = oauth.create_client(provider)
-    userinfo_endpoint = client.load_server_metadata().get("userinfo_endpoint")
-    userinfo_response = get(
-        userinfo_endpoint, headers={"Authorization": f"Bearer {token}"}
-    ).json()
-    if userinfo_response.get("error"):
-        abort(401, description=userinfo_response.get("error_description"))
-    return userinfo_response
-
-
-def get_client_roles_from_userinfo(user_info: dict):
-    clients = user_info.get("resource_access", {})
-    print(clients)
-    roles = [clients[key].get("roles", []) for key in clients.keys()]
-    print(roles)
-    return [role for role in roles for role in role]
-
-
-def get_user_identity_from_userinfo(user_info: dict):
-    sub = user_info["sub"]
-    client_user_proxy = User.query.filter(User.subject == sub).first()
-    if not client_user_proxy:
-        abort(401, description="Client proxy user not found!")
-    return client_user_proxy
-
-
-def require_login_or_token_with_role(role: str):
-    """function that returns the decorator with role bound"""
-
-    def _wrapper(controller: Callable):
-        """decorator for endpoints that are accessible with"""
-
-        @wraps(controller)
-        def _require_login_or_token_with_role(*args, **kwargs):
-            try:
-                return login_required(controller)(*args, **kwargs)
-            except Unauthorized as unauthorized:
-                auth_header = request.headers.get("Authorization")
-                if not role or not auth_header or not app.config.get("ENABLE_OIDC"):
-                    raise unauthorized
-                token = auth_header[7:]
-                user_info = fetch_userinfo(token)
-                realm_roles = get_client_roles_from_userinfo(user_info)
-                if role not in realm_roles:
-                    raise unauthorized
-                kwargs["client_user"] = get_user_identity_from_userinfo(user_info)
-            return controller(*args, **kwargs)
-
-        return _require_login_or_token_with_role
-
-    return _wrapper

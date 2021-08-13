@@ -56,7 +56,7 @@ For single sign-out to work correctly with Auth0 or Keycloak, ensure that the en
 
 ## Creating OAuth clients with client credentials grant
 
-To give third-party applications (such as pipeline runners, minio) access to Stager resources, we can create a Keycloak client and give that client the appropriate roles. The [client credential grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4) authorizes machine-to-machine actions between a resource provider and a client.
+To give third-party applications (such as pipeline runners, minio) access to Stager resources, we can create a new Keycloak client and a corresponding Stager user with the appropriate group permissions.
 
 To create a client, do the following in the Keycloak admin GUI:
 
@@ -64,8 +64,7 @@ To create a client, do the following in the Keycloak admin GUI:
 -   select "Clients" from the left-hand-side menu
 -   select "create"
 -   name the client and save
--   on the "Settings" tab, set "access type" to "Confidential" and set "Service Accounts" to "enabled" (Service accounts are the client account itself, unassociated with a user in the realm). The other settings, besides "enabled", can be switched off.
--   if you need to create a new role (such as "analysis-management") navigate to the client you wish to give the role, select "Roles" from the overhead menu, enter the role information, and save. The select "Service Account Roles" from the overhead menu and select the client from the "Client Roles" dropdown, and then add the appropriate role to the account.
+-   on the "Settings" tab, set "access type" to "Confidential" and set "Service Accounts" to "enabled" (Service accounts are typically for machine-to-machine authentication and aren't associated with a specific user in the realm, though a subject id is created). The other settings, besides "enabled", can be switched off.
 
 You can get an access token using the client id and secret listed in the "Credentials" tab in the client menu. For example:
 
@@ -87,11 +86,7 @@ curl --location --request GET '<keycloak host>/auth/realms/ccm/protocol/openid-c
 
 ```
 
-In order to fit with our current auth protocol, enhance security, and ensure good record keeping, a Stager user should be created with the subscriber id of the new client. The client can then perform actions on endpoints decorated with the `require_login_or_token_with_role` function, as long as the client has the appropriate role.
-
-**Note** that this is definitely still a work in progress. To explore:
-
--   Moving role-based checks into policies, specifically [client policies](https://www.keycloak.org/docs/4.8/authorization_services/#_policy_client)
+Before the new client can communicate with Stager, a Stager user must be created with the subject id of the service account "user".
 
 ## Possible issues
 
