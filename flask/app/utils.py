@@ -18,11 +18,12 @@ from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
 from sqlalchemy import exc
+from sqlalchemy.orm.query import Query
 from werkzeug.exceptions import HTTPException
 
 from .extensions import db
 from .madmin import MinioAdmin
-from .models import User
+from .models import User, Group, Dataset
 
 
 def handle_error(e):
@@ -306,3 +307,46 @@ def find(collection: Iterable[Mapping[str, Any]], pred: Callable):
         return next((item for item in collection if pred(item)))
     except StopIteration:
         return None
+
+
+def get_current_user():
+    """if the user is an admin or login is disabled, a user's identity can be assumed by passing it in on the query string"""
+    app.logger.debug("Getting user")
+
+    user = None
+
+    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
+        user_id = request.args.get("user")
+        if user_id:
+            user = User.query.filter(User.user_id == user_id).first()
+            if not user:
+                abort(400, description="Provided user does not exist!")
+
+    if not user:
+        user = current_user
+
+    app.logger.debug("user_id: '%s'", getattr(user, "user_id", None))
+
+    return user
+
+
+def filter_datasets_by_user_groups(query: Query, user: User):
+    """
+    attach a subquery that filters datasets that don't share groups with the user
+    this function assumes that the query already includes a selection for models.Dataset
+    """
+    user_group_subquery = (
+        Group.query.join(Group.users)
+        .filter(User.user_id == user.user_id)
+        .with_entities(Group.group_id)
+        .subquery()
+    )
+
+    dataset_subquery = (
+        Dataset.query.join(Dataset.groups)
+        .filter(Group.group_id.in_(user_group_subquery))
+        .with_entities(Dataset.dataset_id)
+        .subquery()
+    )
+
+    return query.filter(Dataset.dataset_id.in_(dataset_subquery))

@@ -4,7 +4,6 @@ from flask import abort, jsonify, request, Blueprint
 from flask_login import login_required
 from sqlalchemy import func
 from sqlalchemy.orm import contains_eager, joinedload
-from .extensions import db
 from .models import Gene, GeneAlias
 from .utils import csv_response, expects_csv, expects_json, paged, paginated_response
 

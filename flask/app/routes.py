@@ -15,6 +15,7 @@ from .extensions import db, oauth
 from .utils import (
     enum_validate,
     find,
+    get_current_user,
     transaction_or_abort,
     validate_json,
     update_last_login,
@@ -331,12 +332,7 @@ def bulk_update():
         updated_by_id = 1
         created_by_id = 1
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user", models.User.user_id)
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
+    user = get_current_user()
 
     # get user's group(s)
     app.logger.info("Retrieving supplied user groups..")
@@ -345,24 +341,35 @@ def bulk_update():
     if requested_groups:
         requested_groups = requested_groups.split(",")
         app.logger.debug("User's groups are '%s'", requested_groups)
-        groups = (
-            models.Group.query.join(models.Group.users)
-            .filter(
-                models.User.user_id == user_id,
+        if user.is_admin:
+            groups = models.Group.query.filter(
                 models.Group.group_code.in_(requested_groups),
+            ).all()
+        else:
+            groups = (
+                models.Group.query.join(models.Group.users)
+                .filter(
+                    models.User.user_id == user.user_id,
+                    models.Group.group_code.in_(requested_groups),
+                )
+                .all()
             )
-            .all()
-        )
-        if len(requested_groups) != len(groups):
-            app.logger.error(
-                "User supplied groups and permission groups do not match up."
+
+        if len(requested_groups) != len(groups) and not user.is_admin:
+            app.logger.error("User supplied groups they don't belong to.")
+            abort(
+                401,
+                description="User does not belong to one or more of the provided groups",
             )
+
+        if not groups:
+            app.logger.error("User passed in a nonexistant group.")
             abort(404, description="Invalid group code provided")
     else:
         app.logger.debug("User did not provide groups, checking permissions..")
         groups = (
             models.Group.query.join(models.Group.users)
-            .filter(models.User.user_id == user_id)
+            .filter(models.User.user_id == user.user_id)
             .all()
         )
         app.logger.debug("User is part of '%s'", [x.group_name for x in groups])

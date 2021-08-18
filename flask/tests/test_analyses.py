@@ -7,14 +7,6 @@ from sqlalchemy.orm import joinedload
 # GET /api/analyses
 
 
-def test_no_analyses(test_database, client, login_as):
-    login_as("admin")
-
-    response = client.get("/api/analyses?user=5")
-    assert response.status_code == 200
-    assert len(response.get_json()["data"]) == 0
-
-
 def test_list_analyses_admin(test_database, client, login_as):
     login_as("admin")
 

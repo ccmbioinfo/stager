@@ -48,7 +48,7 @@ def minio_admin():
 def test_no_groups(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/groups?user=5")
+    response = client.get("/api/groups?user=4")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 

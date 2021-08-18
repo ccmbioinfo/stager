@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 def test_no_families(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/families?user=5")
+    response = client.get("/api/families?user=4")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 
@@ -73,15 +73,6 @@ def test_get_family(test_database, client, login_as):
     assert (
         len(response.get_json()[0]["participants"][0]["tissue_samples"]) == 1
         and len(response.get_json()[0]["participants"][1]["tissue_samples"]) == 1
-    )
-    # Check number of datasets in response
-    assert (
-        len(response.get_json()[0]["participants"][0]["tissue_samples"][0]["datasets"])
-        == 1
-        and len(
-            response.get_json()[0]["participants"][1]["tissue_samples"][0]["datasets"]
-        )
-        == 1
     )
 
 

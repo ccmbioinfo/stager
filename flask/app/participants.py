@@ -1,6 +1,6 @@
 from dataclasses import asdict
 
-from flask import Blueprint, Response, abort, current_app as app, jsonify, request
+from flask import Blueprint, Response, abort, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload
@@ -13,9 +13,11 @@ from .utils import (
     enum_validate,
     expects_csv,
     expects_json,
+    filter_datasets_by_user_groups,
     filter_in_enum_or_abort,
     filter_nullable_bool_or_abort,
     filter_updated_or_abort,
+    get_current_user,
     mixin,
     paged,
     paginated_response,
@@ -114,11 +116,21 @@ def list_participants(page: int, limit: int) -> Response:
     if updated:
         filters.append(filter_updated_or_abort(models.Participant.updated, updated))
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
+    user = get_current_user()
+
+    if user.is_admin:
+        query = (
+            models.Participant.query.options(
+                joinedload(models.Participant.institution),
+                contains_eager(models.Participant.family),
+                joinedload(models.Participant.tissue_samples)
+                .joinedload(models.TissueSample.datasets)
+                .joinedload(models.Dataset.linked_files),
+            )
+            .join(models.Participant.family)
+            .filter(*filters)
+        )
     else:
-        user_id = current_user.user_id
-    if user_id:  # Regular user or assumed identity, return only permitted participants
         query = (
             models.Participant.query.options(
                 joinedload(models.Participant.institution),
@@ -141,19 +153,7 @@ def list_participants(page: int, limit: int) -> Response:
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
-        )
-    else:  # Admin or LOGIN_DISABLED, authorized to query all participants
-        query = (
-            models.Participant.query.options(
-                joinedload(models.Participant.institution),
-                contains_eager(models.Participant.family),
-                joinedload(models.Participant.tissue_samples)
-                .joinedload(models.TissueSample.datasets)
-                .joinedload(models.Dataset.linked_files),
-            )
-            .join(models.Participant.family)
-            .filter(*filters)
+            .filter(models.users_groups_table.columns.user_id == user.user_id, *filters)
         )
 
     dataset_type = request.args.get("dataset_type", type=str)
@@ -250,41 +250,27 @@ def delete_participant(id: int):
 @validate_json
 def update_participant(id: int):
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
+    user = get_current_user()
 
-    if user_id:
-        participant = (
-            models.Participant.query.filter(models.Participant.participant_id == id)
-            .join(models.TissueSample)
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+    query = models.Participant.query.filter(models.Participant.participant_id == id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Participant.tissue_samples).join(
+                models.TissueSample.datasets
+            ),
+            user,
         )
-    else:
-        participant = models.Participant.query.filter(
-            models.Participant.participant_id == id
-        ).first_or_404()
+
+    participant = query.first_or_404()
 
     enum_error = mixin(participant, request.json, editable_columns)
 
     if enum_error:
         abort(400, description="enum_error")
 
-    if user_id:
-        participant.updated_by_id = user_id
+    if user:
+        participant.updated_by_id = user.user_id
 
     transaction_or_abort(db.session.commit)
 
