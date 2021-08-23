@@ -906,6 +906,7 @@ def add_hiraki_reports(
     # make dictionary of report paths where keys are sequencing id
     datasets = pd.read_csv(hiraki_datasets)
     analyses = pd.read_csv(hiraki_analyses)
+    mappable_families = {}
     report_dict = {}
     for index, row in analyses.iterrows():
         seq_id = row.Sequencing_id
@@ -925,6 +926,7 @@ def add_hiraki_reports(
 
     app.logger.info("There are reports for {} individuals".format(len(report_dict)))
     sample_list = []
+    mapped_inserted_reports = []
     # iterate through dictionary of seq_ids:report to add variants to respective analyses
     for seq_id in report_dict:
         app.logger.info(f"Preparing to add variants for {seq_id}")
@@ -1173,6 +1175,22 @@ def add_hiraki_reports(
                             db.session.rollback()
                             app.logger.error(str(e))
 
+                mapped_inserted_reports.append(variants)
+
+    analyses = [a.analysis_id for a in db.session.query(models.Analysis)]
+    variant_analyses = [a.analysis_id for a in db.session.query(models.Variant)]
+    missing = set([a for a in analyses if a not in variant_analyses])
     sample_list_len = len(set(sample_list))
-    print(f"Variants and genotypes added for {sample_list_len} datasets")
-    app.logger.info(f"Variants and genotypes added for {sample_list_len} datasets")
+    print(
+        f"Variants and genotypes added for {sample_list_len} datasets, datasets not added for analysis id {missing}"
+    )
+    app.logger.info(
+        f"Variants and genotypes added for {sample_list_len} datasets, datasets not added for analysis id {missing}"
+    )
+
+    # --- save down mapped reports as csv --
+    current_date = date.today()
+
+    pd.DataFrame(mapped_inserted_reports).to_csv(
+        "./mapped_reports_hiraki_{}.csv".format(current_date)
+    )
