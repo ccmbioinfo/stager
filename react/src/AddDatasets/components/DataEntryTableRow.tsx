@@ -3,25 +3,23 @@ import { TableRow } from "@material-ui/core";
 import { Delete, LibraryAdd } from "@material-ui/icons";
 import { useFamiliesQuery } from "../../hooks";
 import { DataEntryHeader, DataEntryRow, Family, UnlinkedFile } from "../../typings";
-import { participantColumns } from "../utils";
-import { DataEntryActionCell, DataEntryCell } from "./TableCells";
+import { participantColumns, useDataEntryContext } from "../utils";
+import { DataEntryActionCell, DataEntryCell, DataEntryCellProps } from "./TableCells";
 
-interface DataEntryTableRowProps {
+export interface DataEntryTableRowProps {
     row: DataEntryRow;
-    rowIndex: number;
-    requiredCols: DataEntryHeader[];
-    optionalCols: DataEntryHeader[];
-    rnaSeqCols: DataEntryHeader[];
+    columns: DataEntryHeader[];
     onDelete: () => void;
     onDuplicate: () => void;
-    onChange: (
-        newValue: string | boolean | UnlinkedFile[],
-        rowIndex: number,
-        col: DataEntryHeader,
-        families: Family[],
-        autopopulate?: boolean
-    ) => void;
-    getOptions: (rowIndex: number, col: DataEntryHeader, families: Family[]) => any[];
+    bindTableRow: (column: DataEntryHeader[]) => DataEntryCellProps;
+    // onChange: (
+    //     newValue: string | boolean | UnlinkedFile[],
+    //     rowIndex: number,
+    //     col: DataEntryHeader,
+    //     families: Family[],
+    //     autopopulate?: boolean
+    // ) => void;
+    // getOptions: (rowIndex: number, col: DataEntryHeader, families: Family[]) => any[];
 }
 
 /**
@@ -31,15 +29,7 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
     const [familySearch, setFamilySearch] = useState("");
     const familiesResult = useFamiliesQuery(familySearch);
     const families = familiesResult.data || [];
-    const showRNA = props.row.dataset_type === "RRS";
-
-    function handleChange(
-        newValue: string | boolean | UnlinkedFile[],
-        col: DataEntryHeader,
-        autopopulate?: boolean
-    ) {
-        return props.onChange(newValue, props.rowIndex, col, families, autopopulate);
-    }
+    const dataEntryClient = useDataEntryContext();
 
     function onSearch(col: DataEntryHeader, value: string) {
         if (col.field === "family_codename") {
@@ -47,12 +37,8 @@ export default function DataEntryTableRow(props: DataEntryTableRowProps) {
         }
     }
 
-    function getOptions(rowIndex: number, col: DataEntryHeader) {
-        return props.getOptions(rowIndex, col, families);
-    }
-
     return (
-        <TableRow key={props.rowIndex}>
+        <TableRow>
             <DataEntryActionCell
                 tooltipTitle="Delete row"
                 icon={<Delete />}

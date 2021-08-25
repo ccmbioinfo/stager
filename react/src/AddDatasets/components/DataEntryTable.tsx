@@ -21,17 +21,23 @@ import {
     Family,
     UnlinkedFile,
 } from "../../typings";
-import { getOptions as _getOptions, getColumns, objArrayToCSV, participantColumns } from "../utils";
+import {
+    getOptions as _getOptions,
+    getColumns,
+    objArrayToCSV,
+    participantColumns,
+    useDataEntryContext,
+} from "../utils";
 import DataEntryTableRow from "./DataEntryTableRow";
 import DataEntryToolbar from "./DataEntryToolbar";
 import { HeaderCell } from "./TableCells";
 
 export interface DataEntryTableProps {
-    data: DataEntryRow[];
-    onChange: (data: DataEntryRow[]) => void;
-    allGroups: string[]; // this user's permission groups
-    groups: string[]; // selected groups to submit as
-    setGroups: (selectedGroups: string[]) => void;
+    // data: DataEntryRow[];
+    // onChange: (data: DataEntryRow[]) => void;
+    // allGroups: string[]; // this user's permission groups
+    // groups: string[]; // selected groups to submit as
+    // setGroups: (selectedGroups: string[]) => void;
 }
 
 const useTableStyles = makeStyles(theme => ({
@@ -99,18 +105,10 @@ function findParticipant(newValue: string, column: string, row: DataEntryRow, fa
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
 
-    const columns = getColumns("required");
-    const RNASeqCols = getColumns("RNASeq");
+    const dataEntryClient = useDataEntryContext();
 
-    function getOptionalHeaders() {
-        const defaults = getDefaultColumns(fallbackColumns);
-        return getColumns("optional").map(header => ({
-            ...header,
-            hidden: !defaults.includes(header.field),
-        }));
-    }
-
-    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
+    const columns = dataEntryClient.columns;
+    const rows = dataEntryClient.rows;
 
     const filesQuery = useUnlinkedFilesQuery();
     const [files, setFiles] = useState<UnlinkedFile[]>([]);
@@ -220,54 +218,13 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                             <TableCell padding="checkbox" aria-hidden={true} />
                             <TableCell padding="checkbox" aria-hidden={true} />
                             {columns.map(cell => (
-                                <HeaderCell key={cell.field} header={cell.title + "*"} />
+                                <HeaderCell {...dataEntryClient.bindHeaderCell(cell)} />
                             ))}
-
-                            {optionals.map(
-                                cell =>
-                                    !cell.hidden && (
-                                        <HeaderCell key={cell.field} header={cell.title} />
-                                    )
-                            )}
-
-                            {showRNA &&
-                                RNASeqCols.map(cell => (
-                                    <HeaderCell key={cell.field} header={cell.title + "**"} />
-                                ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {props.data.map((row, rowIndex) => (
-                            <DataEntryTableRow
-                                row={row}
-                                rowIndex={rowIndex}
-                                key={rowIndex}
-                                requiredCols={columns}
-                                optionalCols={optionals}
-                                rnaSeqCols={RNASeqCols}
-                                getOptions={getOptions}
-                                onChange={onEdit}
-                                onDuplicate={() =>
-                                    props.onChange(
-                                        props.data.flatMap((value, index) =>
-                                            index === rowIndex
-                                                ? [
-                                                      value,
-                                                      {
-                                                          ...value,
-                                                          linked_files: undefined,
-                                                      },
-                                                  ]
-                                                : value
-                                        )
-                                    )
-                                }
-                                onDelete={() =>
-                                    props.onChange(
-                                        props.data.filter((value, index) => index !== rowIndex)
-                                    )
-                                }
-                            />
+                            <DataEntryTableRow {...dataEntryClient.bindTableRow(rowIndex)} />
                         ))}
                         <TableRow>
                             <TableCell className={classes.buttonCell} colSpan={100}>

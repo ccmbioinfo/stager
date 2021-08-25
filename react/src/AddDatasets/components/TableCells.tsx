@@ -31,62 +31,86 @@ const useCellStyles = makeStyles(theme => ({
     },
 }));
 
-/**
- * A 'general' data entry cell that returns a table cell with a user control
- * appropriate for the type of value required.
- */
-export function DataEntryCell(props: {
-    row: DataEntryRow;
-    rowIndex: number;
-    col: DataEntryHeader;
-    getOptions: (rowIndex: number, col: DataEntryHeader) => any[];
+type BooleanValueProps = {
+    variant: "boolean";
+    value: boolean;
+};
+
+type DateValueProps = {
+    variant: "date";
+    value: string;
+};
+
+type FileValueProps = {
+    variant: "file";
+    value: UnlinkedFile[];
+};
+
+type AutocompleteValueProps = {
+    variant: "autocomplete";
+    value: string | number | boolean;
+};
+
+type ValueProps = BooleanValueProps | DateValueProps | FileValueProps | AutocompleteValueProps;
+
+export type DataEntryCellProps = ValueProps & {
+    getOptions: () => any[];
     onEdit: (newValue: string | boolean | UnlinkedFile[], autocomplete?: boolean) => void;
     disabled?: boolean;
     required?: boolean;
     onSearch?: (value: string) => void;
     loading?: boolean;
-}) {
-    if (booleanColumns.includes(props.col.field)) {
-        return (
-            <CheckboxCell
-                value={!!props.row[props.col.field]}
-                onEdit={props.onEdit}
-                disabled={props.disabled}
-            />
-        );
-    } else if (dateColumns.includes(props.col.field)) {
-        return (
-            <DateCell
-                value={props.row[props.col.field]?.toString()}
-                onEdit={props.onEdit}
-                disabled={props.disabled}
-            />
-        );
-    } else if (props.col.field === "linked_files") {
-        return (
-            <TableCell padding="none" align="center">
-                <FileLinkingComponent
-                    values={props.row[props.col.field] || []}
-                    options={props.getOptions(props.rowIndex, props.col)}
+};
+
+/**
+ * A 'general' data entry cell that returns a table cell with a user control
+ * appropriate for the type of value required.
+ */
+export function DataEntryCell(props: DataEntryCellProps) {
+    switch (props.variant) {
+        case "boolean":
+            return (
+                <CheckboxCell
+                    value={!!props.value}
                     onEdit={props.onEdit}
                     disabled={props.disabled}
                 />
-            </TableCell>
-        );
+            );
+        case "date":
+            return (
+                <DateCell
+                    value={props.value!.toString()}
+                    onEdit={props.onEdit}
+                    disabled={props.disabled}
+                />
+            );
+        case "file":
+            return (
+                <TableCell padding="none" align="center">
+                    <FileLinkingComponent
+                        values={(props.value as UnlinkedFile[]) || []}
+                        options={props.getOptions()}
+                        onEdit={props.onEdit}
+                        disabled={props.disabled}
+                    />
+                </TableCell>
+            );
+        case "autocomplete":
+        default:
+            return (
+                <AutocompleteCell
+                    value={toOption(props.value)}
+                    options={props.getOptions(props.rowIndex, props.col)}
+                    onEdit={props.onEdit}
+                    disabled={props.disabled}
+                    column={props.col}
+                    aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
+                    required={props.required}
+                    onSearch={props.onSearch}
+                    loading={props.loading}
+                />
+            );
     }
-    return (
-        <AutocompleteCell
-            value={toOption(props.row[props.col.field])}
-            options={props.getOptions(props.rowIndex, props.col)}
-            onEdit={props.onEdit}
-            disabled={props.disabled}
-            column={props.col}
-            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
-            required={props.required}
-            onSearch={props.onSearch}
-            loading={props.loading}
-        />
-    );
 }
 
 /**
@@ -284,10 +308,15 @@ export function DataEntryActionCell(props: {
     );
 }
 
+export interface HeaderCellProps {
+    header: string;
+    hidden?: boolean;
+}
+
 /* A header cell in the DataEntryTable. */
-export function HeaderCell(props: { header: string }) {
+export function HeaderCell(props: HeaderCellProps) {
     const classes = useCellStyles();
-    return (
+    return props.hidden ? null : (
         <TableCell className={classes.removePadding}>
             <Resizable
                 className={classes.resizableHeader}

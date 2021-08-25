@@ -37,18 +37,23 @@ function formatFieldToTitle(field: string): string {
 }
 
 // Given a DataEntryRow field, return a new DataEntryHeader obj
-function toColumn(field: keyof DataEntryRow, hidden?: boolean, title?: string): DataEntryHeader {
+function toColumn(field: keyof DataEntryRow, title?: string): DataEntryHeader {
     return {
         field: field,
         title: title ? title : formatFieldToTitle(field),
-        hidden: hidden,
     };
 }
 
 // Return the specified category of DataEntryHeaders for use in the table
-export function getColumns(category: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
+export function getColumns(category?: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
+    if (!category) {
+        return Object.values(getDataEntryHeaders()).flatMap(headers =>
+            headers.map(field => toColumn(field))
+        );
+    }
+
     return (getDataEntryHeaders()[category] as Array<keyof DataEntryRow>).map(field =>
-        toColumn(field, category !== "required")
+        toColumn(field)
     );
 }
 

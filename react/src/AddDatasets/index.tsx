@@ -9,7 +9,8 @@ import { createEmptyRows, getDataEntryHeaders, strIsEmpty } from "../functions";
 import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import { DataEntryRow, DataEntryRowBase } from "../typings";
 import DataEntryTable from "./components/DataEntryTable";
-import { participantColumns } from "./utils";
+import { DataEntryContext, getColumns, participantColumns, useDataEntryClient } from "./utils";
+import { initialColumnRequirements } from "./utils/constants";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -31,10 +32,29 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+function getInitialRows() {
+    const savedProgress = sessionStorage.getItem("add-datasets-progress");
+    if (savedProgress !== null) {
+        const savedData = JSON.parse(savedProgress) as DataEntryRow[];
+        return savedData;
+    } else {
+        return createEmptyRows(1);
+    }
+}
+
 export default function AddParticipants() {
     const classes = useStyles();
     const history = useHistory();
+
     const { user: currentUser } = useUserContext();
+
+    const dataEntryClient = useDataEntryClient({
+        columns: getColumns(),
+        initialRows: getInitialRows(),
+        permissionGroups: currentUser.groups,
+        columnRequirements: initialColumnRequirements,
+    });
+
     const datasetsMutation = useBulkCreateMutation();
     const [data, setData] = useState<DataEntryRow[]>([]);
     const [open, setOpen] = useState(false);
@@ -45,13 +65,6 @@ export default function AddParticipants() {
 
     useEffect(() => {
         document.title = `Add Datasets | ${process.env.REACT_APP_NAME}`;
-        const savedProgress = sessionStorage.getItem("add-datasets-progress");
-        if (savedProgress !== null) {
-            const savedData = JSON.parse(savedProgress) as DataEntryRow[];
-            setData(savedData);
-        } else {
-            setData(createEmptyRows(1));
-        }
     }, []);
 
     useEffect(() => {
@@ -144,13 +157,15 @@ export default function AddParticipants() {
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container className={classes.container} maxWidth={false}>
-                <DataEntryTable
-                    data={data}
-                    onChange={handleDataChange}
-                    allGroups={currentUser.groups}
-                    groups={asGroups}
-                    setGroups={onChangeGroups}
-                />
+                <DataEntryContext.Provider value={dataEntryClient}>
+                    <DataEntryTable
+                    // data={data}
+                    // onChange={handleDataChange}
+                    // allGroups={currentUser.groups}
+                    // groups={asGroups}
+                    // setGroups={onChangeGroups}
+                    />
+                </DataEntryContext.Provider>
             </Container>
             <Tooltip title={errorMessage} interactive>
                 <Container className={classes.buttonContainer} maxWidth="sm">
