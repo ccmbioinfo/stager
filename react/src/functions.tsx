@@ -207,6 +207,7 @@ export function setProp<T, K extends keyof T>(obj: T, key: K, newValue: any) {
  * Return an object containing all headers for DataEntryTable.
  */
 export function getDataEntryHeaders() {
+    // TODO: rename this function; does not return DataEntryHeaders
     return {
         required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
         optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,

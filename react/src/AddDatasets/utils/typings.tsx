@@ -24,7 +24,9 @@ export interface DataEntryTableParameters {
 }
 
 // Matches the fields in DataEntryColumn
-export type ColumnActionType = "required" | "disabled" | "hidden";
+export type WholeColumnActionType = "hidden"[];
+export type RowColumnActionType = ("disabled" | "required")[];
+export type ColumnActionType = WholeColumnActionType | RowColumnActionType;
 
 /**
  * A set of columns that can be required, disabled, or hidden.
@@ -32,17 +34,42 @@ export type ColumnActionType = "required" | "disabled" | "hidden";
  * for the action to occur. Otherwise, the action is always
  * active.
  */
-export interface ColumnRequirement {
+interface ColumnRequirementBase {
     columns: (keyof DataEntryRow)[];
-    condition?: (state: DataEntryTableState) => boolean;
-    action: ColumnActionType;
+    actions: ColumnActionType;
 }
 
 /**
- * Internal column state for DataEntryHeaders
+ * For column requirements whose actions can apply
+ * to some cells within a column.
+ */
+export interface RowColumnRequirement extends ColumnRequirementBase {
+    condition?: (state: DataEntryTableState) => boolean[];
+    actions: RowColumnActionType;
+}
+
+/**
+ * For column requirements whose actions only make sense
+ * if they apply to an entire column.
+ */
+export interface WholeColumnRequirement extends ColumnRequirementBase {
+    condition?: (state: DataEntryTableState) => boolean;
+    actions: WholeColumnActionType;
+}
+
+export type ColumnRequirement = RowColumnRequirement | WholeColumnRequirement;
+
+/**
+ * Internal column state for DataEntryHeaders.
+ *
+ * Fields that support boolean arrays will be applied to cells
+ * whose row indexes are true in the array.
+ *
+ * Fields that support a boolean will be applied to all cells
+ * in that column.
  */
 export interface DataEntryColumn extends DataEntryHeader {
-    required?: boolean;
+    required?: boolean | boolean[];
     hidden?: boolean;
-    disabled?: boolean;
+    disabled?: boolean | boolean[];
 }

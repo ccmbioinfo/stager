@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useReducer } from "react";
 import { createEmptyRows } from "../../functions";
 import { DataEntryRow } from "../../typings";
+import { DataEntryTableRowProps } from "../components/DataEntryTableRow";
+import { DataEntryCellProps, HeaderCellProps } from "../components/TableCells";
 import {
     ColumnRequirement,
     DataEntryColumn,
@@ -17,6 +19,8 @@ export interface DataEntryClient {
     handleDelete: (index: number) => void;
     handleDuplicate: (index: number) => void;
     handleEdit: (value: DataEntryValue, field: keyof DataEntryRow, rowIndex: number) => void;
+    bindTableRow: (rowIndex: number) => DataEntryTableRowProps;
+    bindHeaderCell: (column: DataEntryColumn) => HeaderCellProps;
 }
 
 // Duplicate a given row, if it exists
@@ -111,9 +115,13 @@ function reducer(state: DataEntryTableState, action: DataEntryStateAction) {
                 const newColumnStatus =
                     requirement.condition === undefined || requirement.condition(state);
                 const affectedColumns = new Map(requirement.columns.map(col => [col, true]));
+
                 newColumns = newColumns.map(column => {
                     if (affectedColumns.get(column.field)) {
-                        column[requirement.action] = newColumnStatus;
+                        for (let action of requirement.actions) {
+                            // @ts-expect-error
+                            column[action] = newColumnStatus;
+                        }
                     }
                     return column;
                 });
@@ -157,6 +165,25 @@ export function useDataEntryClient(params: DataEntryTableParameters): DataEntryC
                 }),
             handleEdit: (value: DataEntryValue, field: keyof DataEntryRow, rowIndex: number) =>
                 dispatch({ type: "edit", value, field, index: rowIndex }),
+            // Props for DataEntryTableRow
+            bindTableRow: (rowIndex: number) => ({
+                key: rowIndex,
+                row: state.rows[rowIndex],
+                columns: state.columns,
+                onDelete: () => dispatch({ type: "delete", index: rowIndex }),
+                onDuplicate: () => dispatch({ type: "duplicate", index: rowIndex }),
+                bindTableCell: (column: DataEntryColumn): DataEntryCellProps => ({
+
+                }),
+            }),
+            // Props for HeaderCell
+            bindHeaderCell: (column: DataEntryColumn) => ({
+                key: column.field,
+                header:
+                    column.title +
+                    (column.required === true ? "*" : Array.isArray(column.required) ? "**" : ""),
+                hidden: column.hidden,
+            }),
         }),
         [state, dispatch]
     );

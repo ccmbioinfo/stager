@@ -169,16 +169,18 @@ export interface Info {
 }
 
 // Define these as classes so that we can create an array of keys later
+// Column requirements are defined as ColumnRequirements, not in types here
 export class DataEntryRowBase {
-    family_codename!: string;
-    participant_codename!: string;
-    participant_type!: string;
-    tissue_sample_type!: string;
-    dataset_type!: string;
-    condition!: string;
-    sequencing_date!: string;
+    family_codename?: string;
+    participant_codename?: string;
+    participant_type?: string;
+    tissue_sample_type?: string;
+    dataset_type?: string;
+    condition?: string;
+    sequencing_date?: string;
 }
 
+// Before the refactor, these were always optional
 export class DataEntryRowOptional {
     sex?: string;
     affected?: boolean;
@@ -205,14 +207,11 @@ export class DataEntryRowRNASeq {
     spike_in?: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
-    participantColDisabled?: boolean;
-}
+export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {}
 
 export interface DataEntryHeader {
     title: string;
     field: keyof DataEntryRow;
-    hidden?: boolean;
 }
 
 export interface NewUser {
