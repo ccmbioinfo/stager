@@ -14,6 +14,7 @@ from flask import (
     Request,
     send_file,
 )
+from flask.globals import current_app
 from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
@@ -310,20 +311,21 @@ def find(collection: Iterable[Mapping[str, Any]], pred: Callable):
 
 
 def get_current_user():
-    """if the user is an admin or login is disabled, a user's identity can be assumed by passing it in on the query string"""
+    """if the user is an admin or login is disabled, a user's identity can be assumed by passing an id via the query string"""
     app.logger.debug("Getting user")
 
-    user = None
+    user_id = request.args.get("user")
+
+    user = current_user
+
+    if app.config.get("LOGIN_DISABLED") and not user_id:
+        abort(400, description="A user ID must be provided when login is disabled!")
 
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
         if user_id:
             user = User.query.filter(User.user_id == user_id).first()
             if not user:
                 abort(400, description="Provided user does not exist!")
-
-    if not user:
-        user = current_user
 
     app.logger.debug("user_id: '%s'", getattr(user, "user_id", None))
 
@@ -332,7 +334,7 @@ def get_current_user():
 
 def filter_datasets_by_user_groups(query: Query, user: User):
     """
-    attach a subquery that filters datasets that don't share groups with the user
+    attach a subquery that removes datasets that don't share groups with the user
     this function assumes that the query already includes a selection for models.Dataset
     """
     user_group_subquery = (
