@@ -6,7 +6,6 @@ from sqlalchemy import distinct, func, or_
 from sqlalchemy.orm import aliased, contains_eager, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
-from werkzeug.exceptions import Unauthorized
 
 from . import models
 from .extensions import db
