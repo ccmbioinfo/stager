@@ -1,7 +1,15 @@
 from dataclasses import asdict
 from typing import List
 
-from flask import Blueprint, Response, abort, current_app as app, jsonify, request
+from flask import (
+    Blueprint,
+    Request,
+    Response,
+    abort,
+    current_app as app,
+    jsonify,
+    request,
+)
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload, selectinload
@@ -14,9 +22,11 @@ from .utils import (
     enum_validate,
     expects_csv,
     expects_json,
+    filter_datasets_by_user_groups,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
     find,
+    get_current_user,
     mixin,
     paged,
     paginated_response,
@@ -24,7 +34,7 @@ from .utils import (
     validate_json,
 )
 
-editable_columns = [
+EDITABLE_COLUMNS = [
     "dataset_type",
     "notes",
     "condition",
@@ -51,7 +61,9 @@ datasets_blueprint = Blueprint(
 @login_required
 @paged
 def list_datasets(page: int, limit: int) -> Response:
+    order = None
     order_by = request.args.get("order_by", type=str)
+    order_dir = request.args.get("order_dir", type=str)
     allowed_columns = [
         "dataset_type",
         "condition",
@@ -94,7 +106,9 @@ def list_datasets(page: int, limit: int) -> Response:
     else:
         # Default ordering
         order = (models.Dataset.dataset_id,)
+
     filters = []
+
     notes = request.args.get("notes", type=str)
     if notes:
         filters.append(func.instr(models.Dataset.notes, notes))
@@ -136,44 +150,25 @@ def list_datasets(page: int, limit: int) -> Response:
     if updated:
         filters.append(filter_updated_or_abort(models.Dataset.updated, updated))
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
+    user = get_current_user()
 
     query = (
         models.Dataset.query.options(
-            # tell the ORM that our join contains models we'd like to eager load, so it doesn't try to load them lazily
-            # in my test, this sped up loading time by ~3x
             contains_eager(models.Dataset.tissue_sample)
             .contains_eager(models.TissueSample.participant)
             .contains_eager(models.Participant.family),
-            # eager load groups and files for speed, since we're not joining here, we can't order or search by these fields
-            # ordering is probably not a great loss b/c one-to-many makes it tough,
-            # but if we want to search, a solution might be a subquery (something similar to the filter in analyses.py:194-208)
-            # FE will have to be adjusted to disallow sorting/filtering on these fields
             selectinload(models.Dataset.groups),
             selectinload(models.Dataset.linked_files),
         )
-        # join with these since they are 1-to-1 and we want to order/filter on some of their fields
         .join(models.Dataset.tissue_sample)
         .join(models.TissueSample.participant)
         .join(models.Participant.family)
         .join(models.Dataset.updated_by)
+        .filter(*filters)
     )
 
-    if user_id:  # Regular user or assumed identity, return only permitted datasets
-        query = (
-            query.join(models.groups_datasets_table)
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
-        )
-    else:  # Admin or LOGIN_DISABLED, authorized to query all datasets
-        query = query.options(joinedload(models.Dataset.groups)).filter(*filters)
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(query, user)
 
     group_code = request.args.get("group_code", type=str)
     if group_code:
@@ -256,44 +251,22 @@ def list_datasets(page: int, limit: int) -> Response:
 @datasets_blueprint.route("/api/datasets/<int:id>", methods=["GET"])
 @login_required
 def get_dataset(id: int):
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
 
-    if user_id:
-        dataset = (
-            models.Dataset.query.filter_by(dataset_id=id)
-            .options(
-                joinedload(models.Dataset.analyses),
-                joinedload(models.Dataset.created_by),
-                joinedload(models.Dataset.updated_by),
-                joinedload(models.Dataset.tissue_sample)
-                .joinedload(models.TissueSample.participant)
-                .joinedload(models.Participant.family),
-            )
-            .join(models.groups_datasets_table)
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
-        )
-    else:
-        dataset = (
-            models.Dataset.query.filter_by(dataset_id=id)
-            .options(
-                joinedload(models.Dataset.analyses),
-                joinedload(models.Dataset.created_by),
-                joinedload(models.Dataset.updated_by),
-                joinedload(models.Dataset.tissue_sample)
-                .joinedload(models.TissueSample.participant)
-                .joinedload(models.Participant.family),
-            )
-            .first_or_404()
-        )
+    user = get_current_user()
+
+    query = models.Dataset.query.filter_by(dataset_id=id).options(
+        joinedload(models.Dataset.analyses),
+        joinedload(models.Dataset.created_by),
+        joinedload(models.Dataset.updated_by),
+        joinedload(models.Dataset.tissue_sample)
+        .joinedload(models.TissueSample.participant)
+        .joinedload(models.Participant.family),
+    )
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(query, user)
+
+    dataset = query.first_or_404()
 
     return jsonify(
         {
@@ -328,27 +301,16 @@ def get_dataset(id: int):
 @validate_json
 def update_dataset(id: int):
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
+    user = get_current_user()
 
-    if user_id:
-        dataset = (
-            models.Dataset.query.filter_by(dataset_id=id)
-            .join(models.groups_datasets_table)
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
-        )
-    else:
-        dataset = models.Dataset.query.filter_by(dataset_id=id).first_or_404()
+    query = models.Dataset.query.filter_by(dataset_id=id)
 
-    enum_error = mixin(dataset, request.json, editable_columns)
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(query, user)
+
+    dataset = query.first_or_404()
+
+    enum_error = mixin(dataset, request.json, EDITABLE_COLUMNS)
 
     if enum_error:
         abort(400, description=enum_error)
@@ -356,8 +318,8 @@ def update_dataset(id: int):
     if "linked_files" in request.json:
         dataset = update_dataset_linked_files(dataset, request.json["linked_files"])
 
-    if user_id:
-        dataset.updated_by_id = user_id
+    if user:
+        dataset.updated_by_id = user.user_id
 
     transaction_or_abort(db.session.commit)
 
@@ -413,7 +375,7 @@ def create_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    enum_error = enum_validate(models.Dataset, request.json, editable_columns)
+    enum_error = enum_validate(models.Dataset, request.json, EDITABLE_COLUMNS)
 
     if enum_error:
         abort(400, description=enum_error)

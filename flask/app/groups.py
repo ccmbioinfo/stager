@@ -1,13 +1,19 @@
 from urllib.parse import quote
 
 from flask import abort, jsonify, request, Response, Blueprint, current_app as app
-from flask_login import current_user, login_required
+from flask_login import login_required
 from minio import Minio
 
 from . import models
 from .extensions import db
 from .madmin import stager_buckets_policy
-from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
+from .utils import (
+    check_admin,
+    get_current_user,
+    get_minio_admin,
+    transaction_or_abort,
+    validate_json,
+)
 
 
 groups_blueprint = Blueprint(
@@ -23,23 +29,18 @@ def list_groups() -> Response:
     Enumerates all permission groups visible to the current user. Administrators
     can see all groups; regular users can see groups that they are a member of.
     """
-    app.logger.debug("Getting user_id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-    app.logger.debug("user_id: '%s'", user_id)
+    user = get_current_user()
 
-    if user_id:
+    if user.is_admin:
+        app.logger.debug("Querying all groups..")
+        groups = models.Group.query.all()
+    else:
         app.logger.debug("Querying based on group membership..")
         groups = (
             models.Group.query.join(models.Group.users)
-            .filter(models.User.user_id == user_id)
+            .filter(models.User.user_id == user.user_id)
             .all()
         )
-    else:
-        app.logger.debug("Querying all groups..")
-        groups = models.Group.query.all()
 
     app.logger.debug("Query successful; returning JSON..")
 
@@ -58,26 +59,21 @@ def get_group(group_code) -> Response:
     Enumerate all activated users in a group and retrieve group metadata. Administrators
     can read all groups; regular users can only read groups that they are a member of.
     """
-    app.logger.debug("Getting user_id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-    app.logger.debug("user_id: '%s'", user_id)
+    user = get_current_user()
 
-    if user_id:
+    if user.is_admin:
         app.logger.debug("Querying based on group membership..")
-        group = (
-            models.Group.query.filter(models.Group.group_code == group_code)
-            .join(models.Group.users)
-            .filter(models.User.user_id == user_id)
-            .first_or_404()
-        )
-    else:
         app.logger.debug("Querying all groups..")
         group = models.Group.query.filter(
             models.Group.group_code == group_code
         ).first_or_404()
+    else:
+        group = (
+            models.Group.query.filter(models.Group.group_code == group_code)
+            .join(models.Group.users)
+            .filter(models.User.user_id == user.user_id)
+            .first_or_404()
+        )
 
     app.logger.debug("Query successful; returning JSON..")
 

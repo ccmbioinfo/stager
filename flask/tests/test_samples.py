@@ -161,7 +161,7 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
     )
     # Assume user identity that does not have permission
     assert (
-        client.patch("/api/tissue_samples/2?user=1", json={"foo": "bar"}).status_code
+        client.patch("/api/tissue_samples/2?user=4", json={"foo": "bar"}).status_code
         == 404
     )
 

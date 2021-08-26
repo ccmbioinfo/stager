@@ -1,9 +1,8 @@
 from dataclasses import asdict
 import re
-from typing import Any, List
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
-from flask_login import current_user, login_required
+from flask_login import login_required
 import pandas as pd
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import aliased, contains_eager
@@ -11,7 +10,12 @@ from sqlalchemy.sql import and_, or_
 
 from . import models
 from .extensions import db
-from .utils import expects_csv, expects_json
+from .utils import (
+    expects_csv,
+    expects_json,
+    filter_datasets_by_user_groups,
+    get_current_user,
+)
 
 
 variants_blueprint = Blueprint(
@@ -375,12 +379,7 @@ def summary(type: str):
     if type not in ["variants", "participants"]:
         abort(404)
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
+    user = get_current_user()
 
     variant_filter = parse_requested_filter(
         search_type, request.args.get(search_type, type=str)
@@ -433,23 +432,8 @@ def summary(type: str):
         .filter(variant_filter)
     )
 
-    if user_id:
-        app.logger.debug("Processing query - restricted based on user id.")
-        query = (
-            query.join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-        )
-    else:
-        app.logger.debug("Processing query - unrestricted based on user id.")
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(query, user)
 
     # defaults to json unless otherwise specified
     app.logger.info(request.accept_mimetypes)

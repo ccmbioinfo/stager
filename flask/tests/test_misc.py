@@ -1,15 +1,28 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from csv import DictReader
 from io import StringIO
 from pytest import raises
 
+from flask import current_app as app
 from flask.wrappers import Request
 from sqlalchemy.orm import joinedload
+from werkzeug.exceptions import BadRequest
 
 from app import models, db
 from app.routes import link_files_to_dataset
+from app.utils import filter_datasets_by_user_groups, get_current_user
 
 # GET /api/pipelines
+
+DEFAULT_PAYLOAD = {
+    "family_codename": "1001",
+    "participant_codename": "1411",
+    "tissue_sample": "Blood",
+    "tissue_sample_type": "Blood",
+    "dataset_type": "WGS",
+    "condition": "GermLine",
+    "sequencing_date": "2020-12-17",
+}
 
 
 def test_get_pipelines(test_database, client, login_as):
@@ -112,15 +125,7 @@ def test_post_bulk(test_database, client, login_as):
         client.post(
             "/api/_bulk?groups=ach",
             json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                },
+                DEFAULT_PAYLOAD,
                 {
                     "family_codename": "1001",
                     "participant_codename": "3420",
@@ -174,18 +179,8 @@ def test_post_bulk(test_database, client, login_as):
     # Test invalid group query
     assert (
         client.post(
-            "/api/_bulk?groups=torgen&",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            "/api/_bulk?groups=nonexistant&",
+            json=[DEFAULT_PAYLOAD],
         ).status_code
         == 404
     )
@@ -223,17 +218,7 @@ def test_post_bulk(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            json=[DEFAULT_PAYLOAD],
         ).status_code
         == 400
     )
@@ -283,17 +268,7 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk?groups=ach",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            json=[DEFAULT_PAYLOAD],
         ).status_code
         == 200
     )
@@ -301,17 +276,7 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            json=[DEFAULT_PAYLOAD],
         ).status_code
         == 200
     )
@@ -320,36 +285,16 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk?groups=ach",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            json=[DEFAULT_PAYLOAD],
         ).status_code
-        == 404
+        == 401
     )
     login_as("user_a")
     # Test multiple permission groups, none specified
     assert (
         client.post(
             "/api/_bulk",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            json=[DEFAULT_PAYLOAD],
         ).status_code
         == 400
     )
@@ -358,17 +303,7 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk?groups=ach",
-            json=[
-                {
-                    "family_codename": "1001",
-                    "participant_codename": "1411",
-                    "tissue_sample": "Blood",
-                    "tissue_sample_type": "Blood",
-                    "dataset_type": "WGS",
-                    "condition": "GermLine",
-                    "sequencing_date": "2020-12-17",
-                }
-            ],
+            json=[DEFAULT_PAYLOAD],
         ).status_code
         == 200
     )
@@ -518,3 +453,56 @@ def test_can_mark_multiplex_with_asterisk(test_database):
 
     assert len(result.linked_files) == 2
     assert len([f for f in result.linked_files if f.multiplexed]) == 1
+
+
+def test_filter_datasets_by_user_groups(test_database):
+    """can we filter out datasets that don't have group membership that overlaps with the user's"""
+    query = models.Dataset.query
+    user = models.User.query.filter(models.User.user_id == 4).first()  # no groups
+    filtered_query = filter_datasets_by_user_groups(query, user)
+
+    assert len(filtered_query.all()) == 0
+
+    user = models.User.query.filter(
+        models.User.user_id == 2
+    ).first()  # user belongs to 1 group, 2 datasets with this group
+
+    filtered_query = filter_datasets_by_user_groups(query, user)
+
+    assert len(filtered_query.all()) == 2
+
+    """ can we filter related models with a join? """
+
+    query = models.Analysis.query.join(
+        models.Analysis.datasets
+    )  # only analysis 2 has datasets with user's group
+
+    filtered_query = filter_datasets_by_user_groups(query, user)
+
+    assert len(filtered_query.all()) == 1
+
+
+@patch("app.utils.request")
+def test_must_pass_in_user_arguement_if_login_disabled(
+    mock_request, application, test_database
+):
+    """do we get a 400 if log in is disabled and no user argument is passed in?"""
+    application.config["LOGIN_DISABLED"] = True
+
+    """ no user argument """
+    mock_request.args.get.return_value = None
+    with raises(BadRequest):
+        get_current_user()
+    """ sanity check that the mock actually got passed the `user` key """
+    assert mock_request.args.get.call_args == (("user",),)
+
+    """ invalid user argument """
+    mock_request.args.get.return_value = 0
+    with raises(BadRequest):
+        get_current_user()
+
+    """ valid user argument """
+    mock_request.args.get.return_value = 1
+    assert get_current_user().user_id == 1
+
+    application.config["LOGIN_DISABLED"] = False

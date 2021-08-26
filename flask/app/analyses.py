@@ -1,12 +1,11 @@
 from dataclasses import asdict
 from datetime import datetime
 
-from flask_login import current_user, login_required
+from flask_login import login_required
 from sqlalchemy import distinct, func, or_
-from sqlalchemy.orm import aliased, contains_eager, selectinload
+from sqlalchemy.orm import aliased, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
-from sqlalchemy.orm.session import make_transient
 
 from . import models
 from .extensions import db
@@ -17,8 +16,10 @@ from .utils import (
     enum_validate,
     expects_csv,
     expects_json,
+    filter_datasets_by_user_groups,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
+    get_current_user,
     mixin,
     paged,
     paginated_response,
@@ -143,14 +144,7 @@ def list_analyses(page: int, limit: int) -> Response:
             abort(400, description=err)
         app.logger.debug("Filter by pipeline_id: '%s'", pipeline_id)
 
-    app.logger.debug("Getting user_id..")
-
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-
-    app.logger.debug("user_id: '%s'", user_id)
+    user = get_current_user()
 
     app.logger.debug("Querying and applying filters..")
 
@@ -162,29 +156,16 @@ def list_analyses(page: int, limit: int) -> Response:
                 )
             )
         )
-    )
+    ).filter(*filters)
 
     if assignee:
         query = query.join(assignee_user, models.Analysis.assignee)
     if requester:
         query = query.join(requester_user, models.Analysis.requester)
-    if user_id:  # Regular user or assumed identity, return only permitted analyses
-        query = (
-            query.join(models.datasets_analyses_table)
-            .join(
-                models.groups_datasets_table,
-                models.datasets_analyses_table.columns.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Analysis.datasets), user
         )
-    else:  # Admin or LOGIN_DISABLED, authorized to query all analyses
-        query = query.filter(*filters)
 
     participant_codename = request.args.get("participant_codename", type=str)
     if participant_codename:
@@ -316,48 +297,17 @@ def list_analyses(page: int, limit: int) -> Response:
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
-    app.logger.debug("Getting user_id..")
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
+    user = get_current_user()
 
-    app.logger.debug("user_id: '%s'", user_id)
+    query = models.Analysis.query.filter(models.Analysis.analysis_id == id)
 
-    if user_id:
-        app.logger.debug("Querying based on group permissions..")
-        analysis = (
-            models.Analysis.query.filter(models.Analysis.analysis_id == id)
-            .options(contains_eager(models.Analysis.datasets))
-            .join(
-                models.datasets_analyses_table,
-                models.Analysis.analysis_id
-                == models.datasets_analyses_table.columns.analysis_id,
-            )
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .join(models.Pipeline)
-            .one_or_none()
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Analysis.datasets), user
         )
-    else:
-        app.logger.debug("Querying freely with admin privileges..")
-        analysis = (
-            models.Analysis.query.filter(models.Analysis.analysis_id == id)
-            .outerjoin(models.Analysis.datasets)
-            .join(models.Pipeline)
-            .one_or_none()
-        )
+
+    analysis = query.one_or_none()
 
     if not analysis:
         return abort(404)
@@ -423,45 +373,20 @@ def create_analysis():
     if enum_error:
         abort(400, description=enum_error)
 
-    app.logger.debug("Getting user_id..")
+    user = get_current_user()
 
-    if app.config.get("LOGIN_DISABLED"):
-        user_id = request.args.get("user")
-        requester_id = updated_by_id = user_id or 1
-    elif current_user.is_admin:
-        user_id = request.args.get("user")
-        requester_id = updated_by_id = user_id or current_user.user_id
-    else:
-        requester_id = updated_by_id = user_id = current_user.user_id
+    requester_id = updated_by_id = user.user_id
 
-    app.logger.debug("user_id: '%s'", user_id)
-
-    if user_id:
-        app.logger.debug("Querying datasets based on group permissions..")
-        found_datasets_query = (
-            models.Dataset.query.join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-        )
-    else:
-        app.logger.debug("Querying datasets freely with admin privileges..")
-        found_datasets_query = models.Dataset.query
-
-    app.logger.debug(
-        "Verifying that requested datasets are available and permitted to this user.."
+    found_datasets_query = models.Dataset.query.filter(
+        models.Dataset.dataset_id.in_(datasets)
     )
 
-    found_datasets = found_datasets_query.filter(
-        models.Dataset.dataset_id.in_(datasets)
-    ).all()
+    if not user.is_admin:
+        found_datasets_query = filter_datasets_by_user_groups(
+            found_datasets_query, user
+        )
+
+    found_datasets = found_datasets_query.all()
 
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
@@ -555,40 +480,23 @@ def create_reanalysis(id: int):
 
     datasets = [dataset.dataset_id for dataset in analysis.datasets]
 
-    app.logger.debug("Getting user_id..")
+    user = get_current_user()
 
     if app.config.get("LOGIN_DISABLED"):
-        user_id = request.args.get("user")
-        requester_id = updated_by_id = user_id or 1
-    elif current_user.is_admin:
-        user_id = request.args.get("user")
-        requester_id = updated_by_id = user_id or current_user.user_id
+        requester_id = updated_by_id = user.user_id
     else:
-        requester_id = updated_by_id = user_id = current_user.user_id
+        requester_id = updated_by_id = user.user_id
 
-    app.logger.debug("user_id: '%s'", user_id)
-
-    app.logger.info("Checking if datasets are available to user...")
-    if user_id:
-        found_datasets_query = (
-            models.Dataset.query.join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-        )
-    else:
-        found_datasets_query = models.Dataset.query
-
-    found_datasets = found_datasets_query.filter(
+    found_datasets_query = models.Dataset.query.filter(
         models.Dataset.dataset_id.in_(datasets)
-    ).all()
+    )
+
+    if not user.is_admin:
+        found_datasets_query = filter_datasets_by_user_groups(
+            found_datasets_query, user
+        )
+
+    found_datasets = found_datasets_query.all()
 
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
@@ -698,48 +606,25 @@ def delete_analysis(id: int):
 def update_analysis(id: int):
     app.logger.debug("Getting user_id..")
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-        if request.json.get("analysis_state") not in [
-            "Cancelled",
-            None,  # account for default
-        ]:
-            abort(
-                403,
-                description="Analysis state changes are restricted to administrators",
-            )
-    app.logger.debug("user_id: '%s'", user_id)
+    user = get_current_user()
 
-    if user_id:
-        app.logger.debug("Querying based on group permissions..")
-        analysis = (
-            models.Analysis.query.filter(models.Analysis.analysis_id == id)
-            .join(
-                models.datasets_analyses_table,
-                models.Analysis.analysis_id
-                == models.datasets_analyses_table.columns.analysis_id,
-            )
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+    if not user.is_admin and request.json.get("analysis_state") not in [
+        "Cancelled",
+        None,  # account for default
+    ]:
+        abort(
+            403,
+            description="Analysis state changes are restricted to administrators",
         )
-    else:
-        app.logger.debug("Querying freely with admin privileges..")
-        analysis = models.Analysis.query.filter(
-            models.Analysis.analysis_id == id
-        ).first_or_404()
+
+    query = models.Analysis.query.filter(models.Analysis.analysis_id == id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Analysis.datasets), user
+        )
+
+    analysis = query.first_or_404()
 
     editable_columns = [
         "analysis_state",
@@ -776,14 +661,13 @@ def update_analysis(id: int):
 
     mixin(analysis, request.json, editable_columns)
 
+    analysis.updated_by_id = user.user_id
+
     if request.json.get("analysis_state") == "Running":
         analysis.started = datetime.now()
     elif request.json.get("analysis_state") == "Done":
         analysis.finished = datetime.now()
     # Error and Cancelled defaults to time set in 'updated'
-
-    if user_id:
-        analysis.updated_by_id = user_id
 
     transaction_or_abort(db.session.commit)
 

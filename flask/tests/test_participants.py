@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 def test_no_participants(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/participants?user=5")
+    response = client.get("/api/participants?user=4")
     assert response.status_code == 200
     assert len(response.get_json()["data"]) == 0
     assert response.get_json()["total_count"] == 0

@@ -2,9 +2,8 @@ import pytest
 
 from sqlalchemy.orm import joinedload
 
-from app import db, models, tissue_samples
+from app import db, models
 from app.datasets import update_dataset_linked_files
-
 
 # TODO: some tests do not precisely verify response structure
 
@@ -22,26 +21,28 @@ def test_list_datasets_admin(client, test_database, login_as):
     assert body["page"] == 0
     assert len(body["data"]) == body["total_count"] == 4
 
+
+def test_list_datasets_no_groups(client, test_database, login_as):
+
+    login_as("user_b")
+
     # Assume user identity belonging to no groups
-    response = client.get("/api/datasets?user=1")
+    response = client.get("/api/datasets")
     assert response.status_code == 200
     body = response.get_json()
     assert body["page"] == 0
     assert len(body["data"]) == body["total_count"] == 0
 
+
+def test_list_datasets_limited_groups(client, test_database, login_as):
+
     # Assume user identity belonging to a group with limited visibility
-    response = client.get("/api/datasets?user=2")
+    login_as("user")
+    response = client.get("/api/datasets")
     assert response.status_code == 200
     body = response.get_json()
     assert body["page"] == 0
     assert len(body["data"]) == body["total_count"] == 2
-
-    # Assume nonexistent user identity
-    response = client.get("/api/datasets?user=400")
-    assert response.status_code == 200
-    body = response.get_json()
-    assert body["page"] == 0
-    assert len(body["data"]) == body["total_count"] == 0
 
 
 def test_list_datasets_user(client, test_database, login_as):
@@ -59,18 +60,6 @@ def test_list_datasets_user(client, test_database, login_as):
 
     # Cannot assume another user's identity, query string ignored
     response = client.get("/api/datasets?user=1")
-    assert response.status_code == 200
-    body = response.get_json()
-    assert body["page"] == 0
-    assert len(body["data"]) == body["total_count"] == 2
-
-    response = client.get("/api/datasets?user=2")
-    assert response.status_code == 200
-    body = response.get_json()
-    assert body["page"] == 0
-    assert len(body["data"]) == body["total_count"] == 2
-
-    response = client.get("/api/datasets?user=400")
     assert response.status_code == 200
     body = response.get_json()
     assert body["page"] == 0
@@ -95,10 +84,10 @@ def test_get_dataset_admin(client, test_database, login_as):
         assert dataset["updated_by"] == "admin"
 
         # Assume user identity belonging to no groups
-        assert client.get(f"/api/datasets/{i}?user=1").status_code == 404
+        assert client.get(f"/api/datasets/{i}?user=4").status_code == 404
 
         # Assume nonexistent user identity
-        assert client.get(f"/api/datasets/{i}?user=400").status_code == 404
+        assert client.get(f"/api/datasets/{i}?user=400").status_code == 400
 
     # Assume user identity belonging to a group with limited visibility
     assert client.get(f"/api/datasets/1?user=2").status_code == 404
@@ -131,7 +120,7 @@ def test_update_dataset_admin(client, test_database, login_as):
     assert client.patch("/api/datasets/400", json={"foo": "bar"}).status_code == 404
     # Assume user identity that does not have permission
     assert (
-        client.patch("/api/datasets/2?user=1", json={"foo": "bar"}).status_code == 404
+        client.patch("/api/datasets/2?user=4", json={"foo": "bar"}).status_code == 404
     )
 
     # Bad dataset_type

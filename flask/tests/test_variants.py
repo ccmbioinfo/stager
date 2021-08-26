@@ -5,7 +5,7 @@ import pandas as pd
 def test_variant_wise_json_single_search(test_database, client, login_as):
     login_as("admin")
 
-    urls = [
+    endpoints = [
         # LOXL4
         ("/api/summary/variants?genes=ENSG00000138131", 3),
         ("/api/summary/variants?regions=chr10:100007447-100027951", 3),
@@ -16,14 +16,15 @@ def test_variant_wise_json_single_search(test_database, client, login_as):
         ("/api/summary/variants?positions=chr10:100010909", 1),
     ]
 
-    for url in urls:
+    for endpoint in endpoints:
+        url, result_count = endpoint
         print(url)
         response = client.get(
-            url[0],  # LOXL4
+            url,  # LOXL4
             headers={"Accept": "application/json"},
         )
         assert response.status_code == 200
-        assert len(response.get_json()) == url[1]  # variants
+        assert len(response.get_json()) == result_count  # variants
 
 
 def test_variant_wise_json_multiple_search(test_database, client, login_as):

@@ -8,9 +8,9 @@ testing and demonstration purposes.
 
 import os
 import time
+from typing import Any
 import click
 import requests
-from typing import Any
 from flask import current_app as app, g
 from flask.cli import with_appcontext
 
