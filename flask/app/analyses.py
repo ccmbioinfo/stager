@@ -329,6 +329,8 @@ def get_analysis(id: int):
                     "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                     "participant_codename": dataset.tissue_sample.participant.participant_codename,
                     "participant_type": dataset.tissue_sample.participant.participant_type,
+                    "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
+                    "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
                     "institution": dataset.tissue_sample.participant.institution.institution
                     if dataset.tissue_sample.participant.institution
                     else None,
