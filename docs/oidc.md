@@ -54,7 +54,41 @@ Stager's implementation supports signing out of Auth0 and Keycloak OAuth session
 
 For single sign-out to work correctly with Auth0 or Keycloak, ensure that the environment variable `OIDC_PROVIDER` is set to `auth0` or `keycloak` respectively.
 
-### Possible issues
+## Creating OAuth clients with client credentials grant
+
+To give third-party applications (such as pipeline runners, minio) access to Stager resources, we can create a new Keycloak client and a corresponding Stager user with the appropriate group permissions.
+
+To create a client, do the following in the Keycloak admin GUI:
+
+-   select the appropriate realm (e.g., ccm)
+-   select "Clients" from the left-hand-side menu
+-   select "create"
+-   name the client and save
+-   on the "Settings" tab, set "access type" to "Confidential" and set "Service Accounts" to "enabled" (Service accounts are typically for machine-to-machine authentication and aren't associated with a specific user in the realm, though a subject id is created). The other settings, besides "enabled", can be switched off.
+
+You can get an access token using the client id and secret listed in the "Credentials" tab in the client menu. For example:
+
+```code
+curl --location --request POST '<keycloakhost>/auth/realms/ccm/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'grant_type=client_credentials' \
+--data-urlencode 'client_id=pipeline-client-1' \
+--data-urlencode 'client_secret=<paste secret here>'
+
+```
+
+To get information about the service account user, you can hit the userinfo endpoint with the token in the header:
+
+```code
+curl --location --request GET '<keycloak host>/auth/realms/ccm/protocol/openid-connect/userinfo' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--header 'Authorization: Bearer <paste access token here>'
+
+```
+
+Before the new client can communicate with Stager, a Stager user must be created with the subject id of the service account "user".
+
+## Possible issues
 
 > GET /api/login responds with 500 Internal Server Error with response: `{"error": "Missing \"authorize_url\" value"}`
 
@@ -103,5 +137,3 @@ services:
 7. Start all containers
 
 Alternatively, if you intend to rebuild the whole project, then you can delete the keycloak container with `docker rm keycloak`, and rebuild the project with `docker-compose up --build`. This clears everything in the keycloak container including stored admin credentials, thus resolving the issue.
-
-###

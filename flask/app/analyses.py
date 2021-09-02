@@ -606,6 +606,7 @@ def delete_analysis(id: int):
 @login_required
 @validate_json
 def update_analysis(id: int):
+
     app.logger.debug("Getting user_id..")
 
     user = get_current_user()
