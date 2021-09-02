@@ -106,7 +106,13 @@ export function getOptions(
     const rowOptions = rows
         .filter((val, index) => index !== rowIndex) // not this row
         .map(val =>
-            toOption(col.field === "linked_files" ? undefined : val[col.field], "Previous rows")
+            toOption(
+                //type discrimination, these fields manage their own options
+                col.field === "linked_files" || col.field === "candidate_genes"
+                    ? undefined
+                    : val[col.field],
+                "Previous rows"
+            )
         );
 
     const familyCodenames: string[] = families.map(value => value.family_codename);

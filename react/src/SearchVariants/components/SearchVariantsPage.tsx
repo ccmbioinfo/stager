@@ -15,8 +15,8 @@ import { QueryKey, useQueryClient } from "react-query";
 import { snakeCaseToTitle } from "../../functions";
 import { useDownloadCsv, useErrorSnackbar, useModalState } from "../../hooks";
 import { GeneAlias } from "../../typings";
-import GeneAutocomplete, { SearchCategory } from "./Autocomplete";
 import { CardButton } from "./CardButton";
+import GeneAutocomplete, { SearchCategory } from "./GeneAutocomplete";
 import { ReportColumnModal } from "./ReportColumnModal";
 
 interface SearchVariantsPageProps {}

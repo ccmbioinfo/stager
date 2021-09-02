@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
-import { createEmptyRows, getDataEntryHeaders, setProp } from "../../functions";
+import { createEmptyRows, getDataEntryHeaders } from "../../functions";
 import { useEnumsQuery, useInstitutionsQuery, useUnlinkedFilesQuery } from "../../hooks";
 import {
     DataEntryHeader,
@@ -43,8 +43,6 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-const fallbackColumns = ["notes", "sex", "linked_files", "sequencing_date"];
-
 function getEnvColumns(): Array<keyof DataEntryRowOptional> {
     const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
     if (envCols !== undefined) {
@@ -62,20 +60,18 @@ function getEnvColumns(): Array<keyof DataEntryRowOptional> {
 
 function getDefaultColumns(fallbackColumns: string[]) {
     const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
-    let tempCols = fallbackColumns;
-    const envCols = getEnvColumns();
 
     if (storedDefaults !== null) {
         // User already has stored preferences
-        tempCols = JSON.parse(storedDefaults);
-    } else if (envCols.length > 0) {
+        return JSON.parse(storedDefaults);
+    } else if (getEnvColumns().length > 0) {
         // No preferences, use .env
-        tempCols = envCols;
+        return getEnvColumns();
     } else {
-        // No .env, use fallback columns
-        window.localStorage.setItem("data-entry-default-columns", JSON.stringify(tempCols));
+        // No .env, use "default" default columns
+        window.localStorage.setItem("data-entry-default-columns", JSON.stringify(fallbackColumns));
+        return fallbackColumns;
     }
-    return tempCols;
 }
 
 function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
@@ -103,7 +99,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const RNASeqCols = getColumns("RNASeq");
 
     function getOptionalHeaders() {
-        const defaults = getDefaultColumns(fallbackColumns);
+        const defaults = getDefaultColumns(["notes", "sex", "linked_files", "sequencing_date"]);
         return getColumns("optional").map(header => ({
             ...header,
             hidden: !defaults.includes(header.field),
@@ -133,33 +129,26 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         if (col.field === "dataset_type" && newValue === "RRS") {
             setShowRNA(true);
         }
-        const newRows = props.data.map((value, index) => {
-            if (autopopulate && index === rowIndex) {
+        const newRows = props.data.map((row, index) => {
+            if (autopopulate && index === rowIndex && typeof newValue === "string") {
                 // autopopulate row
                 // pre-existing rows are disabled, even if the values are wrong
-                const participant = findParticipant(newValue as string, col.field, value, families);
+                const participant = findParticipant(newValue, col.field, row, families);
                 if (participant) {
-                    // pre-existing participant
-                    return setProp(
-                        participantColumns.reduce(
-                            (row, currCol) => setProp(row, currCol, participant[currCol]), // reducer
-                            setProp({ ...value }, "participantColDisabled", true) // init
+                    return {
+                        ...participantColumns.reduce(
+                            (row, currCol) => ({ ...row, [currCol]: participant[currCol] }),
+                            { ...row, participantColDisabled: true }
                         ),
-                        col.field,
-                        newValue
-                    );
+                        [col.field]: newValue,
+                    };
                 } else {
-                    // No participant found
-                    return setProp(
-                        setProp({ ...value }, "participantColDisabled", false),
-                        col.field,
-                        newValue
-                    );
+                    return { ...row, participantColDisabled: false, [col.field]: newValue };
                 }
             } else if (index === rowIndex) {
-                return setProp({ ...value }, col.field, newValue);
+                return { ...row, [col.field]: newValue };
             } else {
-                return value;
+                return row;
             }
         });
         props.onChange(newRows);

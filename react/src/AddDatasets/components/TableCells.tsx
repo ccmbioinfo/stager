@@ -1,8 +1,11 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import {
+    Button,
     Checkbox,
+    Chip,
     IconButton,
     makeStyles,
+    Popover,
     TableCell,
     TableCellProps,
     TextField,
@@ -10,9 +13,11 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { Resizable } from "re-resizable";
+import { AutocompleteMultiselect } from "../../components";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
 import { strIsEmpty } from "../../functions";
-import { DataEntryHeader, DataEntryRow, Option, UnlinkedFile } from "../../typings";
+import { useGenesQuery } from "../../hooks/genes";
+import { DataEntryHeader, DataEntryRow, LinkedFile, Option, UnlinkedFile } from "../../typings";
 import { booleanColumns, dateColumns, enumerableColumns, toOption } from "./utils";
 
 const useCellStyles = makeStyles(theme => ({
@@ -46,10 +51,12 @@ export function DataEntryCell(props: {
     onSearch?: (value: string) => void;
     loading?: boolean;
 }) {
-    if (booleanColumns.includes(props.col.field)) {
+    const field = props.col.field;
+
+    if (booleanColumns.includes(field)) {
         return (
             <CheckboxCell
-                value={!!props.row[props.col.field]}
+                value={!!props.row[field]}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
@@ -57,36 +64,44 @@ export function DataEntryCell(props: {
     } else if (dateColumns.includes(props.col.field)) {
         return (
             <DateCell
-                value={props.row[props.col.field]?.toString()}
+                value={props.row[field]?.toString()}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
         );
-    } else if (props.col.field === "linked_files") {
+    } else if (field === "linked_files") {
         return (
             <TableCell padding="none" align="center">
                 <FileLinkingComponent
-                    values={props.row[props.col.field] || []}
+                    values={(props.row[field] || []) as LinkedFile[]}
                     options={props.getOptions(props.rowIndex, props.col)}
                     onEdit={props.onEdit}
                     disabled={props.disabled}
                 />
             </TableCell>
         );
+    } else if (field === "candidate_genes") {
+        return <CandidateGeneCell genes={props.row[field] || ""} onSelect={props.onEdit} />;
     }
-    return (
-        <AutocompleteCell
-            value={toOption(props.row[props.col.field])}
-            options={props.getOptions(props.rowIndex, props.col)}
-            onEdit={props.onEdit}
-            disabled={props.disabled}
-            column={props.col}
-            aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
-            required={props.required}
-            onSearch={props.onSearch}
-            loading={props.loading}
-        />
-    );
+    // union discriminator
+    // todo: string fields should be initialized with empty strings
+    else if (typeof props.row[field] === "string" || typeof props.row[field] === "undefined") {
+        return (
+            <AutocompleteCell
+                value={toOption(props.row[field])}
+                options={props.getOptions(props.rowIndex, props.col)}
+                onEdit={props.onEdit}
+                disabled={props.disabled}
+                column={props.col}
+                aria-label={`enter ${props.col.title} row ${props.rowIndex}`}
+                required={props.required}
+                onSearch={props.onSearch}
+                loading={props.loading}
+            />
+        );
+    } else {
+        return null;
+    }
 }
 
 /**
@@ -313,3 +328,100 @@ export function HeaderCell(props: { header: string }) {
         </TableCell>
     );
 }
+
+/* eslint-disable mui-unused-classes/unused-classes */
+const useAutocompleteStyles = makeStyles(() => ({
+    root: {
+        flexGrow: 1,
+        padding: "10px",
+        width: "400px",
+    },
+}));
+
+const CandidateGeneCell: React.FC<{ genes: string; onSelect: (selection: string) => void }> = ({
+    genes,
+    onSelect,
+}) => {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement>();
+    const { data: searchResults } = useGenesQuery({ search: searchTerm }, searchTerm.length > 2);
+
+    const selectedValues = useMemo(
+        () =>
+            (genes || "")
+                .split(",")
+                .filter(Boolean)
+                .map(gene_alias => ({ gene_alias })),
+        [genes]
+    );
+
+    const classes = useAutocompleteStyles();
+
+    return (
+        <TableCell padding="none" align="center">
+            <Button
+                variant="contained"
+                color="default"
+                size="small"
+                onClick={(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
+                    setAnchorEl(event.currentTarget)
+                }
+                disableRipple
+                disableElevation
+            >
+                {selectedValues.length} gene{selectedValues.length === 1 ? "" : "s"}
+            </Button>
+            <Popover
+                open={!!anchorEl}
+                anchorEl={anchorEl}
+                onClose={() => setAnchorEl(undefined)}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "center",
+                }}
+                transformOrigin={{
+                    vertical: "top",
+                    horizontal: "center",
+                }}
+            >
+                <AutocompleteMultiselect
+                    classes={classes}
+                    inputLabel="search for genes"
+                    limit={Infinity}
+                    onInputChange={term => setSearchTerm(term)}
+                    onSelect={selection => {
+                        onSelect(`${selection.map(g => g.gene_alias).join(",")}`);
+                    }}
+                    options={[
+                        ...new Set(
+                            (searchResults?.data || [])
+                                .map(ga => ({
+                                    gene_alias: ga.name,
+                                }))
+                                .concat(selectedValues)
+                        ),
+                    ]}
+                    renderTags={(tags, getTagProps) => {
+                        return tags.map((tag, i) => (
+                            <Chip
+                                onDelete={alias => {
+                                    onSelect(
+                                        `${genes
+                                            .split(",")
+                                            .filter(g => g !== alias)
+                                            .join(",")}`
+                                    );
+                                }}
+                                key={i}
+                                {...getTagProps({ index: i })}
+                                label={tag.gene_alias}
+                            />
+                        ));
+                    }}
+                    selectedValues={selectedValues}
+                    uniqueLabelPath="gene_alias"
+                />
+            </Popover>
+        </TableCell>
+    );
+};

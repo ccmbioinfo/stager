@@ -191,19 +191,6 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
 }
 
 /**
- * Set property of object at key to newValue. Return obj.
- *
- * @example
- * let obj = { a: 1, b: 2 };
- * setProp(obj, "a", 3);     // returns { a: 3, b: 2 }
- * obj.a === 3               // returns true
- */
-export function setProp<T, K extends keyof T>(obj: T, key: K, newValue: any) {
-    obj[key] = newValue;
-    return obj;
-}
-
-/**
  * Return an object containing all headers for DataEntryTable.
  */
 export function getDataEntryHeaders() {

@@ -196,13 +196,8 @@ export class DataEntryRowOptional {
     institution?: string;
 }
 
-// Cannot enforce "RNASeq => these values are set" with types
 export class DataEntryRowRNASeq {
-    RIN?: string;
-    DV200?: string;
-    concentration?: string;
-    sequencer?: string;
-    spike_in?: string;
+    candidate_genes?: string;
 }
 
 export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {

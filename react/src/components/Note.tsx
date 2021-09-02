@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
  */
 export default function Note(props: {
     children: React.ReactNode;
-    DetailComponent?: React.ReactNode;
+    detailElement?: React.ReactNode;
 }) {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
@@ -45,7 +45,7 @@ export default function Note(props: {
                     <Grid item>
                         <Typography className={classes.typography}>{props.children}</Typography>
                     </Grid>
-                    {!!props.DetailComponent && <Grid item>{props.DetailComponent}</Grid>}
+                    {!!props.detailElement && <Grid item>{props.detailElement}</Grid>}
                 </Grid>
             </Popover>
         </>
