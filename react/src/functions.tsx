@@ -5,10 +5,6 @@ import utc from "dayjs/plugin/utc";
 import {
     Analysis,
     Counts,
-    DataEntryRow,
-    DataEntryRowBase,
-    DataEntryRowOptional,
-    DataEntryRowRNASeq,
     Dataset,
     Field,
     FieldDisplayValueType,
@@ -76,14 +72,6 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
         return { ...row } as Analysis;
     });
     return rows;
-}
-
-/**
- * Get the index of a material-table row.
- * If a material-table row is not provided, return null.
- */
-export function getRowIndex(row: any): number | null {
-    return row.tableData?.id;
 }
 
 /**
@@ -191,17 +179,6 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
 }
 
 /**
- * Return an object containing all headers for DataEntryTable.
- */
-export function getDataEntryHeaders() {
-    return {
-        required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
-        optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,
-        RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>,
-    };
-}
-
-/**
  * Given a string in snake-case (eg. thing_name), returns the string
  * in spaced Title case (eg. Thing Name).
  *
@@ -231,6 +208,8 @@ export function createFieldObj(
         disableEdit,
     };
 }
+
+export const getKeys = <T extends object>(obj: T) => Object.keys(obj) as (keyof T)[];
 
 /**
  * Convert given table to CSV and downloads it to user.
@@ -267,24 +246,6 @@ export function exportCSV(columnDefs: any[], data: any[], filename: string) {
     });
 
     downloadCsv(filename, blob);
-}
-
-export function createEmptyRows(amount?: number): DataEntryRow[] {
-    if (!amount || amount < 1) amount = 1;
-
-    var arr = [];
-    for (let i = 0; i < amount; i++) {
-        arr.push({
-            family_codename: "",
-            participant_codename: "",
-            participant_type: "",
-            tissue_sample_type: "",
-            dataset_type: "",
-            condition: "GermLine",
-            sequencing_date: "",
-        });
-    }
-    return arr;
 }
 
 export function stringToBoolean(value: PseudoBoolean) {

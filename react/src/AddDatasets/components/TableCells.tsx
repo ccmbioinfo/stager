@@ -17,7 +17,13 @@ import { AutocompleteMultiselect } from "../../components";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
 import { strIsEmpty } from "../../functions";
 import { useGenesQuery } from "../../hooks/genes";
-import { DataEntryHeader, DataEntryRow, LinkedFile, Option, UnlinkedFile } from "../../typings";
+import {
+    DataEntryColumnConfig,
+    DataEntryRow,
+    LinkedFile,
+    Option,
+    UnlinkedFile,
+} from "../../typings";
 import { booleanColumns, dateColumns, enumerableColumns, toOption } from "./utils";
 
 const useCellStyles = makeStyles(theme => ({
@@ -43,20 +49,20 @@ const useCellStyles = makeStyles(theme => ({
 export function DataEntryCell(props: {
     row: DataEntryRow;
     rowIndex: number;
-    col: DataEntryHeader;
-    getOptions: (rowIndex: number, col: DataEntryHeader) => any[];
+    col: DataEntryColumnConfig;
+    getOptions: (rowIndex: number, col: DataEntryColumnConfig) => any[];
     onEdit: (newValue: string | boolean | UnlinkedFile[], autocomplete?: boolean) => void;
     disabled?: boolean;
     required?: boolean;
     onSearch?: (value: string) => void;
     loading?: boolean;
 }) {
-    const field = props.col.field;
+    const fieldName = props.col.field;
 
-    if (booleanColumns.includes(field)) {
+    if (booleanColumns.includes(fieldName)) {
         return (
             <CheckboxCell
-                value={!!props.row[field]}
+                value={!!props.row.fields[fieldName]}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
@@ -64,31 +70,40 @@ export function DataEntryCell(props: {
     } else if (dateColumns.includes(props.col.field)) {
         return (
             <DateCell
-                value={props.row[field]?.toString()}
+                value={props.row.fields[fieldName]?.toString()}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
         );
-    } else if (field === "linked_files") {
+    } else if (fieldName === "linked_files") {
         return (
             <TableCell padding="none" align="center">
                 <FileLinkingComponent
-                    values={(props.row[field] || []) as LinkedFile[]}
+                    values={(props.row.fields[fieldName] || []) as LinkedFile[]}
                     options={props.getOptions(props.rowIndex, props.col)}
                     onEdit={props.onEdit}
                     disabled={props.disabled}
                 />
             </TableCell>
         );
-    } else if (field === "candidate_genes") {
-        return <CandidateGeneCell genes={props.row[field] || ""} onSelect={props.onEdit} />;
+    } else if (fieldName === "candidate_genes") {
+        return (
+            <CandidateGeneCell
+                disabled={props.disabled}
+                genes={props.row.fields[fieldName] || ""}
+                onSelect={props.onEdit}
+            />
+        );
     }
     // union discriminator
     // todo: string fields should be initialized with empty strings
-    else if (typeof props.row[field] === "string" || typeof props.row[field] === "undefined") {
+    else if (
+        typeof props.row.fields[fieldName] === "string" ||
+        typeof props.row.fields[fieldName] === "undefined"
+    ) {
         return (
             <AutocompleteCell
-                value={toOption(props.row[field])}
+                value={toOption(props.row.fields[fieldName])}
                 options={props.getOptions(props.rowIndex, props.col)}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
@@ -113,7 +128,7 @@ export function AutocompleteCell(
         options: Option[];
         onEdit: (newValue: string, autopopulate?: boolean) => void;
         disabled?: boolean;
-        column: DataEntryHeader;
+        column: DataEntryColumnConfig;
         required?: boolean;
         onSearch?: (value: string) => void;
         loading?: boolean;
@@ -338,10 +353,13 @@ const useAutocompleteStyles = makeStyles(() => ({
     },
 }));
 
-const CandidateGeneCell: React.FC<{ genes: string; onSelect: (selection: string) => void }> = ({
-    genes,
-    onSelect,
-}) => {
+interface CandidateGeneCellProps {
+    disabled?: boolean;
+    genes: string;
+    onSelect: (selection: string) => void;
+}
+
+const CandidateGeneCell: React.FC<CandidateGeneCellProps> = ({ disabled, genes, onSelect }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement>();
     const { data: searchResults } = useGenesQuery({ search: searchTerm }, searchTerm.length > 2);
@@ -360,14 +378,15 @@ const CandidateGeneCell: React.FC<{ genes: string; onSelect: (selection: string)
     return (
         <TableCell padding="none" align="center">
             <Button
-                variant="contained"
                 color="default"
-                size="small"
+                disabled={disabled}
+                disableRipple
+                disableElevation
                 onClick={(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
                     setAnchorEl(event.currentTarget)
                 }
-                disableRipple
-                disableElevation
+                size="small"
+                variant="contained"
             >
                 {selectedValues.length} gene{selectedValues.length === 1 ? "" : "s"}
             </Button>

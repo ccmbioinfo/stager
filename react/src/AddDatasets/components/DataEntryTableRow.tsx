@@ -1,117 +1,101 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { TableRow } from "@material-ui/core";
 import { Delete, LibraryAdd } from "@material-ui/icons";
+import { getKeys } from "../../functions";
 import { useFamiliesQuery } from "../../hooks";
-import { DataEntryHeader, DataEntryRow, Family, UnlinkedFile } from "../../typings";
+import {
+    DataEntryColumnConfig,
+    DataEntryField,
+    DataEntryRow,
+    DataEntryRowRNA,
+    Family,
+    UnlinkedFile,
+} from "../../typings";
 import { DataEntryActionCell, DataEntryCell } from "./TableCells";
 import { participantColumns } from "./utils";
 
 interface DataEntryTableRowProps {
-    row: DataEntryRow;
-    rowIndex: number;
-    requiredCols: DataEntryHeader[];
-    optionalCols: DataEntryHeader[];
-    rnaSeqCols: DataEntryHeader[];
-    onDelete: () => void;
-    onDuplicate: () => void;
+    columns: DataEntryColumnConfig[];
+    getOptions: (rowIndex: number, col: DataEntryColumnConfig, families: Family[]) => any[];
     onChange: (
         newValue: string | boolean | UnlinkedFile[],
         rowIndex: number,
-        col: DataEntryHeader,
+        col: DataEntryColumnConfig,
         families: Family[],
         autopopulate?: boolean
     ) => void;
-    getOptions: (rowIndex: number, col: DataEntryHeader, families: Family[]) => any[];
+    onDelete: () => void;
+    onDuplicate: () => void;
+    row: DataEntryRow;
+    rowIndex: number;
 }
 
 /**
  * Internal component for handling rows in the body of the DataEntryTable.
  */
-export default function DataEntryTableRow(props: DataEntryTableRowProps) {
+export default function DataEntryTableRow({
+    columns,
+    getOptions: _getOptions,
+    onChange,
+    onDelete,
+    onDuplicate,
+    row,
+    rowIndex,
+}: DataEntryTableRowProps) {
     const [familySearch, setFamilySearch] = useState("");
     const familiesResult = useFamiliesQuery(familySearch);
     const families = familiesResult.data || [];
-    const showRNA = props.row.dataset_type === "RRS";
 
     function handleChange(
         newValue: string | boolean | UnlinkedFile[],
-        col: DataEntryHeader,
+        col: DataEntryColumnConfig,
         autopopulate?: boolean
     ) {
-        return props.onChange(newValue, props.rowIndex, col, families, autopopulate);
+        return onChange(newValue, rowIndex, col, families, autopopulate);
     }
 
-    function onSearch(col: DataEntryHeader, value: string) {
+    function onSearch(col: DataEntryColumnConfig, value: string) {
         if (col.field === "family_codename") {
             setFamilySearch(value);
         }
     }
 
-    function getOptions(rowIndex: number, col: DataEntryHeader) {
-        return props.getOptions(rowIndex, col, families);
+    function getOptions(rowIndex: number, col: DataEntryColumnConfig) {
+        return _getOptions(rowIndex, col, families);
     }
 
+    const getColumnIsDisabled = (field: DataEntryField, row: DataEntryRow) =>
+        (row.meta.participantColumnsDisabled && participantColumns.includes(field)) ||
+        (getKeys(new DataEntryRowRNA()).includes(field as any) &&
+            row.fields.dataset_type !== "RRS");
+
     return (
-        <TableRow key={props.rowIndex}>
-            <DataEntryActionCell
-                tooltipTitle="Delete row"
-                icon={<Delete />}
-                onClick={props.onDelete}
-            />
+        <TableRow key={rowIndex}>
+            <DataEntryActionCell tooltipTitle="Delete row" icon={<Delete />} onClick={onDelete} />
             <DataEntryActionCell
                 tooltipTitle="Duplicate row"
                 icon={<LibraryAdd />}
-                onClick={props.onDuplicate}
+                onClick={onDuplicate}
             />
-
-            {props.requiredCols.map(col => (
-                <DataEntryCell
-                    row={props.row}
-                    rowIndex={props.rowIndex}
-                    col={col}
-                    getOptions={getOptions}
-                    onEdit={(newValue, autocomplete?: boolean) =>
-                        handleChange(newValue, col, autocomplete)
-                    }
-                    key={col.field}
-                    required={!props.row.participantColDisabled} // not required if pre-filled
-                    disabled={
-                        props.row.participantColDisabled &&
-                        (participantColumns as string[]).includes(col.field)
-                    }
-                    onSearch={search => onSearch(col, search)}
-                    loading={col.field === "family_codename" && familiesResult.isLoading}
-                />
-            ))}
-            {props.optionalCols.map(
+            {columns.map(
                 col =>
                     !col.hidden && (
                         <DataEntryCell
-                            row={props.row}
-                            rowIndex={props.rowIndex}
                             col={col}
+                            disabled={getColumnIsDisabled(col.field, row)}
                             getOptions={getOptions}
-                            onEdit={newValue => handleChange(newValue, col)}
                             key={col.field}
-                            disabled={
-                                props.row.participantColDisabled &&
-                                !!participantColumns.find(currCol => currCol === col.field)
+                            loading={col.field === "family_codename" && familiesResult.isLoading}
+                            onEdit={(newValue, autocomplete?: boolean) =>
+                                handleChange(newValue, col, autocomplete)
                             }
+                            onSearch={search => onSearch(col, search)}
+                            required={!getColumnIsDisabled(col.field, row) && col.required}
+                            row={row}
+                            rowIndex={rowIndex}
                         />
                     )
             )}
-
-            {showRNA &&
-                props.rnaSeqCols.map(col => (
-                    <DataEntryCell
-                        row={props.row}
-                        rowIndex={props.rowIndex}
-                        col={col}
-                        getOptions={getOptions}
-                        onEdit={newValue => handleChange(newValue, col)}
-                        key={col.field}
-                    />
-                ))}
         </TableRow>
     );
 }

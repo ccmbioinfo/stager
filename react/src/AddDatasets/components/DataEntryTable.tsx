@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     makeStyles,
@@ -12,29 +12,22 @@ import {
 } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
-import { createEmptyRows, getDataEntryHeaders } from "../../functions";
+import { createEmptyRow, makeFreshColumns, OPTIONAL_FIELDS } from "..";
 import { useEnumsQuery, useInstitutionsQuery, useUnlinkedFilesQuery } from "../../hooks";
 import {
-    DataEntryHeader,
+    DataEntryColumnConfig,
+    DataEntryField,
     DataEntryRow,
-    DataEntryRowOptional,
     Family,
+    Participant,
     UnlinkedFile,
 } from "../../typings";
 import DataEntryTableRow from "./DataEntryTableRow";
 import DataEntryToolbar from "./DataEntryToolbar";
 import { HeaderCell } from "./TableCells";
-import { getOptions as _getOptions, getColumns, objArrayToCSV, participantColumns } from "./utils";
+import { getOptions as _getOptions, objArrayToCSV, participantColumns } from "./utils";
 
-export interface DataEntryTableProps {
-    data: DataEntryRow[];
-    onChange: (data: DataEntryRow[]) => void;
-    allGroups: string[]; // this user's permission groups
-    groups: string[]; // selected groups to submit as
-    setGroups: (selectedGroups: string[]) => void;
-}
-
-const useTableStyles = makeStyles(theme => ({
+const useTableStyles = makeStyles(() => ({
     buttonCell: {
         padding: 0,
     },
@@ -43,46 +36,16 @@ const useTableStyles = makeStyles(theme => ({
     },
 }));
 
-function getEnvColumns(): Array<keyof DataEntryRowOptional> {
-    const envCols = process.env.REACT_APP_DEFAULT_OPTIONAL_COLUMNS;
-    if (envCols !== undefined) {
-        const validFields = getDataEntryHeaders().optional;
-        const envFields = envCols.split(",");
-        const usableFields =
-            process.env.NODE_ENV === "development"
-                ? envFields.filter(field => !!validFields.find(valid => valid === field))
-                : envFields;
-        return usableFields as Array<keyof DataEntryRowOptional>;
-    } else {
-        return [];
-    }
-}
-
-function getDefaultColumns(fallbackColumns: string[]) {
-    const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
-
-    if (storedDefaults !== null) {
-        // User already has stored preferences
-        return JSON.parse(storedDefaults);
-    } else if (getEnvColumns().length > 0) {
-        // No preferences, use .env
-        return getEnvColumns();
-    } else {
-        // No .env, use "default" default columns
-        window.localStorage.setItem("data-entry-default-columns", JSON.stringify(fallbackColumns));
-        return fallbackColumns;
-    }
-}
-
 function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
     let participantCodename: string;
     let familyCodename: string;
-    if (column === "participant_codename" && row.family_codename !== "") {
-        familyCodename = row.family_codename;
+    const { fields } = row;
+    if (column === "participant_codename" && fields.family_codename !== "") {
+        familyCodename = fields.family_codename;
         participantCodename = newValue;
-    } else if (column === "family_codename" && row.participant_codename !== "") {
+    } else if (column === "family_codename" && fields.participant_codename !== "") {
         familyCodename = newValue;
-        participantCodename = row.participant_codename;
+        participantCodename = fields.participant_codename;
     }
     const family = families.find(fam => fam.family_codename === familyCodename);
     return family
@@ -92,28 +55,27 @@ function findParticipant(newValue: string, column: string, row: DataEntryRow, fa
         : undefined;
 }
 
+const getVisibleColumnFieldList = (columns: DataEntryColumnConfig[]) =>
+    columns.filter(col => !col.hidden).map(col => col.field);
+
+export interface DataEntryTableProps {
+    allGroups: string[]; // this user's permission groups
+    columns: DataEntryColumnConfig[];
+    data: DataEntryRow[];
+    groups: string[]; // selected groups to submit as
+    onChange: (data: DataEntryRow[]) => void;
+    setColumns: (columns: DataEntryColumnConfig[]) => void;
+    setGroups: (selectedGroups: string[]) => void;
+}
+
 export default function DataEntryTable(props: DataEntryTableProps) {
     const classes = useTableStyles();
 
-    const columns = getColumns("required");
-    const RNASeqCols = getColumns("RNASeq");
-
-    function getOptionalHeaders() {
-        const defaults = getDefaultColumns(["notes", "sex", "linked_files", "sequencing_date"]);
-        return getColumns("optional").map(header => ({
-            ...header,
-            hidden: !defaults.includes(header.field),
-        }));
-    }
-
-    const [optionals, setOptionals] = useState<DataEntryHeader[]>(getOptionalHeaders());
+    const [files, setFiles] = useState<UnlinkedFile[]>([]);
 
     const filesQuery = useUnlinkedFilesQuery();
-    const [files, setFiles] = useState<UnlinkedFile[]>([]);
-    const institutionResult = useInstitutionsQuery();
-    const institutions = institutionResult.data || [];
+    const { data: institutions } = useInstitutionsQuery();
     const { data: enums } = useEnumsQuery();
-    const [showRNA, setShowRNA] = useState<boolean>(false);
 
     useEffect(() => {
         if (filesQuery.isSuccess) setFiles(filesQuery.data);
@@ -122,31 +84,41 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     function onEdit(
         newValue: string | boolean | UnlinkedFile[],
         rowIndex: number,
-        col: DataEntryHeader,
+        col: DataEntryColumnConfig,
         families: Family[],
         autopopulate?: boolean
     ) {
-        if (col.field === "dataset_type" && newValue === "RRS") {
-            setShowRNA(true);
-        }
         const newRows = props.data.map((row, index) => {
             if (autopopulate && index === rowIndex && typeof newValue === "string") {
                 // autopopulate row
                 // pre-existing rows are disabled, even if the values are wrong
                 const participant = findParticipant(newValue, col.field, row, families);
                 if (participant) {
-                    return {
+                    const newFields = {
                         ...participantColumns.reduce(
-                            (row, currCol) => ({ ...row, [currCol]: participant[currCol] }),
-                            { ...row, participantColDisabled: true }
+                            (row, currCol) => ({
+                                ...row,
+                                [currCol]: participant[currCol as keyof Participant],
+                            }),
+                            { ...row.fields }
                         ),
                         [col.field]: newValue,
                     };
+                    return {
+                        fields: newFields,
+                        meta: { participantColumnsDisabled: true },
+                    };
                 } else {
-                    return { ...row, participantColDisabled: false, [col.field]: newValue };
+                    return {
+                        fields: {
+                            ...row.fields,
+                            [col.field]: newValue,
+                        },
+                        meta: { participantColumnsDisabled: false },
+                    };
                 }
             } else if (index === rowIndex) {
-                return { ...row, [col.field]: newValue };
+                return { fields: { ...row.fields, [col.field]: newValue }, meta: row.meta };
             } else {
                 return row;
             }
@@ -155,29 +127,23 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     // Return the options for a given cell based on row, column
-    function getOptions(rowIndex: number, col: DataEntryHeader, families: Family[]) {
-        return _getOptions(props.data, col, rowIndex, families, enums, files, institutions);
+    function getOptions(rowIndex: number, col: DataEntryColumnConfig, families: Family[]) {
+        return _getOptions(props.data, col, rowIndex, families, enums, files, institutions || []);
     }
 
-    function toggleHideColumn(colField: keyof DataEntryRow) {
-        const newOptionals = optionals.map(value => {
-            if (value.field === colField) return { ...value, hidden: !value.hidden };
-            return value;
-        });
-        setOptionals(newOptionals);
+    function toggleHideColumn(field: DataEntryField) {
+        const newColumns = props.columns.map(col =>
+            col.field === field ? { ...col, hidden: !col.hidden } : col
+        );
+        props.setColumns(newColumns);
         window.localStorage.setItem(
             "data-entry-default-columns",
-            JSON.stringify(newOptionals.filter(value => !value.hidden).map(value => value.field))
+            JSON.stringify(getVisibleColumnFieldList(newColumns))
         );
     }
 
     function downloadTemplateCSV() {
-        const requiredHeaders = columns.map(c => c.field);
-        const optionalHeaders = optionals.filter(c => !c.hidden).map(c => c.field);
-        const rnaseqHeaders = showRNA ? RNASeqCols.map(c => c.field) : [];
-        const headers = requiredHeaders.concat(optionalHeaders).concat(rnaseqHeaders);
-
-        const csv = objArrayToCSV(props.data, headers, true);
+        const csv = objArrayToCSV(props.data, getVisibleColumnFieldList(props.columns), true);
         let hiddenElement = document.createElement("a");
         hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
         hiddenElement.target = "_blank";
@@ -190,11 +156,11 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     return (
         <Paper>
             <DataEntryToolbar
-                columns={optionals}
+                columns={props.columns.filter(col => OPTIONAL_FIELDS.includes(col.field))}
                 handleColumnAction={toggleHideColumn}
                 handleResetAction={() => {
                     window.localStorage.removeItem("data-entry-default-columns");
-                    setOptionals(getOptionalHeaders());
+                    props.setColumns(makeFreshColumns(["notes", "sex", "linked_files"]));
                 }}
                 handleCSVTemplateAction={downloadTemplateCSV}
                 allGroups={props.allGroups}
@@ -203,25 +169,15 @@ export default function DataEntryTable(props: DataEntryTableProps) {
             />
             <TableContainer>
                 <Table>
-                    <caption>* - Required | ** - Required only if Dataset Type is RRS</caption>
+                    <caption>*Required</caption>
                     <TableHead>
                         <TableRow>
                             <TableCell padding="checkbox" aria-hidden={true} />
                             <TableCell padding="checkbox" aria-hidden={true} />
-                            {columns.map(cell => (
-                                <HeaderCell key={cell.field} header={cell.title + "*"} />
-                            ))}
-
-                            {optionals.map(
-                                cell =>
-                                    !cell.hidden && (
-                                        <HeaderCell key={cell.field} header={cell.title} />
-                                    )
-                            )}
-
-                            {showRNA &&
-                                RNASeqCols.map(cell => (
-                                    <HeaderCell key={cell.field} header={cell.title + "**"} />
+                            {props.columns
+                                .filter(col => !col.hidden)
+                                .map(cell => (
+                                    <HeaderCell key={cell.field} header={cell.title + "*"} />
                                 ))}
                         </TableRow>
                     </TableHead>
@@ -231,29 +187,27 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                 row={row}
                                 rowIndex={rowIndex}
                                 key={rowIndex}
-                                requiredCols={columns}
-                                optionalCols={optionals}
-                                rnaSeqCols={RNASeqCols}
+                                columns={props.columns}
                                 getOptions={getOptions}
                                 onChange={onEdit}
                                 onDuplicate={() =>
                                     props.onChange(
-                                        props.data.flatMap((value, index) =>
+                                        props.data.flatMap((row, index) =>
                                             index === rowIndex
                                                 ? [
-                                                      value,
+                                                      row,
                                                       {
-                                                          ...value,
-                                                          linked_files: undefined,
+                                                          ...row,
+                                                          linked_files: [],
                                                       },
                                                   ]
-                                                : value
+                                                : row
                                         )
                                     )
                                 }
                                 onDelete={() =>
                                     props.onChange(
-                                        props.data.filter((value, index) => index !== rowIndex)
+                                        props.data.filter((_, index) => index !== rowIndex)
                                     )
                                 }
                             />
@@ -268,7 +222,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     disableRipple
                                     startIcon={<Add />}
                                     onClick={() =>
-                                        props.onChange(props.data.concat(createEmptyRows(1)))
+                                        props.onChange(props.data.concat(createEmptyRow()))
                                     }
                                 >
                                     Add new row

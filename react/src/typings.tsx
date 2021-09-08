@@ -169,6 +169,7 @@ export interface Info {
 }
 
 // Define these as classes so that we can create an array of keys later
+
 export class DataEntryRowBase {
     family_codename!: string;
     participant_codename!: string;
@@ -177,37 +178,48 @@ export class DataEntryRowBase {
     dataset_type!: string;
     condition!: string;
     sequencing_date!: string;
+    notes!: string;
+    linked_files!: LinkedFile[];
 }
 
-export class DataEntryRowOptional {
-    sex?: string;
-    affected?: boolean;
-    solved?: boolean;
-    linked_files?: LinkedFile[];
-    notes?: string;
-    extraction_protocol?: string;
-    capture_kit?: string;
-    library_prep_method?: string;
-    read_length?: number;
-    read_type?: string;
-    sequencing_id?: string;
-    sequencing_centre?: string;
-    batch_id?: string;
-    institution?: string;
+export class DataEntryRowRNA {
+    candidate_genes!: string;
 }
 
-export class DataEntryRowRNASeq {
-    candidate_genes?: string;
+export class DataEntryRowDNAOptional {
+    sex!: string;
+    affected!: boolean;
+    solved!: boolean;
+    extraction_protocol!: string;
+    capture_kit!: string;
+    library_prep_method!: string;
+    read_length!: number;
+    read_type!: string;
+    sequencing_id!: string;
+    sequencing_centre!: string;
+    batch_id!: string;
+    institution!: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
-    participantColDisabled?: boolean;
+export interface DataEntryFields
+    extends DataEntryRowBase,
+        DataEntryRowDNAOptional,
+        DataEntryRowRNA {}
+
+export interface DataEntryRow {
+    meta: {
+        participantColumnsDisabled?: boolean;
+    };
+    fields: DataEntryFields;
 }
 
-export interface DataEntryHeader {
-    title: string;
-    field: keyof DataEntryRow;
+export type DataEntryField = keyof DataEntryFields;
+
+export interface DataEntryColumnConfig {
+    field: DataEntryField;
     hidden?: boolean;
+    required?: boolean;
+    title: string;
 }
 
 export interface NewUser {

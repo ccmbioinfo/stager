@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "react-query";
-import { DataEntryRow, Dataset } from "../../typings";
+import { DataEntryFields, Dataset } from "../../typings";
 
 interface DatasetSubmitParameters {
-    data: DataEntryRow[];
+    data: DataEntryFields[];
     asGroups: string[];
 }
 

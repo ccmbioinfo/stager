@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Box,
     IconButton,
@@ -13,7 +13,7 @@ import {
 } from "@material-ui/core";
 import { CloudDownload, CloudUpload, OpenInNew, Restore, ViewColumn } from "@material-ui/icons";
 import { GroupDropdownSelect } from "../../components";
-import { DataEntryHeader, DataEntryRow } from "../../typings";
+import { DataEntryColumnConfig, DataEntryField } from "../../typings";
 import UploadDialog from "./UploadDialog";
 
 /**
@@ -21,19 +21,15 @@ import UploadDialog from "./UploadDialog";
  * optional columns.
  */
 function DataEntryColumnMenuAction(props: {
-    columns: DataEntryHeader[];
-    onClick: (field: keyof DataEntryRow) => void;
+    columns: DataEntryColumnConfig[];
+    onClick: (field: DataEntryField) => void;
 }) {
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
     return (
         <>
             <Tooltip title="Show/Hide columns">
-                <IconButton
-                    onClick={event => {
-                        setAnchor(event.currentTarget);
-                    }}
-                >
+                <IconButton onClick={event => setAnchor(event.currentTarget)}>
                     <ViewColumn />
                 </IconButton>
             </Tooltip>
@@ -68,10 +64,10 @@ const useToolbarStyles = makeStyles(theme => ({
  * buttons that do not depend on specific rows.
  */
 export default function DataEntryToolbar(props: {
-    handleColumnAction: (field: keyof DataEntryRow) => void;
+    handleColumnAction: (field: DataEntryField) => void;
     handleResetAction: () => void;
     handleCSVTemplateAction: () => void;
-    columns: DataEntryHeader[];
+    columns: DataEntryColumnConfig[];
     allGroups: string[]; // this user's groups
     groups: string[]; // selected groups
     setGroups: (selectedGroups: string[]) => void;
