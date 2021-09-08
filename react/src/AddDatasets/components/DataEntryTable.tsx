@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     Button,
     makeStyles,
@@ -68,7 +68,15 @@ export interface DataEntryTableProps {
     setGroups: (selectedGroups: string[]) => void;
 }
 
-export default function DataEntryTable(props: DataEntryTableProps) {
+export default function DataEntryTable({
+    allGroups,
+    columns,
+    data,
+    groups,
+    onChange,
+    setColumns,
+    setGroups,
+}: DataEntryTableProps) {
     const classes = useTableStyles();
 
     const [files, setFiles] = useState<UnlinkedFile[]>([]);
@@ -76,6 +84,32 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     const filesQuery = useUnlinkedFilesQuery();
     const { data: institutions } = useInstitutionsQuery();
     const { data: enums } = useEnumsQuery();
+
+    const onAddNewRow = useCallback(
+        () => onChange(data.concat(createEmptyRow())),
+        [onChange, data]
+    );
+    const onDelete = useCallback(
+        (rowIndex: number) => onChange(data.filter((_, index) => index !== rowIndex)),
+        [data, onChange]
+    );
+    const onDuplicate = useCallback(
+        (rowIndex: number) =>
+            onChange(
+                data.flatMap((row, index) =>
+                    index === rowIndex
+                        ? [
+                              row,
+                              {
+                                  ...row,
+                                  linked_files: [],
+                              },
+                          ]
+                        : row
+                )
+            ),
+        [data, onChange]
+    );
 
     useEffect(() => {
         if (filesQuery.isSuccess) setFiles(filesQuery.data);
@@ -88,7 +122,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
         families: Family[],
         autopopulate?: boolean
     ) {
-        const newRows = props.data.map((row, index) => {
+        const newRows = data.map((row, index) => {
             if (autopopulate && index === rowIndex && typeof newValue === "string") {
                 // autopopulate row
                 // pre-existing rows are disabled, even if the values are wrong
@@ -123,19 +157,19 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                 return row;
             }
         });
-        props.onChange(newRows);
+        onChange(newRows);
     }
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryColumnConfig, families: Family[]) {
-        return _getOptions(props.data, col, rowIndex, families, enums, files, institutions || []);
+        return _getOptions(data, col, rowIndex, families, enums, files, institutions || []);
     }
 
     function toggleHideColumn(field: DataEntryField) {
-        const newColumns = props.columns.map(col =>
+        const newColumns = columns.map(col =>
             col.field === field ? { ...col, hidden: !col.hidden } : col
         );
-        props.setColumns(newColumns);
+        setColumns(newColumns);
         window.localStorage.setItem(
             "data-entry-default-columns",
             JSON.stringify(getVisibleColumnFieldList(newColumns))
@@ -143,7 +177,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     }
 
     function downloadTemplateCSV() {
-        const csv = objArrayToCSV(props.data, getVisibleColumnFieldList(props.columns), true);
+        const csv = objArrayToCSV(data, getVisibleColumnFieldList(columns), true);
         let hiddenElement = document.createElement("a");
         hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
         hiddenElement.target = "_blank";
@@ -156,16 +190,16 @@ export default function DataEntryTable(props: DataEntryTableProps) {
     return (
         <Paper>
             <DataEntryToolbar
-                columns={props.columns.filter(col => OPTIONAL_FIELDS.includes(col.field))}
+                columns={columns.filter(col => OPTIONAL_FIELDS.includes(col.field))}
                 handleColumnAction={toggleHideColumn}
                 handleResetAction={() => {
                     window.localStorage.removeItem("data-entry-default-columns");
-                    props.setColumns(makeFreshColumns(["notes", "sex", "linked_files"]));
+                    setColumns(makeFreshColumns(["notes", "sex", "linked_files"]));
                 }}
                 handleCSVTemplateAction={downloadTemplateCSV}
-                allGroups={props.allGroups}
-                groups={props.groups}
-                setGroups={props.setGroups}
+                allGroups={allGroups}
+                groups={groups}
+                setGroups={setGroups}
             />
             <TableContainer>
                 <Table>
@@ -174,7 +208,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         <TableRow>
                             <TableCell padding="checkbox" aria-hidden={true} />
                             <TableCell padding="checkbox" aria-hidden={true} />
-                            {props.columns
+                            {columns
                                 .filter(col => !col.hidden)
                                 .map(cell => (
                                     <HeaderCell key={cell.field} header={cell.title + "*"} />
@@ -182,34 +216,16 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {props.data.map((row, rowIndex) => (
+                        {data.map((row, rowIndex) => (
                             <DataEntryTableRow
                                 row={row}
                                 rowIndex={rowIndex}
                                 key={rowIndex}
-                                columns={props.columns}
+                                columns={columns}
                                 getOptions={getOptions}
                                 onChange={onEdit}
-                                onDuplicate={() =>
-                                    props.onChange(
-                                        props.data.flatMap((row, index) =>
-                                            index === rowIndex
-                                                ? [
-                                                      row,
-                                                      {
-                                                          ...row,
-                                                          linked_files: [],
-                                                      },
-                                                  ]
-                                                : row
-                                        )
-                                    )
-                                }
-                                onDelete={() =>
-                                    props.onChange(
-                                        props.data.filter((_, index) => index !== rowIndex)
-                                    )
-                                }
+                                onDuplicate={onDuplicate.bind(null, rowIndex)}
+                                onDelete={onDelete.bind(null, rowIndex)}
                             />
                         ))}
                         <TableRow>
@@ -221,9 +237,7 @@ export default function DataEntryTable(props: DataEntryTableProps) {
                                     disableElevation
                                     disableRipple
                                     startIcon={<Add />}
-                                    onClick={() =>
-                                        props.onChange(props.data.concat(createEmptyRow()))
-                                    }
+                                    onClick={() => onAddNewRow()}
                                 >
                                     Add new row
                                 </Button>
