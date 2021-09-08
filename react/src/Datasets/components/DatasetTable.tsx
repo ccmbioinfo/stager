@@ -19,6 +19,7 @@ import { resetAllTableFilters, rowDiff, toKeyValue, updateTableFilter } from "..
 import {
     GET_DATASETS_URL,
     useColumnOrderCache,
+    useDatasetDeleteMutation,
     useDatasetsPage,
     useDatasetUpdateMutation,
     useDownloadCsv,
@@ -87,6 +88,7 @@ export default function DatasetTable() {
 
     const dataFetch = useDatasetsPage();
     const datasetUpdateMutation = useDatasetUpdateMutation();
+    const datasetDeleteMutation = useDatasetDeleteMutation();
     const enumsQuery = useEnumsQuery();
     const enums = enumsQuery.data;
     const metadatasetTypesQuery = useMetadatasetTypesQuery();
@@ -332,15 +334,24 @@ export default function DatasetTable() {
                         hidden: !currentUser.is_admin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
+                            console.log('data to be deleted', data);
                             const sampleString = (data as Dataset[])
                                 .map(
                                     dataset =>
                                         `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`
                                 )
                                 .join(", ");
-                            alert(
-                                `Withdraw all datasets and records associated with: ${sampleString}`
-                            );
+                            
+                            (data as Dataset[]).forEach(row => {
+                                datasetDeleteMutation.mutate(row.dataset_id, {
+                                    onSuccess: () => {
+                                        //refresh data
+                                        MTRef.current.onQueryChange();
+                                        enqueueSnackbar(`${sampleString} deleted successfully.`, { variant: 'success' });
+                                    },
+                                    onError: error => enqueueErrorSnackbar(error)
+                                })
+                            })
                         },
                     },
                     {
