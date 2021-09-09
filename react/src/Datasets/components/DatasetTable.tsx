@@ -334,24 +334,26 @@ export default function DatasetTable() {
                         hidden: !currentUser.is_admin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
-                            console.log('data to be deleted', data);
+                            console.log("data to be deleted", data);
                             const sampleString = (data as Dataset[])
                                 .map(
                                     dataset =>
                                         `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`
                                 )
                                 .join(", ");
-                            
+
                             (data as Dataset[]).forEach(row => {
                                 datasetDeleteMutation.mutate(row.dataset_id, {
                                     onSuccess: () => {
                                         //refresh data
                                         MTRef.current.onQueryChange();
-                                        enqueueSnackbar(`${sampleString} deleted successfully.`, { variant: 'success' });
+                                        enqueueSnackbar(`${sampleString} deleted successfully.`, {
+                                            variant: "success",
+                                        });
                                     },
-                                    onError: error => enqueueErrorSnackbar(error)
-                                })
-                            })
+                                    onError: error => enqueueErrorSnackbar(error),
+                                });
+                            });
                         },
                     },
                     {
