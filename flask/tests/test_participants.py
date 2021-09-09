@@ -25,6 +25,39 @@ def test_list_participants_admin(test_database, client, login_as):
     assert response.get_json()["total_count"] == 3
 
 
+def test_get_participants_exact_match(test_database, client, login_as):
+    login_as("admin")
+    # the number of participants returned by the endpoint, matching the specifications
+    ground_truth_d = {
+        "participant": {
+            "exact_match": {"00": 0, "001": 1, "002": 1, "003": 1},
+            "partial_match": {"00": 3},
+        },
+        "family": {
+            "exact_match": {"A": 0, "Aa": 2},
+            "partial_match": {"A": 2},
+        },
+    }
+    for codename_type in ground_truth_d:
+        for test_type in ground_truth_d[codename_type]:
+            if test_type == "exact_match":
+                exact_match = "True"
+            else:
+                exact_match = "False"
+
+            for ptp_query in ground_truth_d[codename_type][test_type]:
+                response = client.get(
+                    "/api/participants?{}_codename={}&{}_codename_exact_match={}".format(
+                        codename_type, ptp_query, codename_type, exact_match
+                    )
+                )
+                assert response.status_code == 200
+                assert (
+                    len(response.get_json()["data"])
+                    == ground_truth_d[codename_type][test_type][ptp_query]
+                )
+
+
 def test_list_participants_user(test_database, client, login_as):
     login_as("user")
 

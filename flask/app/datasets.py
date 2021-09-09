@@ -32,6 +32,7 @@ from .utils import (
     paginated_response,
     transaction_or_abort,
     validate_json,
+    str_to_bool,
 )
 
 EDITABLE_COLUMNS = [
@@ -61,6 +62,7 @@ datasets_blueprint = Blueprint(
 @login_required
 @paged
 def list_datasets(page: int, limit: int) -> Response:
+
     order = None
     order_by = request.args.get("order_by", type=str)
     order_dir = request.args.get("order_dir", type=str)
@@ -120,13 +122,43 @@ def list_datasets(page: int, limit: int) -> Response:
         filters.append(models.Dataset.dataset_id == dataset_id)
 
     participant_codename = request.args.get("participant_codename", type=str)
+    participant_codename_exact_match = request.args.get(
+        "participant_codename_exact_match", type=str_to_bool, default=False
+    )
     if participant_codename:
-        filters.append(
-            func.instr(models.Participant.participant_codename, participant_codename)
+        app.logger.debug(
+            "participant_codename_exact_match: {}".format(
+                participant_codename_exact_match
+            )
         )
+        if participant_codename_exact_match:
+            filters.append(
+                models.Participant.participant_codename
+                == func.binary(participant_codename)
+            )
+        else:
+            filters.append(
+                func.instr(
+                    models.Participant.participant_codename, participant_codename
+                )
+            )
+
     family_codename = request.args.get("family_codename", type=str)
+    family_codename_exact_match = request.args.get(
+        "family_codename_exact_match", type=str_to_bool, default=False
+    )
+
     if family_codename:
-        filters.append(func.instr(models.Family.family_codename, family_codename))
+        app.logger.debug(
+            "family_codename_exact_match: {}".format(family_codename_exact_match)
+        )
+        if family_codename_exact_match:
+            filters.append(
+                models.Family.family_codename == func.binary(family_codename)
+            )
+        else:
+            filters.append(func.instr(models.Family.family_codename, family_codename))
+
     dataset_type = request.args.get("dataset_type", type=str)
     if dataset_type:
         filters.append(models.Dataset.dataset_type.in_(dataset_type.split(",")))

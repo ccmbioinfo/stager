@@ -53,7 +53,7 @@ def test_get_analysis(test_database, client, login_as):
     assert len(response.get_json()["datasets"]) == 2
     for dataset in response.get_json()["datasets"]:
         assert dataset["dataset_type"] == "WGS"
-        assert dataset["family_codename"] == "A"
+        assert dataset["family_codename"] == "Aa"
         assert dataset["dataset_id"] == 2 or dataset["dataset_id"] == 3
         if dataset["dataset_id"] == 2:
             assert dataset["participant_codename"] == "001"

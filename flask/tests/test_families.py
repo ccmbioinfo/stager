@@ -34,7 +34,7 @@ def test_list_families_user(test_database, client, login_as):
     assert len(response.get_json()[0]["participants"]) == 2
 
     # Check if it is the correct family
-    assert response.get_json()[0]["family_codename"] == "A"
+    assert response.get_json()[0]["family_codename"] == "Aa"
 
 
 def test_list_families_user_from_admin(test_database, client, login_as):
@@ -49,7 +49,7 @@ def test_list_families_user_from_admin(test_database, client, login_as):
     assert len(response.get_json()[0]["participants"]) == 2
 
     # Check if it is the correct family
-    assert response.get_json()[0]["family_codename"] == "A"
+    assert response.get_json()[0]["family_codename"] == "Aa"
 
 
 # GET /api/families/:id
@@ -188,7 +188,7 @@ def test_create_family(test_database, client, login_as):
     assert (
         client.post(
             "/api/families",
-            json={"family_codename": "A"},
+            json={"family_codename": "Aa"},
         ).status_code
         == 422
     )
