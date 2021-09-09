@@ -242,11 +242,7 @@ groups_datasets_table = db.Table(
 datasets_analyses_table = db.Table(
     "datasets_analyses",
     db.Model.metadata,
-    db.Column(
-        "dataset_id",
-        db.Integer,
-        db.ForeignKey("dataset.dataset_id"),
-    ),
+    db.Column("dataset_id", db.Integer, db.ForeignKey("dataset.dataset_id"),),
     db.Column("analysis_id", db.Integer, db.ForeignKey("analysis.analysis_id")),
     db.PrimaryKeyConstraint(
         "dataset_id", "analysis_id"
@@ -256,12 +252,7 @@ datasets_analyses_table = db.Table(
 datasets_files_table = db.Table(
     "datasets_files",
     db.Model.metadata,
-    db.Column(
-        "file_id",
-        db.Integer,
-        db.ForeignKey("file.file_id"),
-        nullable=False,
-    ),
+    db.Column("file_id", db.Integer, db.ForeignKey("file.file_id"), nullable=False,),
     db.Column(
         "dataset_id",
         db.Integer,
@@ -525,33 +516,21 @@ class Variant(db.Model):
 class Genotype(db.Model):
 
     variant_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("variant.variant_id"),
-        primary_key=True,
+        db.Integer, db.ForeignKey("variant.variant_id"), primary_key=True,
     )
     analysis_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("analysis.analysis_id"),
-        primary_key=True,
+        db.Integer, db.ForeignKey("analysis.analysis_id"), primary_key=True,
     )
     dataset_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("dataset.dataset_id"),
-        primary_key=True,
+        db.Integer, db.ForeignKey("dataset.dataset_id"), primary_key=True,
     )
 
     variant = db.relationship("Variant", backref="genotype", foreign_keys=[variant_id])
 
     analysis = db.relationship(
-        "Analysis",
-        backref="genotype",
-        foreign_keys=[analysis_id],
+        "Analysis", backref="genotype", foreign_keys=[analysis_id],
     )
-    dataset = db.relationship(
-        "Dataset",
-        backref="genotype",
-        foreign_keys=[dataset_id],
-    )
+    dataset = db.relationship("Dataset", backref="genotype", foreign_keys=[dataset_id],)
 
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
@@ -565,7 +544,6 @@ class Genotype(db.Model):
             ["datasets_analyses.analysis_id", "datasets_analyses.dataset_id"],
         ),
         db.ForeignKeyConstraint(
-            [analysis_id, variant_id],
-            ["variant.analysis_id", "variant.variant_id"],
+            [analysis_id, variant_id], ["variant.analysis_id", "variant.variant_id"],
         ),
     )

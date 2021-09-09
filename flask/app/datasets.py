@@ -51,10 +51,7 @@ EDITABLE_COLUMNS = [
     "discriminator",
 ]
 
-datasets_blueprint = Blueprint(
-    "datasets",
-    __name__,
-)
+datasets_blueprint = Blueprint("datasets", __name__,)
 
 
 @datasets_blueprint.route("/api/datasets", methods=["GET"], strict_slashes=False)
@@ -340,11 +337,21 @@ def delete_dataset(id: int):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
         .options(joinedload(models.Dataset.analyses))
+        .options(joinedload(models.Dataset.groups))
         .first_or_404()
     )
+
+    # When a row from the dataset table with dataset_id is deleted, we also want to cascade the deletion to the corresponding row from groups_datasets.
+    dataset.groups = []
+
+    tissue_sample = models.TissueSample.query.filter(
+        models.TissueSample.tissue_sample_id == dataset.tissue_sample_id
+    ).first_or_404()
+
     if not dataset.analyses:
         try:
             db.session.delete(dataset)
+            db.session.delete(tissue_sample)
             db.session.commit()
             return "Updated", 204
         except:
@@ -468,8 +475,7 @@ def update_dataset_linked_files(
             # insert new files
             dataset.linked_files.append(
                 models.File(
-                    path=file_model["path"],
-                    multiplexed=file_model.get("multiplexed"),
+                    path=file_model["path"], multiplexed=file_model.get("multiplexed"),
                 )
             )
 
