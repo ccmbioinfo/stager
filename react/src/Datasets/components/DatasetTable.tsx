@@ -334,7 +334,6 @@ export default function DatasetTable() {
                         hidden: !currentUser.is_admin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
-                            console.log("data to be deleted", data);
                             const sampleString = (data as Dataset[])
                                 .map(
                                     dataset =>

@@ -252,7 +252,7 @@ datasets_analyses_table = db.Table(
 datasets_files_table = db.Table(
     "datasets_files",
     db.Model.metadata,
-    db.Column("file_id", db.Integer, db.ForeignKey("file.file_id"), nullable=False,),
+    db.Column("file_id", db.Integer, db.ForeignKey("file.file_id"), nullable=False),
     db.Column(
         "dataset_id",
         db.Integer,

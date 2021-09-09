@@ -344,9 +344,15 @@ def delete_dataset(id: int):
     # When a row from the dataset table with dataset_id is deleted, we also want to cascade the deletion to the corresponding row from groups_datasets.
     dataset.groups = []
 
-    tissue_sample = models.TissueSample.query.filter(
-        models.TissueSample.tissue_sample_id == dataset.tissue_sample_id
-    ).first_or_404()
+    tissue_sample = (
+        models.TissueSample.query.filter(
+            models.TissueSample.tissue_sample_id == dataset.tissue_sample_id
+        )
+        .options(joinedload(models.TissueSample.datasets))
+        .first_or_404()
+    )
+
+    tissue_sample.datasets = []
 
     if not dataset.analyses:
         try:
