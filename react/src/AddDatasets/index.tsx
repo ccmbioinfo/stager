@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Container, makeStyles, Tooltip } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
@@ -11,9 +11,12 @@ import {
     DataEntryColumnConfig,
     DataEntryField,
     DataEntryRow,
-    DataEntryRowBase,
     DataEntryRowDNAOptional,
-    DataEntryRowRNA,
+    DataEntryRowDNARequired,
+    DataEntryRowRNAOptional,
+    DataEntryRowRNARequired,
+    DataEntryRowSharedOptional,
+    DataEntryRowSharedRequired,
 } from "../typings";
 import DataEntryTable from "./components/DataEntryTable";
 import { participantColumns } from "./components/utils";
@@ -41,41 +44,60 @@ const useStyles = makeStyles(theme => ({
 /*
     create an object with all possible data entry fields
     column filters will determine which rows are displayable
-    `hidden` attribute on column config object determines whether col appears in table or in hidden list
+    `hidden` attribute on column config will determine whether col appears in table or in hidden list
 */
 export const createEmptyRow = (): DataEntryRow => ({
     fields: {
-        ...new DataEntryRowBase(),
+        ...new DataEntryRowSharedRequired(),
+        ...new DataEntryRowSharedOptional(),
+        ...new DataEntryRowRNARequired(),
+        ...new DataEntryRowRNAOptional(),
+        ...new DataEntryRowDNARequired(),
         ...new DataEntryRowDNAOptional(),
-        ...new DataEntryRowRNA(),
     },
     meta: {},
 });
+
+// widen types so we can check for presence of fields from various classes in the same array w/o typescript complaining
+const REQUIRED_DNA_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowDNARequired());
+const REQUIRED_RNA_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowRNARequired());
+const REQUIRED_SHARED_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowSharedRequired());
+const OPTIONAL_DNA_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowDNAOptional());
+const OPTIONAL_RNA_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowRNAOptional());
+const OPTIONAL_SHARED_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowSharedOptional());
+
+export const DNA_ONLY_FIELDS: readonly DataEntryField[] = [
+    ...REQUIRED_DNA_FIELDS,
+    ...OPTIONAL_DNA_FIELDS,
+];
+
+export const RNA_ONLY_FIELDS: readonly DataEntryField[] = [
+    ...REQUIRED_RNA_FIELDS,
+    ...OPTIONAL_RNA_FIELDS,
+];
+
+const ALL_DNA_FIELDS: readonly DataEntryField[] = [
+    ...DNA_ONLY_FIELDS,
+    ...REQUIRED_SHARED_FIELDS,
+    ...OPTIONAL_SHARED_FIELDS,
+];
+
+const ALL_RNA_FIELDS: readonly DataEntryField[] = [
+    ...RNA_ONLY_FIELDS,
+    ...REQUIRED_SHARED_FIELDS,
+    ...OPTIONAL_SHARED_FIELDS,
+];
+
+export const ALL_OPTIONAL_FIELDS: readonly DataEntryField[] = [
+    ...OPTIONAL_DNA_FIELDS,
+    ...OPTIONAL_RNA_FIELDS,
+    ...OPTIONAL_SHARED_FIELDS,
+];
 
 /*
     get array of all data entry fields
 */
 const getDataEntryFieldList = () => getKeys(createEmptyRow().fields);
-
-/* fields that cannot be hidden and are required for submission for both DNA and RNA seq */
-const ALWAYS_VISIBLE_BASE_FIELDS: readonly DataEntryField[] = [
-    "family_codename",
-    "participant_codename",
-    "participant_type",
-    "tissue_sample_type",
-    "dataset_type",
-    "condition",
-    "sequencing_date",
-];
-
-/* RNA-only fields that are required */
-const ALWAYS_VISIBLE_RNA_FIELDS: readonly DataEntryField[] = [
-    ...ALWAYS_VISIBLE_BASE_FIELDS,
-    "candidate_genes",
-];
-
-/* optional fields that can be hidden */
-export const OPTIONAL_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowDNAOptional());
 
 const formatFieldToTitle = (field: string) => {
     if (field === "sequencing_date") {
@@ -102,20 +124,23 @@ export const makeFreshColumns = (fallbackColumns: DataEntryField[]): DataEntryCo
     return (
         getDataEntryFieldList()
             //show dna only by default
-            .filter(f => !getKeys(new DataEntryRowRNA()).includes(f as any))
+            .filter(field => !RNA_ONLY_FIELDS.includes(field))
             .map(field => ({
-                field: field,
+                field,
                 hidden:
-                    !defaultVisible.includes(field) && !ALWAYS_VISIBLE_BASE_FIELDS.includes(field),
-                required: ALWAYS_VISIBLE_BASE_FIELDS.includes(field),
+                    !defaultVisible.includes(field) &&
+                    ![...REQUIRED_DNA_FIELDS, ...REQUIRED_SHARED_FIELDS].includes(field),
+                required: [...REQUIRED_DNA_FIELDS, ...REQUIRED_SHARED_FIELDS].includes(field),
                 title: formatFieldToTitle(field),
             }))
     );
 };
 
 /* get a list of required fields for the row */
-const getRequiredFields = (row: DataEntryRow) =>
-    row.fields.dataset_type === "RRS" ? ALWAYS_VISIBLE_RNA_FIELDS : ALWAYS_VISIBLE_BASE_FIELDS;
+const getRequiredFields = (row: DataEntryRow) => [
+    ...REQUIRED_SHARED_FIELDS,
+    ...(row.fields.dataset_type === "RRS" ? REQUIRED_RNA_FIELDS : REQUIRED_DNA_FIELDS),
+];
 
 /* add columns to the current list after a specified field */
 const insertColumnsAfter = (
@@ -123,6 +148,18 @@ const insertColumnsAfter = (
     columns: DataEntryColumnConfig[],
     columnsToAdd: DataEntryColumnConfig[]
 ) => columns.flatMap(col => (col.field === field ? [col, ...columnsToAdd] : col));
+
+type LayoutType = "RNA" | "DNA" | "MIXED";
+
+/* return the current column layout type */
+const getColumnLayoutType = (columns: DataEntryColumnConfig[]): LayoutType => {
+    console.log("calculating column layout type");
+    if (columns.filter(c => ALL_RNA_FIELDS.includes(c.field)).length === columns.length) {
+        return "RNA";
+    } else if (columns.filter(c => ALL_DNA_FIELDS.includes(c.field)).length === columns.length) {
+        return "DNA";
+    } else return "MIXED";
+};
 
 export default function AddDatasets() {
     const classes = useStyles();
@@ -159,37 +196,46 @@ export default function AddDatasets() {
     }, [columns, data, setColumns]);
 
     useEffect(() => {
-        /* toggle column display based on dataset type  */
-        if (data && columns) {
-            const rnaFields = getKeys(new DataEntryRowRNA());
-            sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
-            //toggle rna seq column visibility
-            if (
-                data.some(row => row.fields.dataset_type === "RRS") &&
-                !columns.find(c => c.field === rnaFields[0])
-            ) {
-                setColumns(
-                    insertColumnsAfter(
-                        "sequencing_date",
-                        columns,
-                        rnaFields.map(field => ({
-                            field,
-                            hidden: false,
-                            required: true,
-                            title: snakeCaseToTitle(field),
-                        }))
-                    )
-                );
-            } else if (
-                columns.find(c => c.field === rnaFields[0]) &&
-                !data.find(row => row.fields.dataset_type === "RRS")
-            ) {
-                setColumns(
-                    columns.filter(c => !getKeys(new DataEntryRowRNA()).includes(c.field as any))
-                );
+        sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
+    }, [data]);
+
+    /* "memoizing" dataType to extract the `data` dependency from useEffect column check below */
+    const dataType = useMemo(() => {
+        if ((data || []).every(row => row.fields.dataset_type !== "RRS")) {
+            return "DNA";
+        } else if ((data || []).every(row => row.fields.dataset_type === "RRS")) {
+            return "RNA";
+        } else return "MIXED";
+    }, [data]);
+
+    /* keep columns and user-provided data in sync */
+    useEffect(() => {
+        if (columns) {
+            const columnLayoutType = getColumnLayoutType(columns);
+            if (columnLayoutType !== dataType) {
+                switch (`${columnLayoutType}->${dataType}`) {
+                    case "DNA->RNA":
+                        setColumns(addRNACols(removeDNACols(columns)));
+                        break;
+                    case "RNA->DNA":
+                        setColumns(addDNACols(removeRNACols(columns)));
+                        break;
+                    case "RNA->MIXED":
+                        setColumns(addDNACols(columns));
+                        break;
+                    case "MIXED->RNA":
+                        setColumns(removeDNACols(columns));
+                        break;
+                    case "DNA->MIXED":
+                        setColumns(addRNACols(columns));
+                        break;
+                    case "MIXED->DNA":
+                        setColumns(removeRNACols(columns));
+                        break;
+                }
             }
         }
-    }, [data, columns]);
+    }, [dataType, columns]);
 
     useEffect(() => {
         if (currentUser.groups.length === 1) {
@@ -197,11 +243,6 @@ export default function AddDatasets() {
         }
     }, [currentUser]);
 
-    function onChangeGroups(newGroups: string[]) {
-        setAsGroups(newGroups);
-    }
-
-    // Check for error state
     useEffect(() => {
         // Check all permission groups
         if (data) {
@@ -246,7 +287,43 @@ export default function AddDatasets() {
             // Checked everything, no problems
             setErrorMessage("");
         }
+
+        // Check for error state
     }, [data, asGroups, currentUser]);
+
+    const removeRNACols = (currCols: DataEntryColumnConfig[]) =>
+        currCols.filter(c => ALL_DNA_FIELDS.includes(c.field));
+
+    const removeDNACols = (currCols: DataEntryColumnConfig[]) =>
+        currCols.filter(c => ALL_RNA_FIELDS.includes(c.field));
+
+    function onChangeGroups(newGroups: string[]) {
+        setAsGroups(newGroups);
+    }
+
+    const addDNACols = (currCols: DataEntryColumnConfig[]) =>
+        insertColumnsAfter(
+            "sequencing_date",
+            currCols,
+            DNA_ONLY_FIELDS.map(field => ({
+                field,
+                hidden: OPTIONAL_DNA_FIELDS.includes(field),
+                required: REQUIRED_DNA_FIELDS.includes(field),
+                title: snakeCaseToTitle(field),
+            }))
+        );
+
+    const addRNACols = (currCols: DataEntryColumnConfig[]) =>
+        insertColumnsAfter(
+            "sequencing_date",
+            currCols,
+            RNA_ONLY_FIELDS.map(field => ({
+                field,
+                hidden: OPTIONAL_RNA_FIELDS.includes(field),
+                required: REQUIRED_RNA_FIELDS.includes(field),
+                title: snakeCaseToTitle(field),
+            }))
+        );
 
     function handleSubmit() {
         if (data) {

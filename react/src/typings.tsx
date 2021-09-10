@@ -170,7 +170,8 @@ export interface Info {
 
 // Define these as classes so that we can create an array of keys later
 
-export class DataEntryRowBase {
+//note that these are in display order and should not alphabetized
+export class DataEntryRowSharedRequired {
     family_codename!: string;
     participant_codename!: string;
     participant_type!: string;
@@ -182,12 +183,7 @@ export class DataEntryRowBase {
     linked_files!: LinkedFile[];
 }
 
-export class DataEntryRowRNA {
-    candidate_genes!: string;
-}
-
-export class DataEntryRowDNAOptional {
-    sex!: string;
+export class DataEntryRowSharedOptional {
     affected!: boolean;
     solved!: boolean;
     extraction_protocol!: string;
@@ -200,11 +196,25 @@ export class DataEntryRowDNAOptional {
     batch_id!: string;
     institution!: string;
 }
+export class DataEntryRowRNARequired {
+    candidate_genes!: string;
+}
+
+export class DataEntryRowDNARequired {}
+
+export class DataEntryRowDNAOptional {
+    sex!: string;
+}
+
+export class DataEntryRowRNAOptional {}
 
 export interface DataEntryFields
-    extends DataEntryRowBase,
-        DataEntryRowDNAOptional,
-        DataEntryRowRNA {}
+    extends DataEntryRowSharedRequired,
+        DataEntryRowSharedOptional,
+        DataEntryRowRNARequired,
+        DataEntryRowRNAOptional,
+        DataEntryRowDNARequired,
+        DataEntryRowDNAOptional {}
 
 export interface DataEntryRow {
     meta: {

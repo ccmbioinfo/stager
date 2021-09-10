@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { TableRow } from "@material-ui/core";
 import { Delete, LibraryAdd } from "@material-ui/icons";
-import { getKeys } from "../../functions";
+import { DNA_ONLY_FIELDS, RNA_ONLY_FIELDS } from "..";
 import { useFamiliesQuery } from "../../hooks";
 import {
     DataEntryColumnConfig,
     DataEntryField,
     DataEntryRow,
-    DataEntryRowRNA,
     Family,
     UnlinkedFile,
 } from "../../typings";
@@ -64,10 +63,12 @@ export default function DataEntryTableRow({
         return _getOptions(rowIndex, col, families);
     }
 
+    /* column can be disabled either b/c participant info has been autofilled or
+       we're showing mixed RNA/DNA data and certain cols aren't relevant to this particular row */
     const getColumnIsDisabled = (field: DataEntryField, row: DataEntryRow) =>
         (row.meta.participantColumnsDisabled && participantColumns.includes(field)) ||
-        (getKeys(new DataEntryRowRNA()).includes(field as any) &&
-            row.fields.dataset_type !== "RRS");
+        ([...RNA_ONLY_FIELDS].includes(field as any) && row.fields.dataset_type !== "RRS") ||
+        ([...DNA_ONLY_FIELDS].includes(field as any) && row.fields.dataset_type === "RRS");
 
     return (
         <TableRow key={rowIndex}>

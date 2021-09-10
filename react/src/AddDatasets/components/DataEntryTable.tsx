@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
-import { createEmptyRow, makeFreshColumns, OPTIONAL_FIELDS } from "..";
+import { ALL_OPTIONAL_FIELDS, createEmptyRow, makeFreshColumns } from "..";
 import { useEnumsQuery, useInstitutionsQuery, useUnlinkedFilesQuery } from "../../hooks";
 import {
     DataEntryColumnConfig,
@@ -101,8 +101,11 @@ export default function DataEntryTable({
                         ? [
                               row,
                               {
-                                  ...row,
-                                  linked_files: [],
+                                  meta: row.meta,
+                                  fields: {
+                                      ...row.fields,
+                                      linked_files: [],
+                                  },
                               },
                           ]
                         : row
@@ -190,7 +193,7 @@ export default function DataEntryTable({
     return (
         <Paper>
             <DataEntryToolbar
-                columns={columns.filter(col => OPTIONAL_FIELDS.includes(col.field))}
+                columns={columns.filter(col => ALL_OPTIONAL_FIELDS.includes(col.field))}
                 handleColumnAction={toggleHideColumn}
                 handleResetAction={() => {
                     window.localStorage.removeItem("data-entry-default-columns");
@@ -210,8 +213,11 @@ export default function DataEntryTable({
                             <TableCell padding="checkbox" aria-hidden={true} />
                             {columns
                                 .filter(col => !col.hidden)
-                                .map(cell => (
-                                    <HeaderCell key={cell.field} header={cell.title + "*"} />
+                                .map(column => (
+                                    <HeaderCell
+                                        key={column.field}
+                                        header={`${column.title}${column.required ? "*" : ""}`}
+                                    />
                                 ))}
                         </TableRow>
                     </TableHead>
