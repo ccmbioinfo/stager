@@ -38,6 +38,11 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+/*
+    create an object with all possible data entry fields
+    column filters will determine which rows are displayable
+    `hidden` attribute on column config object determines whether col appears in table or in hidden list
+*/
 export const createEmptyRow = (): DataEntryRow => ({
     fields: {
         ...new DataEntryRowBase(),
@@ -47,8 +52,12 @@ export const createEmptyRow = (): DataEntryRow => ({
     meta: {},
 });
 
+/*
+    get array of all data entry fields
+*/
 const getDataEntryFieldList = () => getKeys(createEmptyRow().fields);
 
+/* fields that cannot be hidden and are required for submission for both DNA and RNA seq */
 const ALWAYS_VISIBLE_BASE_FIELDS: readonly DataEntryField[] = [
     "family_codename",
     "participant_codename",
@@ -59,12 +68,13 @@ const ALWAYS_VISIBLE_BASE_FIELDS: readonly DataEntryField[] = [
     "sequencing_date",
 ];
 
+/* RNA-only fields that are required */
 const ALWAYS_VISIBLE_RNA_FIELDS: readonly DataEntryField[] = [
     ...ALWAYS_VISIBLE_BASE_FIELDS,
     "candidate_genes",
 ];
 
-/* only optional fields can be hidden */
+/* optional fields that can be hidden */
 export const OPTIONAL_FIELDS: readonly DataEntryField[] = getKeys(new DataEntryRowDNAOptional());
 
 const formatFieldToTitle = (field: string) => {
@@ -75,7 +85,8 @@ const formatFieldToTitle = (field: string) => {
         .replace(/ Id /g, " ID "); // capitalize any occurrance of " Id "
 };
 
-export const makeFreshColumns = (fallbackColumns: DataEntryField[]) => {
+/* create fresh set of DNA column configs */
+export const makeFreshColumns = (fallbackColumns: DataEntryField[]): DataEntryColumnConfig[] => {
     let defaultVisible: DataEntryField[];
 
     const storedDefaults = window.localStorage.getItem("data-entry-default-columns");
@@ -102,9 +113,11 @@ export const makeFreshColumns = (fallbackColumns: DataEntryField[]) => {
     );
 };
 
-const getRequiredRows = (row: DataEntryRow) =>
+/* get a list of required fields for the row */
+const getRequiredFields = (row: DataEntryRow) =>
     row.fields.dataset_type === "RRS" ? ALWAYS_VISIBLE_RNA_FIELDS : ALWAYS_VISIBLE_BASE_FIELDS;
 
+/* add columns to the current list after a specified field */
 const insertColumnsAfter = (
     field: DataEntryField,
     columns: DataEntryColumnConfig[],
@@ -130,7 +143,6 @@ export default function AddDatasets() {
     }, []);
 
     useEffect(() => {
-        document.title = `Add Datasets | ${process.env.REACT_APP_NAME}`;
         if (!data) {
             const savedProgress = sessionStorage.getItem("add-datasets-progress");
 
@@ -147,6 +159,7 @@ export default function AddDatasets() {
     }, [columns, data, setColumns]);
 
     useEffect(() => {
+        /* toggle column display based on dataset type  */
         if (data && columns) {
             const rnaFields = getKeys(new DataEntryRowRNA());
             sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
@@ -207,8 +220,8 @@ export default function AddDatasets() {
 
             for (let i = 0; i < data.length; i++) {
                 let row = data[i];
-                const requiredRows = getRequiredRows(row);
-                for (const field of requiredRows) {
+                const requiredFields = getRequiredFields(row);
+                for (const field of requiredFields) {
                     if (row.meta.participantColumnsDisabled && participantColumns.includes(field))
                         continue;
                     const val = row.fields[field];
