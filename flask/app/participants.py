@@ -90,9 +90,7 @@ def list_participants(page: int, limit: int) -> Response:
 
     if family_codename:
         if family_codename_exact_match:
-            filters.append(
-                models.Family.family_codename == func.binary(family_codename)
-            )
+            filters.append(models.Family.family_codename == family_codename)
         else:
             filters.append(func.instr(models.Family.family_codename, family_codename))
 
@@ -105,8 +103,7 @@ def list_participants(page: int, limit: int) -> Response:
     if participant_codename:
         if participant_codename_exact_match:
             filters.append(
-                models.Participant.participant_codename
-                == func.binary(participant_codename)
+                models.Participant.participant_codename == participant_codename
             )
         else:
             filters.append(
