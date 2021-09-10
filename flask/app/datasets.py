@@ -51,7 +51,10 @@ EDITABLE_COLUMNS = [
     "discriminator",
 ]
 
-datasets_blueprint = Blueprint("datasets", __name__,)
+datasets_blueprint = Blueprint(
+    "datasets",
+    __name__,
+)
 
 
 @datasets_blueprint.route("/api/datasets", methods=["GET"], strict_slashes=False)
@@ -483,7 +486,8 @@ def update_dataset_linked_files(
             # insert new files
             dataset.linked_files.append(
                 models.File(
-                    path=file_model["path"], multiplexed=file_model.get("multiplexed"),
+                    path=file_model["path"],
+                    multiplexed=file_model.get("multiplexed"),
                 )
             )
 
