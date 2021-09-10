@@ -344,7 +344,6 @@ export default function DatasetTable() {
                             (data as Dataset[]).forEach(row => {
                                 datasetDeleteMutation.mutate(row.dataset_id, {
                                     onSuccess: () => {
-                                        console.log(row)
                                         //refresh data
                                         MTRef.current.onQueryChange();
                                         enqueueSnackbar(`${sampleString} deleted successfully.`, {

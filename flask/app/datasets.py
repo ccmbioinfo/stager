@@ -341,7 +341,7 @@ def delete_dataset(id: int):
         .first_or_404()
     )
 
-    # When a row from the dataset table with dataset_id is deleted, we also want to cascade the deletion to the corresponding row from groups_datasets.
+    # Remove permission groups with the corresponding dataset ID in groups_datasets table
     dataset.groups = []
 
     tissue_sample = (
@@ -352,17 +352,15 @@ def delete_dataset(id: int):
         .first_or_404()
     )
 
-    tissue_sample.datasets = []
-
     if not dataset.analyses:
         try:
-            app.logger.debug('DATASET IS')
-            app.logger.debug(dataset)
-            app.logger.debug('TISSUE SAMPLE IS')
-            app.logger.debug(tissue_sample)
             db.session.delete(dataset)
-            db.session.delete(tissue_sample)
             db.session.commit()
+
+            # Only delete tissue sample if it doesn't have any associated datasets left.
+            if len(tissue_sample.datasets) == 0:
+                db.session.delete(tissue_sample)
+                db.session.commit()
             return "Updated", 204
         except:
             db.session.rollback()
