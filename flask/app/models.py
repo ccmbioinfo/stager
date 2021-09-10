@@ -184,7 +184,7 @@ class TissueSample(db.Model):
     updated_by_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-    datasets = db.relationship("Dataset", backref="tissue_sample")
+    datasets = db.relationship("Dataset", backref="tissue_sample", cascade="all, delete-orphan")
     updated_by = db.relationship("User", foreign_keys=[updated_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
 
@@ -266,7 +266,7 @@ datasets_files_table = db.Table(
 class Dataset(db.Model):
     __tablename__ = "dataset"
     tissue_sample_id: int = db.Column(
-        db.Integer, db.ForeignKey("tissue_sample.tissue_sample_id"), nullable=False
+        db.Integer, db.ForeignKey("tissue_sample.tissue_sample_id", ondelete="cascade"), nullable=False
     )
     dataset_id: int = db.Column(db.Integer, primary_key=True)
     dataset_type: str = db.Column(

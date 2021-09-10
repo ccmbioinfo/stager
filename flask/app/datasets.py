@@ -356,6 +356,10 @@ def delete_dataset(id: int):
 
     if not dataset.analyses:
         try:
+            app.logger.debug('DATASET IS')
+            app.logger.debug(dataset)
+            app.logger.debug('TISSUE SAMPLE IS')
+            app.logger.debug(tissue_sample)
             db.session.delete(dataset)
             db.session.delete(tissue_sample)
             db.session.commit()
