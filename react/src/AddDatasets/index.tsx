@@ -195,7 +195,7 @@ export default function AddDatasets() {
             }
         }
         if (!columns) {
-            setColumns(makeFreshColumns(["notes", "sex", "linked_files"]));
+            setColumns(makeFreshColumns(["notes", "sex", "linked_files", "vcf_available"]));
         }
     }, [columns, data, setColumns]);
 
@@ -323,7 +323,7 @@ export default function AddDatasets() {
             currCols,
             RNA_ONLY_FIELDS.map(field => ({
                 field,
-                hidden: OPTIONAL_RNA_FIELDS.includes(field),
+                hidden: OPTIONAL_RNA_FIELDS.includes(field) && field !== "vcf_available",
                 required: REQUIRED_RNA_FIELDS.includes(field),
                 title: snakeCaseToTitle(field),
             }))

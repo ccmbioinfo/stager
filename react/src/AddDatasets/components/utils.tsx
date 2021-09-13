@@ -7,7 +7,7 @@ import {
     UnlinkedFile,
 } from "../../typings";
 
-export const booleanColumns: DataEntryField[] = ["affected", "solved"];
+export const booleanColumns: DataEntryField[] = ["affected", "solved", "vcf_available"];
 export const dateColumns: DataEntryField[] = ["sequencing_date"];
 export const participantColumns = ["participant_type", "sex", "affected", "solved"];
 // Columns whose values are predefined

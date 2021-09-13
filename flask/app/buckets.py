@@ -70,7 +70,6 @@ def get_unlinked_files():
         if linkable_files.get(file_name):
             files.append({"path": file_name, "multiplexed": True})
         elif not linked_files.get(file_name):
-            app.logger.debug(file_name)
             files.append({"path": file_name, "multiplexed": False})
 
     app.logger.debug("Returning JSON array..")

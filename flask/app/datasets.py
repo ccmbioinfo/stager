@@ -3,7 +3,6 @@ from typing import List
 
 from flask import (
     Blueprint,
-    Request,
     Response,
     abort,
     current_app as app,
@@ -12,7 +11,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload, selectinload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload, with_polymorphic
 
 from . import models
 from .extensions import db

@@ -342,6 +342,7 @@ class Dataset(db.Model):
     __mapper_args__ = {
         "polymorphic_identity": "dataset",
         "polymorphic_on": discriminator,
+        "with_polymorphic": "*",
     }
 
     analyses = db.relationship(
@@ -368,13 +369,17 @@ class RNASeqDataset(Dataset):
         db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
         primary_key=True,
     )
+    candidate_genes: str = db.Column(db.String(255))
     RIN: float = db.Column(db.Float)
     DV200: int = db.Column(db.Integer)
     concentration: float = db.Column(db.Float)
     sequencer: str = db.Column(db.String(50))
     spike_in: str = db.Column(db.String(50))
+    vcf_available: str = db.Column(db.Boolean)
 
-    __mapper_args__ = {"polymorphic_identity": "rnaseq_dataset"}
+    __mapper_args__ = {
+        "polymorphic_identity": "rnaseq_dataset",
+    }
 
 
 @dataclass

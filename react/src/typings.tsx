@@ -178,6 +178,7 @@ export class DataEntryRowSharedRequired {
     tissue_sample_type!: string;
     dataset_type!: string;
     linked_files!: LinkedFile[];
+    condition!: string;
     sequencing_date!: string;
 }
 
@@ -200,14 +201,14 @@ export class DataEntryRowDNAOptional {
     institution!: string;
 }
 
-export class DataEntryRowDNARequired {
-    condition!: string;
-}
+export class DataEntryRowDNARequired {}
 export class DataEntryRowRNARequired {
     candidate_genes!: string;
 }
 
-export class DataEntryRowRNAOptional {}
+export class DataEntryRowRNAOptional {
+    vcf_available!: boolean;
+}
 
 export interface DataEntryFields
     extends DataEntryRowSharedRequired,

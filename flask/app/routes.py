@@ -532,21 +532,28 @@ def bulk_update():
 
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
-        dataset = models.Dataset(
-            tissue_sample_id=tissue_sample.tissue_sample_id,
-            dataset_type=row.get("dataset_type"),
-            created_by_id=created_by_id,
-            updated_by_id=updated_by_id,
-            condition=row.get("condition"),
-            extraction_protocol=row.get("extraction_protocol"),
+
+        DatasetType = (
+            models.RNASeqDataset if row.get("dataset_type") == "RRS" else models.Dataset
+        )
+
+        dataset = DatasetType(
+            batch_id=row.get("batch_id"),
+            candidate_genes=row.get("candidate_genes"),
             capture_kit=row.get("capture_kit"),
+            condition=row.get("condition"),
+            created_by_id=created_by_id,
+            dataset_type=row.get("dataset_type"),
+            extraction_protocol=row.get("extraction_protocol"),
             library_prep_method=row.get("library_prep_method"),
             notes=row.get("notes"),
             read_length=row.get("read_length"),
             read_type=row.get("read_type"),
             sequencing_centre=row.get("sequencing_centre"),
             sequencing_date=row.get("sequencing_date"),
-            batch_id=row.get("batch_id"),
+            tissue_sample_id=tissue_sample.tissue_sample_id,
+            updated_by_id=updated_by_id,
+            vcf_available=row.get("vcf_available"),
         )
         app.logger.debug("\tLinking files to dataset..")
 
