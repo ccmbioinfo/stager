@@ -327,7 +327,7 @@ HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/
 
     for dataset in models.Dataset.query.all():
         print(dataset)
-    assert models.Dataset.query.count() == 6
+    assert models.Dataset.query.count() == 7
     assert models.File.query.count() == 5
     assert models.TissueSample.query.count() == 5
     assert models.Participant.query.count() == 4
@@ -373,7 +373,7 @@ def test_bulk_multiple_json(test_database, client, login_as):
         == 200
     )
 
-    assert models.Dataset.query.count() == 6
+    assert models.Dataset.query.count() == 7
     assert models.File.query.count() == 3
     assert models.TissueSample.query.count() == 5
     assert models.Participant.query.count() == 4

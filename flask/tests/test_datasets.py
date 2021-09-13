@@ -233,22 +233,7 @@ def test_delete_dataset_admin(client, test_database, login_as):
     assert client.get("/api/datasets/5").status_code == 404
 
     # Check if tissue sample 4 is properly deleted
-    tissue_sample = dataset_5.tissue_sample
-
-    participant = (
-        models.Participant.query.filter(
-            models.Participant.participant_id == tissue_sample.participant_id
-        )
-        .options(joinedload(models.Participant.tissue_samples))
-        .one_or_none()
-    )
-
-    participant_tissue_samples = [
-        s
-        for s in participant.tissue_samples
-        if s.tissue_sample_id == tissue_sample.tissue_sample_id
-    ]
-    assert (len(participant_tissue_samples)) == 0
+    assert client.get("/api/tissue_samples/4").status_code == 404
 
 
 def test_delete_dataset_user(client, test_database, login_as):
