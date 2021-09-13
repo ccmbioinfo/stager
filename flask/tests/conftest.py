@@ -346,7 +346,6 @@ def test_database(client):
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
-    sample_3.datasets.append(dataset_5)
 
     # Creating a tissue sample with only one dataset
     sample_4 = TissueSample(

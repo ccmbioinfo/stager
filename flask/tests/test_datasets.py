@@ -218,6 +218,13 @@ def test_delete_dataset_admin(client, test_database, login_as):
     assert client.delete("/api/datasets/400").status_code == 404
     assert client.get("/api/datasets/400").status_code == 404
 
+
+def test_delete_dataset_with_tissue_sample(client, test_database, login_as):
+    """
+    DELETE /api/datasets/:id as an administrator
+    """
+    login_as("admin")
+
     # Deleting a dataset without an analysis but associated with tissue sample
     dataset_5 = (
         models.Dataset.query.filter(models.Dataset.dataset_id == 5)
@@ -233,22 +240,9 @@ def test_delete_dataset_admin(client, test_database, login_as):
     assert client.get("/api/datasets/5").status_code == 404
 
     # Check if tissue sample 4 is properly deleted
-    tissue_sample = dataset_5.tissue_sample
-
-    participant = (
-        models.Participant.query.filter(
-            models.Participant.participant_id == tissue_sample.participant_id
-        )
-        .options(joinedload(models.Participant.tissue_samples))
-        .one_or_none()
+    assert (
+        client.get(f"/api/datasets/{dataset_5.tissue_sample.tissue_sample_id}") == 404
     )
-
-    participant_tissue_samples = [
-        s
-        for s in participant.tissue_samples
-        if s.tissue_sample_id == tissue_sample.tissue_sample_id
-    ]
-    assert (len(participant_tissue_samples)) == 0
 
 
 def test_delete_dataset_user(client, test_database, login_as):
