@@ -70,9 +70,10 @@ export function DataEntryCell(props: {
     } else if (dateColumns.includes(props.col.field)) {
         return (
             <DateCell
-                value={props.row.fields[fieldName]?.toString()}
-                onEdit={props.onEdit}
                 disabled={props.disabled}
+                onEdit={props.onEdit}
+                required={!!props.required}
+                value={props.row.fields[fieldName]?.toString()}
             />
         );
     } else if (fieldName === "linked_files") {
@@ -264,12 +265,13 @@ export function CheckboxCell(props: {
 
 /* A data entry cell for columns which require a date value. */
 export function DateCell(props: {
-    value: string | undefined;
-    onEdit: (newValue: string) => void;
     disabled?: boolean;
+    onEdit: (newValue: string) => void;
+    required: boolean;
+    value: string | undefined;
 }) {
     const classes = useCellStyles();
-    const isError = !props.value || props.value === "";
+    const isError = props.required && !props.value;
     return (
         <TableCell>
             <TextField

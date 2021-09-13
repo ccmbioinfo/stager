@@ -177,13 +177,16 @@ export class DataEntryRowSharedRequired {
     participant_type!: string;
     tissue_sample_type!: string;
     dataset_type!: string;
-    condition!: string;
-    sequencing_date!: string;
-    notes!: string;
     linked_files!: LinkedFile[];
+    sequencing_date!: string;
 }
 
 export class DataEntryRowSharedOptional {
+    notes!: string;
+}
+
+export class DataEntryRowDNAOptional {
+    sex!: string;
     affected!: boolean;
     solved!: boolean;
     extraction_protocol!: string;
@@ -196,14 +199,12 @@ export class DataEntryRowSharedOptional {
     batch_id!: string;
     institution!: string;
 }
+
+export class DataEntryRowDNARequired {
+    condition!: string;
+}
 export class DataEntryRowRNARequired {
     candidate_genes!: string;
-}
-
-export class DataEntryRowDNARequired {}
-
-export class DataEntryRowDNAOptional {
-    sex!: string;
 }
 
 export class DataEntryRowRNAOptional {}

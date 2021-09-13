@@ -147,13 +147,17 @@ const insertColumnsAfter = (
     field: DataEntryField,
     columns: DataEntryColumnConfig[],
     columnsToAdd: DataEntryColumnConfig[]
-) => columns.flatMap(col => (col.field === field ? [col, ...columnsToAdd] : col));
+) => {
+    if (!columns.find(c => c.field === field)) {
+        throw new Error(`${field} does not exist!`);
+    }
+    return columns.flatMap(col => (col.field === field ? [col, ...columnsToAdd] : col));
+};
 
 type LayoutType = "RNA" | "DNA" | "MIXED";
 
 /* return the current column layout type */
 const getColumnLayoutType = (columns: DataEntryColumnConfig[]): LayoutType => {
-    console.log("calculating column layout type");
     if (columns.filter(c => ALL_RNA_FIELDS.includes(c.field)).length === columns.length) {
         return "RNA";
     } else if (columns.filter(c => ALL_DNA_FIELDS.includes(c.field)).length === columns.length) {
@@ -215,10 +219,10 @@ export default function AddDatasets() {
             if (columnLayoutType !== dataType) {
                 switch (`${columnLayoutType}->${dataType}`) {
                     case "DNA->RNA":
-                        setColumns(addRNACols(removeDNACols(columns)));
+                        setColumns(removeDNACols(addRNACols(columns)));
                         break;
                     case "RNA->DNA":
-                        setColumns(addDNACols(removeRNACols(columns)));
+                        setColumns(removeRNACols(addDNACols(columns)));
                         break;
                     case "RNA->MIXED":
                         setColumns(addDNACols(columns));
@@ -303,7 +307,7 @@ export default function AddDatasets() {
 
     const addDNACols = (currCols: DataEntryColumnConfig[]) =>
         insertColumnsAfter(
-            "sequencing_date",
+            "linked_files",
             currCols,
             DNA_ONLY_FIELDS.map(field => ({
                 field,
