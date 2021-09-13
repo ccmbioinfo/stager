@@ -19,7 +19,7 @@ def test_list_datasets_admin(client, test_database, login_as):
     assert response.status_code == 200
     body = response.get_json()
     assert body["page"] == 0
-    assert len(body["data"]) == body["total_count"] == 4
+    assert len(body["data"]) == body["total_count"] == 5
 
 
 def test_list_datasets_no_groups(client, test_database, login_as):
@@ -191,9 +191,10 @@ def test_delete_dataset_admin(client, test_database, login_as):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == 1)
         .options(
+            joinedload(models.Dataset.groups),
             joinedload(models.Dataset.analyses)
             .joinedload(models.Analysis.genotype)
-            .joinedload(models.Genotype.variant)
+            .joinedload(models.Genotype.variant),
         )
         .one_or_none()
     )
@@ -210,9 +211,44 @@ def test_delete_dataset_admin(client, test_database, login_as):
     assert client.delete("/api/datasets/1").status_code == 204
     assert client.get("/api/datasets/1").status_code == 404
 
+    # Check length of permission groups
+    assert (len(dataset.groups)) == 0
+
     # Deleting a nonexistent dataset
     assert client.delete("/api/datasets/400").status_code == 404
     assert client.get("/api/datasets/400").status_code == 404
+
+    # Deleting a dataset without an analysis but associated with tissue sample
+    dataset_5 = (
+        models.Dataset.query.filter(models.Dataset.dataset_id == 5)
+        .options(
+            joinedload(models.Dataset.tissue_sample).joinedload(
+                models.TissueSample.datasets
+            ),
+        )
+        .one_or_none()
+    )
+
+    assert client.delete("/api/datasets/5").status_code == 204
+    assert client.get("/api/datasets/5").status_code == 404
+
+    # Check if tissue sample 4 is properly deleted
+    tissue_sample = dataset_5.tissue_sample
+
+    participant = (
+        models.Participant.query.filter(
+            models.Participant.participant_id == tissue_sample.participant_id
+        )
+        .options(joinedload(models.Participant.tissue_samples))
+        .one_or_none()
+    )
+
+    participant_tissue_samples = [
+        s
+        for s in participant.tissue_samples
+        if s.tissue_sample_id == tissue_sample.tissue_sample_id
+    ]
+    assert (len(participant_tissue_samples)) == 0
 
 
 def test_delete_dataset_user(client, test_database, login_as):
@@ -508,13 +544,13 @@ def test_dataset_order_by_dataset_column(client, test_database, login_as):
     response = client.get("/api/datasets?order_by=dataset_type&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WES"
 
     response = client.get("/api/datasets?order_by=dataset_type&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WGS"
 
 
@@ -525,20 +561,20 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     response = client.get("/api/datasets?order_by=participant_codename&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["participant_codename"] == "001"
 
     response = client.get("/api/datasets?order_by=participant_codename&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["participant_codename"] == "003"
 
     # check join with family
     response = client.get("/api/datasets?order_by=family_codename&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert (
         body["data"][0]["family_codename"] == body["data"][1]["family_codename"] == "A"
     )
@@ -546,20 +582,20 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     response = client.get("/api/datasets?order_by=family_codename&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["family_codename"] == "B"
 
     # check join with tissue sample
     response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["tissue_sample_type"] == "Blood"
 
     response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 4
+    assert len(body["data"]) == 5
     assert body["data"][0]["tissue_sample_type"] == "Blood"
 
 
