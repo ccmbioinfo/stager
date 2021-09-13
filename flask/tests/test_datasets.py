@@ -218,7 +218,6 @@ def test_delete_dataset_admin(client, test_database, login_as):
     assert client.delete("/api/datasets/400").status_code == 404
     assert client.get("/api/datasets/400").status_code == 404
 
-
 def test_delete_dataset_with_tissue_sample(client, test_database, login_as):
     """
     DELETE /api/datasets/:id as an administrator
@@ -240,10 +239,7 @@ def test_delete_dataset_with_tissue_sample(client, test_database, login_as):
     assert client.get("/api/datasets/5").status_code == 404
 
     # Check if tissue sample 4 is properly deleted
-    assert (
-        client.get(f"/api/datasets/{dataset_5.tissue_sample.tissue_sample_id}") == 404
-    )
-
+    assert client.get(f"/api/tissue_samples/{dataset_5.tissue_sample.tissue_sample_id}") == 404
 
 def test_delete_dataset_user(client, test_database, login_as):
     """
