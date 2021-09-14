@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
 import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
@@ -117,7 +117,7 @@ export default function DatasetTable() {
 
     const [confirmDelete, setConfirmDelete] = useState(false);
 
-    const exportCsv = () => {
+    const exportCsv = () =>
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
 
     //setting to `any` b/c MTable typing doesn't include dataManager

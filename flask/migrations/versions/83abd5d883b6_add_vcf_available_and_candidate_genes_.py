@@ -36,3 +36,7 @@ def upgrade():
 def downgrade():
     op.drop_column("rnaseq_dataset", "vcf_available")
     op.drop_column("rnaseq_dataset", "candidate_genes")
+    rnaSeq = Pipeline.query.filter_by(pipeline_name="RNAseq").first()
+    if rnaSeq:
+        rnaSeq.pipeline_name = "dig2"
+        db.session.commit()

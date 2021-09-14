@@ -533,28 +533,35 @@ def bulk_update():
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
 
-        DatasetType = (
-            models.RNASeqDataset if row.get("dataset_type") == "RRS" else models.Dataset
+        base_fields = {
+            "batch_id": row.get("batch_id"),
+            "capture_kit": row.get("capture_kit"),
+            "condition": row.get("condition"),
+            "created_by_id": created_by_id,
+            "dataset_type": row.get("dataset_type"),
+            "extraction_protocol": row.get("extraction_protocol"),
+            "library_prep_method": row.get("library_prep_method"),
+            "notes": row.get("notes"),
+            "read_length": row.get("read_length"),
+            "read_type": row.get("read_type"),
+            "sequencing_centre": row.get("sequencing_centre"),
+            "sequencing_date": row.get("sequencing_date"),
+            "tissue_sample_id": tissue_sample.tissue_sample_id,
+            "updated_by_id": updated_by_id,
+        }
+
+        rna_seq_fields = {
+            **base_fields,
+            "candidate_genes": row.get("candidate_genes"),
+            "vcf_available": row.get("vcf_available"),
+        }
+
+        dataset = (
+            models.RNASeqDataset(**rna_seq_fields)
+            if row.get("dataset_type") == "RRS"
+            else models.Dataset(**base_fields)
         )
 
-        dataset = DatasetType(
-            batch_id=row.get("batch_id"),
-            candidate_genes=row.get("candidate_genes"),
-            capture_kit=row.get("capture_kit"),
-            condition=row.get("condition"),
-            created_by_id=created_by_id,
-            dataset_type=row.get("dataset_type"),
-            extraction_protocol=row.get("extraction_protocol"),
-            library_prep_method=row.get("library_prep_method"),
-            notes=row.get("notes"),
-            read_length=row.get("read_length"),
-            read_type=row.get("read_type"),
-            sequencing_centre=row.get("sequencing_centre"),
-            sequencing_date=row.get("sequencing_date"),
-            tissue_sample_id=tissue_sample.tissue_sample_id,
-            updated_by_id=updated_by_id,
-            vcf_available=row.get("vcf_available"),
-        )
         app.logger.debug("\tLinking files to dataset..")
 
         dataset = link_files_to_dataset(request, dataset, row)
@@ -609,12 +616,13 @@ def link_files_to_dataset(
 ) -> models.Dataset:
     """validate filepaths and link to a dataset"""
     if req.content_type == "text/csv":
+        linked_files = (row.get("linked_files") or "").split("|")
         app.logger.debug(
             "\tContent type is `text/csv` and linked files are expected to be | separated: '%s'",
-            row.get("linked_files", "").split("|"),
+            linked_files,
         )
         files = []
-        for path in row.get("linked_files", "").split("|"):
+        for path in linked_files:
             if path:
                 is_multiplex = path[0] == "*"
                 files.append(

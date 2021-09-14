@@ -268,6 +268,24 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk?groups=ach",
+            json=[
+                {
+                    **DEFAULT_PAYLOAD,
+                    "dataset_type": "RRS",
+                    "candidate_genes": "APOE",
+                    "vcf_available": False,
+                }
+            ],
+        ).status_code
+        == 200
+    )
+
+    assert models.RNASeqDataset.query.count() == 1
+
+    # Test allowed permission groups with rnaseq fields
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
             json=[DEFAULT_PAYLOAD],
         ).status_code
         == 200
@@ -319,6 +337,7 @@ def test_bulk_multiple_csv(test_database, client, login_as):
 family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/foo/bar,three
+HOOD,HERO,Proband,Saliva,RRS,Female,GermLine,2020-12-17,,three
 """,
             headers={"Content-Type": "text/csv"},
         ).status_code
@@ -327,9 +346,10 @@ HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/
 
     for dataset in models.Dataset.query.all():
         print(dataset)
-    assert models.Dataset.query.count() == 7
+    assert models.Dataset.query.count() == 8
+    assert models.RNASeqDataset.query.count() == 1
     assert models.File.query.count() == 5
-    assert models.TissueSample.query.count() == 6
+    assert models.TissueSample.query.count() == 7
     assert models.Participant.query.count() == 4
     assert models.Family.query.count() == 3
 
