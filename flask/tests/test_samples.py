@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 def test_get_tissue_sample(test_database, client, login_as):
     # Test invalid sample id
     login_as("admin")
-    assert client.get("/api/tissue_samples/4").status_code == 404
+    assert client.get("/api/tissue_samples/999").status_code == 404
     # Test wrong permissions
     login_as("user")
     assert client.get("/api/tissue_samples/3").status_code == 404
@@ -33,7 +33,7 @@ def test_delete_tissue_sample(test_database, client, login_as):
 
     # Test with wrong id
     login_as("admin")
-    response = client.delete("/api/tissue_samples/4")
+    response = client.delete("/api/tissue_samples/999")
     assert response.status_code == 404
 
     # Test with dataset in it
