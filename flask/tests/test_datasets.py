@@ -606,7 +606,7 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     response = client.get("/api/datasets?order_by=family_codename&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    
+
     assert len(body["data"]) == 5
     assert body["data"][0]["family_codename"] == "Bb"
 
