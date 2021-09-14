@@ -188,7 +188,7 @@ def test_database(client):
 
     family_a = Family(
         family_id=1,
-        family_codename="A",
+        family_codename="Aa",
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
@@ -292,7 +292,7 @@ def test_database(client):
 
     family_b = Family(
         family_id=2,
-        family_codename="B",
+        family_codename="Bb",
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )

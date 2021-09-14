@@ -96,6 +96,41 @@ def test_get_dataset_admin(client, test_database, login_as):
     assert client.get(f"/api/datasets/4?user=2").status_code == 404
 
 
+def test_get_dataset_exact_match(test_database, client, login_as):
+    login_as("admin")
+    # the number of datasets returned by the endpoint, matching the specifications
+    ground_truth_d = {
+        "participant": {
+            "exact_match": {"00": 0, "001": 2, "002": 1, "003": 2},
+            "partial_match": {
+                "00": 5
+            },  # ALL datasets belonging to the three participants 001, 002, and 003
+        },
+        "family": {
+            "exact_match": {"A": 0, "Aa": 3},
+            "partial_match": {"A": 3},
+        },
+    }
+    for codename_type in ground_truth_d:
+        for test_type in ground_truth_d[codename_type]:
+            if test_type == "exact_match":
+                exact_match = "True"
+            else:
+                exact_match = "False"
+
+            for ptp_query in ground_truth_d[codename_type][test_type]:
+                response = client.get(
+                    "/api/datasets?{}_codename={}&{}_codename_exact_match={}".format(
+                        codename_type, ptp_query, codename_type, exact_match
+                    )
+                )
+                assert response.status_code == 200
+                assert (
+                    len(response.get_json()["data"])
+                    == ground_truth_d[codename_type][test_type][ptp_query]
+                )
+
+
 def test_get_dataset_user(client, test_database, login_as):
     """
     GET /api/datasets/:id as a regular user
@@ -565,14 +600,15 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     body = response.get_json()
     assert len(body["data"]) == 5
     assert (
-        body["data"][0]["family_codename"] == body["data"][1]["family_codename"] == "A"
+        body["data"][0]["family_codename"] == body["data"][1]["family_codename"] == "Aa"
     )
 
     response = client.get("/api/datasets?order_by=family_codename&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
+
     assert len(body["data"]) == 5
-    assert body["data"][0]["family_codename"] == "B"
+    assert body["data"][0]["family_codename"] == "Bb"
 
     # check join with tissue sample
     response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=asc")

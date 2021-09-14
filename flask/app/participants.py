@@ -23,6 +23,7 @@ from .utils import (
     paginated_response,
     transaction_or_abort,
     validate_json,
+    str_to_bool,
 )
 
 editable_columns = [
@@ -48,6 +49,7 @@ participants_blueprint = Blueprint(
 @login_required
 @paged
 def list_participants(page: int, limit: int) -> Response:
+
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
         "participant_id",
@@ -82,13 +84,34 @@ def list_participants(page: int, limit: int) -> Response:
 
     filters = []
     family_codename = request.args.get("family_codename", type=str)
+    family_codename_exact_match = request.args.get(
+        "family_codename_exact_match", type=str_to_bool, default=False
+    )
+
     if family_codename:
-        filters.append(func.instr(models.Family.family_codename, family_codename))
+        if family_codename_exact_match:
+            filters.append(models.Family.family_codename == family_codename)
+        else:
+            filters.append(func.instr(models.Family.family_codename, family_codename))
+
     participant_codename = request.args.get("participant_codename", type=str)
+    participant_codename_exact_match = request.args.get(
+        "participant_codename_exact_match",
+        type=str_to_bool,
+        default=False,
+    )
     if participant_codename:
-        filters.append(
-            func.instr(models.Participant.participant_codename, participant_codename)
-        )
+        if participant_codename_exact_match:
+            filters.append(
+                models.Participant.participant_codename == participant_codename
+            )
+        else:
+            filters.append(
+                func.instr(
+                    models.Participant.participant_codename, participant_codename
+                )
+            )
+
     notes = request.args.get("notes", type=str)
     if notes:
         filters.append(func.instr(models.Participant.notes, notes))

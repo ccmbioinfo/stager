@@ -27,6 +27,10 @@ from .madmin import MinioAdmin
 from .models import User, Group, Dataset
 
 
+def str_to_bool(param: str) -> bool:
+    return param.lower() == "true"
+
+
 def handle_error(e):
     code = 500
     if isinstance(e, HTTPException):
