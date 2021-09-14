@@ -171,7 +171,7 @@ export default function AnalysisRunnerDialog({
                                     <TableCell>{dataset.dataset_type}</TableCell>
                                     <TableCell>{dataset.condition}</TableCell>
                                     <TableCell align="right">
-                                        {dataset.linked_files.join(", ")}
+                                        {dataset.linked_files.map(f => f.path).join(", ")}
                                     </TableCell>
                                 </TableRow>
                             ))}

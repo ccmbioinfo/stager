@@ -9,6 +9,7 @@ import {
     Field,
     FieldDisplayValueType,
     Info,
+    isRNASeqDataset,
     KeyValue,
     PipelineStatus,
     PseudoBoolean,
@@ -141,7 +142,7 @@ export function getDatasetFields(dataset: Dataset) {
  * Return the secondary titles and values (hidden in show more detail) of dataset detail as a Field object in dialogs
  */
 export function getSecDatasetFields(dataset: Dataset) {
-    return [
+    let fields = [
         createFieldObj("Batch ID", dataset.batch_id, "batch_id"),
         createFieldObj(
             "Linked Files",
@@ -161,6 +162,16 @@ export function getSecDatasetFields(dataset: Dataset) {
         createFieldObj("Read Length", dataset.read_length, "read_length"),
         createFieldObj("Read Type", dataset.read_type, "read_type"),
     ];
+
+    if (isRNASeqDataset(dataset)) {
+        fields = [
+            ...fields,
+            createFieldObj("VCF Available", dataset.vcf_available, "vcf_available"),
+            createFieldObj("Candidate Genes", dataset.candidate_genes, "candidate_genes"),
+        ];
+    }
+
+    return fields;
 }
 
 /**

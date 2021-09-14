@@ -69,7 +69,7 @@ export interface LinkedFile extends UnlinkedFile {
     file_id: number;
 }
 
-export interface Dataset {
+export interface DNADataset {
     dataset_id: string;
     participant_codename: string;
     participant_aliases: string;
@@ -97,6 +97,22 @@ export interface Dataset {
     discriminator: string;
     group_code: string[];
 }
+
+interface RNASeqDataset extends DNADataset {
+    candidate_genes: string;
+    RIN: number;
+    DV200: number;
+    concentration: number;
+    sequencer: string;
+    spike_in: string;
+    vcf_available: string;
+}
+
+export type Dataset = RNASeqDataset | DNADataset;
+
+// dataset typeguard
+export const isRNASeqDataset = (dataset: RNASeqDataset | Dataset): dataset is RNASeqDataset =>
+    dataset.discriminator === "rnaseq_dataset";
 
 // Result from /api/datasets/:id
 export interface DatasetDetails {

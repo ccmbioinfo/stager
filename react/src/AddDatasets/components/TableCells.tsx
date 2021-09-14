@@ -100,7 +100,8 @@ export function DataEntryCell(props: {
     // todo: string fields should be initialized with empty strings
     else if (
         typeof props.row.fields[fieldName] === "string" ||
-        typeof props.row.fields[fieldName] === "undefined"
+        typeof props.row.fields[fieldName] === "undefined" ||
+        typeof props.row.fields[fieldName] === "object"
     ) {
         return (
             <AutocompleteCell
@@ -116,6 +117,7 @@ export function DataEntryCell(props: {
             />
         );
     } else {
+        console.error(`Failed to find a component for ${fieldName}`);
         return null;
     }
 }

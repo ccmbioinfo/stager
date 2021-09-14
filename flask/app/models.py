@@ -338,7 +338,7 @@ class Dataset(db.Model):
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
 
-    discriminator = db.Column(db.Enum("dataset", "rnaseq_dataset"))
+    discriminator: str = db.Column(db.Enum("dataset", "rnaseq_dataset"))
     __mapper_args__ = {
         "polymorphic_identity": "dataset",
         "polymorphic_on": discriminator,

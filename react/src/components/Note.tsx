@@ -23,17 +23,14 @@ const useStyles = makeStyles(theme => ({
 /**
  * A style wrapper for strings of text that are really long.
  */
-export default function Note(props: {
-    children: React.ReactNode;
-    detailElement?: React.ReactNode;
-}) {
+const Note: React.FC<{ detailElement?: React.ReactNode }> = ({ children, detailElement }) => {
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
 
     return (
         <>
             <div className={classes.notes} onClick={event => setAnchorEl(event.currentTarget)}>
-                {props.children}
+                {children}
             </div>
             <Popover
                 open={!!anchorEl}
@@ -43,11 +40,13 @@ export default function Note(props: {
             >
                 <Grid container direction="column">
                     <Grid item>
-                        <Typography className={classes.typography}>{props.children}</Typography>
+                        <Typography className={classes.typography}>{children}</Typography>
                     </Grid>
-                    {!!props.detailElement && <Grid item>{props.detailElement}</Grid>}
+                    {!!detailElement && <Grid item>{detailElement}</Grid>}
                 </Grid>
             </Popover>
         </>
     );
-}
+};
+
+export default Note;

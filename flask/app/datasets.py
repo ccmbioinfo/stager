@@ -178,6 +178,12 @@ def list_datasets(page: int, limit: int) -> Response:
     if updated:
         filters.append(filter_updated_or_abort(models.Dataset.updated, updated))
 
+    candidate_genes = request.args.get("candidate_genes", type=str)
+    if candidate_genes:
+        filters.append(
+            func.instr(models.RNASeqDataset.candidate_genes, candidate_genes)
+        )
+
     user = get_current_user()
 
     query = (

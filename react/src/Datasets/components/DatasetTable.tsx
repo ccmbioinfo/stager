@@ -32,7 +32,7 @@ import {
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
-import { Dataset, LinkedFile } from "../../typings";
+import { Dataset, isRNASeqDataset, LinkedFile } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import LinkedFilesButton from "./LinkedFilesButton";
@@ -119,7 +119,6 @@ export default function DatasetTable() {
 
     const exportCsv = () => {
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
-    };
 
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
@@ -189,6 +188,20 @@ export default function DatasetTable() {
                 editable: "never",
                 defaultFilter: paramID,
             },
+            {
+                title: "Candidate Genes",
+                field: "candidate_genes",
+                editable: "never",
+                sorting: false,
+                render: row => (isRNASeqDataset(row) ? <Note>{row.candidate_genes}</Note> : "N/A"),
+            },
+            {
+                title: "VCF Available",
+                field: "vcf_available",
+                editable: "never",
+                sorting: false,
+                render: row => (isRNASeqDataset(row) ? row.vcf_available : "N/A"),
+            },
         ];
         if (currentUser.is_admin || currentUser.groups.length > 1) {
             columns.push({
@@ -204,15 +217,16 @@ export default function DatasetTable() {
                 ),
             });
         }
+
         setInitialSorting(columns);
         setHiddenColumns(columns);
         return columns;
     }, [
         conditions,
+        currentUser,
         datasetTypes,
         paramID,
         tissueSampleTypes,
-        currentUser,
         setInitialSorting,
         setHiddenColumns,
     ]);
