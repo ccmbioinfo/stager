@@ -7,6 +7,7 @@ import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import {
     ChipGroup,
+    ConfirmModal,
     DateFilterComponent,
     DateTimeText,
     EditNotes,
@@ -84,6 +85,7 @@ export default function DatasetTable() {
     const { user: currentUser } = useUserContext();
     const queryClient = useQueryClient();
     const [showRunner, setRunner] = useState(false);
+    const [showModalLoading, setModalLoading] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
 
     const dataFetch = useDatasetsPage();
@@ -112,6 +114,8 @@ export default function DatasetTable() {
     const { id: paramID } = useParams<{ id?: string }>();
 
     const downloadCsv = useDownloadCsv(GET_DATASETS_URL);
+
+    const [confirmDelete, setConfirmDelete] = useState(false);
 
     const exportCsv = () => {
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
@@ -229,6 +233,49 @@ export default function DatasetTable() {
                     }}
                 />
             )}
+            <ConfirmModal
+                id="confirm-modal-delete"
+                open={confirmDelete}
+                loading={showModalLoading}
+                onClose={() => {
+                    setConfirmDelete(false);
+                    setModalLoading(false);
+                }}
+                onConfirm={() => {
+                    setModalLoading(true);
+                    const sampleString = selectedDatasets
+                        .map(
+                            dataset =>
+                                `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`
+                        )
+                        .join(", ");
+
+                    selectedDatasets.forEach(row => {
+                        datasetDeleteMutation.mutate(row.dataset_id, {
+                            onSuccess: () => {
+                                //refresh data
+                                MTRef.current.onQueryChange();
+                                enqueueSnackbar(`${sampleString} deleted successfully.`, {
+                                    variant: "success",
+                                });
+                                setConfirmDelete(false);
+                                setModalLoading(false);
+                            },
+                            onError: error => {
+                                enqueueErrorSnackbar(error);
+                                setConfirmDelete(false);
+                                setModalLoading(false);
+                            },
+                        });
+                    });
+                }}
+                title="Delete dataset"
+                colors={{ cancel: "secondary" }}
+            >
+                Are you sure you want to delete dataset{" "}
+                {selectedDatasets.map(d => d.dataset_id).join(", ")}?
+            </ConfirmModal>
+
             <MaterialTablePrimary
                 title="Datasets"
                 tableRef={MTRef}
@@ -334,25 +381,8 @@ export default function DatasetTable() {
                         hidden: !currentUser.is_admin,
                         position: "toolbarOnSelect",
                         onClick: (evt, data) => {
-                            const sampleString = (data as Dataset[])
-                                .map(
-                                    dataset =>
-                                        `${dataset.participant_codename}/${dataset.tissue_sample_type}/${dataset.dataset_type}`
-                                )
-                                .join(", ");
-
-                            (data as Dataset[]).forEach(row => {
-                                datasetDeleteMutation.mutate(row.dataset_id, {
-                                    onSuccess: () => {
-                                        //refresh data
-                                        MTRef.current.onQueryChange();
-                                        enqueueSnackbar(`${sampleString} deleted successfully.`, {
-                                            variant: "success",
-                                        });
-                                    },
-                                    onError: error => enqueueErrorSnackbar(error),
-                                });
-                            });
+                            setSelectedDatasets(data as Dataset[]);
+                            setConfirmDelete(true);
                         },
                     },
                     {
