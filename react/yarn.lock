@@ -2100,10 +2100,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@material-table/core@^4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-4.3.0.tgz#4f0c0997c266c20402092cd9fdd6fc98493c3b7b"
-  integrity sha512-2b1VSgEdu6LG59gI7yemqwIGzUPx+ay4izLgyIMCq8AOSpCZr3khJquZx6bb6qE0cL7MMLNhZGWq7yJNBdhXzA==
+"@material-table/core@^4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-4.3.1.tgz#4101f5cf06b2185b30e05dc694970ccc0ba115a8"
+  integrity sha512-1j+Oykd7og66Ry2G6vbDG9eqRjYPu125eDEmxnUjWaZj9TJOr0tyHTTL1UyVqpW3v/QxeRREJMs1fut4P5Jm1A==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@date-io/date-fns" "^1.3.13"
@@ -2113,6 +2113,7 @@
     date-fns "^2.16.1"
     debounce "^1.2.0"
     fast-deep-equal "^3.1.3"
+    lodash "^4.17.21"
     prop-types "^15.7.2"
     react-beautiful-dnd "^13.0.0"
     react-double-scrollbar "0.0.15"
@@ -8171,10 +8172,10 @@ lodash.uniq@^4.5.0:
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
   integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
 
-"lodash@>=3.5 <5", lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.5:
-  version "4.17.20"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
-  integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
+"lodash@>=3.5 <5", lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.5:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 loglevel@^1.6.8:
   version "1.7.1"
