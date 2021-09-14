@@ -30,14 +30,14 @@ export function countArray(items: string[]) {
             counts[item] = 1;
         }
         return counts;
-    }, Object.create(null));
+    }, {});
 }
 
 export function toKeyValue(items: string[]) {
     return items.reduce<KeyValue>((map, item) => {
         map[item] = item;
         return map;
-    }, Object.create(null));
+    }, {});
 }
 
 /**

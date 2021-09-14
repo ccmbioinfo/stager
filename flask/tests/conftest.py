@@ -339,6 +339,25 @@ def test_database(client):
     dataset_1.analyses.append(analysis_3)
     dataset_4.analyses.append(analysis_3)
 
+    # Creating a test dataset with tissue samples but no analysis
+    dataset_5 = Dataset(
+        dataset_id=5,
+        dataset_type="WES",
+        condition=DatasetCondition.Somatic,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
+    )
+
+    # Creating a tissue sample with only one dataset
+    sample_4 = TissueSample(
+        tissue_sample_id=4,
+        tissue_sample_type=TissueSampleType.Blood,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
+    )
+    sample_4.datasets.append(dataset_5)
+    participant_3.tissue_samples.append(sample_4)
+
     db.session.add(family_b)
     db.session.commit()
 

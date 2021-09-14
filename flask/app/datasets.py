@@ -368,12 +368,31 @@ def update_dataset(id: int):
 def delete_dataset(id: int):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
-        .options(joinedload(models.Dataset.analyses))
+        .options(
+            joinedload(models.Dataset.analyses),
+            joinedload(models.Dataset.groups),
+            joinedload(models.Dataset.tissue_sample).joinedload(
+                models.TissueSample.datasets
+            ),
+        )
         .first_or_404()
     )
+
+    tissue_sample = dataset.tissue_sample
+
+    # Remove permission groups with the corresponding dataset ID in groups_datasets table
+    dataset.groups = []
+
     if not dataset.analyses:
         try:
             db.session.delete(dataset)
+
+            # Only delete tissue sample if it doesn't have any associated datasets left.
+            tissue_sample_datasets = [
+                d for d in tissue_sample.datasets if d.dataset_id != dataset.dataset_id
+            ]
+            if len(tissue_sample_datasets) == 0:
+                db.session.delete(tissue_sample)
             db.session.commit()
             return "Updated", 204
         except:
