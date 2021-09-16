@@ -19,7 +19,6 @@ interface DatasetWithNotes extends Dataset {
 const useStyles = makeStyles(theme => ({
     paper: {
         padding: theme.spacing(2),
-        background: theme.palette.warning.main,
     },
     divider: {
         margin: theme.spacing(1, 0),
@@ -34,6 +33,7 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
         [analysisQuery]
     ) as DatasetWithNotes[];
     const datasetsWithNotes = datasets.filter(d => d.dataset_notes && d.participant_notes);
+    console.log(datasets);
 
     return (
         <Popover
@@ -52,6 +52,9 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
                     {datasetsWithNotes.map(dataset => (
                         <>
                             <Divider className={classes.divider} />
+                            <Typography>
+                                Comment by {dataset.updated_by} at {dataset.updated}
+                            </Typography>
                             <Typography variant="subtitle1">
                                 Dataset {dataset.dataset_id}
                             </Typography>
