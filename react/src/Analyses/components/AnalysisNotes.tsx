@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Popover, Typography } from "@material-ui/core";
+import { Divider, Popover, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { useAnalysisQuery } from "../../hooks";
 import { Analysis, Dataset } from "../../typings";
@@ -21,6 +21,9 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(2),
         background: theme.palette.warning.main,
     },
+    divider: {
+        margin: theme.spacing(1, 0),
+    },
 }));
 
 export default function AnalysisNotes(props: AnalysisNotesProps) {
@@ -30,8 +33,9 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
         () => (analysisQuery.isSuccess ? analysisQuery.data.datasets || [] : []),
         [analysisQuery]
     ) as DatasetWithNotes[];
+    const datasetsWithNotes = datasets.filter(d => d.dataset_notes && d.participant_notes);
 
-    return datasets.length > 0 ? (
+    return (
         <Popover
             PaperProps={{ className: classes.paper }}
             open={props.open}
@@ -42,12 +46,29 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
                 horizontal: "left",
             }}
         >
-            {datasets.map(dataset => (
+            {datasetsWithNotes.length > 0 ? (
                 <>
-                    <Typography>Participant: {dataset.participant_notes}</Typography>
-                    <Typography>Dataset: {dataset.dataset_notes}</Typography>
+                    <Typography variant="h6">Notes</Typography>
+                    {datasetsWithNotes.map(dataset => (
+                        <>
+                            <Divider className={classes.divider} />
+                            <Typography variant="subtitle1">
+                                Dataset {dataset.dataset_id}
+                            </Typography>
+                            <Typography variant="body1">
+                                Participant: {dataset.participant_notes}
+                            </Typography>
+                            <Typography variant="body1">
+                                Dataset: {dataset.dataset_notes}
+                            </Typography>
+                        </>
+                    ))}
                 </>
-            ))}
+            ) : (
+                <Typography>
+                    There are no additional notes from the associated datasets and participants.
+                </Typography>
+            )}
         </Popover>
-    ) : null;
+    );
 }
