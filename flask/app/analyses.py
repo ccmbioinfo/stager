@@ -314,7 +314,7 @@ def get_analysis(id: int):
 
     app.logger.debug("Query successful returning JSON..")
 
-    return jsonify(
+    result = jsonify(
         {
             **asdict(analysis),
             "requester": analysis.requester_id and analysis.requester.username,
@@ -338,11 +338,17 @@ def get_analysis(id: int):
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
                     "updated_by": dataset.tissue_sample.updated_by.username,
                     "created_by": dataset.tissue_sample.created_by.username,
+                    "dataset_notes": dataset.notes,
+                    "participant_notes": dataset.tissue_sample.participant.notes,
                 }
                 for dataset in analysis.datasets
             ],
         }
     )
+
+    app.logger.debug("hello123")
+    app.logger.info(result)
+    return result
 
 
 @analyses_blueprint.route("/api/analyses", methods=["POST"])

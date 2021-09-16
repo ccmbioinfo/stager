@@ -7,6 +7,7 @@ import {
     AssignmentTurnedIn,
     Cancel,
     Error,
+    Info,
     PersonPin,
     PlayArrow,
     Refresh,
@@ -44,6 +45,7 @@ import {
 import { transformMTQueryToCsvDownloadParams } from "../hooks/utils";
 import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
+import AnalysisNotes from "./components/AnalysisNotes";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
 import SelectPipelineStatus from "./components/SelectPipelineStatus";
@@ -141,6 +143,9 @@ export default function Analyses() {
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
+    const [comments, setComments] = useState(false); // for comments/ notes from associated participants and datasets
+
+    const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null); // anchor element for notes popover
 
     const dataFetch = useAnalysesPage();
 
@@ -381,6 +386,18 @@ export default function Analyses() {
                 />
             )}
 
+            {activeRows.length > 0 && (
+                <AnalysisNotes
+                    open={comments}
+                    anchorEl={anchorEl}
+                    onClose={() => {
+                        setAnchorEl(null);
+                        setComments(false);
+                    }}
+                    analysis={activeRows[0]}
+                />
+            )}
+
             <AddAnalysisAlert
                 open={direct}
                 onClose={() => {
@@ -451,6 +468,16 @@ export default function Analyses() {
                         search: true,
                     }}
                     actions={[
+                        {
+                            icon: Info,
+                            tooltip: "View Comments",
+                            position: "row",
+                            onClick: (event, rowData) => {
+                                setActiveRows([rowData as Analysis]);
+                                setComments(true);
+                                setAnchorEl(event.currentTarget);
+                            },
+                        },
                         {
                             icon: Visibility,
                             tooltip: "View analysis details",
