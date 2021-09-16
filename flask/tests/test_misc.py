@@ -310,6 +310,7 @@ def test_post_bulk_user(test_database, client, login_as):
 
 
 def test_bulk_multiple_csv(test_database, client, login_as):
+    """test upload counts, as well as that our script will ignore empty lines"""
     login_as("admin")
 
     assert (
@@ -319,6 +320,7 @@ def test_bulk_multiple_csv(test_database, client, login_as):
 family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/foo/bar,three
+,,,,,,,,,
 """,
             headers={"Content-Type": "text/csv"},
         ).status_code
