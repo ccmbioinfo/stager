@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Divider, Popover, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { useAnalysisQuery } from "../../hooks";
@@ -23,17 +23,18 @@ const useStyles = makeStyles(theme => ({
     divider: {
         margin: theme.spacing(1, 0),
     },
+    comment: {
+        fontWeight: 500,
+    },
 }));
 
 export default function AnalysisNotes(props: AnalysisNotesProps) {
     const classes = useStyles();
-    const analysisQuery = useAnalysisQuery(props.analysis.analysis_id);
-    const datasets = useMemo(
-        () => (analysisQuery.isSuccess ? analysisQuery.data.datasets || [] : []),
-        [analysisQuery]
-    ) as DatasetWithNotes[];
-    const datasetsWithNotes = datasets.filter(d => d.dataset_notes && d.participant_notes);
-    console.log(datasets);
+    const { data: analysisQueryResults } = useAnalysisQuery(props.analysis.analysis_id);
+    const analysisWithNotes = (
+        (analysisQueryResults && (analysisQueryResults.datasets as DatasetWithNotes[])) ||
+        []
+    ).filter(dataset => dataset.notes || dataset.participant_notes);
 
     return (
         <Popover
@@ -46,24 +47,26 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
                 horizontal: "left",
             }}
         >
-            {datasetsWithNotes.length > 0 ? (
+            {analysisWithNotes.length > 0 ? (
                 <>
                     <Typography variant="h6">Notes</Typography>
-                    {datasetsWithNotes.map(dataset => (
+                    {analysisWithNotes.map(dataset => (
                         <>
                             <Divider className={classes.divider} />
-                            <Typography>
+                            <Typography className={classes.comment}>
                                 Comment by {dataset.updated_by} at {dataset.updated}
                             </Typography>
                             <Typography variant="subtitle1">
                                 Dataset {dataset.dataset_id}
                             </Typography>
-                            <Typography variant="body1">
-                                Participant: {dataset.participant_notes}
-                            </Typography>
-                            <Typography variant="body1">
-                                Dataset: {dataset.dataset_notes}
-                            </Typography>
+                            {dataset.participant_notes && (
+                                <Typography variant="body1">
+                                    Participant: {dataset.participant_notes}
+                                </Typography>
+                            )}
+                            {dataset.notes && (
+                                <Typography variant="body1">Dataset: {dataset.notes}</Typography>
+                            )}
                         </>
                     ))}
                 </>
