@@ -124,7 +124,6 @@ def list_datasets(page: int, limit: int) -> Response:
     if dataset_id:
         filters.append(models.Dataset.dataset_id == dataset_id)
 
-    # sequencing ID.
     sequencing_id = request.args.get("sequencing_id", type=str)
     if sequencing_id:
         filters.append(func.instr(models.Dataset.sequencing_id, sequencing_id))
