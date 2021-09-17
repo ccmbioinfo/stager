@@ -366,8 +366,12 @@ export const updateTableFilter = (
     column: string,
     filterVal: string | string[]
 ) => {
+    console.log("hiiiii");
+    console.log(tableRef, column, filterVal);
     if (tableRef.current) {
+        console.log(tableRef.current);
         const col = tableRef.current.dataManager.columns.find((c: any) => c.field === column);
+        console.log(col);
         if (col) {
             col.tableData.filterValue = filterVal;
             updateFiltersAndRequery(tableRef);

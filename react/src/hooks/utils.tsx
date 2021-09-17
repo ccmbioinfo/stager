@@ -75,6 +75,7 @@ export async function queryTableData<RowData extends object>(
     url: string
 ): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
+    console.log("SEARCH PARAMS", searchParams);
     const response = await fetch(url + "?" + searchParams.toString());
     if (response.ok) {
         const result = await response.json();
@@ -130,7 +131,7 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
     if (search) {
         searchParams.search = search;
     }
-
+    console.log("PARAMSSS", searchParams);
     return searchParams;
 };
 

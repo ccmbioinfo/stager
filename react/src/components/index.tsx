@@ -17,6 +17,7 @@ export { default as DateTimeText } from "./DateTimeText";
 export { default as DetailSection } from "./DetailSection";
 export { default as DialogHeader } from "./DialogHeader";
 export { default as EditNotes } from "./EditNotes";
+export { default as ExactMatchFilterToggle } from "./ExactMatchFilterToggle";
 export { default as FieldDisplay } from "./FieldDisplay";
 export { default as FieldDisplayEditable } from "./FieldDisplayEditable";
 export { default as GridFieldsDisplay } from "./GridFieldsDisplay";
