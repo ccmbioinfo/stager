@@ -314,7 +314,7 @@ def get_analysis(id: int):
 
     app.logger.debug("Query successful returning JSON..")
 
-    result = jsonify(
+    return jsonify(
         {
             **asdict(analysis),
             "requester": analysis.requester_id and analysis.requester.username,
@@ -344,10 +344,6 @@ def get_analysis(id: int):
             ],
         }
     )
-
-    app.logger.debug("hello123")
-    app.logger.info(result)
-    return result
 
 
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
