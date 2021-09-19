@@ -54,10 +54,9 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
                         <>
                             <Divider className={classes.divider} />
                             <Typography className={classes.comment}>
-                                Comment by {dataset.updated_by} at {dataset.updated}
-                            </Typography>
-                            <Typography variant="subtitle1">
-                                Dataset {dataset.dataset_id}
+                                Comment by {dataset.updated_by} for dataset{" "}
+                                {dataset.participant_codename}/{dataset.tissue_sample_type}/
+                                {dataset.dataset_type}
                             </Typography>
                             {dataset.participant_notes && (
                                 <Typography variant="body1">
