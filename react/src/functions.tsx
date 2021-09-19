@@ -17,6 +17,7 @@ import {
     PipelineStatus,
     PseudoBoolean,
     PseudoBooleanReadableMap,
+    SearchType,
 } from "./typings";
 
 dayjs.extend(utc);
@@ -366,12 +367,8 @@ export const updateTableFilter = (
     column: string,
     filterVal: string | string[]
 ) => {
-    console.log("hiiiii");
-    console.log(tableRef, column, filterVal);
     if (tableRef.current) {
-        console.log(tableRef.current);
         const col = tableRef.current.dataManager.columns.find((c: any) => c.field === column);
-        console.log(col);
         if (col) {
             col.tableData.filterValue = filterVal;
             updateFiltersAndRequery(tableRef);
@@ -391,6 +388,27 @@ export const updateFiltersAndRequery = (tableRef: React.MutableRefObject<any>) =
     // sometimes with lots of filters we see timing issues, maybe b/c of mt's internal callbacks?
     // if we move the requery step to the next tick the issues seem to go away
     setTimeout(() => tableRef.current.onQueryChange);
+};
+
+/**
+ * Material Table has a state that stores a query object (See MTQuery)
+ * We want to add an extra property to this object (searchType: [{
+ *  field: "participant_codename"
+ * exactSearch: true
+ * }])
+ * @param tableRef
+ */
+
+export const updateSearchTypeAndRequery = (
+    tableRef: React.MutableRefObject<any>,
+    searchTypeOptions: SearchType
+) => {
+    const oldQuery = tableRef.current.state.query;
+    if (oldQuery.searchType) {
+        tableRef.current.state.query.searchType.push(searchTypeOptions);
+    }
+    tableRef.current.state.query = { ...oldQuery, searchType: [searchTypeOptions] };
+    tableRef.current.onQueryChange();
 };
 
 /**

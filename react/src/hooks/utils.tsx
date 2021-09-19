@@ -12,6 +12,7 @@ import {
 } from "react-query";
 import { Query, SetDataOptions } from "react-query/types/core/query";
 import { stringToBoolean } from "../functions";
+import { QueryWithSearchOptions as MTQueryWithSearchOptions } from "../typings";
 
 /**
  * Fetch the provided url. Return the JSON response if successful.
@@ -71,11 +72,10 @@ export async function fetchCsv(
  * @param url The API url to request from (/api/example)
  */
 export async function queryTableData<RowData extends object>(
-    query: MTQuery<RowData>,
+    query: MTQueryWithSearchOptions<RowData>,
     url: string
 ): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
-    console.log("SEARCH PARAMS", searchParams);
     const response = await fetch(url + "?" + searchParams.toString());
     if (response.ok) {
         const result = await response.json();
@@ -93,11 +93,22 @@ export async function queryTableData<RowData extends object>(
  * Transform an m-table query object into a set of query string params that the backend understands
  *
  */
+
 export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
-    query: MTQuery<RowData>
+    query: MTQueryWithSearchOptions<RowData>
 ) => {
     const searchParams: Record<string, string> = {};
-    const { filters, orderBy, orderDirection, page, pageSize, search } = query;
+    const { filters, orderBy, orderDirection, page, pageSize, search, searchType } = query;
+
+    // add exact string search option
+    const exactSearchColumns = ["participant_codename", "family_codename"];
+    if (searchType) {
+        for (let searchOption of searchType) {
+            if (exactSearchColumns.includes(searchOption.column)) {
+                searchParams[`${searchOption.column}_exact_match`] = searchOption.exact.toString();
+            }
+        }
+    }
     // add filters
     if (filters) {
         for (let filter of filters) {
@@ -131,7 +142,6 @@ export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
     if (search) {
         searchParams.search = search;
     }
-    console.log("PARAMSSS", searchParams);
     return searchParams;
 };
 

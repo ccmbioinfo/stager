@@ -1,3 +1,5 @@
+import { Column, ErrorState, Filter } from "@material-table/core";
+
 /*****   TYPES   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
@@ -281,6 +283,23 @@ export interface Option {
     origin?: string;
     disabled?: boolean;
     selected?: boolean;
+}
+
+export interface SearchType {
+    column: string;
+    exact: boolean;
+}
+
+export interface QueryWithSearchOptions<RowData extends object> {
+    filters: Filter<RowData>[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    search: string;
+    orderBy: Column<RowData>;
+    orderDirection: "asc" | "desc";
+    error?: ErrorState;
+    searchType?: SearchType[];
 }
 
 export interface GeneAlias {

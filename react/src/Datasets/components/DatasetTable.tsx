@@ -363,12 +363,6 @@ export default function DatasetTable() {
                                                         "dataset_type",
                                                         datasetTypes
                                                     );
-                                                    console.log(
-                                                        "UPDATINGGGG",
-                                                        MTRef,
-                                                        "dataset_type",
-                                                        datasetTypes
-                                                    );
                                                 }}
                                                 clickable
                                                 className={classes.chip}

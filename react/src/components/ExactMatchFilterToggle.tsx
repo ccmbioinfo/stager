@@ -9,8 +9,8 @@ import {
     TextField,
 } from "@material-ui/core";
 import { FilterList } from "@material-ui/icons";
-import { updateTableFilter } from "../functions";
-import { Dataset } from "../typings";
+import { updateSearchTypeAndRequery } from "../functions";
+import { Dataset, Participant } from "../typings";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
 
 interface ExactMatchFilterToggleProps {
     MTRef: React.MutableRefObject<any>;
-    columnDef: Column<Dataset>;
+    columnDef: Column<Participant> | Column<Dataset>;
     onFilterChanged: (rowId: string, value: any) => void;
 }
 
@@ -29,11 +29,12 @@ export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProp
     const [exactMatch, setExactMatch] = useState<boolean>(false);
 
     useEffect(() => {
-        updateTableFilter(
-            props.MTRef,
-            `${props.columnDef.field}_exact_match`,
-            exactMatch.toString()
-        );
+        if (props.columnDef.field) {
+            updateSearchTypeAndRequery(props.MTRef, {
+                column: props.columnDef.field,
+                exact: exactMatch,
+            });
+        }
     }, [props.MTRef, props.columnDef.field, exactMatch]);
 
     return (
