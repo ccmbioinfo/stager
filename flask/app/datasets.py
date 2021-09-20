@@ -95,8 +95,6 @@ def list_datasets(page: int, limit: int) -> Response:
         # Since this is an elif clause, we know special cases are already handled above.
         # order_by has been restricted to a known list, so we can safely use getattr
         order = getattr(models.Dataset, order_by)
-    elif order_by == "sequencing_id":
-        order = models.Dataset.sequencing_id
     else:
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
