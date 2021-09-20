@@ -391,12 +391,9 @@ export const updateFiltersAndRequery = (tableRef: React.MutableRefObject<any>) =
 };
 
 /**
- * Material Table has a state that stores a query object (See MTQuery)
- * We want to add an extra property to this object (searchType: [{
- *  field: "participant_codename"
- * exactSearch: true
- * }])
- * @param tableRef
+ * Update a material-table query from outside the table
+ * Material Table has its own state that stores a query object.
+ * We want to add an extra property to this object to enable exact match query for participant and family codename.
  */
 
 export const updateSearchTypeAndRequery = (

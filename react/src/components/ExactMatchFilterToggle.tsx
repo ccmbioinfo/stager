@@ -63,9 +63,3 @@ export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProp
         </>
     );
 }
-
-//   updateTableFilter(
-//     MTRef,
-//     "dataset_type",
-//     datasetTypes
-// )
