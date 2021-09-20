@@ -1,22 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Column } from "@material-table/core";
-import {
-    FormGroup,
-    FormHelperText,
-    InputAdornment,
-    makeStyles,
-    Switch,
-    TextField,
-} from "@material-ui/core";
+import { InputAdornment, makeStyles, Switch, TextField, Tooltip } from "@material-ui/core";
 import { FilterList } from "@material-ui/icons";
 import { updateSearchTypeAndRequery } from "../functions";
 import { Dataset, Participant } from "../typings";
-
-const useStyles = makeStyles(theme => ({
-    root: {
-        marginBottom: theme.spacing(1.5),
-    },
-}));
 
 interface ExactMatchFilterToggleProps {
     MTRef: React.MutableRefObject<any>;
@@ -25,7 +12,6 @@ interface ExactMatchFilterToggleProps {
 }
 
 export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProps) {
-    const classes = useStyles();
     const [exactMatch, setExactMatch] = useState<boolean>(false);
 
     useEffect(() => {
@@ -38,28 +24,28 @@ export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProp
     }, [props.MTRef, props.columnDef.field, exactMatch]);
 
     return (
-        <>
-            <FormGroup className={classes.root}>
-                <FormHelperText>Exact match</FormHelperText>
-                <Switch size="small" onChange={event => setExactMatch(event.target.checked)} />
-            </FormGroup>
-            <TextField
-                id="input-with-icon-textfield"
-                onChange={event => {
-                    props.onFilterChanged(
-                        (props.columnDef as any).tableData.id,
-                        event.target.value
-                    );
-                }}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <FilterList />
-                        </InputAdornment>
-                    ),
-                }}
-                variant="standard"
-            />
-        </>
+        <TextField
+            id="input-with-icon-textfield"
+            onChange={event => {
+                props.onFilterChanged((props.columnDef as any).tableData.id, event.target.value);
+            }}
+            InputProps={{
+                startAdornment: (
+                    <InputAdornment position="start">
+                        <FilterList />
+                    </InputAdornment>
+                ),
+                endAdornment: (
+                    <Tooltip title="Only show exact match">
+                        <Switch
+                            color="primary"
+                            size="small"
+                            onChange={event => setExactMatch(event.target.checked)}
+                        />
+                    </Tooltip>
+                ),
+            }}
+            variant="standard"
+        />
     );
 }
