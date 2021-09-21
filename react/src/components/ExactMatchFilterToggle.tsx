@@ -11,7 +11,20 @@ interface ExactMatchFilterToggleProps {
     onFilterChanged: (rowId: string, value: any) => void;
 }
 
+const useStyles = makeStyles(theme => ({
+    input: {
+        "& .MuiInputBase-input": {
+            width: 30,
+            "&:focus": {
+                width: 120,
+                transition: "ease-in-out, width 0.35s ease-in-out",
+            },
+        },
+    },
+}));
+
 export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProps) {
+    const classes = useStyles();
     const [exactMatch, setExactMatch] = useState<boolean>(false);
 
     useEffect(() => {
@@ -25,11 +38,14 @@ export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProp
 
     return (
         <TextField
+            autoFocus
+            className={classes.input}
             id="input-with-icon-textfield"
             onChange={event => {
                 props.onFilterChanged((props.columnDef as any).tableData.id, event.target.value);
             }}
             InputProps={{
+                autoFocus: true,
                 startAdornment: (
                     <InputAdornment position="start">
                         <FilterList />
