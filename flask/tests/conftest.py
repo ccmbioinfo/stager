@@ -218,6 +218,7 @@ def test_database(client):
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
+        sequencing_id="5",
     )
     sample_1.datasets.append(dataset_1)
 
@@ -227,6 +228,7 @@ def test_database(client):
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
+        sequencing_id="4",
     )
     dataset_2.groups.append(group)
     sample_1.datasets.append(dataset_2)
@@ -256,6 +258,7 @@ def test_database(client):
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
+        sequencing_id="3",
     )
     dataset_3.groups.append(group)
     sample_2.datasets.append(dataset_3)
@@ -322,6 +325,7 @@ def test_database(client):
         condition=DatasetCondition.Somatic,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
+        sequencing_id="2",
     )
     sample_3.datasets.append(dataset_4)
 

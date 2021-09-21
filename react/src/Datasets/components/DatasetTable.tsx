@@ -189,6 +189,10 @@ export default function DatasetTable() {
                 editable: "never",
                 defaultFilter: paramID,
             },
+            {
+                title: "Sequencing ID",
+                field: "sequencing_id",
+            },
         ];
         if (currentUser.is_admin || currentUser.groups.length > 1) {
             columns.push({
