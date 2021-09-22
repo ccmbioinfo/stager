@@ -43,7 +43,7 @@ export function toKeyValue(items: string[]) {
  */
 export function formatDateString(date: string) {
     const datetime = dayjs.utc(date);
-    return datetime.isValid() ? datetime.local().format("LLLL") : "";
+    return datetime.isValid() ? datetime.local().format("LLLL") : null;
 }
 
 /**
@@ -123,19 +123,19 @@ export function getDatasetFields(dataset: Dataset) {
         createFieldObj(
             "Participant Codename",
             dataset.participant_codename,
-            "participant_codename"
+            "participant_codename", true
         ),
-        createFieldObj("Participant Aliases", dataset.participant_aliases, "participant_aliases"),
-        createFieldObj("Family Codename", dataset.family_codename, "family_codename"),
-        createFieldObj("Family Aliases", dataset.family_aliases, "family_aliases"),
+        createFieldObj("Participant Aliases", dataset.participant_aliases, "participant_aliases", true),
+        createFieldObj("Family Codename", dataset.family_codename, "family_codename", true),
+        createFieldObj("Family Aliases", dataset.family_aliases, "family_aliases", true),
         createFieldObj("Permission Groups", dataset.group_code.join(", "), "group_codes", true),
-        createFieldObj("Tissue Sample Type", dataset.tissue_sample_type, "tissue_sample_type"),
+        createFieldObj("Tissue Sample Type", dataset.tissue_sample_type, "tissue_sample_type", true),
         createFieldObj("Sequencing Centre", dataset.sequencing_centre, "sequencing_centre"),
         createFieldObj("Notes", dataset.notes, "notes"),
-        createFieldObj("Created", formatDateString(dataset.created), "created"),
-        createFieldObj("Created By", dataset.created_by, "created_by"),
-        createFieldObj("Updated", formatDateString(dataset.updated), "updated"),
-        createFieldObj("Updated By", dataset.updated_by, "updated_by"),
+        createFieldObj("Created", formatDateString(dataset.created), "created", true),
+        createFieldObj("Created By", dataset.created_by, "created_by", true),
+        createFieldObj("Updated", formatDateString(dataset.updated), "updated", true),
+        createFieldObj("Updated By", dataset.updated_by, "updated_by", true),
     ];
 }
 
