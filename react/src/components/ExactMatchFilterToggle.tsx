@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Column } from "@material-table/core";
-import { Checkbox, InputAdornment, makeStyles, TextField, Tooltip } from "@material-ui/core";
-import { FilterList } from "@material-ui/icons";
+import { Checkbox, makeStyles, TextField, Tooltip } from "@material-ui/core";
 import { updateSearchTypeAndRequery } from "../functions";
 import { Dataset, Participant } from "../typings";
 
@@ -14,7 +13,7 @@ interface ExactMatchFilterToggleProps {
 const useStyles = makeStyles(() => ({
     input: {
         "& .MuiInputBase-input": {
-            width: 30,
+            width: 60,
             "&:focus": {
                 width: 120,
                 transition: "width 0.35s ease-in-out",
@@ -38,20 +37,13 @@ export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProp
 
     return (
         <TextField
-            autoFocus
             className={classes.input}
             id="input-with-icon-textfield"
             onChange={event => {
                 props.onFilterChanged((props.columnDef as any).tableData.id, event.target.value);
             }}
             InputProps={{
-                autoFocus: true,
                 startAdornment: (
-                    <InputAdornment position="start">
-                        <FilterList />
-                    </InputAdornment>
-                ),
-                endAdornment: (
                     <Tooltip title="Only show exact match">
                         <Checkbox
                             color="primary"

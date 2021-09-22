@@ -401,9 +401,6 @@ export const updateSearchTypeAndRequery = (
     searchTypeOptions: SearchType
 ) => {
     const oldQuery = tableRef.current.state.query;
-    if (oldQuery.searchType) {
-        tableRef.current.state.query.searchType.push(searchTypeOptions);
-    }
     tableRef.current.state.query = { ...oldQuery, searchType: [searchTypeOptions] };
     tableRef.current.onQueryChange();
 };
