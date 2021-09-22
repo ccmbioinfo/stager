@@ -153,7 +153,6 @@ export function getSecDatasetFields(dataset: Dataset) {
         createFieldObj("Condition", dataset.condition, "condition"),
         createFieldObj("Extraction Protocol", dataset.extraction_protocol, "extraction_protocol"),
         createFieldObj("Capture Kit", dataset.capture_kit, "capture_kit"),
-        createFieldObj("Discriminator", dataset.discriminator, "discriminator"),
         createFieldObj("Library Prep Method", dataset.library_prep_method, "library_prep_method"),
         createFieldObj(
             "Library Prep Date",
