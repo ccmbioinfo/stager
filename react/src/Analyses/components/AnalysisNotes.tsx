@@ -53,10 +53,12 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
                     {analysisWithNotes.map(dataset => (
                         <>
                             <Divider className={classes.divider} />
-                            <Typography className={classes.comment}>
-                                Comment by {dataset.updated_by} for dataset{" "}
-                                {dataset.participant_codename}/{dataset.tissue_sample_type}/
-                                {dataset.dataset_type}
+                            <Typography className={classes.comment} gutterBottom>
+                                Last updated {dataset.updated} by {dataset.updated_by}
+                            </Typography>
+                            <Typography variant="button">
+                                Dataset: {dataset.participant_codename}/{dataset.tissue_sample_type}
+                                /{dataset.dataset_type}
                             </Typography>
                             {dataset.participant_notes && (
                                 <Typography variant="body1">
