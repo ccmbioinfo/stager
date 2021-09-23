@@ -338,6 +338,7 @@ def get_analysis(id: int):
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
                     "updated_by": dataset.tissue_sample.updated_by.username,
                     "created_by": dataset.tissue_sample.created_by.username,
+                    "participant_notes": dataset.tissue_sample.participant.notes,
                 }
                 for dataset in analysis.datasets
             ],
