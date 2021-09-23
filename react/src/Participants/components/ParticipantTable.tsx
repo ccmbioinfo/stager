@@ -10,6 +10,7 @@ import {
     DateFilterComponent,
     DateTimeText,
     EditNotes,
+    ExactMatchFilterToggle,
     MaterialTablePrimary,
     Note,
 } from "../../components";
@@ -81,11 +82,13 @@ export default function ParticipantTable() {
                 title: "Family Codename",
                 field: "family_codename",
                 editable: "never",
+                filterComponent: props => <ExactMatchFilterToggle MTRef={tableRef} {...props} />,
             },
             {
                 title: "Participant Codename",
                 field: "participant_codename",
                 defaultFilter: paramID,
+                filterComponent: props => <ExactMatchFilterToggle MTRef={tableRef} {...props} />,
             },
             {
                 title: "Participant Type",

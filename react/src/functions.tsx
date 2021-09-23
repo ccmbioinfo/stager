@@ -17,6 +17,7 @@ import {
     PipelineStatus,
     PseudoBoolean,
     PseudoBooleanReadableMap,
+    SearchType,
 } from "./typings";
 
 dayjs.extend(utc);
@@ -387,6 +388,21 @@ export const updateFiltersAndRequery = (tableRef: React.MutableRefObject<any>) =
     // sometimes with lots of filters we see timing issues, maybe b/c of mt's internal callbacks?
     // if we move the requery step to the next tick the issues seem to go away
     setTimeout(() => tableRef.current.onQueryChange);
+};
+
+/**
+ * Update a material-table query from outside the table
+ * Material Table has its own state that stores a query object.
+ * We want to add an extra property to this object to enable exact match query for participant and family codename.
+ */
+
+export const updateSearchTypeAndRequery = (
+    tableRef: React.MutableRefObject<any>,
+    searchTypeOptions: SearchType
+) => {
+    const oldQuery = tableRef.current.state.query;
+    tableRef.current.state.query = { ...oldQuery, searchType: [searchTypeOptions] };
+    tableRef.current.onQueryChange();
 };
 
 /**
