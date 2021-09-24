@@ -71,6 +71,7 @@ function EnhancedTextField({
         required: nonNullableFields.includes(field.fieldName),
         disabled: field.disableEdit,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default
+        inputProps: { maxLength: field.maxLength },
     };
 
     // Props specific to each variant

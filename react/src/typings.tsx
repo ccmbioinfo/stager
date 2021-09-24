@@ -292,6 +292,7 @@ export interface Field {
     fieldName?: string;
     fullWidth?: boolean;
     disableEdit?: boolean;
+    maxLength?: number;
 }
 
 export type PseudoBoolean = "true" | "false" | "null";
