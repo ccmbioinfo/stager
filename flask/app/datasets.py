@@ -9,6 +9,7 @@ from flask import (
     jsonify,
     request,
 )
+from sqlalchemy.sql.expression import update
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload, selectinload, with_polymorphic
@@ -48,7 +49,6 @@ EDITABLE_COLUMNS = [
     "sequencing_date",
     "sequencing_centre",
     "batch_id",
-    "discriminator",
 ]
 
 datasets_blueprint = Blueprint(
@@ -461,7 +461,6 @@ def create_dataset():
             "batch_id": request.json.get("batch_id"),
             "created_by_id": created_by_id,
             "updated_by_id": updated_by_id,
-            "discriminator": request.json.get("discriminator"),
         }
     )
     # TODO: add stricter checks?
