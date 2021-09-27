@@ -146,7 +146,7 @@ export interface Analysis {
 }
 
 export interface AnalysisDetails {
-    datasets: Dataset[];
+    datasets: (Dataset & { participant_notes: string })[];
 }
 
 export type AnalysisDetailed = Analysis & AnalysisDetails;
