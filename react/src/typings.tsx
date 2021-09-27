@@ -293,6 +293,7 @@ export interface Field {
     fullWidth?: boolean;
     disableEdit?: boolean;
     maxLength?: number;
+    entryError?: boolean;
 }
 
 export type PseudoBoolean = "true" | "false" | "null";

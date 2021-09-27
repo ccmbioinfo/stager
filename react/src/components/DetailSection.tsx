@@ -91,6 +91,15 @@ export default function DetailSection(props: DetailSectionProps) {
 
             const field = fieldsOnEdit.find(element => element.fieldName === fieldName);
             if (!field) return;
+
+            if (field.fieldName === "read_length" && value === null) {
+                field.entryError = false;
+            } else if (field.fieldName === "read_length" && value.match(/^[0-9]+$/) != null) {
+                field.entryError = false;
+            } else if (field.fieldName === "read_length") {
+                field.entryError = true;
+            }
+
             const newField = {
                 ...field,
                 value: value,
@@ -124,8 +133,7 @@ export default function DetailSection(props: DetailSectionProps) {
             const data = await response.json();
             if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
             enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
-                    props.dataInfo?.identifier
+                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${props.dataInfo?.identifier
                 } updated successfully`,
                 {
                     variant: "success",

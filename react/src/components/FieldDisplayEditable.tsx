@@ -63,6 +63,9 @@ function EnhancedTextField({
 
     // Props common to all variants
     const textFieldProps: TextFieldProps = {
+        error: field.entryError,
+        id: "standard-error",
+        helperText: field.entryError ? "Incorrect entry" : " ",
         className: classes.textField,
         fullWidth: true,
         margin: "dense",

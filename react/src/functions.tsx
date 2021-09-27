@@ -211,7 +211,8 @@ export function createFieldObj(
     value: FieldDisplayValueType,
     fieldName?: string,
     disableEdit?: boolean,
-    maxLength?: number
+    maxLength?: number,
+    entryError?: boolean,
 ): Field {
     return {
         title,
@@ -219,6 +220,7 @@ export function createFieldObj(
         fieldName,
         disableEdit,
         maxLength,
+        entryError,
     };
 }
 
