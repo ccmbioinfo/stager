@@ -256,7 +256,7 @@ export default function AddDatasets() {
                     if (row.meta.participantColumnsDisabled && participantColumns.includes(field))
                         continue;
                     const val = row.fields[field];
-                    if (typeof val === "string" && strIsEmpty(val)) {
+                    if ((typeof val === "string" && strIsEmpty(val)) || !val) {
                         if (problemRows.get(i))
                             problemRows.set(i, problemRows.get(i)!.concat(field));
                         else problemRows.set(i, [field]);
