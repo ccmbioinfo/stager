@@ -50,7 +50,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push'
+    # if: github.event_name == 'push'
     strategy:
       matrix:
         environment:
@@ -87,8 +87,8 @@ jobs:
         REACT_APP_MINIO_URL: ${{ secrets.REACT_APP_MINIO_URL }}
     - name: Deploy
       env:
-        MC_HOST_minio: ${{ secrets.MC_HOST }}
+        MC_HOST_minio: ${{ secrets.DEPLOY_MC_HOST }}
       run: |
         sudo curl --output /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
         sudo chmod +x /usr/local/bin/mc
-        ./deploy.sh minio ${{ secrets.MINIO_BUCKET }}
+        ./deploy.sh minio ${{ secrets.DEPLOY_MINIO_BUCKET }}
