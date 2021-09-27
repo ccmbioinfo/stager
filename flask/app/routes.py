@@ -247,7 +247,7 @@ def get_enums():
 @routes.route("/api/_bulk", methods=["POST"])
 @login_required
 def bulk_update():
-    app.logger.info("Starting bulk upload..")
+    app.logger.info("Starting bulk upload...")
     dataset_ids = []
 
     editable_dict = {
@@ -289,6 +289,7 @@ def bulk_update():
         try:
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
+            dat = dat.dropna(how="all")  # remove empty rows
             dat = dat.replace({np.nan: None})
             dat = dat.to_dict(orient="records")
         except Exception as err:

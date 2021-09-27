@@ -11,6 +11,7 @@ import {
     DateFilterComponent,
     DateTimeText,
     EditNotes,
+    ExactMatchFilterToggle,
     FileLinkingComponent,
     MaterialTablePrimary,
     Note,
@@ -137,8 +138,18 @@ export default function DatasetTable() {
 
     const columns = useMemo(() => {
         const columns: Column<Dataset>[] = [
-            { title: "Family", field: "family_codename", editable: "never" },
-            { title: "Participant", field: "participant_codename", editable: "never" },
+            {
+                title: "Family",
+                field: "family_codename",
+                editable: "never",
+                filterComponent: props => <ExactMatchFilterToggle MTRef={MTRef} {...props} />,
+            },
+            {
+                title: "Participant",
+                field: "participant_codename",
+                editable: "never",
+                filterComponent: props => <ExactMatchFilterToggle MTRef={MTRef} {...props} />,
+            },
             {
                 title: "Tissue Sample",
                 field: "tissue_sample_type",
@@ -201,6 +212,10 @@ export default function DatasetTable() {
                 editable: "never",
                 sorting: false,
                 render: row => (isRNASeqDataset(row) ? row.vcf_available : "N/A"),
+            },
+            {
+                title: "Sequencing ID",
+                field: "sequencing_id",
             },
         ];
         if (currentUser.is_admin || currentUser.groups.length > 1) {
@@ -360,13 +375,13 @@ export default function DatasetTable() {
                                             <Chip
                                                 key={metatype}
                                                 label={metatype}
-                                                onClick={() =>
+                                                onClick={() => {
                                                     updateTableFilter(
                                                         MTRef,
                                                         "dataset_type",
                                                         datasetTypes
-                                                    )
-                                                }
+                                                    );
+                                                }}
                                                 clickable
                                                 className={classes.chip}
                                             />

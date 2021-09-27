@@ -238,15 +238,18 @@ There are 2 families: `family_a`, `family_b`.
             -   `dataset_3` has dataset type `WGS`, and belongs to 1 group: `ach`.
 
 -   `family_b` has 1 participant: `participant_3`.
-    -   `participant_3` has 1 tissue sample: `sample_3`.
+    -   `participant_3` has 2 tissue samples: `sample_3` and `sample_4`.
         -   `sample_3` has 1 dataset: `dataset_4`.
             -   `dataset_4` has dataset type `WES`, and belongs to 0 groups.
+        -   `sample_4` has 1 dataset: `dataset_5`.
+            -   `dataset_5` has dataset type `WES`, and belongs to 0 groups.
+            -   `dataset_5` does not have any associated analyses.
 
 There are 3 participants: `participant_1`, `participant_2`, `participant_3`.
 
-There are 3 tissue samples: `sample_1`, `sample_2`, `sample_3`.
+There are 4 tissue samples: `sample_1`, `sample_2`, `sample_3`, `sample_4`.
 
-There are 4 datasets: `dataset_1`, `dataset_2`, `dataset_3`, `dataset_4`.
+There are 5 datasets: `dataset_1`, `dataset_2`, `dataset_3`, `dataset_4`, `dataset_5`.
 
 There are 3 analyses: `analysis_1`, `analysis_2`, `analysis_3`.
 

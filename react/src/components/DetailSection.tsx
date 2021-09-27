@@ -122,7 +122,6 @@ export default function DetailSection(props: DetailSectionProps) {
         });
         if (response.ok) {
             const data = await response.json();
-            console.log(data);
             if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
             enqueueSnackbar(
                 `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${

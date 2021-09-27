@@ -76,6 +76,7 @@ def list_datasets(page: int, limit: int) -> Response:
         "participant_codename",
         "family_codename",
         "dataset_id",
+        "sequencing_id",
     ]
     if order_by is None:
         order = None  # system default, likely dataset_id
@@ -119,6 +120,10 @@ def list_datasets(page: int, limit: int) -> Response:
     dataset_id = request.args.get("dataset_id", type=str)
     if dataset_id:
         filters.append(models.Dataset.dataset_id == dataset_id)
+
+    sequencing_id = request.args.get("sequencing_id", type=str)
+    if sequencing_id:
+        filters.append(func.instr(models.Dataset.sequencing_id, sequencing_id))
 
     participant_codename = request.args.get("participant_codename", type=str)
     participant_codename_exact_match = request.args.get(

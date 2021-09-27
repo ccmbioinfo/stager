@@ -1,3 +1,4 @@
+import { Query } from "@material-table/core";
 /*****   TYPES   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
@@ -315,6 +316,15 @@ export interface Option {
     origin?: string;
     disabled?: boolean;
     selected?: boolean;
+}
+
+export interface SearchType {
+    column: string;
+    exact: boolean;
+}
+
+export interface QueryWithSearchOptions<RowData extends object> extends Query<RowData> {
+    searchType?: SearchType[];
 }
 
 export interface GeneAlias {

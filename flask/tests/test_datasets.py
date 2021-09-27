@@ -444,6 +444,7 @@ def dataset_relationships(test_database):
         "created_by_id": user.user_id,
         "updated_by_id": user.user_id,
         "notes": "test_dataset_counts",
+        "sequencing_id": "2",
     }
 
     dataset_1 = models.Dataset(**dataset_fields)
@@ -505,6 +506,14 @@ def test_dataset_filter_on_dataset_column(
     assert len(response.get_json()["data"]) == 2
 
     response = client.get("/api/datasets?notes=test_dataset_counts&dataset_type=RES")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 0
+
+    response = client.get("api/datasets?notes=test_dataset_counts&sequencing_id=2")
+    assert response.status_code == 200
+    assert len(response.get_json()["data"]) == 2
+
+    response = client.get("api/datasets?notes=test_dataset_counts&sequencing_id=1")
     assert response.status_code == 200
     assert len(response.get_json()["data"]) == 0
 
@@ -576,6 +585,19 @@ def test_dataset_order_by_dataset_column(client, test_database, login_as):
     body = response.get_json()
     assert len(body["data"]) == 5
     assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WGS"
+
+    response = client.get("/api/datasets?order_by=sequencing_id&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 5
+    assert body["data"][0]["sequencing_id"] == None
+    assert body["data"][1]["sequencing_id"] == "2"
+
+    response = client.get("/api/datasets?order_by=sequencing_id&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 5
+    assert body["data"][0]["sequencing_id"] == "5"
 
 
 def test_dataset_order_by_related_column(client, test_database, login_as):
