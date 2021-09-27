@@ -87,9 +87,7 @@ export default function DataEntryTableRow({
                             getOptions={getOptions}
                             key={col.field}
                             loading={col.field === "family_codename" && familiesResult.isLoading}
-                            onEdit={(newValue, autocomplete?: boolean) =>
-                                handleChange(newValue, col, autocomplete)
-                            }
+                            onEdit={newValue => handleChange(newValue, col)}
                             onSearch={search => onSearch(col, search)}
                             required={!getColumnIsDisabled(col.field, row) && col.required}
                             row={row}

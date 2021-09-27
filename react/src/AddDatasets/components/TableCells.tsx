@@ -129,7 +129,7 @@ export function AutocompleteCell(
     props: {
         value: Option;
         options: Option[];
-        onEdit: (newValue: string, autopopulate?: boolean) => void;
+        onEdit: (newValue: string) => void;
         disabled?: boolean;
         column: DataEntryColumnConfig;
         required?: boolean;
@@ -182,10 +182,6 @@ export function AutocompleteCell(
         });
     }
 
-    const triggerAutopopulation = ["participant_codename", "family_codename"].includes(
-        props.column.field
-    );
-
     const isError = props.required && strIsEmpty(props.value.inputValue);
 
     return (
@@ -200,7 +196,7 @@ export function AutocompleteCell(
                 onBlur={() => {
                     if (!enumerableColumns.includes(props.column.field)) {
                         //update on blur if user isn't required to select an option
-                        props.onEdit(search, triggerAutopopulation);
+                        props.onEdit(search);
                     } else if (strIsEmpty(props.value.inputValue)) {
                         //if this is an enum col, user might have left a string in the box
                         //if there's no selection, wipe it out
@@ -220,7 +216,7 @@ export function AutocompleteCell(
                 onChange={(event, newValue) => {
                     //value is passed around as an Option, so we need to transform here for typescript
                     const optionValue = toOption(newValue);
-                    props.onEdit(toOption(newValue).inputValue, triggerAutopopulation);
+                    props.onEdit(toOption(newValue).inputValue);
                     setSearch(optionValue.title);
                 }}
                 options={props.options}

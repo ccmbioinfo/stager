@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Container, makeStyles, Tooltip } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
@@ -10,6 +10,7 @@ import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import {
     DataEntryColumnConfig,
     DataEntryField,
+    DataEntryFields,
     DataEntryRow,
     DataEntryRowDNAOptional,
     DataEntryRowDNARequired,
@@ -17,6 +18,9 @@ import {
     DataEntryRowRNARequired,
     DataEntryRowSharedOptional,
     DataEntryRowSharedRequired,
+    Family,
+    Participant,
+    UnlinkedFile,
 } from "../typings";
 import DataEntryTable from "./components/DataEntryTable";
 import { participantColumns } from "./components/utils";
@@ -154,6 +158,7 @@ const insertColumnsAfter = (
     return columns.flatMap(col => (col.field === field ? [col, ...columnsToAdd] : col));
 };
 
+/* possible combinations of columns */
 type LayoutType = "RNA" | "DNA" | "MIXED";
 
 /* return the current column layout type */
@@ -199,21 +204,9 @@ export default function AddDatasets() {
         }
     }, [columns, data, setColumns]);
 
-    useEffect(() => {
-        sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
-    }, [data]);
-
-    /* "memoizing" dataType to extract the `data` dependency from useEffect column check below */
-    const dataType = useMemo(() => {
-        if ((data || []).every(row => row.fields.dataset_type !== "RRS")) {
-            return "DNA";
-        } else if ((data || []).every(row => row.fields.dataset_type === "RRS")) {
-            return "RNA";
-        } else return "MIXED";
-    }, [data]);
-
-    /* keep columns and user-provided data in sync */
-    useEffect(() => {
+    /* update which columns the user is allowed to see */
+    const updateColumns = useCallback(() => {
+        const dataType = getDataType(data);
         if (columns) {
             const columnLayoutType = getColumnLayoutType(columns);
             if (columnLayoutType !== dataType) {
@@ -239,18 +232,11 @@ export default function AddDatasets() {
                 }
             }
         }
-    }, [dataType, columns]);
+    }, [data, columns]);
 
-    useEffect(() => {
-        if (currentUser.groups.length === 1) {
-            setAsGroups(currentUser.groups);
-        }
-    }, [currentUser]);
-
-    useEffect(() => {
-        // Check all permission groups
+    const validateData = useCallback(() => {
         if (data) {
-            if (currentUser.groups.length === 0) {
+            if (currentUser && currentUser.groups.length === 0) {
                 setErrorMessage("Cannot submit. You are not part of any permission groups.");
                 return;
             }
@@ -291,9 +277,30 @@ export default function AddDatasets() {
             // Checked everything, no problems
             setErrorMessage("");
         }
+    }, [data, asGroups.length, currentUser]);
 
-        // Check for error state
-    }, [data, asGroups, currentUser]);
+    useEffect(() => {
+        sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
+        updateColumns();
+        validateData();
+    }, [data, updateColumns, validateData]);
+
+    useEffect(() => {
+        if (currentUser.groups.length === 1) {
+            setAsGroups(currentUser.groups);
+        }
+    }, [currentUser]);
+
+    /* return the current configuration of column the user is allowed to see */
+    const getDataType = (newData: DataEntryRow[] | undefined) => {
+        if (newData) {
+            if (newData.every(row => row.fields.dataset_type !== "RRS")) {
+                return "DNA";
+            } else if (newData.every(row => row.fields.dataset_type === "RRS")) {
+                return "RNA";
+            } else return "MIXED";
+        } else return "DNA";
+    };
 
     const removeRNACols = (currCols: DataEntryColumnConfig[]) =>
         currCols.filter(c => ALL_DNA_FIELDS.includes(c.field));
@@ -353,9 +360,110 @@ export default function AddDatasets() {
         }
     }
 
-    function handleDataChange(newData: DataEntryRow[]) {
+    const findParticipant = (
+        newValue: string,
+        column: string,
+        row: DataEntryRow,
+        families: Family[]
+    ) => {
+        let participantCodename: string;
+        let familyCodename: string;
+        const { fields } = row;
+        if (column === "participant_codename" && fields.family_codename !== "") {
+            familyCodename = fields.family_codename;
+            participantCodename = newValue;
+        } else if (column === "family_codename" && fields.participant_codename !== "") {
+            familyCodename = newValue;
+            participantCodename = fields.participant_codename;
+        }
+        const family = families.find(fam => fam.family_codename === familyCodename);
+        return family
+            ? family.participants.find(
+                  currParticipant => currParticipant.participant_codename === participantCodename
+              )
+            : undefined;
+    };
+
+    /* add a new value to the form data */
+    const updateData = (
+        row: DataEntryRow,
+        newValue: string | boolean | UnlinkedFile[],
+        col: DataEntryColumnConfig,
+        families: Family[]
+    ) => {
+        let newRow: DataEntryRow;
+        if (
+            ["participant_codename", "family_codename"].includes(col.field) &&
+            typeof newValue === "string"
+        ) {
+            // autopopulate row
+            // pre-existing rows are disabled, even if the values are wrong
+            const participant = findParticipant(newValue, col.field, row, families);
+            if (participant) {
+                const newFields = {
+                    ...participantColumns.reduce(
+                        (row, currCol) => ({
+                            ...row,
+                            [currCol]: participant[currCol as keyof Participant],
+                        }),
+                        { ...row.fields }
+                    ),
+                    [col.field]: newValue,
+                };
+                newRow = {
+                    fields: newFields,
+                    meta: { participantColumnsDisabled: true },
+                };
+            } else {
+                newRow = {
+                    fields: {
+                        ...row.fields,
+                        [col.field]: newValue,
+                    },
+                    meta: { participantColumnsDisabled: false },
+                };
+            }
+        } else {
+            newRow = { fields: { ...row.fields, [col.field]: newValue }, meta: row.meta };
+        }
+
+        if (
+            col.field === "dataset_type" &&
+            newValue !== row.fields[col.field] &&
+            typeof newValue === "string"
+        ) {
+            newRow.fields = removeInapplicableFields(newValue, newRow.fields);
+        }
+
+        return newRow;
+    };
+
+    /* if user has changed the dataset type of a row, null out fields that no longer apply */
+    const removeInapplicableFields = (type: string, data: DataEntryFields) => {
+        if (type === "RRS") {
+            return nullifyFields(data, DNA_ONLY_FIELDS);
+        } else {
+            return nullifyFields(data, RNA_ONLY_FIELDS);
+        }
+    };
+
+    const nullifyFields = (data: DataEntryFields, fields: readonly DataEntryField[]) =>
+        Object.entries(data)
+            .map(([k, v]) => ({ [k]: fields.includes(k as DataEntryField) ? null : v }))
+            .reduce((acc, curr) => ({ ...acc, ...curr }), {}) as DataEntryFields;
+
+    /* main handler for updating form data */
+    const handleDataChange = (
+        newValue: string | boolean | UnlinkedFile[],
+        rowIndex: number,
+        col: DataEntryColumnConfig,
+        families: Family[]
+    ) => {
+        const newData = data?.map((d, i) =>
+            i === rowIndex ? updateData(d, newValue, col, families) : d
+        );
         setData(newData);
-    }
+    };
 
     return (
         <main className={classes.content}>
@@ -368,6 +476,7 @@ export default function AddDatasets() {
                     groups={asGroups}
                     onChange={handleDataChange}
                     setColumns={setColumns}
+                    setData={setData}
                     setGroups={onChangeGroups}
                 />
             </Container>

@@ -19,13 +19,12 @@ import {
     DataEntryField,
     DataEntryRow,
     Family,
-    Participant,
     UnlinkedFile,
 } from "../../typings";
 import DataEntryTableRow from "./DataEntryTableRow";
 import DataEntryToolbar from "./DataEntryToolbar";
 import { HeaderCell } from "./TableCells";
-import { getOptions as _getOptions, objArrayToCSV, participantColumns } from "./utils";
+import { getOptions as _getOptions, objArrayToCSV } from "./utils";
 
 const useTableStyles = makeStyles(() => ({
     buttonCell: {
@@ -36,25 +35,6 @@ const useTableStyles = makeStyles(() => ({
     },
 }));
 
-function findParticipant(newValue: string, column: string, row: DataEntryRow, families: Family[]) {
-    let participantCodename: string;
-    let familyCodename: string;
-    const { fields } = row;
-    if (column === "participant_codename" && fields.family_codename !== "") {
-        familyCodename = fields.family_codename;
-        participantCodename = newValue;
-    } else if (column === "family_codename" && fields.participant_codename !== "") {
-        familyCodename = newValue;
-        participantCodename = fields.participant_codename;
-    }
-    const family = families.find(fam => fam.family_codename === familyCodename);
-    return family
-        ? family.participants.find(
-              currParticipant => currParticipant.participant_codename === participantCodename
-          )
-        : undefined;
-}
-
 const getVisibleColumnFieldList = (columns: DataEntryColumnConfig[]) =>
     columns.filter(col => !col.hidden).map(col => col.field);
 
@@ -63,8 +43,14 @@ export interface DataEntryTableProps {
     columns: DataEntryColumnConfig[];
     data: DataEntryRow[];
     groups: string[]; // selected groups to submit as
-    onChange: (data: DataEntryRow[]) => void;
+    onChange: (
+        newValue: string | boolean | UnlinkedFile[],
+        rowIndex: number,
+        col: DataEntryColumnConfig,
+        families: Family[]
+    ) => void;
     setColumns: (columns: DataEntryColumnConfig[]) => void;
+    setData: (data: DataEntryRow[]) => void;
     setGroups: (selectedGroups: string[]) => void;
 }
 
@@ -75,6 +61,7 @@ export default function DataEntryTable({
     groups,
     onChange,
     setColumns,
+    setData,
     setGroups,
 }: DataEntryTableProps) {
     const classes = useTableStyles();
@@ -85,83 +72,33 @@ export default function DataEntryTable({
     const { data: institutions } = useInstitutionsQuery();
     const { data: enums } = useEnumsQuery();
 
-    const onAddNewRow = useCallback(
-        () => onChange(data.concat(createEmptyRow())),
-        [onChange, data]
-    );
+    const onAddNewRow = useCallback(() => setData(data.concat(createEmptyRow())), [setData, data]);
     const onDelete = useCallback(
-        (rowIndex: number) => onChange(data.filter((_, index) => index !== rowIndex)),
-        [data, onChange]
+        (rowIndex: number) => setData(data.filter((_, index) => index !== rowIndex)),
+        [data, setData]
     );
-    const onDuplicate = useCallback(
-        (rowIndex: number) =>
-            onChange(
-                data.flatMap((row, index) =>
-                    index === rowIndex
-                        ? [
-                              row,
-                              {
-                                  meta: row.meta,
-                                  fields: {
-                                      ...row.fields,
-                                      linked_files: [],
-                                  },
+
+    const onDuplicate = (rowIndex: number) =>
+        setData(
+            data.flatMap((row, index) =>
+                index === rowIndex
+                    ? [
+                          row,
+                          {
+                              meta: row.meta,
+                              fields: {
+                                  ...row.fields,
+                                  linked_files: [],
                               },
-                          ]
-                        : row
-                )
-            ),
-        [data, onChange]
-    );
+                          },
+                      ]
+                    : row
+            )
+        );
 
     useEffect(() => {
         if (filesQuery.isSuccess) setFiles(filesQuery.data);
     }, [filesQuery]);
-
-    function onEdit(
-        newValue: string | boolean | UnlinkedFile[],
-        rowIndex: number,
-        col: DataEntryColumnConfig,
-        families: Family[],
-        autopopulate?: boolean
-    ) {
-        const newRows = data.map((row, index) => {
-            if (autopopulate && index === rowIndex && typeof newValue === "string") {
-                // autopopulate row
-                // pre-existing rows are disabled, even if the values are wrong
-                const participant = findParticipant(newValue, col.field, row, families);
-                if (participant) {
-                    const newFields = {
-                        ...participantColumns.reduce(
-                            (row, currCol) => ({
-                                ...row,
-                                [currCol]: participant[currCol as keyof Participant],
-                            }),
-                            { ...row.fields }
-                        ),
-                        [col.field]: newValue,
-                    };
-                    return {
-                        fields: newFields,
-                        meta: { participantColumnsDisabled: true },
-                    };
-                } else {
-                    return {
-                        fields: {
-                            ...row.fields,
-                            [col.field]: newValue,
-                        },
-                        meta: { participantColumnsDisabled: false },
-                    };
-                }
-            } else if (index === rowIndex) {
-                return { fields: { ...row.fields, [col.field]: newValue }, meta: row.meta };
-            } else {
-                return row;
-            }
-        });
-        onChange(newRows);
-    }
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryColumnConfig, families: Family[]) {
@@ -229,7 +166,7 @@ export default function DataEntryTable({
                                 key={rowIndex}
                                 columns={columns}
                                 getOptions={getOptions}
-                                onChange={onEdit}
+                                onChange={onChange}
                                 onDuplicate={onDuplicate.bind(null, rowIndex)}
                                 onDelete={onDelete.bind(null, rowIndex)}
                             />
