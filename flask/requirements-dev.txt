@@ -6,7 +6,7 @@
 #
 alembic==1.5.8
     # via flask-migrate
-astroid==2.7.2
+astroid==2.8.0
     # via pylint
 attrs==20.3.0
     # via pytest
@@ -88,7 +88,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.10.2
+pylint==2.11.1
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
@@ -122,7 +122,10 @@ toml==0.10.2
 tomli==1.1.0
     # via black
 typing-extensions==3.10.0.2
-    # via black
+    # via
+    #   astroid
+    #   black
+    #   pylint
 urllib3==1.26.5
     # via
     #   minio
