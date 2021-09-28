@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
 import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
@@ -33,7 +33,7 @@ import {
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
-import { Dataset, LinkedFile } from "../../typings";
+import { Dataset, isRNASeqDataset, LinkedFile } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import LinkedFilesButton from "./LinkedFilesButton";
@@ -118,9 +118,8 @@ export default function DatasetTable() {
 
     const [confirmDelete, setConfirmDelete] = useState(false);
 
-    const exportCsv = () => {
+    const exportCsv = () =>
         downloadCsv(transformMTQueryToCsvDownloadParams(MTRef.current?.state.query || {}));
-    };
 
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
@@ -201,6 +200,21 @@ export default function DatasetTable() {
                 defaultFilter: paramID,
             },
             {
+                title: "Candidate Genes",
+                field: "candidate_genes",
+                editable: "never",
+                sorting: false,
+                render: row => (isRNASeqDataset(row) ? <Note>{row.candidate_genes}</Note> : "N/A"),
+            },
+            {
+                title: "VCF Available",
+                field: "vcf_available",
+                editable: "never",
+                sorting: false,
+                filtering: false,
+                render: row => (isRNASeqDataset(row) ? (row.vcf_available ? "Yes" : "No") : "N/A"),
+            },
+            {
                 title: "Sequencing ID",
                 field: "sequencing_id",
             },
@@ -219,15 +233,16 @@ export default function DatasetTable() {
                 ),
             });
         }
+
         setInitialSorting(columns);
         setHiddenColumns(columns);
         return columns;
     }, [
         conditions,
+        currentUser,
         datasetTypes,
         paramID,
         tissueSampleTypes,
-        currentUser,
         setInitialSorting,
         setHiddenColumns,
     ]);

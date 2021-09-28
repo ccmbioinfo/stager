@@ -5,14 +5,11 @@ import utc from "dayjs/plugin/utc";
 import {
     Analysis,
     Counts,
-    DataEntryRow,
-    DataEntryRowBase,
-    DataEntryRowOptional,
-    DataEntryRowRNASeq,
     Dataset,
     Field,
     FieldDisplayValueType,
     Info,
+    isRNASeqDataset,
     KeyValue,
     PipelineStatus,
     PseudoBoolean,
@@ -77,14 +74,6 @@ export function jsonToAnalyses(data: Array<any>): Analysis[] {
         return { ...row } as Analysis;
     });
     return rows;
-}
-
-/**
- * Get the index of a material-table row.
- * If a material-table row is not provided, return null.
- */
-export function getRowIndex(row: any): number | null {
-    return row.tableData?.id;
 }
 
 /**
@@ -154,7 +143,7 @@ export function getDatasetFields(dataset: Dataset) {
  * Return the secondary titles and values (hidden in show more detail) of dataset detail as a Field object in dialogs
  */
 export function getSecDatasetFields(dataset: Dataset) {
-    return [
+    let fields = [
         createFieldObj("Batch ID", dataset.batch_id, "batch_id"),
         createFieldObj(
             "Linked Files",
@@ -174,6 +163,16 @@ export function getSecDatasetFields(dataset: Dataset) {
         createFieldObj("Read Length", dataset.read_length, "read_length"),
         createFieldObj("Read Type", dataset.read_type, "read_type"),
     ];
+
+    if (isRNASeqDataset(dataset)) {
+        fields = [
+            ...fields,
+            createFieldObj("VCF Available", dataset.vcf_available, "vcf_available"),
+            createFieldObj("Candidate Genes", dataset.candidate_genes, "candidate_genes"),
+        ];
+    }
+
+    return fields;
 }
 
 /**
@@ -189,30 +188,6 @@ export function getDatasetInfoList(datasets: Dataset[]): Info[] {
             identifier: dataset.dataset_id,
         };
     });
-}
-
-/**
- * Set property of object at key to newValue. Return obj.
- *
- * @example
- * let obj = { a: 1, b: 2 };
- * setProp(obj, "a", 3);     // returns { a: 3, b: 2 }
- * obj.a === 3               // returns true
- */
-export function setProp<T, K extends keyof T>(obj: T, key: K, newValue: any) {
-    obj[key] = newValue;
-    return obj;
-}
-
-/**
- * Return an object containing all headers for DataEntryTable.
- */
-export function getDataEntryHeaders() {
-    return {
-        required: Object.keys(new DataEntryRowBase()) as Array<keyof DataEntryRowBase>,
-        optional: Object.keys(new DataEntryRowOptional()) as Array<keyof DataEntryRowOptional>,
-        RNASeq: Object.keys(new DataEntryRowRNASeq()) as Array<keyof DataEntryRowRNASeq>,
-    };
 }
 
 /**
@@ -245,6 +220,8 @@ export function createFieldObj(
         disableEdit,
     };
 }
+
+export const getKeys = <T extends object>(obj: T) => Object.keys(obj) as (keyof T)[];
 
 /**
  * Convert given table to CSV and downloads it to user.
@@ -281,24 +258,6 @@ export function exportCSV(columnDefs: any[], data: any[], filename: string) {
     });
 
     downloadCsv(filename, blob);
-}
-
-export function createEmptyRows(amount?: number): DataEntryRow[] {
-    if (!amount || amount < 1) amount = 1;
-
-    var arr = [];
-    for (let i = 0; i < amount; i++) {
-        arr.push({
-            family_codename: "",
-            participant_codename: "",
-            participant_type: "",
-            tissue_sample_type: "",
-            dataset_type: "",
-            condition: "GermLine",
-            sequencing_date: "",
-        });
-    }
-    return arr;
 }
 
 export function stringToBoolean(value: PseudoBoolean) {

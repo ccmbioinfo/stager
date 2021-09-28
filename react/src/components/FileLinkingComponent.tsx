@@ -9,13 +9,11 @@ import {
     List,
     makeStyles,
     Popover,
-    TextField,
     Tooltip,
     Typography,
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
-import { Autocomplete, createFilterOptions } from "@material-ui/lab";
-import { Note } from "../components";
+import { AutocompleteMultiselect, Note } from "../components";
 import { LinkedFile, UnlinkedFile } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -36,7 +34,11 @@ const useStyles = makeStyles(theme => ({
         wordBreak: "break-all",
         padding: 0,
     },
-    autocomplete: {
+}));
+
+/* eslint-disable mui-unused-classes/unused-classes */
+const useAutocompleteStyles = makeStyles(() => ({
+    root: {
         width: "400px",
         flexGrow: 1,
     },
@@ -50,9 +52,9 @@ const FileLinkingComponent: React.FC<{
     disabled?: boolean;
     disableTooltip?: boolean;
 }> = ({ values, options, onEdit, disabled, disableTooltip }) => {
+    const autocompleteClasses = useAutocompleteStyles();
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [inputValue, setInputValue] = useState("");
 
     const open = Boolean(anchorEl);
 
@@ -139,28 +141,12 @@ const FileLinkingComponent: React.FC<{
                             </Typography>
                         ) : (
                             <Grid container direction="column">
-                                <Autocomplete
-                                    autoComplete
-                                    className={classes.autocomplete}
-                                    inputValue={inputValue}
-                                    onInputChange={(_, value, reason) => {
-                                        if (reason === "input") {
-                                            setInputValue(value);
-                                        }
-                                    }}
-                                    disableClearable={true}
-                                    disableCloseOnSelect
-                                    onChange={(event, selectedOptions, reason) => {
-                                        //prevent keypress events from propagating to parent listeners
-                                        event.stopPropagation();
-                                        if (
-                                            selectedOptions &&
-                                            ["select-option", "remove-option"].includes(reason)
-                                        ) {
-                                            onEdit(selectedOptions);
-                                            setInputValue("");
-                                        }
-                                    }}
+                                <AutocompleteMultiselect
+                                    classes={autocompleteClasses}
+                                    inputLabel="Search Unlinked Files"
+                                    limit={25}
+                                    onSelect={onEdit}
+                                    options={options}
                                     renderTags={(tags, getTagProps) => (
                                         <>
                                             {tags.map((tag, i) => {
@@ -175,7 +161,7 @@ const FileLinkingComponent: React.FC<{
                                                         }))
                                                     );
                                                 };
-                                                const detail = (
+                                                const Detail = (
                                                     <Box margin={1}>
                                                         <FormControlLabel
                                                             label="Multiplexed?"
@@ -193,7 +179,7 @@ const FileLinkingComponent: React.FC<{
                                                         key={tag.path}
                                                         {...getTagProps({ index: i })}
                                                         label={
-                                                            <Note DetailComponent={detail}>
+                                                            <Note detailElement={Detail}>
                                                                 {tag.path}
                                                             </Note>
                                                         }
@@ -202,28 +188,8 @@ const FileLinkingComponent: React.FC<{
                                             })}
                                         </>
                                     )}
-                                    renderOption={option => (
-                                        <span className={classes.fileName}>{option.path}</span>
-                                    )}
-                                    getOptionSelected={(option, value) =>
-                                        option.path === value.path
-                                    }
-                                    options={options}
-                                    filterOptions={createFilterOptions({
-                                        limit: 25,
-                                        stringify: o => o.path,
-                                    })}
-                                    filterSelectedOptions={true}
-                                    getOptionLabel={option => option.path}
-                                    renderInput={params => (
-                                        <TextField
-                                            {...params}
-                                            label="Search Unlinked Files"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                    multiple
-                                    value={values}
+                                    selectedValues={values}
+                                    uniqueLabelPath="path"
                                 />
                             </Grid>
                         )}

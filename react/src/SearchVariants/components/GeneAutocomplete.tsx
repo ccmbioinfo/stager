@@ -97,9 +97,6 @@ const useStyles = makeStyles<Theme, GeneAutocompleteProps>(theme => ({
     adornment: {
         margin: theme.spacing(0, 1),
     },
-    // popper: {
-    //     display: props => (props.searchCategory !== "gene" ? "" : "none"),
-    // },
 }));
 
 // Return whether the provided search string is valid for the given category
@@ -237,7 +234,7 @@ const GeneAutocomplete: React.FC<GeneAutocompleteProps> = (props: GeneAutocomple
                 );
             }}
             //we have to control component in order to *prevent* selection persistence
-            value={selectedValue || undefined}
+            value={selectedValue}
         />
     );
 };

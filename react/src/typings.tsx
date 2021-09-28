@@ -70,7 +70,7 @@ export interface LinkedFile extends UnlinkedFile {
     file_id: number;
 }
 
-export interface Dataset {
+export interface DNADataset {
     dataset_id: string;
     participant_codename: string;
     participant_aliases: string;
@@ -98,6 +98,22 @@ export interface Dataset {
     discriminator: string;
     group_code: string[];
 }
+
+interface RNASeqDataset extends DNADataset {
+    candidate_genes: string;
+    RIN: number;
+    DV200: number;
+    concentration: number;
+    sequencer: string;
+    spike_in: string;
+    vcf_available: string;
+}
+
+export type Dataset = RNASeqDataset | DNADataset;
+
+// dataset typeguard
+export const isRNASeqDataset = (dataset: RNASeqDataset | Dataset): dataset is RNASeqDataset =>
+    dataset.discriminator === "rnaseq_dataset";
 
 // Result from /api/datasets/:id
 export interface DatasetDetails {
@@ -130,7 +146,7 @@ export interface Analysis {
 }
 
 export interface AnalysisDetails {
-    datasets: Dataset[];
+    datasets: (Dataset & { participant_notes: string })[];
 }
 
 export type AnalysisDetailed = Analysis & AnalysisDetails;
@@ -170,7 +186,9 @@ export interface Info {
 }
 
 // Define these as classes so that we can create an array of keys later
-export class DataEntryRowBase {
+
+//note that these are in display order and should not alphabetized
+export class DataEntryRowSharedRequired {
     family_codename!: string;
     participant_codename!: string;
     participant_type!: string;
@@ -180,40 +198,56 @@ export class DataEntryRowBase {
     sequencing_date!: string;
 }
 
-export class DataEntryRowOptional {
-    sex?: string;
-    affected?: boolean;
-    solved?: boolean;
-    linked_files?: LinkedFile[];
-    notes?: string;
-    extraction_protocol?: string;
-    capture_kit?: string;
-    library_prep_method?: string;
-    read_length?: number;
-    read_type?: string;
-    sequencing_id?: string;
-    sequencing_centre?: string;
-    batch_id?: string;
-    institution?: string;
+export class DataEntryRowSharedOptional {
+    notes!: string;
+    linked_files!: LinkedFile[];
 }
 
-// Cannot enforce "RNASeq => these values are set" with types
-export class DataEntryRowRNASeq {
-    RIN?: string;
-    DV200?: string;
-    concentration?: string;
-    sequencer?: string;
-    spike_in?: string;
+export class DataEntryRowDNAOptional {
+    sex!: string;
+    affected!: boolean;
+    solved!: boolean;
+    extraction_protocol!: string;
+    capture_kit!: string;
+    library_prep_method!: string;
+    read_length!: number;
+    read_type!: string;
+    sequencing_id!: string;
+    sequencing_centre!: string;
+    batch_id!: string;
+    institution!: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
-    participantColDisabled?: boolean;
+export class DataEntryRowDNARequired {}
+export class DataEntryRowRNARequired {}
+
+export class DataEntryRowRNAOptional {
+    vcf_available!: boolean;
+    candidate_genes!: string;
 }
 
-export interface DataEntryHeader {
-    title: string;
-    field: keyof DataEntryRow;
+export interface DataEntryFields
+    extends DataEntryRowSharedRequired,
+        DataEntryRowSharedOptional,
+        DataEntryRowRNARequired,
+        DataEntryRowRNAOptional,
+        DataEntryRowDNARequired,
+        DataEntryRowDNAOptional {}
+
+export interface DataEntryRow {
+    meta: {
+        participantColumnsDisabled?: boolean;
+    };
+    fields: DataEntryFields;
+}
+
+export type DataEntryField = keyof DataEntryFields;
+
+export interface DataEntryColumnConfig {
+    field: DataEntryField;
     hidden?: boolean;
+    required?: boolean;
+    title: string;
 }
 
 export interface NewUser {

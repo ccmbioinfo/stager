@@ -2,18 +2,13 @@ import React from "react";
 import { Divider, Popover, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { useAnalysisQuery } from "../../hooks";
-import { Analysis, Dataset } from "../../typings";
+import { Analysis } from "../../typings";
 
 interface AnalysisNotesProps {
     analysis: Analysis;
     anchorEl: HTMLButtonElement | null;
     open: boolean;
     onClose: () => void;
-}
-
-interface DatasetWithNotes extends Dataset {
-    participant_notes: string;
-    dataset_notes: string;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -32,7 +27,7 @@ export default function AnalysisNotes(props: AnalysisNotesProps) {
     const classes = useStyles();
     const { data: analysisQueryResults } = useAnalysisQuery(props.analysis.analysis_id);
     const analysisWithNotes = (
-        (analysisQueryResults && (analysisQueryResults.datasets as DatasetWithNotes[])) ||
+        (analysisQueryResults && analysisQueryResults.datasets) ||
         []
     ).filter(dataset => dataset.notes || dataset.participant_notes);
 

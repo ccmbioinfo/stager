@@ -10,7 +10,7 @@ async function fetchGenes(params: Record<string, any>) {
  * Return result of GET /api/genes.
  *
  */
-export const useGenesQuery = (params: Record<string, any> = {}, enabled: boolean = true) =>
+export const useGenesQuery = (params: { search: string }, enabled: boolean = true) =>
     useQuery<{ data: GeneAlias[] }, Response>(
         ["genes", params],
         fetchGenes.bind(null, { ...params, limit: 25 }),

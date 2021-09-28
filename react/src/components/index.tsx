@@ -4,6 +4,7 @@
  * Generated with VSCode extension: https://marketplace.visualstudio.com/items?itemName=BrunoLM.export-index
  */
 export { default as AnalysisInfoDialog } from "./AnalysisInfoDialog";
+export { default as AutocompleteMultiselect } from "./AutocompleteMultiselect";
 export { default as BooleanDisplay } from "./BooleanDisplay";
 export { default as BooleanEditComponent } from "./BooleanEditComponent";
 export { default as BooleanFilter } from "./BooleanFilter";

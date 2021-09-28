@@ -3,7 +3,6 @@ from typing import List
 
 from flask import (
     Blueprint,
-    Request,
     Response,
     abort,
     current_app as app,
@@ -12,7 +11,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload, selectinload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload, with_polymorphic
 
 from . import models
 from .extensions import db
@@ -183,6 +182,12 @@ def list_datasets(page: int, limit: int) -> Response:
     updated = request.args.get("updated", type=str)
     if updated:
         filters.append(filter_updated_or_abort(models.Dataset.updated, updated))
+
+    candidate_genes = request.args.get("candidate_genes", type=str)
+    if candidate_genes:
+        filters.append(
+            func.instr(models.RNASeqDataset.candidate_genes, candidate_genes)
+        )
 
     user = get_current_user()
 
