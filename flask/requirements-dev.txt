@@ -12,7 +12,7 @@ attrs==20.3.0
     # via pytest
 authlib==0.15.3
     # via -r requirements.in
-black==21.8b0
+black==21.9b0
     # via -r requirements-dev.in
 certifi==2020.12.5
     # via
