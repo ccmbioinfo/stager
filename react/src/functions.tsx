@@ -43,7 +43,7 @@ export function toKeyValue(items: string[]) {
  */
 export function formatDateString(date: string) {
     const datetime = dayjs.utc(date);
-    return datetime.isValid() ? datetime.local().format("LLLL") : null;
+    return datetime.isValid() ? datetime.format("LLLL") : null;
 }
 
 /**

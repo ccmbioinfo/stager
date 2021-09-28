@@ -10,10 +10,16 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
+
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
 import { useSnackbar } from "notistack";
 import { useErrorSnackbar } from "../hooks";
 import { Field } from "../typings";
 import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
+
+dayjs.extend(customParseFormat);
 
 const gridSpacing = 2;
 const titleWidth = 12;
@@ -121,7 +127,15 @@ export default function DetailSection(props: DetailSectionProps) {
         const newData: { [key: string]: any } = {};
         primaryFields.concat(secondaryFields).forEach(field => {
             if (field.fieldName && !field.disableEdit) {
-                newData[field.fieldName] = field.value;
+                // Due to the inconsistent refreshing/data update issue (#842),
+                // sometimes field.value is in ISO format -> else clause,
+                // sometimes field.value is in human readable format (eg: Wednesday, September 22, 2021 8:00 PM) -> if clause.
+                if (field.fieldName === "library_prep_date" && field.value != null && typeof field.value === "string" && (/[A-Z]/).test(field.value[0])) {
+                    field.value = field.value.substring(field.value.indexOf(',') + 2);
+                    newData[field.fieldName] = dayjs(field.value, 'MMMM D, YYYY h:mm A').format('YYYY-MM-D');
+                } else {
+                    newData[field.fieldName] = field.value;
+                }
             }
         });
         const response = await fetch(url, {
