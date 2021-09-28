@@ -211,7 +211,8 @@ export default function DatasetTable() {
                 field: "vcf_available",
                 editable: "never",
                 sorting: false,
-                render: row => (isRNASeqDataset(row) ? row.vcf_available : "N/A"),
+                filtering: false,
+                render: row => (isRNASeqDataset(row) ? (row.vcf_available ? "Yes" : "No") : "N/A"),
             },
             {
                 title: "Sequencing ID",
