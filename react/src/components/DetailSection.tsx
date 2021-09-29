@@ -130,9 +130,16 @@ export default function DetailSection(props: DetailSectionProps) {
                 // Due to the inconsistent refreshing/data update issue (#842),
                 // sometimes field.value is in ISO format -> else clause,
                 // sometimes field.value is in human readable format (eg: Wednesday, September 22, 2021 8:00 PM) -> if clause.
-                if (field.fieldName === "library_prep_date" && field.value != null && typeof field.value === "string" && (/[A-Z]/).test(field.value[0])) {
-                    field.value = field.value.substring(field.value.indexOf(',') + 2);
-                    newData[field.fieldName] = dayjs(field.value, 'MMMM D, YYYY h:mm A').format('YYYY-MM-D');
+                if (
+                    field.fieldName === "library_prep_date" &&
+                    field.value != null &&
+                    typeof field.value === "string" &&
+                    /[A-Z]/.test(field.value[0])
+                ) {
+                    field.value = field.value.substring(field.value.indexOf(",") + 2);
+                    newData[field.fieldName] = dayjs(field.value, "MMMM D, YYYY h:mm A").format(
+                        "YYYY-MM-D"
+                    );
                 } else {
                     newData[field.fieldName] = field.value;
                 }
@@ -147,7 +154,8 @@ export default function DetailSection(props: DetailSectionProps) {
             const data = await response.json();
             if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
             enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${props.dataInfo?.identifier
+                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
+                    props.dataInfo?.identifier
                 } updated successfully`,
                 {
                     variant: "success",
