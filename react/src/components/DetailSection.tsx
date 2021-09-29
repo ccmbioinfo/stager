@@ -156,7 +156,8 @@ export default function DetailSection(props: DetailSectionProps) {
             const data = await response.json();
             if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
             enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${props.dataInfo?.identifier
+                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
+                    props.dataInfo?.identifier
                 } updated successfully`,
                 {
                     variant: "success",
