@@ -127,7 +127,6 @@ export default function DetailSection(props: DetailSectionProps) {
         const newData: { [key: string]: any } = {};
         primaryFields.concat(secondaryFields).forEach(field => {
             if (field.fieldName && !field.disableEdit) {
-
                 // This is a temporary fix for 500 Server Error invoked when library_prep_date
                 // is sent to the backend. This is probably because library_prep_date
                 // is  stored in a non-ISO string format, although it should. This fix needs to be
@@ -160,7 +159,8 @@ export default function DetailSection(props: DetailSectionProps) {
             const data = await response.json();
             if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
             enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${props.dataInfo?.identifier
+                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
+                    props.dataInfo?.identifier
                 } updated successfully`,
                 {
                     variant: "success",
