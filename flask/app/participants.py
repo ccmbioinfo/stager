@@ -287,7 +287,7 @@ def update_participant(id: int):
 
     participant = query.first_or_404()
 
-    enum_error = mixin(participant, request.json, editable_columns)
+    enum_error = mixin(models.Participant, participant, request.json, editable_columns)
 
     if enum_error:
         abort(400, description="enum_error")

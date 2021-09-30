@@ -222,7 +222,9 @@ def update_tissue_sample(id: int):
     tissue_sample = query.first_or_404()
 
     app.logger.debug("Validating enums..")
-    enum_error = mixin(tissue_sample, request.json, editable_columns)
+    enum_error = mixin(
+        models.TissueSample, tissue_sample, request.json, editable_columns
+    )
 
     if enum_error:
         app.logger.error("Enum invalid: " + enum_error)
