@@ -41,7 +41,7 @@ def handle_error(e):
 
 
 def mixin(
-    declared_model: db.Model,  # a declared model
+    declared_model: Model,  # a declared model
     entity: db.Model,  # an instance of the declared model
     json_mixin: Dict[str, Any],
     columns: List[str],
@@ -54,6 +54,19 @@ def mixin(
             column = getattr(entity, field)  # will be None if no value for field in db
             value = json_mixin[field]
             if isinstance(column, Enum):
+
+                try:
+                    insp_mapper.columns[field]
+                except Exception as err:
+                    # this is not helpful as it returns the field
+                    app.logger.error(str(err))
+
+                    abort(
+                        400,
+                        description="mixin attempted to access invalid column '{}' in table '{}'".format(
+                            field, str(entity.__tablename__)
+                        ),
+                    )
                 is_null_valid = insp_mapper.columns[field].nullable and value is None
                 if not hasattr(type(column), str(value)) and not is_null_valid:
                     allowed = [e.value for e in type(column)]
