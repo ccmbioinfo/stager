@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Button,
     Collapse,
@@ -13,9 +13,11 @@ import { Check } from "@material-ui/icons";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useSnackbar } from "notistack";
-import { useErrorSnackbar } from "../hooks";
-import { Field } from "../typings";
+import { useDatasetUpdateMutation, useErrorSnackbar } from "../hooks";
+import { Dataset, Field } from "../typings";
 import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
+import { useQueryClient } from "react-query";
+
 dayjs.extend(customParseFormat);
 
 const gridSpacing = 2;
@@ -41,10 +43,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 interface DataInfo {
-    type: "participant" | "dataset";
+    type: "participant" | "dataset";// TO BE DELETED:
     ID: string;
     identifier: string; // participant codename for participant, dataset ID for dataset
-    onUpdate?: (participant_id: string, newParticipant: { [key: string]: any }) => void;
+    onUpdate?: (participant_id: string, newParticipant: { [key: string]: any }) => void;    // TO BE DELETED:
+    // TO BE ADDED: updateFunc: ( model: Partial<Dataset> | Partial<Participant>) => void;
+    //// COMMENT: this function will call on updateDatasetMutation, updateParticipantMutation | requery()
+    // TableRef.current.onQuery()
 }
 
 interface DetailSectionProps {
@@ -70,6 +75,9 @@ export default function DetailSection(props: DetailSectionProps) {
     );
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
+    const datasetUpdateMutation = useDatasetUpdateMutation();
+    const MTRef = useRef<any>();
+    const queryClient = useQueryClient();
 
     // Props are the main source of truth about the state of the fields
     useEffect(() => {
@@ -118,8 +126,24 @@ export default function DetailSection(props: DetailSectionProps) {
         } else {
             url = `/api/datasets/${props.dataInfo?.ID}`;
         }
+
+
+        // get the old data
+        // const response = await fetch(url, {
+        //     method: "GET",
+        //     headers: { "Content-Type": "application/json" },
+        // })
+
+        // add response.ok
+        // const oldData: Dataset = await response.json();
+
+        // get the new data
         const newData: { [key: string]: any } = {};
+        // const newData: partial<Dataset> | partial<Participant> = {};
+        // const newData: Dataset = ;
+        // why do we need partial??
         primaryFields.concat(secondaryFields).forEach(field => {
+
             if (field.fieldName && !field.disableEdit) {
                 // This is a temporary fix for 500 Server Error invoked when library_prep_date
                 // is sent to the backend. This is probably because library_prep_date
@@ -143,36 +167,75 @@ export default function DetailSection(props: DetailSectionProps) {
                     newData[field.fieldName] = field.value;
                 }
             }
+            // if (field.fieldName === "dataset_id") {
+            //     newData[field.fieldName] = field.value;
+            // }
+
         });
-        const response = await fetch(url, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newData),
-        });
-        if (response.ok) {
-            const data = await response.json();
-            if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
-            enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
-                    props.dataInfo?.identifier
-                } updated successfully`,
-                {
-                    variant: "success",
-                }
-            );
-        } else {
-            setPrimaryFields(props.fields);
-            if (props.collapsibleFields) {
-                setSecondaryFields(props.collapsibleFields);
+
+        // const diffDataset = rowDiff(newData, oldData);
+
+        console.log("dataset_id is", props.dataInfo?.ID);
+        newData["dataset_id"] = props.dataInfo?.ID;
+        datasetUpdateMutation.mutate(
+            {
+                ...newData,
+                dataset_id: props.dataInfo?.ID,
+            },
+            {
+                onSuccess: receiveDataset => {
+
+                    //refresh data
+                    MTRef.current.onQueryChange();
+                    enqueueSnackbar(
+                        `Dataset ID ${props.dataInfo?.ID} updated successfully`,
+                        { variant: "success" }
+                    );
+                },
+                onError: response => {
+                    console.log("line 215"); // this line is called. the issue is regarding the type declaration
+                    console.error(
+                        `PATCH /api/datasets/${newData.dataset_id} failed with ${response.status}: ${response.statusText}`
+                    );
+                    enqueueErrorSnackbar(
+                        response,
+                        `Failed to edit Dataset ID ${newData?.dataset_id}`
+                    );
+                },
             }
-            console.error(
-                `PATCH /api/${props.dataInfo?.type}s/${props.dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
-            );
-            enqueueErrorSnackbar(
-                response,
-                `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier}`
-            );
-        }
+        )
+
+        // const response = await fetch(url, {
+        //     method: "PATCH",
+        //     headers: { "Content-Type": "application/json" },
+        //     body: JSON.stringify(newData),
+        // });
+        // if (response.ok) {
+        //     const data = await response.json();
+        //     // console.log("props.dataInfo?", props.dataInfo?.onUpdate);
+        //     // onUpdate is never called for dataset table.
+        //     if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
+
+        //     enqueueSnackbar(
+        //         `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${props.dataInfo?.identifier
+        //         } updated successfully`,
+        //         {
+        //             variant: "success",
+        //         }
+        //     );
+        // } else {
+        //     setPrimaryFields(props.fields);
+        //     if (props.collapsibleFields) {
+        //         setSecondaryFields(props.collapsibleFields);
+        //     }
+        //     console.error(
+        //         `PATCH /api/${props.dataInfo?.type}s/${props.dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
+        //     );
+        //     enqueueErrorSnackbar(
+        //         response,
+        //         `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier}`
+        //     );
+        // }
     }
 
     return (
