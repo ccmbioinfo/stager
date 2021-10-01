@@ -139,6 +139,7 @@ export default function DetailSection(props: DetailSectionProps) {
 
         // get the new data
         const newData: { [key: string]: any } = {};
+        // const newData: Partial<Dataset> = {};
         // const newData: partial<Dataset> | partial<Participant> = {};
         // const newData: Dataset = ;
         // why do we need partial??
@@ -175,8 +176,8 @@ export default function DetailSection(props: DetailSectionProps) {
 
         // const diffDataset = rowDiff(newData, oldData);
 
-        console.log("dataset_id is", props.dataInfo?.ID);
-        newData["dataset_id"] = props.dataInfo?.ID;
+
+        // newData["dataset_id"] = props.dataInfo?.ID;
         datasetUpdateMutation.mutate(
             {
                 ...newData,
@@ -185,18 +186,22 @@ export default function DetailSection(props: DetailSectionProps) {
             {
                 onSuccess: receiveDataset => {
 
-                    //refresh data
-                    MTRef.current.onQueryChange();
+                    //refresh data, force table to refresh.
+                    // MTRef.current.onQueryChange();
                     enqueueSnackbar(
-                        `Dataset ID ${props.dataInfo?.ID} updated successfully`,
+                        `Dataset ID ${newData.dataset_id} updated successfully`,
                         { variant: "success" }
                     );
+                    console.log(receiveDataset);
                 },
                 onError: response => {
-                    console.log("line 215"); // this line is called. the issue is regarding the type declaration
+
+
                     console.error(
                         `PATCH /api/datasets/${newData.dataset_id} failed with ${response.status}: ${response.statusText}`
                     );
+
+                    // response.json is not a function, what is response here?
                     enqueueErrorSnackbar(
                         response,
                         `Failed to edit Dataset ID ${newData?.dataset_id}`
