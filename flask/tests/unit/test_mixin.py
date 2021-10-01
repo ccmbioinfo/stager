@@ -6,10 +6,9 @@ For example in this test, if the 'DatasetCondition' and 'DatasetReadType' column
 
 """
 
-from app.models import RNASeqDataset
+from app.models import RNASeqDataset, DatasetCondition, DatasetReadType
 from app.utils import mixin
 from sqlalchemy.types import Enum
-from app.models import DatasetCondition, DatasetReadType
 
 
 def test_mixin():
