@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { TableRow } from "@material-ui/core";
 import { Delete, LibraryAdd } from "@material-ui/icons";
 import { DNA_ONLY_FIELDS, RNA_ONLY_FIELDS } from "..";
@@ -15,6 +15,7 @@ import { participantColumns } from "./utils";
 
 interface DataEntryTableRowProps {
     columns: DataEntryColumnConfig[];
+    data: DataEntryRow[];
     getOptions: (rowIndex: number, col: DataEntryColumnConfig, families: Family[]) => any[];
     onChange: (
         newValue: string | boolean | UnlinkedFile[],
@@ -25,7 +26,6 @@ interface DataEntryTableRowProps {
     ) => void;
     onDelete: () => void;
     onDuplicate: () => void;
-    row: DataEntryRow;
     rowIndex: number;
 }
 
@@ -34,15 +34,18 @@ interface DataEntryTableRowProps {
  */
 export default function DataEntryTableRow({
     columns,
+    data,
     getOptions: _getOptions,
     onChange,
     onDelete,
     onDuplicate,
-    row,
     rowIndex,
 }: DataEntryTableRowProps) {
     const [familySearch, setFamilySearch] = useState("");
     const familiesResult = useFamiliesQuery(familySearch);
+
+    const row = useMemo(() => data[rowIndex], [data, rowIndex]);
+
     const families = familiesResult.data || [];
 
     function handleChange(
@@ -83,6 +86,7 @@ export default function DataEntryTableRow({
                     !col.hidden && (
                         <DataEntryCell
                             col={col}
+                            data={data}
                             disabled={getColumnIsDisabled(col.field, row)}
                             getOptions={getOptions}
                             key={col.field}
@@ -90,7 +94,6 @@ export default function DataEntryTableRow({
                             onEdit={newValue => handleChange(newValue, col)}
                             onSearch={search => onSearch(col, search)}
                             required={!getColumnIsDisabled(col.field, row) && col.required}
-                            row={row}
                             rowIndex={rowIndex}
                         />
                     )

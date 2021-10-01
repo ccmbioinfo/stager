@@ -47,22 +47,24 @@ const useCellStyles = makeStyles(theme => ({
  * appropriate for the type of value required.
  */
 export function DataEntryCell(props: {
-    row: DataEntryRow;
-    rowIndex: number;
     col: DataEntryColumnConfig;
-    getOptions: (rowIndex: number, col: DataEntryColumnConfig) => any[];
-    onEdit: (newValue: string | boolean | UnlinkedFile[], autocomplete?: boolean) => void;
+    data: DataEntryRow[];
     disabled?: boolean;
-    required?: boolean;
-    onSearch?: (value: string) => void;
+    getOptions: <T>(rowIndex: number, col: DataEntryColumnConfig) => T[];
     loading?: boolean;
+    onEdit: (newValue: string | boolean | UnlinkedFile[], autocomplete?: boolean) => void;
+    onSearch?: (value: string) => void;
+    required?: boolean;
+    rowIndex: number;
 }) {
+    const row = useMemo(() => props.data[props.rowIndex], [props.data, props.rowIndex]);
+
     const fieldName = props.col.field;
 
     if (booleanColumns.includes(fieldName)) {
         return (
             <CheckboxCell
-                value={!!props.row.fields[fieldName]}
+                value={row.fields[fieldName] as boolean}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
@@ -73,15 +75,23 @@ export function DataEntryCell(props: {
                 disabled={props.disabled}
                 onEdit={props.onEdit}
                 required={!!props.required}
-                value={props.row.fields[fieldName]?.toString()}
+                value={row.fields[fieldName]?.toString()}
             />
         );
     } else if (fieldName === "linked_files") {
         return (
             <TableCell padding="none" align="center">
                 <FileLinkingComponent
-                    values={(props.row.fields[fieldName] || []) as LinkedFile[]}
-                    options={props.getOptions(props.rowIndex, props.col)}
+                    values={(row.fields[fieldName] || []) as LinkedFile[]}
+                    options={props.getOptions<UnlinkedFile>(props.rowIndex, props.col).filter(
+                        uf =>
+                            !props?.data
+                                .flatMap(d => d.fields.linked_files)
+                                .filter(Boolean)
+                                .filter(uf => !uf.multiplexed)
+                                .map(uf => uf.path)
+                                .includes(uf.path)
+                    )}
                     onEdit={props.onEdit}
                     disabled={props.disabled}
                 />
@@ -91,7 +101,7 @@ export function DataEntryCell(props: {
         return (
             <CandidateGeneCell
                 disabled={props.disabled}
-                genes={props.row.fields[fieldName] || ""}
+                genes={row.fields[fieldName] || ""}
                 onSelect={props.onEdit}
             />
         );
@@ -99,13 +109,13 @@ export function DataEntryCell(props: {
     // union discriminator
     // todo: string fields should be initialized with empty strings
     else if (
-        typeof props.row.fields[fieldName] === "string" ||
-        typeof props.row.fields[fieldName] === "undefined" ||
-        typeof props.row.fields[fieldName] === "object"
+        typeof row.fields[fieldName] === "string" ||
+        typeof row.fields[fieldName] === "undefined" ||
+        typeof row.fields[fieldName] === "object"
     ) {
         return (
             <AutocompleteCell
-                value={toOption(props.row.fields[fieldName])}
+                value={toOption(row.fields[fieldName])}
                 options={props.getOptions(props.rowIndex, props.col)}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
