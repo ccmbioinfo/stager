@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, Button, Container, Grid, makeStyles, Tooltip, Typography } from "@material-ui/core";
+import { Button, Container, Grid, makeStyles, Tooltip, Typography } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useHistory } from "react-router";
@@ -510,11 +510,9 @@ export default function AddDatasets() {
                     >
                         Submit
                     </Button>
-                    <Box>
-                        {validationErrorMessage && (
-                            <Typography color="error">{validationErrorMessage}</Typography>
-                        )}
-                    </Box>
+                    {validationErrorMessage && (
+                        <Typography color="error">{validationErrorMessage}</Typography>
+                    )}
                 </Grid>
             </Tooltip>
 
