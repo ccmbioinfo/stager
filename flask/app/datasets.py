@@ -350,7 +350,6 @@ def update_dataset(id: int):
     dataset = query.first_or_404()
 
     enum_error = mixin(
-        models.Dataset,
         dataset,
         request.json,
         EDITABLE_COLUMNS,

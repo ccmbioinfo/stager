@@ -656,7 +656,7 @@ def update_analysis(id: int):
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = mixin(models.Analysis, analysis, request.json, editable_columns)
+    enum_error = mixin(analysis, request.json, editable_columns)
 
     if enum_error:
         abort(400, description=enum_error)
