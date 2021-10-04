@@ -165,7 +165,8 @@ export function getSecDatasetFields(dataset: Dataset) {
         createFieldObj(
             "Linked Files",
             dataset.linked_files.map(f => f.path),
-            "linked_files"
+            "linked_files",
+            true
         ),
         createFieldObj("Condition", dataset.condition, "condition"),
         createFieldObj(
