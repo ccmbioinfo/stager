@@ -5,7 +5,7 @@ import { useSnackbar } from "notistack";
 import { useHistory } from "react-router";
 import { ConfirmModal } from "../components";
 import { useUserContext } from "../contexts";
-import { getKeys, snakeCaseToTitle, strIsEmpty } from "../functions";
+import { getKeys, groupBy, snakeCaseToTitle, strIsEmpty } from "../functions";
 import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import {
     DataEntryColumnConfig,
@@ -233,6 +233,8 @@ export default function AddDatasets() {
 
     const validateData = useCallback(() => {
         if (data) {
+            //first, validate fields with specific validation logic
+
             if (currentUser && currentUser.groups.length === 0) {
                 setValidationErrorMessage(
                     "Cannot submit. You are not part of any permission groups."
@@ -246,26 +248,22 @@ export default function AddDatasets() {
                 return;
             }
 
-            /* edge-case where a file was flagged as multiplex, added to several rows, then the flag was removed */
-            const duplicateFiles = data
-                .flatMap(d => d.fields.linked_files)
-                .filter(Boolean)
-                .filter(
-                    (uf, i, orig) =>
-                        !uf.multiplexed && orig.findIndex(iuf => iuf.path === uf.path) !== i
-                )
-                .map(uf => uf.path)
-                .join(",");
+            /* edge case where a file was flagged as multiplex, added to several rows, then the flag was removed */
+            const linkedFiles = data.flatMap(d => d.fields.linked_files).filter(Boolean);
+            const duplicateFiles = Object.entries(groupBy(linkedFiles, "path"))
+                .filter(([_, v]) => v.length > 1 && !v.every(val => val.multiplexed))
+                .map(([k]) => k)
+                .join(", ");
 
             if (duplicateFiles) {
                 return setValidationErrorMessage(
-                    `The following files are included in more than one row but are not marked as multiplex: ${duplicateFiles}`
+                    `The following files are included in more than one row but are not marked as multiplexed: ${duplicateFiles}`
                 );
             }
 
-            // Checked everything, no problems
             setValidationErrorMessage("");
 
+            //ensure that required fields are complete (form ui will show error indicators)
             const rowsWithMissingFields = new Map<number, Array<DataEntryField>>();
 
             for (let i = 0; i < data.length; i++) {
@@ -497,24 +495,22 @@ export default function AddDatasets() {
                     setGroups={onChangeGroups}
                 />
             </Container>
-            <Tooltip title={setValidationErrorMessage} interactive>
-                <Grid container alignItems="center" direction="column">
-                    <Button
-                        disabled={!!validationErrorMessage || fieldsMissing}
-                        className={classes.submitButton}
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        endIcon={<CloudUpload />}
-                        onClick={() => setOpen(true)}
-                    >
-                        Submit
-                    </Button>
-                    {validationErrorMessage && (
-                        <Typography color="error">{validationErrorMessage}</Typography>
-                    )}
-                </Grid>
-            </Tooltip>
+            <Grid container alignItems="center" direction="column">
+                <Button
+                    disabled={!!validationErrorMessage || fieldsMissing}
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    endIcon={<CloudUpload />}
+                    onClick={() => setOpen(true)}
+                >
+                    Submit
+                </Button>
+                {validationErrorMessage && (
+                    <Typography color="error">{validationErrorMessage}</Typography>
+                )}
+            </Grid>
 
             <ConfirmModal
                 id="confirm-submit-modal"
