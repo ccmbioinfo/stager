@@ -246,6 +246,7 @@ def list_analyses(page: int, limit: int) -> Response:
     results = [
         {
             **asdict(analysis),
+            "sequencing_id": [d.sequencing_id for d in analysis.datasets],
             "participant_codenames": [
                 d.tissue_sample.participant.participant_codename
                 for d in analysis.datasets
@@ -288,6 +289,7 @@ def list_analyses(page: int, limit: int) -> Response:
                 "result_path",
                 "notes",
                 "analysis_id",
+                "sequencing_id",
             ],
         )
 
