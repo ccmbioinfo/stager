@@ -63,6 +63,9 @@ function EnhancedTextField({
 
     // Props common to all variants
     const textFieldProps: TextFieldProps = {
+        error: field.entryError,
+        id: "standard-error",
+        helperText: field.entryError ? "Incorrect entry" : " ",
         className: classes.textField,
         fullWidth: true,
         margin: "dense",
@@ -71,6 +74,7 @@ function EnhancedTextField({
         required: nonNullableFields.includes(field.fieldName),
         disabled: field.disableEdit,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default
+        inputProps: { maxLength: field.maxLength },
     };
 
     // Props specific to each variant

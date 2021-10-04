@@ -1,6 +1,5 @@
 from dataclasses import asdict
 from typing import List
-
 from flask import (
     Blueprint,
     Response,
@@ -11,8 +10,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload, selectinload, with_polymorphic
-
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
 from . import models
 from .extensions import db
 from .utils import (
@@ -48,7 +46,6 @@ EDITABLE_COLUMNS = [
     "sequencing_date",
     "sequencing_centre",
     "batch_id",
-    "discriminator",
 ]
 
 datasets_blueprint = Blueprint(
@@ -464,7 +461,6 @@ def create_dataset():
             "batch_id": request.json.get("batch_id"),
             "created_by_id": created_by_id,
             "updated_by_id": updated_by_id,
-            "discriminator": request.json.get("discriminator"),
         }
     )
     # TODO: add stricter checks?

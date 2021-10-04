@@ -43,7 +43,7 @@ export function toKeyValue(items: string[]) {
  */
 export function formatDateString(date: string) {
     const datetime = dayjs.utc(date);
-    return datetime.isValid() ? datetime.local().format("LLLL") : "";
+    return datetime.isValid() ? datetime.format("LLLL") : null;
 }
 
 /**
@@ -123,19 +123,36 @@ export function getDatasetFields(dataset: Dataset) {
         createFieldObj(
             "Participant Codename",
             dataset.participant_codename,
-            "participant_codename"
+            "participant_codename",
+            true
         ),
-        createFieldObj("Participant Aliases", dataset.participant_aliases, "participant_aliases"),
-        createFieldObj("Family Codename", dataset.family_codename, "family_codename"),
-        createFieldObj("Family Aliases", dataset.family_aliases, "family_aliases"),
+        createFieldObj(
+            "Participant Aliases",
+            dataset.participant_aliases,
+            "participant_aliases",
+            true
+        ),
+        createFieldObj("Family Codename", dataset.family_codename, "family_codename", true),
+        createFieldObj("Family Aliases", dataset.family_aliases, "family_aliases", true),
         createFieldObj("Permission Groups", dataset.group_code.join(", "), "group_codes", true),
-        createFieldObj("Tissue Sample Type", dataset.tissue_sample_type, "tissue_sample_type"),
-        createFieldObj("Sequencing Centre", dataset.sequencing_centre, "sequencing_centre"),
+        createFieldObj(
+            "Tissue Sample Type",
+            dataset.tissue_sample_type,
+            "tissue_sample_type",
+            true
+        ),
+        createFieldObj(
+            "Sequencing Centre",
+            dataset.sequencing_centre,
+            "sequencing_centre",
+            false,
+            100
+        ),
         createFieldObj("Notes", dataset.notes, "notes"),
-        createFieldObj("Created", formatDateString(dataset.created), "created"),
-        createFieldObj("Created By", dataset.created_by, "created_by"),
-        createFieldObj("Updated", formatDateString(dataset.updated), "updated"),
-        createFieldObj("Updated By", dataset.updated_by, "updated_by"),
+        createFieldObj("Created", formatDateString(dataset.created), "created", true),
+        createFieldObj("Created By", dataset.created_by, "created_by", true),
+        createFieldObj("Updated", formatDateString(dataset.updated), "updated", true),
+        createFieldObj("Updated By", dataset.updated_by, "updated_by", true),
     ];
 }
 
@@ -144,23 +161,35 @@ export function getDatasetFields(dataset: Dataset) {
  */
 export function getSecDatasetFields(dataset: Dataset) {
     let fields = [
-        createFieldObj("Batch ID", dataset.batch_id, "batch_id"),
+        createFieldObj("Batch ID", dataset.batch_id, "batch_id", false, 50),
         createFieldObj(
             "Linked Files",
             dataset.linked_files.map(f => f.path),
-            "linked_files"
+            "linked_files",
+            true
         ),
         createFieldObj("Condition", dataset.condition, "condition"),
-        createFieldObj("Extraction Protocol", dataset.extraction_protocol, "extraction_protocol"),
-        createFieldObj("Capture Kit", dataset.capture_kit, "capture_kit"),
-        createFieldObj("Discriminator", dataset.discriminator, "discriminator"),
-        createFieldObj("Library Prep Method", dataset.library_prep_method, "library_prep_method"),
+        createFieldObj(
+            "Extraction Protocol",
+            dataset.extraction_protocol,
+            "extraction_protocol",
+            false,
+            100
+        ),
+        createFieldObj("Capture Kit", dataset.capture_kit, "capture_kit", false, 50),
+        createFieldObj(
+            "Library Prep Method",
+            dataset.library_prep_method,
+            "library_prep_method",
+            false,
+            50
+        ),
         createFieldObj(
             "Library Prep Date",
             formatDateString(dataset.library_prep_date),
             "library_prep_date"
         ),
-        createFieldObj("Read Length", dataset.read_length, "read_length"),
+        createFieldObj("Read Length", dataset.read_length, "read_length", false, 10),
         createFieldObj("Read Type", dataset.read_type, "read_type"),
     ];
 
@@ -211,13 +240,17 @@ export function createFieldObj(
     title: string,
     value: FieldDisplayValueType,
     fieldName?: string,
-    disableEdit?: boolean
+    disableEdit?: boolean,
+    maxLength?: number,
+    entryError?: boolean
 ): Field {
     return {
         title,
         value,
         fieldName,
         disableEdit,
+        maxLength,
+        entryError,
     };
 }
 
