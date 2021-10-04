@@ -186,6 +186,50 @@ def test_update_dataset_admin(client, test_database, login_as):
             assert dataset[key] == value
 
 
+def test_update_dataset_rnaseq(client, test_database, login_as):
+    """
+    PATCH /api/datasets/:id - rnaseq_dataset
+    Tests if dataset fields are modified on a PATCH request when the dataset_type is rnaseq (RRS)
+    """
+    login_as("admin")
+
+    rnaseq_payload = {
+        "family_codename": "1001",
+        "participant_codename": "1411",
+        "tissue_sample_type": "Blood",
+        "condition": "GermLine",
+        "sequencing_date": "2020-12-17",
+        "dataset_type": "RRS",
+        "vcf_available": False,
+        "read_type": "SingleEnd",
+    }
+    response = client.post(
+        "/api/_bulk?groups=ach",
+        json=[rnaseq_payload],
+    )
+    assert response.status_code == 200
+    assert models.RNASeqDataset.query.count() == 1
+    assert response.get_json()[0]["dataset_id"] == 6
+
+    # check created rnaseq dataset is as specified
+    for key in rnaseq_payload:
+        assert response.get_json()[0][key] == rnaseq_payload[key]
+
+    rnaseq_changes = {
+        "condition": "Somatic",
+        "read_type": "PairedEnd",
+    }
+
+    # check dataset enums are modified
+    for rnaseq_enum in rnaseq_changes:
+        response = client.patch(
+            "/api/datasets/6", json={rnaseq_enum: rnaseq_changes[rnaseq_enum]}
+        )
+        assert response.status_code == 200
+        dataset = response.get_json()
+        assert dataset[rnaseq_enum] == rnaseq_changes[rnaseq_enum]
+
+
 def test_update_dataset_user(client, test_database, login_as):
     """
     PATCH /api/datasets/:id as a regular user
