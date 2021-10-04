@@ -289,9 +289,11 @@ def bulk_update():
         try:
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
+            app.logger.debug(dat)
             dat = dat.dropna(how="all")  # remove empty rows
             dat = dat.replace({np.nan: None})
             dat = dat.to_dict(orient="records")
+
         except Exception as err:
             app.logger.error(
                 "CSV failed to be read in. Please verify the file is a properly formatted csv."
@@ -547,6 +549,7 @@ def bulk_update():
             "read_type": row.get("read_type"),
             "sequencing_centre": row.get("sequencing_centre"),
             "sequencing_date": row.get("sequencing_date"),
+            "sequencing_id": row.get("sequencing_id"),
             "tissue_sample_id": tissue_sample.tissue_sample_id,
             "updated_by_id": updated_by_id,
         }
