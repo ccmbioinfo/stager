@@ -346,8 +346,11 @@ def update_dataset(id: int):
 
     dataset = query.first_or_404()
 
-    enum_error = mixin(dataset, request.json, EDITABLE_COLUMNS)
-
+    enum_error = mixin(
+        dataset,
+        request.json,
+        EDITABLE_COLUMNS,
+    )
     if enum_error:
         abort(400, description=enum_error)
 

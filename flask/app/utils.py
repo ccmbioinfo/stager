@@ -26,6 +26,8 @@ from .extensions import db
 from .madmin import MinioAdmin
 from .models import User, Group, Dataset
 
+from sqlalchemy import inspect
+
 
 def str_to_bool(param: str) -> bool:
     return param.lower() == "true"
@@ -41,14 +43,28 @@ def handle_error(e):
 def mixin(
     entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
 ) -> Union[None, str]:
+
+    insp_mapper = inspect(entity).mapper
+
     for field in columns:
         if field in json_mixin:
             column = getattr(entity, field)  # will be None if no value for field in db
             value = json_mixin[field]
             if isinstance(column, Enum):
-                is_null_valid = (
-                    entity.__table__.columns[field].nullable and value is None
-                )
+
+                try:
+                    insp_mapper.columns[field]
+                except Exception as err:
+                    # this is not helpful as it returns the field
+                    app.logger.error(str(err))
+
+                    abort(
+                        400,
+                        description="mixin attempted to access invalid column '{}' in table '{}'".format(
+                            field, str(entity.__tablename__)
+                        ),
+                    )
+                is_null_valid = insp_mapper.columns[field].nullable and value is None
                 if not hasattr(type(column), str(value)) and not is_null_valid:
                     allowed = [e.value for e in type(column)]
                     return f'"{field}" must be one of {allowed}'

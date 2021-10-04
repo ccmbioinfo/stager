@@ -656,14 +656,12 @@ def update_analysis(id: int):
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = enum_validate(models.Analysis, request.json, editable_columns)
+    enum_error = mixin(analysis, request.json, editable_columns)
 
     if enum_error:
         abort(400, description=enum_error)
 
     app.logger.debug("Validating other fields..")
-
-    mixin(analysis, request.json, editable_columns)
 
     analysis.updated_by_id = user.user_id
 
