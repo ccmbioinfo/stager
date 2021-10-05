@@ -2,7 +2,9 @@ import React, { useMemo } from "react";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
-import { DetailSection, DialogHeader, InfoList } from "../../components";
+import dayjs from "dayjs";
+import { useSnackbar } from "notistack";
+import { DetailSection2, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
     formatDateString,
@@ -10,8 +12,13 @@ import {
     getDatasetFields,
     getSecDatasetFields,
 } from "../../functions";
-import { useDatasetQuery, useEnumsQuery } from "../../hooks";
-import { Dataset, Sample } from "../../typings";
+import {
+    useDatasetQuery,
+    useDatasetUpdateMutation,
+    useEnumsQuery,
+    useErrorSnackbar,
+} from "../../hooks";
+import { Dataset, Field, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -38,51 +45,97 @@ function getSamplesFields(sample: Sample) {
 
 interface DialogProp {
     open: boolean;
-    dataset: Dataset;
+    dataset_id: string;
     onClose: () => void;
 }
 
-export default function DatasetInfoDialog(props: DialogProp) {
+export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
-    const { data: dataset } = useDatasetQuery(props.dataset.dataset_id);
+    const { data: dataset } = useDatasetQuery(dataset_id);
+    const { data: enums } = useEnumsQuery();
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
-    const { data: enums } = useEnumsQuery();
+    const datasetUpdateMutation = useDatasetUpdateMutation();
+
+    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
+
+    const updateDataset = async (fields: Field[]) => {
+        const newData = fields
+            .map(field => {
+                if (field.fieldName && !field.disableEdit) {
+                    if (
+                        field.fieldName === "library_prep_date" &&
+                        field.value != null &&
+                        typeof field.value === "string" &&
+                        /[A-Z]/.test(field.value[0])
+                    ) {
+                        const datePart = field.value.substring(field.value.indexOf(",") + 2);
+                        field.value = dayjs(datePart, "MMMM D, YYYY h:mm A").format("YYYY-MM-D");
+                    }
+                    return { [field.fieldName]: field.value };
+                } else return false;
+            })
+            .filter(Boolean)
+            .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Dataset);
+
+        datasetUpdateMutation.mutate(
+            {
+                ...newData,
+                dataset_id,
+            },
+            {
+                onSuccess: receiveDataset => {
+                    enqueueSnackbar(`Dataset ID ${newData.dataset_id} updated successfully`, {
+                        variant: "success",
+                    });
+                },
+                onError: response => {
+                    console.error(
+                        `PATCH /api/datasets/${newData.dataset_id} failed with ${response.status}: ${response.statusText}`
+                    );
+                    enqueueErrorSnackbar(
+                        response,
+                        `Failed to edit Dataset ID ${newData?.dataset_id}`
+                    );
+                },
+            }
+        );
+    };
 
     return (
         <Dialog
-            onClose={props.onClose}
+            onClose={onClose}
             aria-labelledby={labeledBy}
-            open={props.open}
+            open={open}
             maxWidth="lg"
             fullWidth
         >
-            <DialogHeader id={labeledBy} onClose={props.onClose}>
-                Details of Dataset ID {props.dataset.dataset_id}
+            <DialogHeader id={labeledBy} onClose={onClose}>
+                Details of Dataset ID {dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
-                    {props.dataset && (
-                        <DetailSection
-                            fields={getDatasetFields(props.dataset)}
+                    {dataset && (
+                        <DetailSection2
+                            fields={getDatasetFields(dataset)}
                             enums={enums}
+                            editable={true}
                             columnWidth={4}
-                            collapsibleFields={getSecDatasetFields(props.dataset)}
-                            dataInfo={{
-                                type: "dataset",
-                                ID: props.dataset.dataset_id,
-                                identifier: props.dataset.dataset_id,
-                            }}
+                            collapsibleFields={getSecDatasetFields(dataset)}
+                            update={updateDataset}
                         />
                     )}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
                     {sample && (
-                        <DetailSection
+                        <DetailSection2
                             columnWidth={4}
+                            editable={false}
+                            update={updateDataset}
                             fields={getSamplesFields(sample)}
                             enums={enums}
                             title="Associated Tissue Sample"
