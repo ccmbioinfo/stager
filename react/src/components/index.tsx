@@ -16,6 +16,7 @@ export { default as ConfirmModal } from "./ConfirmModal";
 export { default as DateFilterComponent } from "./DateFilterComponent";
 export { default as DateTimeText } from "./DateTimeText";
 export { default as DetailSection } from "./DetailSection";
+export { default as DetailSection2 } from "./DetailSection2";
 export { default as DialogHeader } from "./DialogHeader";
 export { default as EditNotes } from "./EditNotes";
 export { default as ExactMatchFilterToggle } from "./ExactMatchFilterToggle";

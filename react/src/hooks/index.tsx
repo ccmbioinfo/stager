@@ -29,6 +29,8 @@ export { useUsersDeleteMutation } from "./users/useUsersDeleteMutation";
 export { useUserMinioMutation } from "./users/useUserMinioMutation";
 
 export * from "./participants/useParticipantsPage";
+export { useParticipantQuery } from "./participants/useParticipantQuery";
+export { useParticipantUpdateMutation } from "./participants/useParticipantUpdateMutation";
 
 export { useDatasetQuery } from "./datasets/useDatasetQuery";
 export { useDatasetsQuery } from "./datasets/useDatasetsQuery";
