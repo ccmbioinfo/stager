@@ -289,7 +289,6 @@ def bulk_update():
         try:
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
-            app.logger.debug(dat)
             dat = dat.dropna(how="all")  # remove empty rows
             dat = dat.replace({np.nan: None})
             dat = dat.to_dict(orient="records")
