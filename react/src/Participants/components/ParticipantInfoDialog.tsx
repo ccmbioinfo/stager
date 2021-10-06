@@ -50,18 +50,16 @@ interface DialogProp {
     open: boolean;
     participant_id: string;
     onClose: () => void;
-    // onUpdate: (participant_id: string, newParticipant: { [key: string]: any }) => void;
 }
 
-export default function DatasetInfoDialog({ participant_id, onClose, open }: DialogProp) {
+export default function ParticipantInfoDialog({ participant_id, onClose, open }: DialogProp) {
     const classes = useStyles();
     const { data: participant } = useParticipantQuery(participant_id);
     const datasets = useMemo(
         () => participant?.tissue_samples.flatMap(sample => sample.datasets),
         [participant]
     );
-    // is this part correct??
-    // const analyses: Analysis[] = [];
+    // Revisit this part
     const dataset_ids: string[] = [];
     if (datasets) {
         const dataset_ids: string[] = datasets.map(d => d.dataset_id);
