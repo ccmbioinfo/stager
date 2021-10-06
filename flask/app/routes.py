@@ -292,6 +292,7 @@ def bulk_update():
             dat = dat.dropna(how="all")  # remove empty rows
             dat = dat.replace({np.nan: None})
             dat = dat.to_dict(orient="records")
+
         except Exception as err:
             app.logger.error(
                 "CSV failed to be read in. Please verify the file is a properly formatted csv."
@@ -547,6 +548,7 @@ def bulk_update():
             "read_type": row.get("read_type"),
             "sequencing_centre": row.get("sequencing_centre"),
             "sequencing_date": row.get("sequencing_date"),
+            "sequencing_id": row.get("sequencing_id"),
             "tissue_sample_id": tissue_sample.tissue_sample_id,
             "updated_by_id": updated_by_id,
         }
