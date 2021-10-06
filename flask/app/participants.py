@@ -253,16 +253,20 @@ def get_participant(id: int):
 
     user = get_current_user()
 
-    query = models.Participant.query.filter_by(participant_id=id).options(
-        joinedload(models.Participant.institution),
-        joinedload(models.Participant.family),
-        joinedload(models.Participant.tissue_samples)
-        .joinedload(models.TissueSample.datasets)
-        .joinedload(models.Dataset.linked_files),
+    user_group_ids = [g.group_id for g in user.groups]
+
+    query = (
+        models.Participant.query.filter_by(participant_id=id)
+        .join(models.Participant.institution)
+        .join(models.Participant.family)
+        .join(models.Participant.tissue_samples)
+        .join(models.TissueSample.datasets)
     )
 
-    # if not user.is_admin:
-    # TODO
+    if not user.is_admin:
+        query = query.join(models.Dataset.groups).filter(
+            models.Group.group_id.in_(user_group_ids)
+        )
 
     participant = query.first_or_404()
 
