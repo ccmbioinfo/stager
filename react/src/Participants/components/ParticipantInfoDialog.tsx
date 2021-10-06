@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { DetailSection2, DialogHeader, InfoList } from "../../components";
+import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
     formatDateString,
@@ -130,7 +130,7 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
                     {participant && (
-                        <DetailSection2
+                        <DetailSection
                             fields={getParticipantFields(participant)}
                             enums={enums}
                             columnWidth={3}

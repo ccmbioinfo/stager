@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
 import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
-import { DetailSection2, DialogHeader, InfoList } from "../../components";
+import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
     formatDateString,
@@ -119,7 +119,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
                     {dataset && (
-                        <DetailSection2
+                        <DetailSection
                             fields={getDatasetFields(dataset)}
                             enums={enums}
                             editable={true}
@@ -132,7 +132,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                 <Divider />
                 <div className={classes.infoSection}>
                     {sample && (
-                        <DetailSection2
+                        <DetailSection
                             columnWidth={4}
                             editable={false}
                             update={updateDataset}
