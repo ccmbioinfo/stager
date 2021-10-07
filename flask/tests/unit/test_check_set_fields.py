@@ -1,5 +1,5 @@
 """
-test mixin works on polymorphic models, eg. rnaseq_dataset 
+test check_set_fields works on polymorphic models, eg. rnaseq_dataset 
 
 For future reference - in tests that create an instance of a model where the intent is to replicate an object returned by a query, enums must also be appropriately specified.
 For example in this test, if the 'DatasetCondition' and 'DatasetReadType' columns are not specified and passed as either a string or an enum when an RNASeqDataset instance is created, then the master `mixin` function, which is expected to throw an error, will actually pass, suggesting that there is no bug! 
@@ -7,11 +7,11 @@ For example in this test, if the 'DatasetCondition' and 'DatasetReadType' column
 """
 
 from app.models import RNASeqDataset, DatasetCondition, DatasetReadType
-from app.utils import mixin
+from app.utils import check_set_fields
 from sqlalchemy.types import Enum
 
 
-def test_mixin():
+def test_check_set_fields():
     rnaseq_dataset_instance = RNASeqDataset(
         dataset_id=1,
         candidate_genes="APOE",
@@ -28,7 +28,9 @@ def test_mixin():
 
     editable_columns = ["condition", "read_type"]
 
-    enum_error = mixin(rnaseq_dataset_instance, rnaseq_changes, editable_columns)
+    enum_error = check_set_fields(
+        rnaseq_dataset_instance, rnaseq_changes, editable_columns, check_only=False
+    )
 
     assert enum_error is None
     # this should fail on master
