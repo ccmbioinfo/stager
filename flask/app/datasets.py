@@ -16,7 +16,6 @@ from .extensions import db
 from .utils import (
     check_admin,
     csv_response,
-    enum_validate,
     expects_csv,
     expects_json,
     filter_datasets_by_user_groups,
@@ -24,12 +23,12 @@ from .utils import (
     filter_updated_or_abort,
     find,
     get_current_user,
-    mixin,
     paged,
     paginated_response,
     transaction_or_abort,
     validate_json,
     str_to_bool,
+    check_set_fields,
 )
 
 EDITABLE_COLUMNS = [
@@ -346,11 +345,10 @@ def update_dataset(id: int):
 
     dataset = query.first_or_404()
 
-    enum_error = mixin(
-        dataset,
-        request.json,
-        EDITABLE_COLUMNS,
+    enum_error = check_set_fields(
+        dataset, request.json, EDITABLE_COLUMNS, check_only=False
     )
+
     if enum_error:
         abort(400, description=enum_error)
 
@@ -433,7 +431,9 @@ def create_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    enum_error = enum_validate(models.Dataset, request.json, EDITABLE_COLUMNS)
+    enum_error = check_set_fields(
+        models.Dataset, request.json, EDITABLE_COLUMNS, check_only=True
+    )
 
     if enum_error:
         abort(400, description=enum_error)

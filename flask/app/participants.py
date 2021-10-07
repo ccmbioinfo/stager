@@ -10,7 +10,6 @@ from .extensions import db
 from .utils import (
     check_admin,
     csv_response,
-    enum_validate,
     expects_csv,
     expects_json,
     filter_datasets_by_user_groups,
@@ -18,12 +17,12 @@ from .utils import (
     filter_nullable_bool_or_abort,
     filter_updated_or_abort,
     get_current_user,
-    mixin,
     paged,
     paginated_response,
     transaction_or_abort,
     validate_json,
     str_to_bool,
+    check_set_fields,
 )
 
 editable_columns = [
@@ -287,7 +286,9 @@ def update_participant(id: int):
 
     participant = query.first_or_404()
 
-    enum_error = mixin(participant, request.json, editable_columns)
+    enum_error = check_set_fields(
+        participant, request.json, editable_columns, check_only=False
+    )
 
     if enum_error:
         abort(400, description="enum_error")
@@ -343,7 +344,7 @@ def create_participant():
     ).first_or_404()
 
     # validate enums
-    enum_error = enum_validate(models.Participant, request.json, editable_columns)
+    enum_error = check_set_fields(models.Participant, request.json, editable_columns)
 
     if enum_error:
         abort(400, description=enum_error)

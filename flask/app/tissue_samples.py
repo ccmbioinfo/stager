@@ -10,8 +10,7 @@ from .utils import (
     filter_datasets_by_user_groups,
     get_current_user,
     transaction_or_abort,
-    mixin,
-    enum_validate,
+    check_set_fields,
     validate_json,
 )
 
@@ -147,7 +146,7 @@ def create_tissue_sample():
     models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
     app.logger.debug("Participant ID exists")
     app.logger.debug("Validating enums")
-    enum_error = enum_validate(models.TissueSample, request.json, editable_columns)
+    enum_error = check_set_fields(models.TissueSample, request.json, editable_columns)
 
     if enum_error:
         app.logger.error("Enum invalid: " + enum_error)
@@ -222,7 +221,10 @@ def update_tissue_sample(id: int):
     tissue_sample = query.first_or_404()
 
     app.logger.debug("Validating enums..")
-    enum_error = mixin(tissue_sample, request.json, editable_columns)
+
+    enum_error = check_set_fields(
+        tissue_sample, request.json, editable_columns, check_only=False
+    )
 
     if enum_error:
         app.logger.error("Enum invalid: " + enum_error)

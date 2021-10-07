@@ -13,7 +13,7 @@ from sqlalchemy.orm import joinedload
 from . import models
 from .extensions import db, oauth
 from .utils import (
-    enum_validate,
+    check_set_fields,
     find,
     get_current_user,
     transaction_or_abort,
@@ -432,7 +432,8 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for participants..")
-        enum_error = enum_validate(
+
+        enum_error = check_set_fields(
             models.Participant, row, editable_dict["participant"]
         )
         if enum_error:
@@ -500,7 +501,7 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for tissue samples..")
-        enum_error = enum_validate(
+        enum_error = check_set_fields(
             models.TissueSample, row, editable_dict["tissue_sample"]
         )
         if enum_error:
@@ -524,7 +525,7 @@ def bulk_update():
         app.logger.debug("\tDone")
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for datasets..")
-        enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
+        enum_error = check_set_fields(models.Dataset, row, editable_dict["dataset"])
         if enum_error:
             app.logger.error("\tEnum invalid: " + enum_error)
             db.session.rollback()
