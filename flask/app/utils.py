@@ -66,14 +66,13 @@ def check_set_fields(
                 setattr(entity, field, value)
 
 
-def enum_validate(entity, column, value, field):
+def enum_validate(entity: db.Model, column, value: str, field: str):
     """
     Check whether the specified entity column is an enum and if so, whether the specified value is valid.
 
     """
     # by default assume entity is of DefaultMeta class, ie. for a POST request
     try:
-        # if isinstance(entity, DefaultMeta):
         if hasattr(column.type, "enums"):
             if value not in column.type.enums and value is not None:
                 allowed = column.type.enums
@@ -94,47 +93,6 @@ def enum_validate(entity, column, value, field):
                         field, str(entity.__tablename__)
                     ),
                 )
-
-
-def mixin(
-    entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
-) -> Union[None, str]:
-    """
-    Used in PATCH requests to verify requested fields are valid Enums,
-    and modifies the queried instance in-place which will be subsequently committed to the database.
-
-
-    The difference between enum_validate and mixin is that this function accepts a model class, whereas mixin accepts a queried instance of a model.
-
-    queried_instance = models.Dataset.query.filter(models.Dataset.dataset_id == 27).first_or_404()
-    error = mixin(queried_instance, {"read_type" : "PairedEnd")}, ["read_type", "dataset_type"])
-    """
-
-    insp_mapper = inspect(entity).mapper
-
-    for field in columns:
-        if field in json_mixin:
-            column = getattr(entity, field)  # will be None if no value for field in db
-            value = json_mixin[field]
-            if isinstance(column, Enum):
-
-                try:
-                    insp_mapper.columns[field]
-                except Exception as err:
-                    # this is not helpful as it returns the field
-                    app.logger.error(str(err))
-
-                    abort(
-                        400,
-                        description="mixin attempted to access invalid column '{}' in table '{}'".format(
-                            field, str(entity.__tablename__)
-                        ),
-                    )
-                is_null_valid = insp_mapper.columns[field].nullable and value is None
-                if not hasattr(type(column), str(value)) and not is_null_valid:
-                    allowed = [e.value for e in type(column)]
-                    return f'"{field}" must be one of {allowed}'
-            setattr(entity, field, value)
 
 
 def check_admin(handler):
@@ -196,27 +154,6 @@ def transaction_or_abort(callback: Callable) -> None:
     except Exception as err:
         db.session.rollback()
         raise err
-
-
-# def enum_validate(
-#     entity: db.Model, json_mixin: Dict[str, any], columns: List[str]
-# ) -> Union[None, str]:
-#     """
-#     Used in POST requests to verify requested fields are valid Enums,
-#     the check is done against a db.Model class since no instance exists at this point.
-
-#     The difference between enum_validate and mixin is that this function accepts a model class, whereas mixin accepts a queried instance of a model.
-
-#     enum_error = enum_validate(models.RNASeqDataset, {"read_type" : "PairedEnd")}, ["read_type", "dataset_type"])
-#     """
-#     for field in columns:
-#         if field in json_mixin:
-#             column = getattr(entity, field)  # the column type from the entities
-#             value = json_mixin[field]
-#             if hasattr(column.type, "enums"):  # check if enum
-#                 if value not in column.type.enums and value is not None:
-#                     allowed = column.type.enums
-#                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
 
 def filter_in_enum_or_abort(column: db.Column, Allowed: Enum, values: str):
