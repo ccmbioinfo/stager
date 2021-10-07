@@ -18,6 +18,7 @@ from flask.globals import current_app
 from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
+from flask_sqlalchemy.model import DefaultMeta
 from sqlalchemy import exc
 from sqlalchemy.orm.query import Query
 from werkzeug.exceptions import HTTPException
@@ -40,9 +41,74 @@ def handle_error(e):
     return jsonify(error=str(e.description)), code
 
 
+def check_set_fields(
+    entity: db.Model,
+    json_mixin: Dict[str, Any],
+    columns: List[str],
+    check_only: bool = True,
+) -> Union[None, str]:
+    """
+    Iterates over fields in json_mixin and checks if appropriate column in entity is an enum.
+    If check_only is True then the entity will not be modified in place - should be set to False only if the entity is a query, ie. from a PATCH request.
+    """
+    for field in columns:
+        if field in json_mixin:
+
+            column = getattr(entity, field)  # will be None if no value for field in db
+            value = json_mixin[field]
+
+            enum_error = enum_validate(entity, column, value, field)
+
+            if enum_error:
+                return enum_error
+
+            if not isinstance(entity, DefaultMeta) and not check_only:
+                setattr(entity, field, value)
+
+
+def enum_validate(entity, column, value, field):
+    """
+    Check whether the specified entity column is an enum and if so, whether the specified value is valid.
+
+    """
+    # by default assume entity is of DefaultMeta class, ie. for a POST request
+    try:
+        # if isinstance(entity, DefaultMeta):
+        if hasattr(column.type, "enums"):
+            if value not in column.type.enums and value is not None:
+                allowed = column.type.enums
+                return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
+    # otherwise entity is a query instance meaning it is a PATCH request
+    except AttributeError as e:
+        if isinstance(column, Enum):
+            insp_mapper = inspect(entity).mapper
+            try:
+                is_null_valid = insp_mapper.columns[field].nullable and value is None
+                if not hasattr(type(column), str(value)) and not is_null_valid:
+                    allowed = [e.value for e in type(column)]
+                    return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
+            except Exception as err:
+                abort(
+                    400,
+                    description="enum_validate attempted to access invalid column '{}' in table '{}'".format(
+                        field, str(entity.__tablename__)
+                    ),
+                )
+
+
 def mixin(
     entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
 ) -> Union[None, str]:
+    """
+    Used in PATCH requests to verify requested fields are valid Enums,
+    and modifies the queried instance in-place which will be subsequently committed to the database.
+
+
+    The difference between enum_validate and mixin is that this function accepts a model class, whereas mixin accepts a queried instance of a model.
+
+    queried_instance = models.Dataset.query.filter(models.Dataset.dataset_id == 27).first_or_404()
+    error = mixin(queried_instance, {"read_type" : "PairedEnd")}, ["read_type", "dataset_type"])
+    """
 
     insp_mapper = inspect(entity).mapper
 
@@ -132,17 +198,25 @@ def transaction_or_abort(callback: Callable) -> None:
         raise err
 
 
-def enum_validate(
-    entity: db.Model, json_mixin: Dict[str, any], columns: List[str]
-) -> Union[None, str]:
-    for field in columns:
-        if field in json_mixin:
-            column = getattr(entity, field)  # the column type from the entities
-            value = json_mixin[field]
-            if hasattr(column.type, "enums"):  # check if enum
-                if value not in column.type.enums and value is not None:
-                    allowed = column.type.enums
-                    return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
+# def enum_validate(
+#     entity: db.Model, json_mixin: Dict[str, any], columns: List[str]
+# ) -> Union[None, str]:
+#     """
+#     Used in POST requests to verify requested fields are valid Enums,
+#     the check is done against a db.Model class since no instance exists at this point.
+
+#     The difference between enum_validate and mixin is that this function accepts a model class, whereas mixin accepts a queried instance of a model.
+
+#     enum_error = enum_validate(models.RNASeqDataset, {"read_type" : "PairedEnd")}, ["read_type", "dataset_type"])
+#     """
+#     for field in columns:
+#         if field in json_mixin:
+#             column = getattr(entity, field)  # the column type from the entities
+#             value = json_mixin[field]
+#             if hasattr(column.type, "enums"):  # check if enum
+#                 if value not in column.type.enums and value is not None:
+#                     allowed = column.type.enums
+#                     return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
 
 def filter_in_enum_or_abort(column: db.Column, Allowed: Enum, values: str):
