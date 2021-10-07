@@ -226,15 +226,12 @@ export const groupBy = <T extends { [key: NumberOrString]: any }, K extends keyo
     data: T[],
     key: T[K] extends NumberOrString ? K : never
 ) => {
-    return data.reduce(
+    return data.reduce<{ [key: NumberOrString]: T[] }>(
         (acc, curr) => ({
             ...acc,
-            // 'never' protects against problematic keys at the expense of these verbose type assertions
-            [curr[key as NumberOrString]]: acc[curr[key as NumberOrString]]
-                ? acc[curr[key as NumberOrString]].concat(curr)
-                : [curr],
+            [curr[key]]: acc[curr[key]] ? acc[curr[key]].concat(curr) : [curr],
         }),
-        {} as { [key: NumberOrString]: T[] }
+        {}
     );
 };
 

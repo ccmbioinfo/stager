@@ -64,7 +64,7 @@ export function DataEntryCell(props: {
     if (booleanColumns.includes(fieldName)) {
         return (
             <CheckboxCell
-                value={row.fields[fieldName] as boolean}
+                value={!!row.fields[fieldName]}
                 onEdit={props.onEdit}
                 disabled={props.disabled}
             />
@@ -83,15 +83,14 @@ export function DataEntryCell(props: {
             <TableCell padding="none" align="center">
                 <FileLinkingComponent
                     values={(row.fields[fieldName] || []) as LinkedFile[]}
-                    options={props.getOptions<UnlinkedFile>(props.rowIndex, props.col).filter(
-                        uf =>
-                            !props?.data
-                                .flatMap(d => d.fields.linked_files)
-                                .filter(Boolean)
-                                .filter(uf => !uf.multiplexed)
-                                .map(uf => uf.path)
-                                .includes(uf.path)
-                    )}
+                    options={props
+                        .getOptions<UnlinkedFile>(props.rowIndex, props.col)
+                        .filter(
+                            uf =>
+                                !props?.data
+                                    .flatMap(d => d.fields.linked_files)
+                                    .filter(f => f && !f.multiplexed && f.path === uf.path).length
+                        )}
                     onEdit={props.onEdit}
                     disabled={props.disabled}
                 />
