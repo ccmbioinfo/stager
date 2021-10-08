@@ -1,4 +1,4 @@
-name: Build and test backend
+name: Build, test, and deploy backend
 on:
   push:
     branches:
@@ -84,3 +84,42 @@ jobs:
           pull: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+  deploy:
+    runs-on: [self-hosted, cheo-ri]
+    needs: build
+    if: github.event_name == 'push'
+    environment: CHEO-RI
+    concurrency: CHEO-RI
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure SSH
+        # https://docs.docker.com/engine/context/working-with-contexts/
+        # This avoids passing an -H parameter to every Docker CLI cal
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_HOST_KEY }}" >> ~/.ssh/known_hosts
+          echo "${{ secrets.DEPLOY_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
+          echo "${{ secrets.DEPLOY_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod -R g-rwx,o-rwx ~/.ssh
+          docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          docker context use deploy-target
+      - name: Deploy
+        env:
+          COMPOSE_FILE: docker-compose.cheo.yaml
+          ST_VERSION: latest
+          ST_SECRET_KEY: ${{ secrets.ST_SECRET_KEY }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          docker-compose pull
+          docker-compose up
