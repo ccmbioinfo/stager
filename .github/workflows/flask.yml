@@ -19,7 +19,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: false
     env:
       COMPOSE_FILE: docker-compose.test.yaml
     steps:
@@ -87,14 +86,13 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
   deploy:
     runs-on: [self-hosted, cheo-ri]
-    #needs: build
-    #if: github.event_name == 'push'
+    needs: build
+    if: github.event_name == 'push'
     environment: CHEO-RI
     concurrency: CHEO-RI
     steps:
       - uses: actions/checkout@v2
       - name: Configure SSH
-        if: false
         # https://docs.docker.com/engine/context/working-with-contexts/
         # This avoids passing an -H parameter to every Docker CLI cal
         run: |
@@ -124,4 +122,4 @@ jobs:
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
           docker-compose pull
-          docker-compose up
+          docker-compose up -d
