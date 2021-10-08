@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Container, makeStyles, Tooltip } from "@material-ui/core";
+import { Button, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import { CloudUpload } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useHistory } from "react-router";
 import { ConfirmModal } from "../components";
 import { useUserContext } from "../contexts";
-import { getKeys, snakeCaseToTitle, strIsEmpty } from "../functions";
+import { getKeys, groupBy, snakeCaseToTitle, strIsEmpty } from "../functions";
 import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import {
     DataEntryColumnConfig,
@@ -36,12 +36,8 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(3),
         marginBottom: theme.spacing(1),
     },
-    buttonContainer: {
-        padding: theme.spacing(1),
-        display: "flex",
-    },
     submitButton: {
-        flexGrow: 1,
+        width: "250px",
     },
 }));
 
@@ -181,7 +177,8 @@ export default function AddDatasets() {
     const [asGroups, setAsGroups] = useState<string[]>([]); // "submitting as these groups"
     const [columns, setColumns] = useState<DataEntryColumnConfig[]>();
     const [data, setData] = useState<DataEntryRow[]>();
-    const [errorMessage, setErrorMessage] = useState("");
+    const [fieldsMissing, setFieldsMissing] = useState(false);
+    const [validationErrorMessage, setValidationErrorMessage] = useState("");
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
@@ -236,18 +233,38 @@ export default function AddDatasets() {
 
     const validateData = useCallback(() => {
         if (data) {
+            //first, validate fields with specific validation logic
+
             if (currentUser && currentUser.groups.length === 0) {
-                setErrorMessage("Cannot submit. You are not part of any permission groups.");
+                setValidationErrorMessage(
+                    "Cannot submit. You are not part of any permission groups."
+                );
                 return;
             }
 
             // Check selected permission groups
             if (asGroups.length === 0) {
-                setErrorMessage("Cannot submit. You must select a permission group.");
+                setValidationErrorMessage("Cannot submit. You must select a permission group.");
                 return;
             }
 
-            let problemRows = new Map<number, Array<DataEntryField>>();
+            /* edge case where a file was flagged as multiplex, added to several rows, then the flag was removed */
+            const linkedFiles = data.flatMap(d => d.fields.linked_files).filter(Boolean);
+            const duplicateFiles = Object.entries(groupBy(linkedFiles, "path"))
+                .filter(([_, v]) => v.length > 1 && !v.every(val => val.multiplexed))
+                .map(([k]) => k)
+                .join(", ");
+
+            if (duplicateFiles) {
+                return setValidationErrorMessage(
+                    `The following files are included in more than one row but are not marked as multiplexed: ${duplicateFiles}`
+                );
+            }
+
+            setValidationErrorMessage("");
+
+            //ensure that required fields are complete (form ui will show error indicators)
+            const rowsWithMissingFields = new Map<number, Array<DataEntryField>>();
 
             for (let i = 0; i < data.length; i++) {
                 let row = data[i];
@@ -257,27 +274,25 @@ export default function AddDatasets() {
                         continue;
                     const val = row.fields[field];
                     if ((typeof val === "string" && strIsEmpty(val)) || !val) {
-                        if (problemRows.get(i))
-                            problemRows.set(i, problemRows.get(i)!.concat(field));
-                        else problemRows.set(i, [field]);
+                        if (rowsWithMissingFields.get(i))
+                            rowsWithMissingFields.set(
+                                i,
+                                rowsWithMissingFields.get(i)!.concat(field)
+                            );
+                        else rowsWithMissingFields.set(i, [field]);
                     }
                 }
             }
 
-            if (problemRows.size > 0) {
-                let message = "Cannot submit. Required fields missing for rows:";
-                problemRows.forEach((fields, key) => {
-                    const fieldStr = fields.join(", ");
-                    message += `\n${key + 1}: (${fieldStr})`;
-                });
-                setErrorMessage(message);
-                return;
+            if (rowsWithMissingFields.size > 0) {
+                return setFieldsMissing(true);
+            } else {
+                if (fieldsMissing) {
+                    setFieldsMissing(false);
+                }
             }
-
-            // Checked everything, no problems
-            setErrorMessage("");
         }
-    }, [data, asGroups.length, currentUser]);
+    }, [data, fieldsMissing, asGroups.length, currentUser]);
 
     useEffect(() => {
         sessionStorage.setItem("add-datasets-progress", JSON.stringify(data));
@@ -480,21 +495,22 @@ export default function AddDatasets() {
                     setGroups={onChangeGroups}
                 />
             </Container>
-            <Tooltip title={errorMessage} interactive>
-                <Container className={classes.buttonContainer} maxWidth="sm">
-                    <Button
-                        disabled={!!errorMessage}
-                        className={classes.submitButton}
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        endIcon={<CloudUpload />}
-                        onClick={() => setOpen(true)}
-                    >
-                        Submit
-                    </Button>
-                </Container>
-            </Tooltip>
+            <Grid container alignItems="center" direction="column">
+                <Button
+                    disabled={!!validationErrorMessage || fieldsMissing}
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    endIcon={<CloudUpload />}
+                    onClick={() => setOpen(true)}
+                >
+                    Submit
+                </Button>
+                {validationErrorMessage && (
+                    <Typography color="error">{validationErrorMessage}</Typography>
+                )}
+            </Grid>
 
             <ConfirmModal
                 id="confirm-submit-modal"
