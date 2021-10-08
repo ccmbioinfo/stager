@@ -4,7 +4,8 @@ from flask import Blueprint, Response, abort, jsonify, request
 from flask import current_app as app
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
+from sqlalchemy.orm.exc import NoResultFound
 
 from . import models
 from .extensions import db
@@ -253,22 +254,34 @@ def get_participant(id: int):
 
     user = get_current_user()
 
-    user_group_ids = [g.group_id for g in user.groups]
+    # make sure the participant exists and if not send a 404
+    models.Participant.query.filter(
+        models.Participant.participant_id == id
+    ).first_or_404()
 
-    query = (
-        models.Participant.query.filter_by(participant_id=id)
-        .join(models.Participant.institution)
-        .join(models.Participant.family)
-        .join(models.Participant.tissue_samples)
-        .join(models.TissueSample.datasets)
+    query = models.Participant.query.filter(
+        models.Participant.participant_id == id
+    ).options(
+        selectinload(models.Participant.family),
+        selectinload(models.Participant.institution),
     )
 
     if not user.is_admin:
-        query = query.join(models.Dataset.groups).filter(
-            models.Group.group_id.in_(user_group_ids)
+        query = filter_datasets_by_user_groups(
+            query.join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets)
+            .options(
+                contains_eager(models.Participant.tissue_samples).contains_eager(
+                    models.TissueSample.datasets
+                ),
+            ),
+            user,
         )
 
-    participant = query.first_or_404()
+    try:
+        participant = query.one()
+    except NoResultFound:
+        abort(403)
 
     return jsonify(
         {
