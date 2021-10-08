@@ -65,7 +65,6 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
         () => participant?.tissue_samples.flatMap(sample => sample.datasets),
         [participant]
     );
-    // Revisit this part
     const dataset_ids: string[] = [];
     if (datasets) {
         const dataset_ids: string[] = datasets.map(d => d.dataset_id);
