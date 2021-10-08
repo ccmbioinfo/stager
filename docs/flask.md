@@ -209,12 +209,13 @@ Below is an overview of our test database. Update this section if changes are ma
 
 There are 2 groups: `ach`, `bcch`.
 
-There are 4 users: `admin`, `user`, `user_a`, `user_b`
+There are 4 users: `admin`, `user`, `user_a`, `user_b`,`user_c`
 
 -   `admin` (`user_id 1`) has `is_admin` privileges, and belongs to 0 groups.
 -   `user` (`user_id 2`) belongs to 1 group `ach`.
 -   `user_a` (`user_id 3`) belongs to 2 groups `ach`, `bcch`.
 -   `user_b` (`user_id 4`) belongs to 0 groups.
+-   `user_c` (`user_id 5`) belongs to 1 group `bcch`.
 
 There are 2 pipelines: `pipeline_1`, `pipeline_2`.
 
@@ -241,15 +242,17 @@ There are 2 families: `family_a`, `family_b`.
     -   `participant_3` has 2 tissue samples: `sample_3` and `sample_4`.
         -   `sample_3` has 1 dataset: `dataset_4`.
             -   `dataset_4` has dataset type `WES`, and belongs to 0 groups.
-        -   `sample_4` has 1 dataset: `dataset_5`.
+        -   `sample_4` has 2 datasets: `dataset_5`, `dataset_6`.
             -   `dataset_5` has dataset type `WES`, and belongs to 0 groups.
             -   `dataset_5` does not have any associated analyses.
+            -   `dataset_6` has dataset type `WGS`, and belongs to 1 group: `bcch`.
+            -   `dataset_6` does not have any associated analyses.
 
 There are 3 participants: `participant_1`, `participant_2`, `participant_3`.
 
 There are 4 tissue samples: `sample_1`, `sample_2`, `sample_3`, `sample_4`.
 
-There are 5 datasets: `dataset_1`, `dataset_2`, `dataset_3`, `dataset_4`, `dataset_5`.
+There are 6 datasets: `dataset_1`, `dataset_2`, `dataset_3`, `dataset_4`, `dataset_5`, `dataset_6`.
 
 There are 3 analyses: `analysis_1`, `analysis_2`, `analysis_3`.
 

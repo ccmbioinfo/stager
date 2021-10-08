@@ -111,6 +111,47 @@ def test_list_participants_user_from_admin(test_database, client, login_as):
     )
 
 
+# GET /api/participants/:id
+
+
+def test_get_participants_admin(test_database, client, login_as):
+    login_as("admin")
+
+    response = client.get("/api/participants/3")
+
+    assert response.status_code == 200
+
+    participant = response.get_json()
+    assert participant["participant_id"] == 3
+    assert len(participant["tissue_samples"]) == 2
+    assert len(participant["tissue_samples"][0]["datasets"]) == 1
+    assert len(participant["tissue_samples"][1]["datasets"]) == 2
+    assert client.get(f"/api/participants/1?user=1").status_code == 200
+    assert client.get(f"/api/participants/2?user=1").status_code == 200
+
+    assert client.get(f"/api/participants/1?user=2").status_code == 200
+    assert client.get(f"/api/participants/1?user=4").status_code == 403
+
+
+def test_get_participants_user(test_database, client, login_as):
+    login_as("user_c")
+
+    # Test if the user can only see datatsets that belong to the same group the user belongs to.
+    response = client.get("/api/participants/3")
+    assert response.status_code == 200
+
+    participant = response.get_json()
+    assert participant["participant_id"] == 3
+    assert len(participant["tissue_samples"]) == 1
+    assert participant["tissue_samples"][0]["tissue_sample_id"] == 4
+    assert len(participant["tissue_samples"][0]["datasets"]) == 1
+    assert participant["tissue_samples"][0]["datasets"][0]["dataset_id"] == 6
+
+    # Test participant the user doesn't have access to.
+    assert client.get("/api/participants/1?user=5").status_code == 403
+    assert client.get("/api/participants/1?user=1").status_code == 403
+
+
 # DELETE /api/participants/:id
 
 
