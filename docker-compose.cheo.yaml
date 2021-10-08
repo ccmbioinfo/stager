@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  stager:
+    image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
+    user: www-data
+    environment:
+      ST_SECRET_KEY: "${ST_SECRET_KEY}"
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: hpc4health
+    ports:
+      - "5000:5000"
+    entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
+    command: --preload --workers 2 --threads 2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:5000/api"]
+    restart: unless-stopped
+    logging:
+      driver: journald
