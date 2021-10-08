@@ -161,7 +161,7 @@ export default function DataEntryTable({
                     <TableBody>
                         {data.map((row, rowIndex) => (
                             <DataEntryTableRow
-                                row={row}
+                                data={data}
                                 rowIndex={rowIndex}
                                 key={rowIndex}
                                 columns={columns}
