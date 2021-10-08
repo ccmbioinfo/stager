@@ -9,7 +9,13 @@ import {
     getAnalysisInfoList,
     stringToBoolean,
 } from "../../functions";
-import { useDatasetQueries, useEnumsQuery, useErrorSnackbar, useParticipantQuery, useParticipantUpdateMutation } from "../../hooks";
+import {
+    useDatasetQueries,
+    useEnumsQuery,
+    useErrorSnackbar,
+    useParticipantQuery,
+    useParticipantUpdateMutation,
+} from "../../hooks";
 import { Analysis, Field, Participant } from "../../typings";
 import SampleTable from "./SampleTable";
 
@@ -74,7 +80,6 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
         [datasetResults]
     );
 
-
     const participantUpdateMutation = useParticipantUpdateMutation();
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
@@ -99,9 +104,12 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
             },
             {
                 onSuccess: receiveDataset => {
-                    enqueueSnackbar(`Participant ID ${newData.participant_id} updated successfully`, {
-                        variant: "success",
-                    });
+                    enqueueSnackbar(
+                        `Participant ID ${newData.participant_id} updated successfully`,
+                        {
+                            variant: "success",
+                        }
+                    );
                 },
                 onError: response => {
                     console.error(
@@ -114,7 +122,7 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
                 },
             }
         );
-    }
+    };
 
     return (
         <Dialog

@@ -3,7 +3,11 @@ import { Participant } from "../../typings";
 import { changeFetch } from "../utils";
 
 async function patchParticipant(newParticipant: Partial<Participant>) {
-    return changeFetch("/api/participants/" + newParticipant.participant_id, "PATCH", newParticipant);
+    return changeFetch(
+        "/api/participants/" + newParticipant.participant_id,
+        "PATCH",
+        newParticipant
+    );
 }
 
 /**

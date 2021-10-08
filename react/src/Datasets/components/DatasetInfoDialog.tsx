@@ -106,13 +106,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
     };
 
     return (
-        <Dialog
-            onClose={onClose}
-            aria-labelledby={labeledBy}
-            open={open}
-            maxWidth="lg"
-            fullWidth
-        >
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
             <DialogHeader id={labeledBy} onClose={onClose}>
                 Details of Dataset ID {dataset_id}
             </DialogHeader>
