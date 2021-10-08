@@ -49,7 +49,7 @@ interface DetailSectionProps {
     collapsibleFields?: Field[];
     title?: string;
     linkPath?: string;
-    update?: (fields: any[]) => void; // change the typing here to Dataset, Participant.
+    update?: (fields: Field[]) => void; // change the typing here to Dataset, Participant.
 }
 
 export default function DetailSection(props: DetailSectionProps) {
