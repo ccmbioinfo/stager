@@ -62,13 +62,10 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
     const classes = useStyles();
     const { data: participant } = useParticipantQuery(participant_id);
     const datasets = useMemo(
-        () => participant?.tissue_samples.flatMap(sample => sample.datasets),
+        () => (participant ? participant.tissue_samples.flatMap(sample => sample.datasets) : []),
         [participant]
     );
-    const dataset_ids: string[] = [];
-    if (datasets) {
-        const dataset_ids: string[] = datasets.map(d => d.dataset_id);
-    }
+    const dataset_ids: string[] = datasets.map(d => d.dataset_id);
     const datasetResults = useDatasetQueries(dataset_ids);
     const analyses = useMemo(
         () =>
