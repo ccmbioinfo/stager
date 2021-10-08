@@ -93,11 +93,6 @@ jobs:
     concurrency: CHEO-RI
     steps:
       - uses: actions/checkout@v2
-      - uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure SSH
         if: false
         # https://docs.docker.com/engine/context/working-with-contexts/
@@ -110,6 +105,11 @@ jobs:
           chmod -R g-rwx,o-rwx ~/.ssh
           docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
           docker context use deploy-target
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy
         env:
           COMPOSE_FILE: docker-compose.cheo.yaml
