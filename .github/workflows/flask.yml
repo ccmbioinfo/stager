@@ -30,6 +30,13 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+      - name: Infer metadata (development image)
+        uses: docker/metadata-action@v3
+        id: meta-dev
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            dev
       - uses: docker/login-action@v1
         if: github.event_name == 'push'
         with:
@@ -39,15 +46,14 @@ jobs:
       - name: Build development image
         uses: docker/build-push-action@v2
         with:
-          tags: ghcr.io/ccmbioinfo/stager:dev
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.meta-dev.outputs.tags }}
+          labels: ${{ steps.meta-dev.outputs.labels }}
           context: flask
           pull: true
           load: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-      - name: Push development image
-        if: ${{ github.event_name == 'push' }}
-        run: docker push ghcr.io/ccmbioinfo/stager:dev
       - run: cp sample.env .env
       - name: Pytest
         run: docker-compose run --rm app
@@ -55,23 +61,26 @@ jobs:
         run: docker-compose run --rm app black --check
       - name: Stop services
         run: docker-compose down
-      - name: Infer production image tag
-        id: infer
+      - name: Infer metadata (production image)
+        uses: docker/metadata-action@v3
         if: github.event_name == 'push'
-        run: |
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Use Docker `latest` tag convention
-          [[ "$VERSION" == "master" ]] && VERSION=latest
-          echo "::set-output name=tag::$VERSION"
-      - name: Build and push production image
-        uses: docker/build-push-action@v2
+        id: meta-prod
         with:
-          tags: ghcr.io/ccmbioinfo/stager:${{ steps.infer.outputs.tag || 'latest' }}
+          images: ghcr.io/${{ github.repository }}
+          flavor: latest=${{ github.ref == 'refs/heads/master' }}
+          tags: |
+            type=ref,event=tag
+            type=sha,format=long
+      - name: Build production image
+        uses: docker/build-push-action@v2
+        if: github.event_name == 'push'
+        with:
+          push: true
+          tags: ${{ steps.meta-prod.outputs.tags }}
+          labels: ${{ steps.meta-prod.outputs.labels }}
           context: flask
           file: "{context}/../Dockerfile"
           build-args: GIT_SHA=${{ github.sha }}
           pull: true
-          push: ${{ github.event_name == 'push' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
