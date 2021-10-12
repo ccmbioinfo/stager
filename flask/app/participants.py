@@ -24,8 +24,8 @@ from .utils import (
     paged,
     paginated_response,
     transaction_or_abort,
-    validate_json,
     str_to_bool,
+    validate_json,
 )
 
 editable_columns = [

@@ -5,6 +5,8 @@ import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/ico
 import { useSnackbar } from "notistack";
 import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
+import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
+import DatasetInfoDialog from "./DatasetInfoDialog";
 import {
     ChipGroup,
     ConfirmModal,
@@ -33,10 +35,8 @@ import {
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
-import { Dataset, isRNASeqDataset, LinkedFile } from "../../typings";
-import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
-import DatasetInfoDialog from "./DatasetInfoDialog";
 import LinkedFilesButton from "./LinkedFilesButton";
+import { Dataset, isRNASeqDataset, LinkedFile } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     chip: {

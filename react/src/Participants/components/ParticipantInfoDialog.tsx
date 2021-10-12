@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
+
 import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
@@ -16,8 +17,8 @@ import {
     useParticipantQuery,
     useParticipantUpdateMutation,
 } from "../../hooks";
-import { Analysis, Field, Participant } from "../../typings";
 import SampleTable from "./SampleTable";
+import { Analysis, Field, Participant } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

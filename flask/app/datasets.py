@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from typing import List
+
 from flask import (
     Blueprint,
     Response,
@@ -11,6 +12,7 @@ from flask import (
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload, selectinload
+
 from . import models
 from .extensions import db
 from .utils import (
@@ -28,8 +30,8 @@ from .utils import (
     paged,
     paginated_response,
     transaction_or_abort,
-    validate_json,
     str_to_bool,
+    validate_json,
 )
 
 EDITABLE_COLUMNS = [
