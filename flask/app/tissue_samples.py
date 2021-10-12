@@ -10,7 +10,8 @@ from .utils import (
     filter_datasets_by_user_groups,
     get_current_user,
     transaction_or_abort,
-    check_set_fields,
+    validate_enums_and_set_fields,
+    validate_enum,
     validate_json,
 )
 

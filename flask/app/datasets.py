@@ -28,7 +28,8 @@ from .utils import (
     transaction_or_abort,
     validate_json,
     str_to_bool,
-    check_set_fields,
+    validate_enums_and_set_fields,
+    validate_enums,
 )
 
 EDITABLE_COLUMNS = [
@@ -345,12 +346,10 @@ def update_dataset(id: int):
 
     dataset = query.first_or_404()
 
-    enum_error = check_set_fields(
-        dataset, request.json, EDITABLE_COLUMNS, check_only=False
-    )
+    enum_error = validate_enums_and_set_fields(dataset, request.json, EDITABLE_COLUMNS)
 
-    if enum_error:
-        abort(400, description=enum_error)
+    # if enum_error:
+    #     abort(400, description=enum_error)
 
     if "linked_files" in request.json:
         dataset = update_dataset_linked_files(dataset, request.json["linked_files"])
@@ -431,12 +430,10 @@ def create_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    enum_error = check_set_fields(
-        models.Dataset, request.json, EDITABLE_COLUMNS, check_only=True
-    )
+    enum_error = validate_enums(models.Dataset, request.json, EDITABLE_COLUMNS)
 
-    if enum_error:
-        abort(400, description=enum_error)
+    # if enum_error:
+    #     abort(400, description=enum_error)
 
     try:
         created_by_id = updated_by_id = current_user.user_id

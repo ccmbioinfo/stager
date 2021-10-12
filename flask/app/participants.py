@@ -22,7 +22,8 @@ from .utils import (
     transaction_or_abort,
     validate_json,
     str_to_bool,
-    check_set_fields,
+    validate_enums_and_set_fields,
+    validate_enums,
 )
 
 editable_columns = [
@@ -286,8 +287,8 @@ def update_participant(id: int):
 
     participant = query.first_or_404()
 
-    enum_error = check_set_fields(
-        participant, request.json, editable_columns, check_only=False
+    enum_error = validate_enums_and_set_fields(
+        participant, request.json, editable_columns
     )
 
     if enum_error:
@@ -344,7 +345,7 @@ def create_participant():
     ).first_or_404()
 
     # validate enums
-    enum_error = check_set_fields(models.Participant, request.json, editable_columns)
+    enum_error = validate_enums(models.Participant, request.json, editable_columns)
 
     if enum_error:
         abort(400, description=enum_error)

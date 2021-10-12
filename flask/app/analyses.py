@@ -19,7 +19,8 @@ from .utils import (
     filter_in_enum_or_abort,
     filter_updated_or_abort,
     get_current_user,
-    check_set_fields,
+    validate_enums_and_set_fields,
+    validate_enums,
     paged,
     paginated_response,
     transaction_or_abort,
@@ -372,7 +373,7 @@ def create_analysis():
 
     app.logger.debug("Validating priority parameter..")
 
-    enum_error = check_set_fields(models.Analysis, request.json, ["priority"])
+    enum_error = validate_enums(models.Analysis, request.json, ["priority"])
 
     if enum_error:
         abort(400, description=enum_error)
@@ -657,9 +658,7 @@ def update_analysis(id: int):
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = check_set_fields(
-        analysis, request.json, editable_columns, check_only=False
-    )
+    enum_error = validate_enums_and_set_fields(analysis, request.json, editable_columns)
 
     if enum_error:
         abort(400, description=enum_error)
