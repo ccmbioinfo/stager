@@ -6,8 +6,8 @@ Docker containers for easy setup and [cleanup](#resetting-bind-mounts). Follow t
 install Docker and Compose, and read their documentation to learn more about these tools.
 
 Copy `sample.env` to `.env` and edit it to add your choice of credentials for the local servers.
-These can be overridden by your environment variables and are used by Compose when starting a stack
-of containers from any of the `docker-compose*.yaml` in the project root.
+Set ```ENABLE_OIDC=``` to blank (empty). These can be overridden by your environment variables and
+are used by Compose when starting a stack of containers from any of the `docker-compose*.yaml` in the project root.
 
 To start the backend stack for development, run:
 
