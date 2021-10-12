@@ -17,8 +17,8 @@ import {
     useParticipantQuery,
     useParticipantUpdateMutation,
 } from "../../hooks";
-import SampleTable from "./SampleTable";
 import { Analysis, Field, Participant } from "../../typings";
+import SampleTable from "./SampleTable";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {

@@ -14,8 +14,8 @@ import { Check } from "@material-ui/icons";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
-import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
 import { Field } from "../typings";
+import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
 
 dayjs.extend(customParseFormat);
 
