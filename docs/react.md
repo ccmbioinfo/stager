@@ -18,15 +18,16 @@ docker-compose up -d --build
 ```
 
 1. Switch to the `react` directory.
-1. Create a `.env` with these parameters that you can change as needed.
+2. Create a `.env` with these parameters that you can change as needed.
 
    ```
    REACT_APP_NAME=Stager
    REACT_APP_MINIO_URL=http://localhost:9000/
    ```
 
-1. Install dependencies with `yarn`.
-1. Start a development server in watch mode with `yarn start`.
+3. Set ```ENABLE_OIDC=``` to blank (empty).
+4. Install dependencies with `yarn`.
+5. Start a development server in watch mode with `yarn start`.
 
 You can build the static bundles for production with `yarn build`.
 
