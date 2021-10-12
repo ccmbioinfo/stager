@@ -209,10 +209,8 @@ def test_reset_minio_user(test_database, minio_policy, client, login_as):
 
 
 def test_reset_minio_credentials_allows_admins_to_delete(minio_policy, test_database):
-    minio_admin = minio_policy
     # group created in conftest, policy created in minio_policy
     group = Group.query.filter(Group.group_code == "ach").first()
-    minio_admin.set_policy("ach", group=group.group_code)
     user = User(username="local_user", email="local_test@sickkids.ca")
     user.set_password("user")
     user.groups.append(group)
