@@ -24,8 +24,6 @@ docker-compose up -d --build
    REACT_APP_NAME=Stager
    REACT_APP_MINIO_URL=http://localhost:9000/
    ```
-
-1. Set ```ENABLE_OIDC=``` to blank (empty).
 1. Install dependencies with `yarn`.
 1. Start a development server in watch mode with `yarn start`.
 
