@@ -346,10 +346,7 @@ def update_dataset(id: int):
 
     dataset = query.first_or_404()
 
-    enum_error = validate_enums_and_set_fields(dataset, request.json, EDITABLE_COLUMNS)
-
-    # if enum_error:
-    #     abort(400, description=enum_error)
+    validate_enums_and_set_fields(dataset, request.json, EDITABLE_COLUMNS)
 
     if "linked_files" in request.json:
         dataset = update_dataset_linked_files(dataset, request.json["linked_files"])
@@ -430,10 +427,7 @@ def create_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    enum_error = validate_enums(models.Dataset, request.json, EDITABLE_COLUMNS)
-
-    # if enum_error:
-    #     abort(400, description=enum_error)
+    validate_enums(models.Dataset, request.json, EDITABLE_COLUMNS)
 
     try:
         created_by_id = updated_by_id = current_user.user_id

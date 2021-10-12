@@ -28,10 +28,8 @@ def test_check_set_fields():
 
     editable_columns = ["condition", "read_type"]
 
-    enum_error = validate_enums_and_set_fields(
+    validate_enums_and_set_fields(
         rnaseq_dataset_instance, rnaseq_changes, editable_columns
     )
-
-    assert enum_error is None
     # this should fail on master
     assert rnaseq_dataset_instance.condition == rnaseq_changes["condition"]

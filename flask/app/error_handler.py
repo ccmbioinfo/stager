@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, current_app as app
 from werkzeug.exceptions import HTTPException
 import traceback
+from sqlalchemy import exc
+from .extensions import db
 
 error_blueprint = Blueprint("error_handler", __name__)
 
@@ -18,6 +20,10 @@ def handle_error(error: Exception):
     ]
     code = 500  # defaults to 500 for non HTTP exceptions
     msg = error
+
+    if code in [400]:
+        app.logger.error("Rolling back session..")
+        db.session.rollback()
 
     if isinstance(error, HTTPException):
         code = error.code

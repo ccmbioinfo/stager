@@ -433,15 +433,9 @@ def bulk_update():
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for participants..")
 
-        enum_error = validate_enums(
-            models.Participant, row, editable_dict["participant"]
-        )
-        if enum_error:
-            app.logger.error("\tEnum invalid: " + enum_error)
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
-        else:
-            app.logger.debug("\tAll enums supplied are valid.")
+        validate_enums(models.Participant, row, editable_dict["participant"])
+
+        app.logger.debug("\tAll enums supplied are valid.")
 
         # get institution id
         app.logger.debug("\tRetrieving institution")
@@ -501,14 +495,9 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for tissue samples..")
-        enum_error = validate_enums(
-            models.TissueSample, row, editable_dict["tissue_sample"]
-        )
-        if enum_error:
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)}: " + enum_error)
-        else:
-            app.logger.debug("\tAll enums supplied are valid.")
+        validate_enums(models.TissueSample, row, editable_dict["tissue_sample"])
+
+        app.logger.debug("\tAll enums supplied are valid.")
 
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
@@ -525,13 +514,8 @@ def bulk_update():
         app.logger.debug("\tDone")
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for datasets..")
-        enum_error = validate_enums(models.Dataset, row, editable_dict["dataset"])
-        if enum_error:
-            app.logger.error("\tEnum invalid: " + enum_error)
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
-        else:
-            app.logger.debug("\tAll enums supplied are valid.")
+        validate_enums(models.Dataset, row, editable_dict["dataset"])
+        app.logger.debug("\tAll enums supplied are valid.")
 
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")

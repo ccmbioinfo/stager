@@ -287,12 +287,7 @@ def update_participant(id: int):
 
     participant = query.first_or_404()
 
-    enum_error = validate_enums_and_set_fields(
-        participant, request.json, editable_columns
-    )
-
-    if enum_error:
-        abort(400, description="enum_error")
+    validate_enums_and_set_fields(participant, request.json, editable_columns)
 
     if user:
         participant.updated_by_id = user.user_id
@@ -345,10 +340,7 @@ def create_participant():
     ).first_or_404()
 
     # validate enums
-    enum_error = validate_enums(models.Participant, request.json, editable_columns)
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums(models.Participant, request.json, editable_columns)
 
     # get institution id
     institution = request.json.get("institution")

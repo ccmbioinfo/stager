@@ -373,10 +373,7 @@ def create_analysis():
 
     app.logger.debug("Validating priority parameter..")
 
-    enum_error = validate_enums(models.Analysis, request.json, ["priority"])
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums(models.Analysis, request.json, ["priority"])
 
     user = get_current_user()
 
@@ -658,10 +655,7 @@ def update_analysis(id: int):
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = validate_enums_and_set_fields(analysis, request.json, editable_columns)
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums_and_set_fields(analysis, request.json, editable_columns)
 
     app.logger.debug("Validating other fields..")
 
