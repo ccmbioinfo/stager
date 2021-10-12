@@ -209,7 +209,7 @@ Below is an overview of our test database. Update this section if changes are ma
 
 There are 2 groups: `ach`, `bcch`.
 
-There are 4 users: `admin`, `user`, `user_a`, `user_b`,`user_c`
+There are 5 users: `admin`, `user`, `user_a`, `user_b`,`user_c`
 
 -   `admin` (`user_id 1`) has `is_admin` privileges, and belongs to 0 groups.
 -   `user` (`user_id 2`) belongs to 1 group `ach`.

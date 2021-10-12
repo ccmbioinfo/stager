@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useEffect, useState } from "react";
 import {
     Button,
@@ -10,13 +12,8 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
-
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-
 import { Field } from "../typings";
 import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
-
 dayjs.extend(customParseFormat);
 
 const gridSpacing = 2;
@@ -49,7 +46,7 @@ interface DetailSectionProps {
     collapsibleFields?: Field[];
     title?: string;
     linkPath?: string;
-    update?: (fields: Field[]) => void; // change the typing here to Dataset, Participant.
+    update?: (fields: Field[]) => void;
 }
 
 export default function DetailSection(props: DetailSectionProps) {
