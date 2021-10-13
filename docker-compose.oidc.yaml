@@ -19,7 +19,7 @@ services:
       - ${MYSQL_VOLUME}:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d
   minio:
-    image: minio/minio:RELEASE.2021-10-08T23-58-24Z
+    image: minio/minio
     user: "${MINIO_UIDGID:-}"
     restart: on-failure
     environment:

@@ -18,7 +18,7 @@ services:
     volumes:
       - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
-    image: minio/minio:RELEASE.2021-10-08T23-58-24Z
+    image: minio/minio
     user: "${MINIO_UIDGID:-}"
     restart: on-failure
     environment:
