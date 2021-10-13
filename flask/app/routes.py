@@ -9,7 +9,7 @@ from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
-
+from werkzeug.exceptions import BadRequest  # 400
 from . import models
 from .extensions import db, oauth
 from .utils import (
@@ -433,9 +433,22 @@ def bulk_update():
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for participants..")
 
-        validate_enums(models.Participant, row, editable_dict["participant"])
-
-        app.logger.debug("\tAll enums supplied are valid.")
+        try:
+            validate_enums(models.Participant, row, editable_dict["participant"])
+            app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + i)
+                ),
+            )
 
         # get institution id
         app.logger.debug("\tRetrieving institution")
@@ -495,10 +508,23 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for tissue samples..")
-        validate_enums(models.TissueSample, row, editable_dict["tissue_sample"])
 
-        app.logger.debug("\tAll enums supplied are valid.")
-
+        try:
+            validate_enums(models.TissueSample, row, editable_dict["tissue_sample"])
+            app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + i)
+                ),
+            )
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
         tissue_sample = models.TissueSample(
@@ -514,9 +540,22 @@ def bulk_update():
         app.logger.debug("\tDone")
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for datasets..")
-        validate_enums(models.Dataset, row, editable_dict["dataset"])
-        app.logger.debug("\tAll enums supplied are valid.")
-
+        try:
+            validate_enums(models.Dataset, row, editable_dict["dataset"])
+            app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + i)
+                ),
+            )
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
 
