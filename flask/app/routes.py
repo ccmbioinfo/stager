@@ -446,7 +446,7 @@ def bulk_update():
             abort(
                 400,
                 "Rolling back session because of invalid enum: {} on line {}".format(
-                    e.description, str(i + i)
+                    e.description, str(i + 1)
                 ),
             )
 
@@ -522,7 +522,7 @@ def bulk_update():
             abort(
                 400,
                 "Rolling back session because of invalid enum: {} on line {}".format(
-                    e.description, str(i + i)
+                    e.description, str(i + 1)
                 ),
             )
         # Create a new tissue sample under this participant
@@ -553,7 +553,7 @@ def bulk_update():
             abort(
                 400,
                 "Rolling back session because of invalid enum: {} on line {}".format(
-                    e.description, str(i + i)
+                    e.description, str(i + 1)
                 ),
             )
         # Create a new dataset under the new tissue sample
