@@ -21,10 +21,6 @@ def handle_error(error: Exception):
     code = 500  # defaults to 500 for non HTTP exceptions
     msg = error
 
-    if code in [400]:
-        app.logger.error("Rolling back session..")
-        db.session.rollback()
-
     if isinstance(error, HTTPException):
         code = error.code
         msg = error.description
