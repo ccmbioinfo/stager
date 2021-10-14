@@ -6,7 +6,7 @@ from sqlalchemy import distinct, func, or_
 from sqlalchemy.orm import aliased, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
-
+from sqlalchemy.sql.expression import cast
 from . import models
 from .extensions import db
 from .utils import (
@@ -53,8 +53,8 @@ def list_analyses(page: int, limit: int) -> Response:
         "requested",
         "analysis_id",
     ]
-    assignee_user = aliased(models.User)
-    requester_user = aliased(models.User)
+    assignee_user = aliased(models.Analysis.assignee)
+    requester_user = aliased(models.Analysis.requester)
     app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
@@ -72,6 +72,8 @@ def list_analyses(page: int, limit: int) -> Response:
     if order:
         app.logger.debug("Validating 'order_dir' parameter..")
         order_dir = request.args.get("order_dir", type=str)
+        # need to cast here because the cast value doesn't have a boolean representation
+        order = cast(order, db.CHAR) if order_by == "analysis_state" else order
         if order_dir == "desc":
             order = order.desc()
         elif order_dir == "asc":
@@ -239,6 +241,11 @@ def list_analyses(page: int, limit: int) -> Response:
     total_count = query.with_entities(
         func.count(distinct(models.Analysis.analysis_id))
     ).scalar()
+
+    # this is needed to for sorting to work on assignee/requester
+    query = query.join(assignee_user, models.Analysis.assignee) if order_by == "assignee" else query
+    query = query.join(requester_user, models.Analysis.requester) if order_by == "requester" else query
+
     analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
     app.logger.info("Query successful")
