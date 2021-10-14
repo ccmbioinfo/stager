@@ -1,6 +1,8 @@
+import os
 from unittest.mock import Mock, patch
 from csv import DictReader
 from io import StringIO
+from flask_login.utils import login_required
 from pytest import raises
 
 from flask import current_app as app
@@ -528,3 +530,51 @@ def test_must_pass_in_user_arguement_if_login_disabled(
     assert get_current_user().user_id == 1
 
     application.config["LOGIN_DISABLED"] = False
+
+
+# e2e test for token auth
+def test_token_based_auth(test_database, client):
+    user = models.User.query.filter(models.User.user_id == 1).first()
+    oauth_client = models.OAuth2Client(
+        client_id=1234,
+        client_id_issued_at=0,
+        client_secret=456,
+        user_id=user.user_id,
+    )
+
+    client_metadata = {
+        "client_name": str(models.User.username),
+        "grant_types": ["password"],
+        "token_endpoint_auth_method": "client_secret_post",
+    }
+
+    oauth_client.set_client_metadata(client_metadata)
+
+    db.session.add(oauth_client)
+    db.session.commit()
+
+    # https://docs.authlib.org/en/latest/flask/2/#flask-oauth-2-0-server
+    os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+    token_response = client.post(
+        "/api/oauth/token",
+        data={
+            "username": user.username,
+            "password": "admin",
+            "client_id": oauth_client.client_id,
+            "client_secret": oauth_client.client_secret,
+            "grant_type": "password",
+        },
+    )
+
+    token_resp = token_response.get_json()
+
+    res = client.get(
+        "/api/users", headers={"Authorization": f"Bearer {token_resp['access_token']}"}
+    )
+
+    assert res.status_code == 200
+
+    res = client.get("/api/users", headers={"Authorization": "Bearer NotAValidToken"})
+
+    assert res.status_code == 401

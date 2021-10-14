@@ -113,6 +113,7 @@ def test_get_user_admin(test_database, minio_policy, client, login_as):
         "last_login": admin["last_login"],  # don't know this value
         "minio_access_key": "admin",
         "minio_secret_key": None,  # usually either both are set or both are null
+        "client": None,
     }
 
     response = client.get("/api/users/user")
@@ -123,6 +124,7 @@ def test_get_user_admin(test_database, minio_policy, client, login_as):
         "last_login": user["last_login"],  # don't know this value
         "minio_access_key": "user",
         "minio_secret_key": None,  # usually either both are set or both are null
+        "client": None,
     }
 
 
@@ -142,6 +144,7 @@ def test_get_user_user(test_database, client, login_as):
         "last_login": user["last_login"],  # don't know this value
         "minio_access_key": "user",
         "minio_secret_key": None,  # usually either both are set or both are null
+        "client": None,
     }
 
 
@@ -490,6 +493,20 @@ def test_update_user(test_database, client, login_as):
     body = {"email": "noreply@sickkids.ca"}
     # TODO: should be 409 or something else in the future
     assert client.patch("/api/users/user", json=body).status_code == 400
+
+
+def test_add_client(test_database, client, login_as):
+    login_as("admin")
+
+    user = User.query.filter(User.user_id == 2).first()
+    assert user.client is None
+
+    response = client.post(f"/api/users/{user.username}/client")
+    assert response.status_code == 200
+    assert User.client is not None
+
+    response = client.post(f"/api/users/{user.username}/client")
+    assert response.status_code == 400
 
 
 def test_update_user_groups(test_database, minio_policy, client, login_as):

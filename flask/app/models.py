@@ -2,15 +2,21 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
 from typing import List
-from requests import get
+from time import time
+from authlib.oauth2.rfc6750.errors import InvalidTokenError
 
 from flask_login import UserMixin
-from flask import current_app as app, Request
+from flask import Request
 from sqlalchemy import CheckConstraint
+from werkzeug.exceptions import abort
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.exceptions import Unauthorized
+from authlib.integrations.sqla_oauth2 import (
+    OAuth2ClientMixin,
+    OAuth2TokenMixin,
+)
+from authlib.oauth2.rfc6750 import BearerTokenValidator
 
-from .extensions import db, login, oauth
+from .extensions import db, login
 
 users_groups_table = db.Table(
     "users_groups",
@@ -33,6 +39,7 @@ class User(UserMixin, db.Model):
     # OIDC columns; if either is null then we consider them non-oidc users
     issuer = db.Column(db.String(150))
     subject = db.Column(db.String(255))
+    client = db.relationship("OAuth2Client", back_populates="user", uselist=False)
 
     groups = db.relationship("Group", secondary=users_groups_table, backref="users")
 
@@ -47,6 +54,10 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return self.user_id
 
+    # for oauth server
+    def get_user_id(self):
+        return self.user_id
+
     def set_oidc_fields(self, issuer: str, subject: str):
         self.issuer = issuer
         self.subject = subject
@@ -57,40 +68,52 @@ def load_user(uid: int):
     return User.query.get(uid)
 
 
+class OAuth2Client(db.Model, OAuth2ClientMixin):
+    __tablename__ = "oauth2_client"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id", ondelete="CASCADE"))
+    user = db.relationship("User", back_populates="client")
+
+
+class OAuth2Token(db.Model, OAuth2TokenMixin):
+    __tablename__ = "oauth2_token"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id", ondelete="CASCADE"))
+    user = db.relationship("User")
+
+    def is_refresh_token_active(self):
+        if self.revoked:
+            return False
+        expires_at = self.issued_at + self.expires_in * 2
+        return expires_at >= time.time()
+
+
+class StagerBearerTokenValidator(BearerTokenValidator):
+    def authenticate_token(self, token_string):
+        return OAuth2Token.query.filter_by(access_token=token_string).first()
+
+    def request_invalid(self, request):
+        return False
+
+    def token_revoked(self, token):
+        return False
+
+
 @login.request_loader
 def load_user_from_request(request: Request):
     """if user session can't be found, this function will be called to look for it elsewhere"""
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not app.config.get("ENABLE_OIDC"):
+    if not auth_header:
         return None
     token = auth_header[7:]
+    validate_and_return_token = StagerBearerTokenValidator()
     try:
-        user_info = fetch_userinfo(token)
-    except Unauthorized:
-        app.logger.info("Invalid Token!")
-        return None
-    return get_user_identity_from_userinfo(user_info)
-
-
-def fetch_userinfo(token: str):
-    """get roles and other information from the userinfo endpoint"""
-    provider = app.config.get("OIDC_PROVIDER")
-    client = oauth.create_client(provider)
-    userinfo_endpoint = client.load_server_metadata().get("userinfo_endpoint")
-    userinfo_response = get(
-        userinfo_endpoint, headers={"Authorization": f"Bearer {token}"}
-    )
-
-    if userinfo_response.status_code == 401:
-        raise Unauthorized
-
-    return userinfo_response.json()
-
-
-def get_user_identity_from_userinfo(user_info: dict):
-    """find token user based on subject identifier"""
-    sub = user_info["sub"]
-    return User.query.filter(User.subject == sub).first()
+        token_model = validate_and_return_token(token, None, request)
+    except InvalidTokenError as err:
+        abort(401, description=err)
+    return token_model.user
 
 
 @dataclass

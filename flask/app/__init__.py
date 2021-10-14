@@ -1,7 +1,16 @@
 import logging
+
+from authlib.oauth2.rfc6749 import grants
+from authlib.integrations.sqla_oauth2 import (
+    create_query_client_func,
+    create_save_token_func,
+)
 from flask import Flask, logging as flask_logging
-from .extensions import db, login, migrate, oauth
+
+
+from .extensions import db, login, migrate, oauth, authorization
 from .utils import DateTimeEncoder
+from .models import OAuth2Client, OAuth2Token, User
 
 from app import (
     buckets,
@@ -69,6 +78,23 @@ def register_extensions(app):
         server_metadata_url=app.config["OIDC_WELL_KNOWN"],
         client_kwargs={"scope": "openid"},
     )
+    register_oauth_authorization(app)
+
+
+class PasswordGrant(grants.ResourceOwnerPasswordCredentialsGrant):
+    def authenticate_user(self, username, password):
+        user = User.query.filter_by(username=username).first()
+        if user is not None and user.check_password(password):
+            return user
+
+    TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_post"]
+
+
+def register_oauth_authorization(app):
+    query_client = create_query_client_func(db.session, OAuth2Client)
+    save_token = create_save_token_func(db.session, OAuth2Token)
+    authorization.init_app(app, query_client=query_client, save_token=save_token)
+    authorization.register_grant(PasswordGrant)
 
 
 def config_logger(app):

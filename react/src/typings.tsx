@@ -261,9 +261,17 @@ export interface NewUser {
     subject?: string;
 }
 
+export interface Client {
+    client_id: string;
+    client_id_issued_at: number;
+    client_secret: string;
+    client_secret_expires_at: number;
+}
+
 export interface User {
     username: string;
     email: string;
+    client?: Client;
     is_admin: boolean;
     last_login: string;
     deactivated: boolean;

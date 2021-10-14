@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Collapse,
     Divider,
@@ -18,16 +18,18 @@ import { ChipGroup, LastLoginDisplay } from "../../components";
 import { User } from "../../typings";
 import UserDetails from "./UserDetails";
 
-const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
+const useRowStyles = makeStyles<Theme, User>(theme => ({
     button: {
         marginLeft: theme.spacing(1),
     },
     title: {
-        color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
-        fontStyle: active => (active ? "normal" : "italic"),
+        color: user =>
+            user.deactivated ? theme.palette.text.disabled : theme.palette.text.primary,
+        fontStyle: user => (user.deactivated ? "italic" : "normal"),
     },
     icon: {
-        color: active => (active ? theme.palette.text.primary : theme.palette.text.disabled),
+        color: user =>
+            user.deactivated ? theme.palette.text.disabled : theme.palette.text.primary,
     },
 }));
 
@@ -35,13 +37,8 @@ const useRowStyles = makeStyles<Theme, Boolean>(theme => ({
  * Displays details about a user. Includes a collapsible panel for
  * viewing and editing credentials.
  */
-export default function UserRow(props: {
-    user: User;
-    onSave: (newUser: User) => void;
-    onDelete: (deleteUser: User) => void;
-}) {
-    const classes = useRowStyles(!props.user.deactivated);
-    const [date, time] = new Date(props.user.last_login).toISOString().split(/[T|.]/);
+export default function UserRow({ user }: { user: User }) {
+    const classes = useRowStyles(user || ({} as User));
     const [open, setOpen] = useState(false);
 
     const gridProps: GridProps = {
@@ -50,12 +47,12 @@ export default function UserRow(props: {
         spacing: 2,
     };
 
-    return (
+    return user ? (
         <Grid item sm={12} md={6}>
             <Paper>
                 <ListItem>
                     <ListItemAvatar className={classes.icon}>
-                        {!props.user.deactivated ? (
+                        {!user.deactivated ? (
                             <Person fontSize="large" />
                         ) : (
                             <PersonOutline fontSize="large" />
@@ -67,12 +64,12 @@ export default function UserRow(props: {
                             <Grid container {...gridProps}>
                                 <Grid item>
                                     <Typography variant="h6" className={classes.title}>
-                                        {props.user.username}{" "}
-                                        {props.user.is_admin && <Security fontSize="inherit" />}
+                                        {user.username}{" "}
+                                        {user.is_admin && <Security fontSize="inherit" />}
                                     </Typography>
                                 </Grid>
                                 <Grid item>
-                                    <LastLoginDisplay date={date} time={time} />
+                                    <LastLoginDisplay timestamp={user.last_login} />
                                 </Grid>
                             </Grid>
                         }
@@ -80,12 +77,12 @@ export default function UserRow(props: {
                             <Grid container {...gridProps}>
                                 <Grid item>
                                     <Typography variant="subtitle1" className={classes.title}>
-                                        {props.user.email}
+                                        {user.email}
                                     </Typography>
                                 </Grid>
                                 <Grid item>
                                     <ChipGroup
-                                        names={props.user.groups.map(group => group.toUpperCase())}
+                                        names={user.groups.map(group => group.toUpperCase())}
                                         size="small"
                                     />
                                 </Grid>
@@ -98,15 +95,11 @@ export default function UserRow(props: {
                 </ListItem>
                 <Collapse in={open}>
                     <Divider />
-                    {open && (
-                        <UserDetails
-                            user={props.user}
-                            onSave={props.onSave}
-                            onDelete={props.onDelete}
-                        />
-                    )}
+                    {open && <UserDetails username={user.username} />}
                 </Collapse>
             </Paper>
         </Grid>
+    ) : (
+        <span>Loading...</span>
     );
 }

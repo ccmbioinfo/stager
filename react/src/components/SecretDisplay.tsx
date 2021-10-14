@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Box, IconButton, LinearProgress, Tooltip, Typography } from "@material-ui/core";
+import {
+    Box,
+    IconButton,
+    LinearProgress,
+    Tooltip,
+    Typography,
+    withStyles,
+} from "@material-ui/core";
 import { FileCopy, Visibility, VisibilityOff } from "@material-ui/icons";
 import { Skeleton } from "@material-ui/lab";
 import { useSnackbar } from "notistack";
@@ -51,7 +58,7 @@ export default function SecretDisplay(props: {
             ) : (
                 <>
                     {open ? (
-                        <Typography>{props.secret}</Typography>
+                        <StyledTypography>{props.secret}</StyledTypography>
                     ) : (
                         <>
                             {props.secret ? (
@@ -66,3 +73,7 @@ export default function SecretDisplay(props: {
         </Box>
     );
 }
+
+const StyledTypography = withStyles({ root: { textOverflow: "ellipsis", overflow: "hidden" } })(
+    Typography
+);

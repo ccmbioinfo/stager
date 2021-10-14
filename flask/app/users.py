@@ -1,10 +1,12 @@
 import os
+from time import time
 from typing import Any, Dict
 from urllib.parse import quote
 
 from flask import abort, Blueprint, current_app as app, jsonify, request, Response
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
+from werkzeug.security import gen_salt
 
 from . import models
 from .extensions import db
@@ -50,6 +52,7 @@ def jsonify_user(user: models.User) -> Response:
     """
     user_dict = {
         "username": user.username,
+        "client": user.client.client_info if user.client else None,
         "email": user.email,
         "is_admin": user.is_admin,
         "last_login": user.last_login,
@@ -447,3 +450,38 @@ def update_user(username: str) -> Response:
     else:
         app.logger.error("Request unable to be processed.")
         abort(403)
+
+
+@check_admin
+@users_blueprint.route(
+    "/api/users/<string:username>/client", methods=(["POST"]), strict_slashes=False
+)
+def create_client(username: str):
+
+    user = models.User.query.filter(models.User.username == username).first_or_404()
+
+    if user.client:
+        abort(400, description="User already has a client!")
+
+    client_id = gen_salt(24)
+    client_id_issued_at = int(time())
+    client = models.OAuth2Client(
+        client_id=client_id,
+        client_id_issued_at=client_id_issued_at,
+        client_secret=gen_salt(48),
+        user_id=user.user_id,
+    )
+
+    client_metadata = {
+        "client_name": str(models.User.username),
+        "grant_types": ["password"],
+        "token_endpoint_auth_method": "client_secret_post",
+    }
+
+    client.set_client_metadata(client_metadata)
+
+    client.client_secret = gen_salt(48)
+
+    db.session.add(client)
+    db.session.commit()
+    return jsonify_user(user)

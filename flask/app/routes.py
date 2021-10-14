@@ -11,7 +11,7 @@ import pandas as pd
 from sqlalchemy.orm import joinedload
 
 from . import models
-from .extensions import db, oauth
+from .extensions import db, oauth, authorization
 from .utils import (
     enum_validate,
     find,
@@ -68,6 +68,12 @@ def login():
         "User '%s' has successfully logged in, returning JSON.", user.username
     )
     return user_details
+
+
+@routes.route("/api/oauth/token", methods=["POST"])
+def issue_token():
+    """issue an oauth token for Stager, separate from OIDC/keycloack"""
+    return authorization.create_token_response()
 
 
 @routes.route("/api/login", methods=["GET"])

@@ -24,6 +24,7 @@ export { useGroupDeleteMutation } from "./groups/useGroupDeleteMutation";
 export { useUserQuery } from "./users/useUserQuery";
 export { useUsersQuery } from "./users/useUsersQuery";
 export { useUsersCreateMutation } from "./users/useUsersCreateMutation";
+export { useUsersCreateClientMutation } from "./users/useUsersCreateClientMutation";
 export { useUsersUpdateMutation } from "./users/useUsersUpdateMutation";
 export { useUsersDeleteMutation } from "./users/useUsersDeleteMutation";
 export { useUserMinioMutation } from "./users/useUserMinioMutation";
