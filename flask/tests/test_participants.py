@@ -130,7 +130,7 @@ def test_get_participants_admin(test_database, client, login_as):
     assert client.get(f"/api/participants/2?user=1").status_code == 200
 
     assert client.get(f"/api/participants/1?user=2").status_code == 200
-    assert client.get(f"/api/participants/1?user=4").status_code == 403
+    assert client.get(f"/api/participants/1?user=4").status_code == 404
 
 
 def test_get_participants_user(test_database, client, login_as):
@@ -148,8 +148,8 @@ def test_get_participants_user(test_database, client, login_as):
     assert participant["tissue_samples"][0]["datasets"][0]["dataset_id"] == 6
 
     # Test participant the user doesn't have access to.
-    assert client.get("/api/participants/1?user=5").status_code == 403
-    assert client.get("/api/participants/1?user=1").status_code == 403
+    assert client.get("/api/participants/1?user=5").status_code == 404
+    assert client.get("/api/participants/1?user=1").status_code == 404
 
 
 # DELETE /api/participants/:id
