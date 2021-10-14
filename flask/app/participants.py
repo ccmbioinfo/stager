@@ -4,7 +4,7 @@ from flask import Blueprint, Response, abort, jsonify, request
 from flask import current_app as app
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
-from sqlalchemy.orm import contains_eager, joinedload, selectinload
+from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import models
@@ -254,16 +254,11 @@ def get_participant(id: int):
 
     user = get_current_user()
 
-    # make sure the participant exists and if not send a 404
-    models.Participant.query.filter(
-        models.Participant.participant_id == id
-    ).first_or_404()
-
     query = models.Participant.query.filter(
         models.Participant.participant_id == id
     ).options(
-        selectinload(models.Participant.family),
-        selectinload(models.Participant.institution),
+        joinedload(models.Participant.family),
+        joinedload(models.Participant.institution),
     )
 
     if not user.is_admin:
@@ -281,7 +276,7 @@ def get_participant(id: int):
     try:
         participant = query.one()
     except NoResultFound:
-        abort(403)
+        abort(404)
 
     return jsonify(
         {
