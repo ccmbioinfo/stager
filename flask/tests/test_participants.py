@@ -136,7 +136,7 @@ def test_get_participants_admin(test_database, client, login_as):
 def test_get_participants_user(test_database, client, login_as):
     login_as("user_c")
 
-    # Test if the user can only see datatsets that belong to the same group the user belongs to.
+    # Test if the user can only see datasets that belong to the same group the user belongs to.
     response = client.get("/api/participants/3")
     assert response.status_code == 200
 
