@@ -273,9 +273,9 @@ def get_participant(id: int):
             user,
         )
 
-    try:
-        participant = query.one()
-    except NoResultFound:
+    participant = query.one_or_none()
+
+    if not participant:
         abort(404)
 
     return jsonify(
