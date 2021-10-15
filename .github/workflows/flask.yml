@@ -104,6 +104,11 @@ jobs:
     concurrency: CHEO-RI-DEV
     steps:
       - uses: actions/checkout@v2
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure SSH
         id: configure
         # https://docs.docker.com/engine/context/working-with-contexts/
@@ -118,11 +123,10 @@ jobs:
           chmod -R g-rwx,o-rwx ~/.ssh
           docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_SSH_HOST }}
           docker context use deploy-target
-          docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin <<< "${{ secrets.GITHUB_TOKEN }}"
       - name: Deploy
         env:
           COMPOSE_FILE: docker-compose.cheo.yaml
-          ST_VERSION: sha-${{ github.sha }}
+          ST_VERSION: latest
           ST_SECRET_KEY: ${{ secrets.ST_SECRET_KEY }}
           MYSQL_CONNECTION_STRING: ${{ secrets.MYSQL_CONNECTION_STRING }}
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
@@ -135,6 +139,6 @@ jobs:
       - name: Clean up
         if: always()
         run: |
-          docker logout ghcr.io
           docker context rm -f deploy-target
+          eval "$SSH_AGENT_EVAL"
           ssh-agent -k
