@@ -243,8 +243,16 @@ def list_analyses(page: int, limit: int) -> Response:
     ).scalar()
 
     # this is needed to for sorting to work on assignee/requester
-    query = query.join(assignee_user, models.Analysis.assignee) if order_by == "assignee" else query
-    query = query.join(requester_user, models.Analysis.requester) if order_by == "requester" else query
+    query = (
+        query.join(assignee_user, models.Analysis.assignee)
+        if order_by == "assignee"
+        else query
+    )
+    query = (
+        query.join(requester_user, models.Analysis.requester)
+        if order_by == "requester"
+        else query
+    )
 
     analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
