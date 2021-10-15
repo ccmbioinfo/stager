@@ -1,10 +1,20 @@
-from flask import Blueprint, jsonify, current_app as app
+from flask import Blueprint, json, jsonify, request, current_app as app
 from werkzeug.exceptions import HTTPException
 import traceback
 from sqlalchemy import exc
 from .extensions import db
 
 error_blueprint = Blueprint("error_handler", __name__)
+
+# dump relavant request info into a string
+def get_request_info() -> str:
+    info: str = "\n"
+    info += f"{str(request)}\n"
+    info += f"Query Params:\n{json.dumps(request.args.to_dict(), indent=4)}\n"
+    if request.method != "GET":
+        body = request.get_data(parse_form_data=True)
+        info += f"Body:\n{json.dumps(json.loads(body), indent=4)}\n"
+    return info
 
 
 @error_blueprint.app_errorhandler(Exception)
@@ -26,5 +36,6 @@ def handle_error(error: Exception):
         msg = error.description
         # 500 codes are handled as they all exist as a subclass of HTTPException
         if code in werkzeug_500_codes:
+            app.logger.error(get_request_info())
             app.logger.error(traceback.format_exc())
     return jsonify(error=str(msg)), code
