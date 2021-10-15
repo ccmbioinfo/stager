@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - kevinlul/cd-push
     paths:
       - .github/workflows/flask.yml
       - flask/**/*
@@ -20,7 +19,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: false
     env:
       COMPOSE_FILE: docker-compose.test.yaml
     steps:
@@ -70,7 +68,6 @@ jobs:
           tags: ${{ steps.meta-dev.outputs.tags }}
           labels: ${{ steps.meta-dev.outputs.labels }}
           context: flask
-          pull: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
       - name: Infer metadata (production image)
@@ -79,7 +76,7 @@ jobs:
         id: meta-prod
         with:
           images: ghcr.io/${{ github.repository }}
-          #flavor: latest=${{ github.ref == 'refs/heads/master' }}
+          flavor: latest=${{ github.ref == 'refs/heads/master' }}
           tags: |
             type=ref,event=tag
             type=sha,format=long
@@ -98,10 +95,10 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
   deploy:
     runs-on: [self-hosted, cheo-ri]
-    # needs: build
+    needs: build
     if: github.event_name == 'push'
-    environment: CHEO-RI-DEV
-    concurrency: CHEO-RI-DEV
+    environment: CHEO-RI_backend
+    concurrency: CHEO-RI_backend
     steps:
       - uses: actions/checkout@v2
       - uses: docker/login-action@v1
@@ -111,8 +108,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure SSH
         id: configure
+        # The self-hosted runner is not ephemeral, so we load the secret key into
+        # an agent instead in memory. Keep track of it for further workflow steps
+        # and so we can clean it up and not leave orphaned processes hanging around.
+        #
         # https://docs.docker.com/engine/context/working-with-contexts/
-        # This avoids passing an -H parameter to every Docker CLI cal
+        # This avoids passing an -H parameter to every Docker CLI call.
         run: |
           SSH_AGENT_EVAL=$(ssh-agent -s)
           eval "$SSH_AGENT_EVAL"
@@ -125,6 +126,8 @@ jobs:
           docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_SSH_HOST }}
           docker context use deploy-target
       - name: Deploy
+        # Even though this is deploying to a remote Docker Engine,
+        # Compose uses the registry credentials of the client
         env:
           COMPOSE_FILE: docker-compose.cheo.yaml
           ST_VERSION: latest
