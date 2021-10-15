@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - kevinlul/cd-push
     paths:
       - .github/workflows/flask.yml
       - flask/**/*
@@ -77,7 +78,7 @@ jobs:
         id: meta-prod
         with:
           images: ghcr.io/${{ github.repository }}
-          flavor: latest=${{ github.ref == 'refs/heads/master' }}
+          #flavor: latest=${{ github.ref == 'refs/heads/master' }}
           tags: |
             type=ref,event=tag
             type=sha,format=long
@@ -98,20 +99,20 @@ jobs:
     runs-on: [self-hosted, cheo-ri]
     needs: build
     if: github.event_name == 'push'
-    environment: CHEO-RI
-    concurrency: CHEO-RI
+    environment: CHEO-RI-DEV
+    concurrency: CHEO-RI-DEV
     steps:
       - uses: actions/checkout@v2
       - name: Configure SSH
         # https://docs.docker.com/engine/context/working-with-contexts/
         # This avoids passing an -H parameter to every Docker CLI cal
         run: |
+          eval $(ssh-agent -s)
+          ssh-add - <<< "${{ secrets.DEPLOY_PRIVATE_KEY }}"
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_HOST_KEY }}" >> ~/.ssh/known_hosts
-          echo "${{ secrets.DEPLOY_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
-          echo "${{ secrets.DEPLOY_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.DEPLOY_HOST_KEY }}" > ~/.ssh/known_hosts
           chmod -R g-rwx,o-rwx ~/.ssh
-          docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_SSH_HOST }}
           docker context use deploy-target
       - uses: docker/login-action@v1
         with:
@@ -121,7 +122,7 @@ jobs:
       - name: Deploy
         env:
           COMPOSE_FILE: docker-compose.cheo.yaml
-          ST_VERSION: latest
+          ST_VERSION: sha-${{ github.sha }}
           ST_SECRET_KEY: ${{ secrets.ST_SECRET_KEY }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
@@ -133,3 +134,7 @@ jobs:
         run: |
           docker-compose pull
           docker-compose up -d
+      - name: Clean up
+        if: always()
+        run: |
+          docker context rm deploy-target
