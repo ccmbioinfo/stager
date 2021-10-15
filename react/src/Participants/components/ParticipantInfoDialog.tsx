@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
 import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
+
+import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
@@ -14,6 +16,7 @@ import {
     useDatasetQueries,
     useEnumsQuery,
     useErrorSnackbar,
+    useFamilyUpdateMutation,
     useParticipantQuery,
     useParticipantUpdateMutation,
 } from "../../hooks";
@@ -32,18 +35,43 @@ const useStyles = makeStyles(theme => ({
 
 function getParticipantFields(participant: Participant): Field[] {
     return [
-        createFieldObj("Family Codename", participant.family_codename, "family_codename"),
-        createFieldObj("Family Aliases", participant.family_aliases, "family_aliases"),
+        createFieldObj(
+            "Family Codename",
+            participant.family_codename,
+            "family_codename",
+            false,
+            50
+        ),
+        createFieldObj("Family Aliases", participant.family_aliases, "family_aliases", false, 100),
         createFieldObj("Participant Type", participant.participant_type, "participant_type"),
+        createFieldObj(
+            "Participant Codename",
+            participant.participant_codename,
+            "participant_codename",
+            false,
+            50
+        ),
         createFieldObj(
             "Participant Aliases",
             participant.participant_aliases,
-            "participant_aliases"
+            "participant_aliases",
+            false,
+            100
+        ),
+        createFieldObj(
+            "Month of Birth",
+            formatDateString(participant.month_of_birth, "month_of_birth"),
+            "month_of_birth"
         ),
         createFieldObj("Sex", participant.sex, "sex"),
         createFieldObj("Affected", stringToBoolean(participant.affected), "affected", true),
         createFieldObj("Solved", stringToBoolean(participant.solved), "solved"),
-        createFieldObj("Dataset Types", participant.dataset_types, "dataset_types", true),
+        createFieldObj(
+            "Dataset Types",
+            participant.dataset_types.join(", "),
+            "dataset_types",
+            true
+        ),
         createFieldObj("Notes", participant.notes, "notes"),
         createFieldObj("Time of Creation", formatDateString(participant.created), "created", true),
         createFieldObj("Created By", participant.created_by, "created_by", true),
@@ -56,10 +84,16 @@ function getParticipantFields(participant: Participant): Field[] {
 interface DialogProp {
     open: boolean;
     participant_id: string;
+    family_id: string;
     onClose: () => void;
 }
 
-export default function ParticipantInfoDialog({ participant_id, onClose, open }: DialogProp) {
+export default function ParticipantInfoDialog({
+    participant_id,
+    family_id,
+    onClose,
+    open,
+}: DialogProp) {
     const classes = useStyles();
     const { data: participant } = useParticipantQuery(participant_id);
     const datasets = useMemo(
@@ -78,6 +112,7 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
     );
 
     const participantUpdateMutation = useParticipantUpdateMutation();
+    const familyUpdateMutation = useFamilyUpdateMutation();
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
 
@@ -88,11 +123,34 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
         const newData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
+                    if (
+                        field.fieldName === "month_of_birth" &&
+                        field.value &&
+                        typeof field.value === "string" &&
+                        /^0[1-9]|1[012]-\d{4}$/.test(field.value)
+                    ) {
+                        field.value = dayjs(field.value, "MM-YYYY").format("YYYY-MM-1");
+                    }
                     return { [field.fieldName]: field.value };
                 } else return false;
             })
             .filter(Boolean)
             .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Participant);
+
+        familyUpdateMutation.mutate(
+            {
+                ...newData,
+                family_id,
+            },
+            {
+                onError: response => {
+                    console.error(
+                        `PATCH /api/families/${family_id} failed with ${response.status}: ${response.statusText}`
+                    );
+                    enqueueErrorSnackbar(response, `Failed to edit Family ID ${family_id}`);
+                },
+            }
+        );
 
         participantUpdateMutation.mutate(
             {
@@ -101,20 +159,17 @@ export default function ParticipantInfoDialog({ participant_id, onClose, open }:
             },
             {
                 onSuccess: receiveDataset => {
-                    enqueueSnackbar(
-                        `Participant ID ${newData.participant_id} updated successfully`,
-                        {
-                            variant: "success",
-                        }
-                    );
+                    enqueueSnackbar(`Participant ID ${participant_id} updated successfully`, {
+                        variant: "success",
+                    });
                 },
                 onError: response => {
                     console.error(
-                        `PATCH /api/participants/${newData.participant_id} failed with ${response.status}: ${response.statusText}`
+                        `PATCH /api/participants/${participant_id} failed with ${response.status}: ${response.statusText}`
                     );
                     enqueueErrorSnackbar(
                         response,
-                        `Failed to edit Participant ID ${newData?.participant_id}`
+                        `Failed to edit Participant ID ${participant_id}`
                     );
                 },
             }

@@ -33,13 +33,11 @@ export interface Participant {
     participant_id: string;
     participant_codename: string;
     participant_aliases: string;
-    family_id: string;
-    family_codename: string;
-    family_aliases: string;
     participant_type: string;
     affected: PseudoBoolean;
     solved: PseudoBoolean;
     sex: string;
+    month_of_birth: string;
     notes: string;
     dataset_types: string[];
     created: string;
@@ -48,6 +46,9 @@ export interface Participant {
     updated_by: number;
     tissue_samples: Sample[];
     institution: string;
+    family_id: string;
+    family_codename: string;
+    family_aliases: string;
 }
 export interface Sample {
     tissue_sample_id: string;

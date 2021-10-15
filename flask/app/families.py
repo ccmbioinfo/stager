@@ -9,9 +9,15 @@ from .utils import (
     check_admin,
     filter_datasets_by_user_groups,
     get_current_user,
+    validate_enums_and_set_fields,
     validate_json,
     transaction_or_abort,
 )
+
+editable_columns = [
+    "family_codename",
+    "family_aliases",
+]
 
 family_blueprint = Blueprint(
     "families",
@@ -207,31 +213,23 @@ def update_family(id: int):
 
     family = query.first_or_404()
 
-    app.logger.debug(
-        "Family codename is being changed from '%s' to '%s'",
-        family.family_codename,
-        fam_codename,
-    )
-    family.family_codename = fam_codename
+    validate_enums_and_set_fields(family, request.json, editable_columns)
 
     app.logger.debug("Family code update is peformed by user: '%s'", user.user_id)
     if user:
         family.updated_by_id = user.user_id
 
-    try:
-        db.session.commit()
-        app.logger.debug("Update successful, returning JSON...")
-        return jsonify(
+    transaction_or_abort(db.session.commit)
+
+    return jsonify(
+        [
             {
                 **asdict(family),
                 "updated_by": family.updated_by.username,
                 "created_by": family.created_by.username,
             }
-        )
-    except:
-        app.logger.error("Update unsuccessful")  # under what cases would this fail
-        db.session.rollback()
-        abort(500)
+        ]
+    )
 
 
 @family_blueprint.route("/api/families", methods=["POST"], strict_slashes=False)
