@@ -41,9 +41,17 @@ export function toKeyValue(items: string[]) {
 /**
  * Convert an ISO datetime to human-readable format in the user's locale.
  */
-export function formatDateString(date: string) {
+export function formatDateString(date: string, fieldName?: string) {
     const datetime = dayjs.utc(date);
-    return datetime.isValid() ? datetime.format("LLLL") : null;
+    if (fieldName === "month_of_birth") {
+        return datetime.isValid() ? datetime.local().format("MM-YYYY") : ""; // only display year and month
+    }
+
+    if (fieldName === "library_prep_date") {
+        return datetime.isValid() ? datetime.local().format("LL") : "";
+    }
+    // return datetime.isValid() ? datetime.local().format("LLLL") : "";
+    return datetime.isValid() ? datetime.local().format("LLLL") : "";
 }
 
 /**
@@ -186,7 +194,7 @@ export function getSecDatasetFields(dataset: Dataset) {
         ),
         createFieldObj(
             "Library Prep Date",
-            formatDateString(dataset.library_prep_date),
+            formatDateString(dataset.library_prep_date, "library_prep_date"),
             "library_prep_date"
         ),
         createFieldObj("Read Length", dataset.read_length, "read_length", false, 10),
