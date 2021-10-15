@@ -65,7 +65,12 @@ function EnhancedTextField({
     const textFieldProps: TextFieldProps = {
         error: field.entryError,
         id: "standard-error",
-        helperText: field.entryError ? "Incorrect entry" : " ",
+        helperText:
+            field.entryError && field.fieldName === "month_of_birth"
+                ? "MM-YYYY"
+                : field.entryError
+                ? "Incorrect entry"
+                : " ",
         className: classes.textField,
         fullWidth: true,
         margin: "dense",
