@@ -348,7 +348,7 @@ HOOD,HERO,Proband,Saliva,RRS,Female,GermLine,2020-12-17,,three
 
     for dataset in models.Dataset.query.all():
         print(dataset)
-    assert models.Dataset.query.count() == 8
+    assert models.Dataset.query.count() == 9
     assert models.RNASeqDataset.query.count() == 1
     assert models.File.query.count() == 5
     assert models.TissueSample.query.count() == 7
@@ -395,7 +395,7 @@ def test_bulk_multiple_json(test_database, client, login_as):
         == 200
     )
 
-    assert models.Dataset.query.count() == 7
+    assert models.Dataset.query.count() == 8
     assert models.File.query.count() == 3
     assert models.TissueSample.query.count() == 6
     assert models.Participant.query.count() == 4

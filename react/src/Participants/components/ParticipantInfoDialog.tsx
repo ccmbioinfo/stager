@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
 import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
+
 import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
@@ -8,7 +10,13 @@ import {
     getAnalysisInfoList,
     stringToBoolean,
 } from "../../functions";
-import { useDatasetQueries, useEnumsQuery } from "../../hooks";
+import {
+    useDatasetQueries,
+    useEnumsQuery,
+    useErrorSnackbar,
+    useParticipantQuery,
+    useParticipantUpdateMutation,
+} from "../../hooks";
 import { Analysis, Field, Participant } from "../../typings";
 import SampleTable from "./SampleTable";
 
@@ -47,18 +55,19 @@ function getParticipantFields(participant: Participant): Field[] {
 
 interface DialogProp {
     open: boolean;
-    participant: Participant;
+    participant_id: string;
     onClose: () => void;
-    onUpdate: (participant_id: string, newParticipant: { [key: string]: any }) => void;
 }
 
-export default function ParticipantInfoDialog(props: DialogProp) {
+export default function ParticipantInfoDialog({ participant_id, onClose, open }: DialogProp) {
     const classes = useStyles();
+    const { data: participant } = useParticipantQuery(participant_id);
     const datasets = useMemo(
-        () => props.participant.tissue_samples.flatMap(sample => sample.datasets),
-        [props.participant]
+        () => (participant ? participant.tissue_samples.flatMap(sample => sample.datasets) : []),
+        [participant]
     );
-    const datasetResults = useDatasetQueries(datasets.map(d => d.dataset_id));
+    const dataset_ids: string[] = datasets.map(d => d.dataset_id);
+    const datasetResults = useDatasetQueries(dataset_ids);
     const analyses = useMemo(
         () =>
             datasetResults.reduce<Analysis[]>(
@@ -67,39 +76,79 @@ export default function ParticipantInfoDialog(props: DialogProp) {
             ),
         [datasetResults]
     );
+
+    const participantUpdateMutation = useParticipantUpdateMutation();
+    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
+
     const labeledBy = "participant-info-dialog-slide-title";
     const { data: enums } = useEnumsQuery();
 
+    const updateParticipant = async (fields: Field[]) => {
+        const newData = fields
+            .map(field => {
+                if (field.fieldName && !field.disableEdit) {
+                    return { [field.fieldName]: field.value };
+                } else return false;
+            })
+            .filter(Boolean)
+            .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Participant);
+
+        participantUpdateMutation.mutate(
+            {
+                ...newData,
+                participant_id,
+            },
+            {
+                onSuccess: receiveDataset => {
+                    enqueueSnackbar(
+                        `Participant ID ${newData.participant_id} updated successfully`,
+                        {
+                            variant: "success",
+                        }
+                    );
+                },
+                onError: response => {
+                    console.error(
+                        `PATCH /api/participants/${newData.participant_id} failed with ${response.status}: ${response.statusText}`
+                    );
+                    enqueueErrorSnackbar(
+                        response,
+                        `Failed to edit Participant ID ${newData?.participant_id}`
+                    );
+                },
+            }
+        );
+    };
+
     return (
         <Dialog
-            onClose={props.onClose}
+            onClose={onClose}
             aria-labelledby={labeledBy}
-            open={props.open}
+            open={open}
             maxWidth="lg"
             fullWidth={true}
         >
-            <DialogHeader id={labeledBy} onClose={props.onClose}>
-                Details of Participant {props.participant.participant_codename}
+            <DialogHeader id={labeledBy} onClose={onClose}>
+                Details of Participant {participant?.participant_codename}
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection
-                        columnWidth={3}
-                        fields={getParticipantFields(props.participant)}
-                        enums={enums}
-                        dataInfo={{
-                            type: "participant",
-                            ID: props.participant.participant_id,
-                            identifier: props.participant.participant_codename,
-                            onUpdate: props.onUpdate,
-                        }}
-                    />
+                    {participant && (
+                        <DetailSection
+                            fields={getParticipantFields(participant)}
+                            enums={enums}
+                            columnWidth={3}
+                            editable={true}
+                            update={updateParticipant}
+                        />
+                    )}
                 </div>
-                {props.participant.tissue_samples.length > 0 && (
+                {participant && participant.tissue_samples.length > 0 && (
                     <>
                         <Divider />
                         <div>
-                            <SampleTable samples={props.participant.tissue_samples} enums={enums} />
+                            <SampleTable samples={participant.tissue_samples} enums={enums} />
                         </div>
                     </>
                 )}

@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from typing import List
+
 from flask import (
     Blueprint,
     Response,
@@ -11,6 +12,7 @@ from flask import (
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload, selectinload
+
 from . import models
 from .extensions import db
 from .utils import (
@@ -26,10 +28,10 @@ from .utils import (
     paged,
     paginated_response,
     transaction_or_abort,
-    validate_json,
     str_to_bool,
     validate_enums_and_set_fields,
     validate_enums,
+    validate_json,
 )
 
 EDITABLE_COLUMNS = [
@@ -307,7 +309,9 @@ def get_dataset(id: int):
     return jsonify(
         {
             **asdict(dataset),
+            "linked_files": dataset.linked_files,
             "tissue_sample": dataset.tissue_sample,
+            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
             "participant_codename": dataset.tissue_sample.participant.participant_codename,
             "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
             "participant_type": dataset.tissue_sample.participant.participant_type,
@@ -317,6 +321,7 @@ def get_dataset(id: int):
             "sex": dataset.tissue_sample.participant.sex,
             "family_codename": dataset.tissue_sample.participant.family.family_codename,
             "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
+            "group_code": [group.group_code for group in dataset.groups],
             "created_by": dataset.tissue_sample.participant.created_by.username,
             "updated_by": dataset.tissue_sample.participant.updated_by.username,
             "analyses": [

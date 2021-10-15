@@ -254,6 +254,20 @@ export function createFieldObj(
     };
 }
 
+type NumberOrString = number | string;
+export const groupBy = <T extends { [key: NumberOrString]: any }, K extends keyof T>(
+    data: T[],
+    key: T[K] extends NumberOrString ? K : never
+) => {
+    return data.reduce<{ [key: NumberOrString]: T[] }>(
+        (acc, curr) => ({
+            ...acc,
+            [curr[key]]: acc[curr[key]] ? acc[curr[key]].concat(curr) : [curr],
+        }),
+        {}
+    );
+};
+
 export const getKeys = <T extends object>(obj: T) => Object.keys(obj) as (keyof T)[];
 
 /**

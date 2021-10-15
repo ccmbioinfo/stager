@@ -1,6 +1,6 @@
 import os
-
 import pytest
+
 from app import create_app, db
 from app.config import Config
 from app.models import *
@@ -166,6 +166,13 @@ def test_database(client):
     user_b.set_password("user_b")
     user_b.minio_access_key = "user_b"
     db.session.add(user_b)
+    db.session.flush()
+
+    user_c = User(username="user_c", email="test_c@sickkids.ca")
+    user_c.set_password("user_c")
+    user_c.minio_access_key = "user_c"
+    user_c.groups.append(group_bcch)
+    db.session.add(user_c)
     db.session.flush()
 
     pipeline_1 = Pipeline(pipeline_id=1, pipeline_name="CRG", pipeline_version="1.2")
@@ -352,14 +359,23 @@ def test_database(client):
         updated_by_id=admin.user_id,
     )
 
-    # Creating a tissue sample with only one dataset
+    dataset_6 = Dataset(
+        dataset_id=6,
+        dataset_type="WES",
+        condition=DatasetCondition.Somatic,
+        created_by_id=admin.user_id,
+        updated_by_id=admin.user_id,
+    )
+    dataset_6.groups.append(group_bcch)
+
+    # Creating a tissue sample with 2 datasets
     sample_4 = TissueSample(
         tissue_sample_id=4,
         tissue_sample_type=TissueSampleType.Blood,
         created_by_id=admin.user_id,
         updated_by_id=admin.user_id,
     )
-    sample_4.datasets.append(dataset_5)
+    sample_4.datasets.extend([dataset_5, dataset_6])
     participant_3.tissue_samples.append(sample_4)
 
     db.session.add(family_b)

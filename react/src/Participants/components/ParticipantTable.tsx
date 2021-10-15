@@ -173,25 +173,7 @@ export default function ParticipantTable() {
             {activeRow && (
                 <ParticipantInfoDialog
                     open={detail}
-                    participant={activeRow}
-                    onUpdate={(participant_id: string, newParticipant: { [key: string]: any }) => {
-                        newParticipant.solved += "";
-                        newParticipant.affected += "";
-                        setParticipants(
-                            participants.map(participant => {
-                                if (participant.participant_id === participant_id) {
-                                    const updatedParticipant = {
-                                        ...participant,
-                                        ...newParticipant,
-                                    };
-                                    setActiveRow(updatedParticipant);
-                                    return updatedParticipant;
-                                } else {
-                                    return participant;
-                                }
-                            })
-                        );
-                    }}
+                    participant_id={activeRow.participant_id}
                     onClose={() => {
                         setDetail(false);
                     }}
