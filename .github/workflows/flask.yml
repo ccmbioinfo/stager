@@ -113,8 +113,6 @@ jobs:
         # https://docs.docker.com/engine/context/working-with-contexts/
         # This avoids passing an -H parameter to every Docker CLI cal
         run: |
-          eval $(ssh-agent -s)
-          ssh-add - <<< "${{ secrets.DEPLOY_PRIVATE_KEY }}"
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_HOST_KEY }}" > ~/.ssh/known_hosts
           chmod -R g-rwx,o-rwx ~/.ssh
@@ -133,6 +131,8 @@ jobs:
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
+          eval $(ssh-agent -s)
+          ssh-add - <<< "${{ secrets.DEPLOY_PRIVATE_KEY }}"
           docker-compose pull
           docker-compose up -d
       - name: Clean up
