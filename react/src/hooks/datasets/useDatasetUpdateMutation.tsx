@@ -14,10 +14,7 @@ async function patchDataset(newDataset: Partial<Dataset>) {
 export function useDatasetUpdateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Dataset, Response, Partial<Dataset>>(patchDataset, {
-        onSuccess: newDataset => {
-            queryClient.invalidateQueries("datasets");
-            queryClient.setQueryData(["datasets", newDataset.dataset_id], newDataset);
-        },
+        onSuccess: () => queryClient.invalidateQueries("datasets"),
     });
     return mutation;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     Collapse,
@@ -10,12 +10,13 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Check } from "@material-ui/icons";
+
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useSnackbar } from "notistack";
-import { useErrorSnackbar } from "../hooks";
+
 import { Field } from "../typings";
 import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
+
 dayjs.extend(customParseFormat);
 
 const gridSpacing = 2;
@@ -40,21 +41,15 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-interface DataInfo {
-    type: "participant" | "dataset";
-    ID: string;
-    identifier: string; // participant codename for participant, dataset ID for dataset
-    onUpdate?: (participant_id: string, newParticipant: { [key: string]: any }) => void;
-}
-
 interface DetailSectionProps {
     fields: Field[];
     enums?: Record<string, string[]>;
+    editable?: boolean;
     columnWidth?: Width;
     collapsibleFields?: Field[];
     title?: string;
-    dataInfo?: DataInfo; // dataInfo indicates data is editable
     linkPath?: string;
+    update?: (fields: Field[]) => void;
 }
 
 export default function DetailSection(props: DetailSectionProps) {
@@ -62,16 +57,13 @@ export default function DetailSection(props: DetailSectionProps) {
     const [moreDetails, setMoreDetails] = useState(false);
     const [editMode, setEditMode] = useState<boolean>(false);
 
-    // These keep track of state when editing
-    // When edit is finalized, send to backend to update props
+    // internal form state
     const [primaryFields, setPrimaryFields] = useState<Field[]>([]);
     const [secondaryFields, setSecondaryFields] = useState<Field[]>(
         props.collapsibleFields ? props.collapsibleFields : []
     );
-    const { enqueueSnackbar } = useSnackbar();
-    const enqueueErrorSnackbar = useErrorSnackbar();
 
-    // Props are the main source of truth about the state of the fields
+    // keep fields in sync with parents in case of update/refresh
     useEffect(() => {
         setPrimaryFields(props.fields);
     }, [props.fields]);
@@ -110,71 +102,6 @@ export default function DetailSection(props: DetailSectionProps) {
         }
     }
 
-    async function updateData() {
-        // TODO: Revisit after /api/partipants part of #283
-        let url;
-        if (props.dataInfo?.type === "participant") {
-            url = `/api/participants/${props.dataInfo?.ID}`;
-        } else {
-            url = `/api/datasets/${props.dataInfo?.ID}`;
-        }
-        const newData: { [key: string]: any } = {};
-        primaryFields.concat(secondaryFields).forEach(field => {
-            if (field.fieldName && !field.disableEdit) {
-                // This is a temporary fix for 500 Server Error invoked when library_prep_date
-                // is sent to the backend. This is probably because library_prep_date
-                // is  stored in a non-ISO string format, although it should. This fix needs to be
-                // revisited after fixing the table non-refreshing issue (#842)
-
-                // Due to the inconsistent refreshing/data update issue (#842),
-                // sometimes field.value is in ISO format -> else clause,
-                // sometimes field.value is in human readable format (eg: Wednesday, September 22, 2021 8:00 PM) -> if clause.
-                if (
-                    field.fieldName === "library_prep_date" &&
-                    field.value != null &&
-                    typeof field.value === "string" &&
-                    /[A-Z]/.test(field.value[0])
-                ) {
-                    field.value = field.value.substring(field.value.indexOf(",") + 2);
-                    newData[field.fieldName] = dayjs(field.value, "MMMM D, YYYY h:mm A").format(
-                        "YYYY-MM-D"
-                    );
-                } else {
-                    newData[field.fieldName] = field.value;
-                }
-            }
-        });
-        const response = await fetch(url, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newData),
-        });
-        if (response.ok) {
-            const data = await response.json();
-            if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
-            enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
-                    props.dataInfo?.identifier
-                } updated successfully`,
-                {
-                    variant: "success",
-                }
-            );
-        } else {
-            setPrimaryFields(props.fields);
-            if (props.collapsibleFields) {
-                setSecondaryFields(props.collapsibleFields);
-            }
-            console.error(
-                `PATCH /api/${props.dataInfo?.type}s/${props.dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
-            );
-            enqueueErrorSnackbar(
-                response,
-                `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier}`
-            );
-        }
-    }
-
     return (
         <>
             <Grid container spacing={gridSpacing} justifyContent="space-between">
@@ -187,7 +114,7 @@ export default function DetailSection(props: DetailSectionProps) {
                     container
                     spacing={gridSpacing}
                     item
-                    xs={props.dataInfo ? 10 : 12}
+                    xs={props.editable ? 10 : 12}
                     justifyContent="space-evenly"
                 >
                     <GridFieldsDisplay
@@ -198,7 +125,7 @@ export default function DetailSection(props: DetailSectionProps) {
                         columnWidth={props.columnWidth}
                     />
                 </Grid>
-                {props.dataInfo && (
+                {props.editable && (
                     <Grid item xs={2}>
                         <FormControlLabel
                             control={<Switch color="primary" checked={editMode} size="small" />}
@@ -222,7 +149,9 @@ export default function DetailSection(props: DetailSectionProps) {
                                 color="secondary"
                                 onClick={() => {
                                     setEditMode(false);
-                                    updateData();
+                                    if (props.update) {
+                                        props.update(primaryFields.concat(secondaryFields));
+                                    }
                                 }}
                             >
                                 <Check fontSize="large" />

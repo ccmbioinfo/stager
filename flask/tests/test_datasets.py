@@ -19,7 +19,7 @@ def test_list_datasets_admin(client, test_database, login_as):
     assert response.status_code == 200
     body = response.get_json()
     assert body["page"] == 0
-    assert len(body["data"]) == body["total_count"] == 5
+    assert len(body["data"]) == body["total_count"] == 6
 
 
 def test_list_datasets_no_groups(client, test_database, login_as):
@@ -101,9 +101,9 @@ def test_get_dataset_exact_match(test_database, client, login_as):
     # the number of datasets returned by the endpoint, matching the specifications
     ground_truth_d = {
         "participant": {
-            "exact_match": {"00": 0, "001": 2, "002": 1, "003": 2},
+            "exact_match": {"00": 0, "001": 2, "002": 1, "003": 3},
             "partial_match": {
-                "00": 5
+                "00": 6
             },  # ALL datasets belonging to the three participants 001, 002, and 003
         },
         "family": {
@@ -209,7 +209,7 @@ def test_update_dataset_rnaseq(client, test_database, login_as):
     )
     assert response.status_code == 200
     assert models.RNASeqDataset.query.count() == 1
-    assert response.get_json()[0]["dataset_id"] == 6
+    assert response.get_json()[0]["dataset_id"] == 7
 
     # check created rnaseq dataset is as specified
     for key in rnaseq_payload:
@@ -223,7 +223,7 @@ def test_update_dataset_rnaseq(client, test_database, login_as):
     # check dataset enums are modified
     for rnaseq_enum in rnaseq_changes:
         response = client.patch(
-            "/api/datasets/6", json={rnaseq_enum: rnaseq_changes[rnaseq_enum]}
+            "/api/datasets/7", json={rnaseq_enum: rnaseq_changes[rnaseq_enum]}
         )
         assert response.status_code == 200
         dataset = response.get_json()
@@ -310,6 +310,7 @@ def test_delete_dataset_with_tissue_sample(client, test_database, login_as):
     ).one_or_none()
 
     assert client.delete("/api/datasets/5").status_code == 204
+    assert client.delete("/api/datasets/6").status_code == 204
     assert client.get("/api/datasets/5").status_code == 404
 
     # Check if tissue sample 4 is properly deleted
@@ -621,26 +622,26 @@ def test_dataset_order_by_dataset_column(client, test_database, login_as):
     response = client.get("/api/datasets?order_by=dataset_type&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WES"
 
     response = client.get("/api/datasets?order_by=dataset_type&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["dataset_type"] == body["data"][1]["dataset_type"] == "WGS"
 
     response = client.get("/api/datasets?order_by=sequencing_id&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["sequencing_id"] == None
-    assert body["data"][1]["sequencing_id"] == "2"
+    assert body["data"][2]["sequencing_id"] == "2"
 
     response = client.get("/api/datasets?order_by=sequencing_id&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["sequencing_id"] == "5"
 
 
@@ -651,20 +652,20 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     response = client.get("/api/datasets?order_by=participant_codename&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["participant_codename"] == "001"
 
     response = client.get("/api/datasets?order_by=participant_codename&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["participant_codename"] == "003"
 
     # check join with family
     response = client.get("/api/datasets?order_by=family_codename&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert (
         body["data"][0]["family_codename"] == body["data"][1]["family_codename"] == "Aa"
     )
@@ -673,20 +674,20 @@ def test_dataset_order_by_related_column(client, test_database, login_as):
     assert response.status_code == 200
     body = response.get_json()
 
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["family_codename"] == "Bb"
 
     # check join with tissue sample
     response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=asc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["tissue_sample_type"] == "Blood"
 
     response = client.get("/api/datasets?order_by=tissue_sample_type&order_dir=desc")
     assert response.status_code == 200
     body = response.get_json()
-    assert len(body["data"]) == 5
+    assert len(body["data"]) == 6
     assert body["data"][0]["tissue_sample_type"] == "Blood"
 
 

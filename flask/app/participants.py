@@ -1,9 +1,11 @@
 from dataclasses import asdict
 
 from flask import Blueprint, Response, abort, jsonify, request
+from flask import current_app as app
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm.exc import NoResultFound
 
 from . import models
 from .extensions import db
@@ -22,8 +24,8 @@ from .utils import (
     paged,
     paginated_response,
     transaction_or_abort,
-    validate_json,
     str_to_bool,
+    validate_json,
 )
 
 editable_columns = [
@@ -200,7 +202,6 @@ def list_participants(page: int, limit: int) -> Response:
         func.count(distinct(models.Participant.participant_id))
     ).scalar()
     participants = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
-
     results = [
         {
             **asdict(participant),
@@ -245,6 +246,60 @@ def list_participants(page: int, limit: int) -> Response:
         )
 
     abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
+
+
+@participants_blueprint.route("/api/participants/<int:id>", methods=["GET"])
+@login_required
+def get_participant(id: int):
+
+    user = get_current_user()
+
+    query = models.Participant.query.filter(
+        models.Participant.participant_id == id
+    ).options(
+        joinedload(models.Participant.family),
+        joinedload(models.Participant.institution),
+    )
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets)
+            .options(
+                contains_eager(models.Participant.tissue_samples).contains_eager(
+                    models.TissueSample.datasets
+                ),
+            ),
+            user,
+        )
+
+    participant = query.one_or_none()
+
+    if not participant:
+        abort(404)
+
+    return jsonify(
+        {
+            **asdict(participant),
+            "family_codename": participant.family.family_codename,
+            "family_aliases": participant.family.family_aliases,
+            "institution": participant.institution.institution
+            if participant.institution
+            else None,
+            "updated_by": participant.updated_by.username,
+            "created_by": participant.created_by.username,
+            "tissue_samples": [
+                {
+                    **asdict(tissue_sample),
+                    "datasets": [
+                        {**asdict(d), "linked_files": d.linked_files}
+                        for d in tissue_sample.datasets
+                    ],
+                }
+                for tissue_sample in participant.tissue_samples
+            ],
+        }
+    )
 
 
 @participants_blueprint.route("/api/participants/<int:id>", methods=["DELETE"])
