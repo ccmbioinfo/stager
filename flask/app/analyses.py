@@ -13,14 +13,14 @@ from .utils import (
     check_admin,
     clone_entity,
     csv_response,
-    enum_validate,
     expects_csv,
     expects_json,
     filter_datasets_by_user_groups,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
     get_current_user,
-    mixin,
+    validate_enums_and_set_fields,
+    validate_enums,
     paged,
     paginated_response,
     transaction_or_abort,
@@ -373,10 +373,7 @@ def create_analysis():
 
     app.logger.debug("Validating priority parameter..")
 
-    enum_error = enum_validate(models.Analysis, request.json, ["priority"])
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums(models.Analysis, request.json, ["priority"])
 
     user = get_current_user()
 
@@ -658,10 +655,7 @@ def update_analysis(id: int):
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = mixin(analysis, request.json, editable_columns)
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums_and_set_fields(analysis, request.json, editable_columns)
 
     app.logger.debug("Validating other fields..")
 

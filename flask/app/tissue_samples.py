@@ -10,8 +10,9 @@ from .utils import (
     filter_datasets_by_user_groups,
     get_current_user,
     transaction_or_abort,
-    mixin,
-    enum_validate,
+    validate_enums,
+    validate_enums_and_set_fields,
+    validate_enum,
     validate_json,
 )
 
@@ -147,13 +148,9 @@ def create_tissue_sample():
     models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
     app.logger.debug("Participant ID exists")
     app.logger.debug("Validating enums")
-    enum_error = enum_validate(models.TissueSample, request.json, editable_columns)
+    validate_enums(models.TissueSample, request.json, editable_columns)
 
-    if enum_error:
-        app.logger.error("Enum invalid: " + enum_error)
-        abort(400, description=enum_error)
-    else:
-        app.logger.debug("All enums supplied are valid.")
+    app.logger.debug("All enums supplied are valid.")
 
     try:
         app.logger.debug(
@@ -222,13 +219,10 @@ def update_tissue_sample(id: int):
     tissue_sample = query.first_or_404()
 
     app.logger.debug("Validating enums..")
-    enum_error = mixin(tissue_sample, request.json, editable_columns)
 
-    if enum_error:
-        app.logger.error("Enum invalid: " + enum_error)
-        abort(400, description=enum_error)
-    else:
-        app.logger.debug("All enums supplied are valid.")
+    validate_enums_and_set_fields(tissue_sample, request.json, editable_columns)
+
+    app.logger.debug("All enums supplied are valid.")
 
     if user:
         app.logger.debug("Updating updated by ID to '%s'", user.user_id)

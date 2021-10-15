@@ -12,7 +12,6 @@ from .extensions import db
 from .utils import (
     check_admin,
     csv_response,
-    enum_validate,
     expects_csv,
     expects_json,
     filter_datasets_by_user_groups,
@@ -20,11 +19,12 @@ from .utils import (
     filter_nullable_bool_or_abort,
     filter_updated_or_abort,
     get_current_user,
-    mixin,
     paged,
     paginated_response,
     transaction_or_abort,
     str_to_bool,
+    validate_enums_and_set_fields,
+    validate_enums,
     validate_json,
 )
 
@@ -342,10 +342,7 @@ def update_participant(id: int):
 
     participant = query.first_or_404()
 
-    enum_error = mixin(participant, request.json, editable_columns)
-
-    if enum_error:
-        abort(400, description="enum_error")
+    validate_enums_and_set_fields(participant, request.json, editable_columns)
 
     if user:
         participant.updated_by_id = user.user_id
@@ -398,10 +395,7 @@ def create_participant():
     ).first_or_404()
 
     # validate enums
-    enum_error = enum_validate(models.Participant, request.json, editable_columns)
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums(models.Participant, request.json, editable_columns)
 
     # get institution id
     institution = request.json.get("institution")

@@ -18,15 +18,16 @@ from flask.globals import current_app
 from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
+from flask_sqlalchemy.model import DefaultMeta
 from sqlalchemy import exc
+from sqlalchemy import inspect
 from sqlalchemy.orm.query import Query
+from sqlalchemy.sql.sqltypes import Enum as SqlAlchemyEnum
 from werkzeug.exceptions import HTTPException
 
 from .extensions import db
 from .madmin import MinioAdmin
 from .models import User, Group, Dataset
-
-from sqlalchemy import inspect
 
 
 def str_to_bool(param: str) -> bool:
@@ -40,35 +41,82 @@ def handle_error(e):
     return jsonify(error=str(e.description)), code
 
 
-def mixin(
-    entity: db.Model, json_mixin: Dict[str, Any], columns: List[str]
+def get_mapper(entity: db.Model):
+    _mapper = inspect(entity)
+    return _mapper if isinstance(entity, DefaultMeta) else _mapper.mapper
+
+
+def validate_enums_and_set_fields(
+    entity: db.Model,
+    json_mixin: Dict[str, Any],
+    allowed_columns: List[str],
 ) -> Union[None, str]:
-
-    insp_mapper = inspect(entity).mapper
-
-    for field in columns:
+    """
+    Used primarily in PATCH requests to modify a loaded model instance in-place. Checks for valid enums and adds them to the model if they exist
+    """
+    for field in allowed_columns:
         if field in json_mixin:
-            column = getattr(entity, field)  # will be None if no value for field in db
-            value = json_mixin[field]
-            if isinstance(column, Enum):
+            validate_enum(entity, field, json_mixin[field])
+            setattr(entity, field, json_mixin[field])
 
-                try:
-                    insp_mapper.columns[field]
-                except Exception as err:
-                    # this is not helpful as it returns the field
-                    app.logger.error(str(err))
 
-                    abort(
-                        400,
-                        description="mixin attempted to access invalid column '{}' in table '{}'".format(
-                            field, str(entity.__tablename__)
-                        ),
-                    )
-                is_null_valid = insp_mapper.columns[field].nullable and value is None
-                if not hasattr(type(column), str(value)) and not is_null_valid:
-                    allowed = [e.value for e in type(column)]
-                    return f'"{field}" must be one of {allowed}'
-            setattr(entity, field, value)
+def validate_enums(
+    entity: db.Model,
+    json_mixin: Dict[str, Any],
+    allowed_columns: List[str],
+) -> Union[None, str]:
+    """
+    Used primarily in POST requests, where entity is a class blueprint. Adds the allowed fields to the model if they exist
+    """
+    for field in allowed_columns:
+        if field in json_mixin:
+            validate_enum(entity, field, json_mixin[field])
+
+
+def validate_enum(
+    entity: db.Model,
+    field_name: str,
+    value: str,
+):
+    """
+    Check whether the specified entity column is an enum and if so, whether the specified value is valid.
+    """
+
+    enums = get_enums(entity, field_name)
+
+    if enums:
+        mapper = get_mapper(entity)
+
+        try:
+            value_is_a_valid_null = (
+                mapper.columns[field_name].nullable and value is None
+            )
+
+        except AttributeError:
+            abort(
+                400,
+                description=f"'{field_name}' is not in table '{mapper.mapped_table.name}'",
+            )
+
+        if value not in enums and not value_is_a_valid_null:
+            abort(
+                400,
+                description=f"'{value}' is not a valid value for field '{field_name}'",
+            )
+
+    return True
+
+
+def get_enums(entity: db.Model, field: str) -> List[str] or None:
+    """return the enums for the specified field or None if the field is not enum or doesn't exist on the model/instance"""
+    mapper = get_mapper(entity)
+    try:
+        if isinstance(mapper.columns[field].type, SqlAlchemyEnum):
+            return mapper.columns[field].type.enums
+        else:
+            return None
+    except AttributeError:
+        return None
 
 
 def check_admin(handler):
@@ -130,19 +178,6 @@ def transaction_or_abort(callback: Callable) -> None:
     except Exception as err:
         db.session.rollback()
         raise err
-
-
-def enum_validate(
-    entity: db.Model, json_mixin: Dict[str, any], columns: List[str]
-) -> Union[None, str]:
-    for field in columns:
-        if field in json_mixin:
-            column = getattr(entity, field)  # the column type from the entities
-            value = json_mixin[field]
-            if hasattr(column.type, "enums"):  # check if enum
-                if value not in column.type.enums and value is not None:
-                    allowed = column.type.enums
-                    return f'Invalid value for: "{field}", current input is "{value}" but must be one of {allowed}'
 
 
 def filter_in_enum_or_abort(column: db.Column, Allowed: Enum, values: str):

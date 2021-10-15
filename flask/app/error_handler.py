@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, current_app as app
 from werkzeug.exceptions import HTTPException
 import traceback
+from sqlalchemy import exc
+from .extensions import db
 
 error_blueprint = Blueprint("error_handler", __name__)
 

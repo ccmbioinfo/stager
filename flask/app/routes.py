@@ -9,16 +9,16 @@ from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
-
+from werkzeug.exceptions import BadRequest  # 400
 from . import models
 from .extensions import db, oauth
 from .utils import (
-    enum_validate,
-    find,
+    validate_enums,
     get_current_user,
     transaction_or_abort,
     validate_json,
     update_last_login,
+    find,
 )
 
 import numpy as np
@@ -432,15 +432,23 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for participants..")
-        enum_error = enum_validate(
-            models.Participant, row, editable_dict["participant"]
-        )
-        if enum_error:
-            app.logger.error("\tEnum invalid: " + enum_error)
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
-        else:
+
+        try:
+            validate_enums(models.Participant, row, editable_dict["participant"])
             app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + 1)
+                ),
+            )
 
         # get institution id
         app.logger.debug("\tRetrieving institution")
@@ -500,15 +508,23 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for tissue samples..")
-        enum_error = enum_validate(
-            models.TissueSample, row, editable_dict["tissue_sample"]
-        )
-        if enum_error:
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)}: " + enum_error)
-        else:
-            app.logger.debug("\tAll enums supplied are valid.")
 
+        try:
+            validate_enums(models.TissueSample, row, editable_dict["tissue_sample"])
+            app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + 1)
+                ),
+            )
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
         tissue_sample = models.TissueSample(
@@ -524,14 +540,22 @@ def bulk_update():
         app.logger.debug("\tDone")
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for datasets..")
-        enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
-        if enum_error:
-            app.logger.error("\tEnum invalid: " + enum_error)
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
-        else:
+        try:
+            validate_enums(models.Dataset, row, editable_dict["dataset"])
             app.logger.debug("\tAll enums supplied are valid.")
-
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + 1)
+                ),
+            )
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
 
