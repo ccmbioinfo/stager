@@ -135,10 +135,10 @@ jobs:
         run: |
           eval "${{ steps.configure.outputs.ssh-agent-eval }}"
           docker-compose pull
-          docker-compose up -d
+          docker-compose up -d --remove-orphans
       - name: Clean up
         if: always()
         run: |
           docker context rm -f deploy-target
-          eval "$SSH_AGENT_EVAL"
+          eval "${{ steps.configure.outputs.ssh-agent-eval }}"
           ssh-agent -k
