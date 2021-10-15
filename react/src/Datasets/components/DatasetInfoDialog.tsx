@@ -70,7 +70,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                 if (field.fieldName && !field.disableEdit) {
                     if (
                         field.fieldName === "library_prep_date" &&
-                        field.value != null &&
+                        field.value &&
                         typeof field.value === "string" &&
                         /[A-Z]/.test(field.value[0])
                     ) {
@@ -90,18 +90,15 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             },
             {
                 onSuccess: receiveDataset => {
-                    enqueueSnackbar(`Dataset ID ${newData.dataset_id} updated successfully`, {
+                    enqueueSnackbar(`Dataset ID ${dataset_id} updated successfully`, {
                         variant: "success",
                     });
                 },
                 onError: response => {
                     console.error(
-                        `PATCH /api/datasets/${newData.dataset_id} failed with ${response.status}: ${response.statusText}`
+                        `PATCH /api/datasets/${dataset_id} failed with ${response.status}: ${response.statusText}`
                     );
-                    enqueueErrorSnackbar(
-                        response,
-                        `Failed to edit Dataset ID ${newData?.dataset_id}`
-                    );
+                    enqueueErrorSnackbar(response, `Failed to edit Dataset ID ${dataset_id}`);
                 },
             }
         );
