@@ -98,17 +98,6 @@ function EnhancedTextField({
             )),
             !nonNullableFields.includes(field.fieldName) && nullOption,
         ];
-    } else if (fileFields.includes(field.fieldName)) {
-        console.log(textFieldProps.value);
-        children = (
-            <FileLinkingComponent
-                values={textFieldProps.value as LinkedFile[]}
-                options={files}
-                onEdit={files => {
-                    onEdit(field.fieldName, files.map(file => file.path).join(", "));
-                }}
-            />
-        );
     } else if (booleanFields.includes(field.fieldName)) {
         // Value is a boolean or null
         textFieldProps.select = true;
@@ -151,7 +140,19 @@ function EnhancedTextField({
             onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
     }
 
-    return <TextField {...textFieldProps}>{children}</TextField>;
+    if (fileFields.includes(field.fieldName)) {
+        return (
+            <FileLinkingComponent
+                values={textFieldProps.value as LinkedFile[]}
+                options={files}
+                onEdit={files => {
+                    onEdit(field.fieldName, files.map(file => file.path).join(", "));
+                }}
+            />
+        );
+    } else {
+        return <TextField {...textFieldProps}>{children}</TextField>;
+    }
 }
 
 const useStyles = makeStyles(theme => ({
