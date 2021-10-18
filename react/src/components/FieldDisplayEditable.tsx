@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { formatFieldValue } from "../functions";
 import { useUnlinkedFilesQuery } from "../hooks";
-import { Field, LinkedFile, PseudoBooleanReadableMap } from "../typings";
+import { Field, LinkedFile, PseudoBooleanReadableMap, UnlinkedFile } from "../typings";
 import FieldDisplay from "./FieldDisplay";
 import FileLinkingComponent from "./FileLinkingComponent";
 
@@ -52,7 +52,10 @@ function EnhancedTextField({
 }: {
     field: Field;
     enums?: Record<string, string[]>;
-    onEdit: (fieldName: string | undefined, value: boolean | string | null) => void;
+    onEdit: (
+        fieldName: string | undefined,
+        value: boolean | string | null | UnlinkedFile[]
+    ) => void;
 }) {
     const filesQuery = useUnlinkedFilesQuery();
     const files = filesQuery.data || [];
@@ -146,7 +149,7 @@ function EnhancedTextField({
                 values={textFieldProps.value as LinkedFile[]}
                 options={files}
                 onEdit={files => {
-                    onEdit(field.fieldName, files.map(file => file.path).join(", "));
+                    onEdit(field.fieldName, files);
                 }}
             />
         );

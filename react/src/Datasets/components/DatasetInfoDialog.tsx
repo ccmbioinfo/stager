@@ -90,9 +90,12 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             },
             {
                 onSuccess: receiveDataset => {
-                    enqueueSnackbar(`Dataset ID ${newData.dataset_id} updated successfully`, {
-                        variant: "success",
-                    });
+                    enqueueSnackbar(
+                        `Dataset ID ${receiveDataset.dataset_id} updated successfully`,
+                        {
+                            variant: "success",
+                        }
+                    );
                 },
                 onError: response => {
                     console.error(
