@@ -1,8 +1,10 @@
 import React from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { formatFieldValue } from "../functions";
-import { Field, PseudoBooleanReadableMap } from "../typings";
+import { useUnlinkedFilesQuery } from "../hooks";
+import { Field, LinkedFile, PseudoBooleanReadableMap } from "../typings";
 import FieldDisplay from "./FieldDisplay";
+import FileLinkingComponent from "./FileLinkingComponent";
 
 // Alias for really long type
 type TextFieldEvent = React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>;
@@ -12,6 +14,7 @@ const enumFields = ["sex", "participant_type", "condition", "read_type", "datase
 const nonNullableFields = ["dataset_type", "condition"]; //does not include uneditable fields
 const booleanFields = ["affected", "solved"];
 const dateFields = ["library_prep_date"];
+const fileFields = ["linked_files"];
 
 /**
  * Given a fieldName of a Field object, return the corresponding field in enums
@@ -51,6 +54,9 @@ function EnhancedTextField({
     enums?: Record<string, string[]>;
     onEdit: (fieldName: string | undefined, value: boolean | string | null) => void;
 }) {
+    const filesQuery = useUnlinkedFilesQuery();
+    const files = filesQuery.data || [];
+
     const classes = useTextStyles();
     const nullOption = (
         <MenuItem value="" key="">
@@ -70,7 +76,7 @@ function EnhancedTextField({
         fullWidth: true,
         margin: "dense",
         label: field.title,
-        value: formatFieldValue(field.value),
+        value: formatFieldValue(field.value, false, true),
         required: nonNullableFields.includes(field.fieldName),
         disabled: field.disableEdit,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default
@@ -92,6 +98,17 @@ function EnhancedTextField({
             )),
             !nonNullableFields.includes(field.fieldName) && nullOption,
         ];
+    } else if (fileFields.includes(field.fieldName)) {
+        console.log(textFieldProps.value);
+        children = (
+            <FileLinkingComponent
+                values={textFieldProps.value as LinkedFile[]}
+                options={files}
+                onEdit={files => {
+                    onEdit(field.fieldName, files.map(file => file.path).join(", "));
+                }}
+            />
+        );
     } else if (booleanFields.includes(field.fieldName)) {
         // Value is a boolean or null
         textFieldProps.select = true;
@@ -110,7 +127,7 @@ function EnhancedTextField({
             }
             onEdit(field.fieldName, val);
         };
-        textFieldProps.value = formatFieldValue(field.value, true);
+        textFieldProps.value = formatFieldValue(field.value, true, true);
 
         const options = Object.values(PseudoBooleanReadableMap);
         children = [

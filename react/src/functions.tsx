@@ -11,6 +11,7 @@ import {
     Info,
     isRNASeqDataset,
     KeyValue,
+    LinkedFile,
     PipelineStatus,
     PseudoBoolean,
     PseudoBooleanReadableMap,
@@ -162,12 +163,7 @@ export function getDatasetFields(dataset: Dataset) {
 export function getSecDatasetFields(dataset: Dataset) {
     let fields = [
         createFieldObj("Batch ID", dataset.batch_id, "batch_id", false, 50),
-        createFieldObj(
-            "Linked Files",
-            dataset.linked_files.map(f => f.path),
-            "linked_files",
-            true
-        ),
+        createFieldObj("Linked Files", dataset.linked_files, "linked_files", false),
         createFieldObj("Condition", dataset.condition, "condition"),
         createFieldObj(
             "Extraction Protocol",
@@ -345,10 +341,18 @@ export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
 /**
  * Formats the provided FieldDisplay value as a user-readable string.
  */
-export function formatFieldValue(value: FieldDisplayValueType, nullUnknown: boolean = false) {
+export function formatFieldValue(
+    value: FieldDisplayValueType,
+    nullUnknown: boolean = false,
+    editable: boolean
+) {
     let val = value;
-    if (Array.isArray(value)) val = value.join(", ");
-    else if (value === null || value === undefined)
+
+    if (Array.isArray(value)) {
+        const isLinkedFile = !!(value as Array<any>).filter(e => e.path);
+        if (!editable && isLinkedFile) val = (value as LinkedFile[]).map(v => v.path).join(", ");
+        else if (!isLinkedFile) val = value.join(", ");
+    } else if (value === null || value === undefined)
         nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
     else if (typeof value === "boolean")
         val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];

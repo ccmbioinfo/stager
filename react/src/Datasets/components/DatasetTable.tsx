@@ -60,6 +60,7 @@ const customFileFilterAndSearch = (filter: string, rowData: Dataset) => {
 const EditFilesComponent = (props: EditComponentProps<Dataset>) => {
     const filesQuery = useUnlinkedFilesQuery();
     const files = filesQuery.data || [];
+    console.log(props.rowData.linked_files);
     return (
         <FileLinkingComponent
             values={props.rowData.linked_files}
