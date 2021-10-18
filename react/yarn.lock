@@ -1489,10 +1489,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@material-table/core@^4.3.5":
-  version "4.3.5"
-  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-4.3.5.tgz#561c11d8957aef2f12f9e8ae06ab396aecb47570"
-  integrity sha512-O4xEgKPdmJlesYxDDt7zappQZ5+GmlG4/fDE9HOnyvWp+Gva/zHBlTMGFT/jk0tNEzupNT+wfrIyPHM+hpf/iA==
+"@material-table/core@^4.3.6":
+  version "4.3.6"
+  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-4.3.6.tgz#a4835d927bb3d498a3c187b5efa9dffe68364771"
+  integrity sha512-vT35OOSe+uIPOkgIf1kWwUAsaOYOQJRDn/h44WuiJpIR89IxDLOb6XtH32kv/ZsFm7CVoA1SjgyVPCbi4Ts0kA==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@date-io/date-fns" "^1.3.13"
@@ -1502,7 +1502,6 @@
     date-fns "^2.16.1"
     debounce "^1.2.0"
     fast-deep-equal "^3.1.3"
-    lodash "^4.17.21"
     prop-types "^15.7.2"
     react-beautiful-dnd "^13.0.0"
     react-double-scrollbar "0.0.15"
