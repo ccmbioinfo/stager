@@ -35,11 +35,13 @@ def handle_error(error: Exception):
     code = 500  # defaults to 500 for non HTTP exceptions
     msg = error
 
+    # this is useful for non-http exceptions as well
+    app.logger.error(get_request_info())
+
     if isinstance(error, HTTPException):
         code = error.code
         msg = error.description
         # 500 codes are handled as they all exist as a subclass of HTTPException
         if code in werkzeug_500_codes:
-            app.logger.error(get_request_info())
             app.logger.error(traceback.format_exc())
     return jsonify(error=str(msg)), code
