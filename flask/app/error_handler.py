@@ -11,7 +11,7 @@ def get_request_info() -> str:
     info: str = "\n"
     info += f"{str(request)}\n"
     info += f"Query Params:\n{json.dumps(request.args.to_dict(), indent=4)}\n"
-    if "json" in request.headers.get("Content-Type", ""):
+    if request.mimetype == "application/json":
         body = request.get_data(parse_form_data=True)
         try:
             info += f"Body:\n{json.dumps(json.loads(body), indent=4)}\n"
