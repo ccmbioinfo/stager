@@ -348,14 +348,20 @@ export function formatFieldValue(
 ) {
     let val = value;
 
+    const isDateField = isNaN(Number(value)) && !isNaN(new Date(value as string).getTime());
+    const isBoolean = typeof value === "boolean";
+    const isNullOrUndefined = value === null || value === undefined;
+
     if (Array.isArray(value)) {
         const isLinkedFile = !!(value as Array<any>).filter(e => e.path);
         if (!editable && isLinkedFile) val = (value as LinkedFile[]).map(v => v.path).join(", ");
         else if (!isLinkedFile) val = value.join(", ");
-    } else if (value === null || value === undefined)
+    } else if (isNullOrUndefined)
         nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
-    else if (typeof value === "boolean")
-        val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
+    else if (isBoolean) val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
+    else if (isDateField && editable) {
+        val = new Date(val as string).toISOString().split("T")[0];
+    }
     return val;
 }
 
