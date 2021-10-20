@@ -50,3 +50,133 @@ whether they are globally installed or in a virtualenv. Sample `.vscode/settings
   "python.linting.enabled": true
 }
 ```
+
+
+
+VSCode debugger: [https://code.visualstudio.com/docs/editor/debugging]
+VSCode & remote containers: [https://code.visualstudio.com/docs/remote/containers]
+
+To set up a development environment with Flask, Docker and VSCode when the docker context points to the local machine, see the options below. If the Flask application container is running on the VM, an additional step is required to set the local docker context to point to the VM.
+
+
+## Option 1: Use debugpy to connect the container with the VScode.
+
+## Step 0: Add debugpy to the dependencies.
+
+In `requirements-dev.txt`:
+```
+debugpy==1.5.0
+    # via
+    #   -r requirements.in
+```
+
+In `requirements.in`:
+```
+debugpy
+```
+
+## Step 1: Modify `stager/flask/Dockerfile`:
+
+Line 3:
+```
+FROM python:3.7-slim as base
+```
+
+Append at the end:
+```
+FROM base as debug
+ENV PYTHONDONTWRITEBYTECODE 1
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED 1
+```
+
+## Step 2: Modify the app service in `stager/docker-compose.yaml`
+# Port 5678 is the debug port to connect with VSCode. As the entrypoint specifies, we first run debugpy that starts listening to the port 5678 and then, we run the flask application. The listener is used to connect the container with the VSCode.
+
+```
+app:
+    build:
+      context: flask
+      target: debug
+    image: ghcr.io/ccmbioinfo/stager:dev
+    user: "${FLASK_UIDGID:-www-data}"
+    environment:
+      ST_SECRET_KEY: "${ST_SECRET_KEY}"
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
+      ENABLE_OIDC: "${ENABLE_OIDC:-}"
+      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"
+      OIDC_WELL_KNOWN: "${OIDC_WELL_KNOWN}"
+      OIDC_PROVIDER: "${OIDC_PROVIDER}"
+      FLASK_DEBUG: 1
+    ports:
+      - "${FLASK_HOST_PORT}:5000"
+      - "5678:5678"
+    depends_on:
+      - mysql
+      - minio
+    volumes:
+      - ./flask:/usr/src/stager
+    entrypoint:
+      ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "flask", "run", "--host=0.0.0.0"]
+```
+
+## Step 3: Add launch file to attach the debugger to a running container.
+Create `launch.json` in `stager/flask/.vscode`:
+
+```
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Flask",
+      "type": "python",
+      "request": "attach",
+      "port": 5678,
+      "host": "0.0.0.0",
+      "module": "flask",
+      "env": {
+        "FLASK_APP": "/usr/src/stager/wsgi.py",
+        "FLASK_ENV": "development"
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}",
+          "remoteRoot": "/usr/src/stager"
+        }
+      ],
+      "args": [
+        "run",
+        "--no-debugger"
+      ],
+      "jinja": false
+    }
+  ]
+}
+```
+
+## Step 4: create `.devcontainer` so VSCode can attach to a running container.
+https://code.visualstudio.com/docs/remote/containers
+
+Uncomment "remoteUser":"vscode" in `devcontainer.json`.
+In .env, FLASK_UIDGID=root:root
+
+`docker-compose.yml` is used to override any configurations in `docker-compose.yaml`, there's nothing we want to override.
+
+
+# To use the debugger for flask and docker, follow these steps:
+1, docker-compose up --build (--build if it's the first time to run docker-compose after Dockerfile is modified)
+
+2, Click on remote connection icon in VSCode, choose "Attach to running container".
+
+3, When the prompt "Select the container to the attach VS Code" comes up,
+choose "/stager_app_1"
+
+4, In the VSCode window that runs in the app container, use F5 to launch the debugger.
