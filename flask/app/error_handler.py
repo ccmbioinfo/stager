@@ -21,6 +21,11 @@ def get_request_info() -> str:
     return info
 
 
+def dump_error_context() -> None:
+    app.logger.error(get_request_info())
+    app.logger.error(traceback.format_exc())
+
+
 @error_blueprint.app_errorhandler(Exception)
 def handle_error(error: Exception):
 
@@ -35,13 +40,14 @@ def handle_error(error: Exception):
     code = 500  # defaults to 500 for non HTTP exceptions
     msg = error
 
-    # this is useful for non-http exceptions as well
-    app.logger.error(get_request_info())
-
     if isinstance(error, HTTPException):
         code = error.code
         msg = error.description
         # 500 codes are handled as they all exist as a subclass of HTTPException
         if code in werkzeug_500_codes:
-            app.logger.error(traceback.format_exc())
+            dump_error_context()
+    else:
+        # this is useful for non-http exceptions as well
+        dump_error_context()
+
     return jsonify(error=str(msg)), code
