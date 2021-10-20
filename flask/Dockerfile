@@ -20,9 +20,6 @@ ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./util
 CMD ["--host=0.0.0.0"]
 
 FROM base as debug
-
-RUN pip install debugpy
-
 ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED 1

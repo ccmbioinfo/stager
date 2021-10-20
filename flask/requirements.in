@@ -1,4 +1,5 @@
 authlib
+debugpy
 flask
 flask_sqlalchemy
 flask_login
