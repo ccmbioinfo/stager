@@ -61,7 +61,7 @@ To set up a development environment with Flask, Docker and VSCode when the docke
 
 ## Option 1: Use debugpy to connect the container with the VScode.
 
-## Step 0: Add debugpy to the dependencies.
+### Step 0: Add debugpy to the dependencies.
 
 In `requirements-dev.txt`:
 ```
@@ -75,7 +75,7 @@ In `requirements.in`:
 debugpy
 ```
 
-## Step 1: Modify `stager/flask/Dockerfile`:
+### Step 1: Modify `stager/flask/Dockerfile`:
 
 Line 3:
 ```
@@ -90,8 +90,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ```
 
-## Step 2: Modify the app service in `stager/docker-compose.yaml`
-# Port 5678 is the debug port to connect with VSCode. As the entrypoint specifies, we first run debugpy that starts listening to the port 5678 and then, we run the flask application. The listener is used to connect the container with the VSCode.
+### Step 2: Modify the app service in `stager/docker-compose.yaml`
+Port 5678 is the debug port to connect with VSCode. As the entrypoint specifies, we first run debugpy that starts listening to the port 5678 and then, we run the flask application. The listener is used to connect the container with the VSCode.
 
 ```
 app:
@@ -125,7 +125,7 @@ app:
       ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "flask", "run", "--host=0.0.0.0"]
 ```
 
-## Step 3: Add launch file to attach the debugger to a running container.
+### Step 3: Add launch file to attach the debugger to a running container.
 Create `launch.json` in `stager/flask/.vscode`:
 
 ```
@@ -162,7 +162,7 @@ Create `launch.json` in `stager/flask/.vscode`:
 }
 ```
 
-## Step 4: create `.devcontainer` so VSCode can attach to a running container.
+### Step 4: create `.devcontainer` so VSCode can attach to a running container.
 https://code.visualstudio.com/docs/remote/containers
 
 Uncomment "remoteUser":"vscode" in `devcontainer.json`.
@@ -171,7 +171,7 @@ In .env, FLASK_UIDGID=root:root
 `docker-compose.yml` is used to override any configurations in `docker-compose.yaml`, there's nothing we want to override.
 
 
-# To use the debugger for flask and docker, follow these steps:
+### To use the debugger for flask and docker, follow these steps:
 1, docker-compose up --build (--build if it's the first time to run docker-compose after Dockerfile is modified)
 
 2, Click on remote connection icon in VSCode, choose "Attach to running container".
@@ -182,12 +182,20 @@ choose "/stager_app_1"
 4, In the VSCode window that runs in the app container, use F5 to launch the debugger.
 
 
+
+
+
+
 ## Option 2: Reopen the VSCode in container, starting the flask app only when the debugger session starts in the container.
 
 Conor's working solution.
 Set the entrypoint to `tail -f /dev/null` in `./devcontainer/docker-compose.yml` such that the flask app is not started when we reopen the VSCode session in the container. When we launch the debugger, the app is started using the `launch` request in `.vscode/launch.json`.
 
 Install the necessary extensions for the container in `.vscode/extensions.json`.
+
+
+
+
 
 
 ## Option 3: Attach to a running container, kill the flask app right before the debugger is launched.
@@ -200,6 +208,10 @@ This is an ideal solution. We don't have a working version of it yet. Here's the
 To achieve this, one idea is to add a prelaunch command in `.vscode/launch.json` such that the app is killed when the debugger starts. The debugger is responsible for launching the app.
 
 The debugger will fail if the app is already running and listening at the port 5000. We need to restart the app via VSCode's debugger.
+
+
+
+
 
 ## Option 4: Using VSCode to launch a debugger while simultaneously launching a Docker container and attaching the debugger to the container.
 
