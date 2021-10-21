@@ -351,9 +351,9 @@ export function formatFieldValue(
     const isDateField = isNaN(Number(value)) && !isNaN(new Date(value as string).getTime());
     const isBoolean = typeof value === "boolean";
     const isNullOrUndefined = value === null || value === undefined;
+    const isLinkedFile = !!(value as Array<any>).filter(e => e.path);
 
     if (Array.isArray(value)) {
-        const isLinkedFile = !!(value as Array<any>).filter(e => e.path);
         if (!editable && isLinkedFile) val = (value as LinkedFile[]).map(v => v.path).join(", ");
         else if (!isLinkedFile) val = value.join(", ");
     } else if (isNullOrUndefined && !editable)
