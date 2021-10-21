@@ -356,11 +356,13 @@ export function formatFieldValue(
         const isLinkedFile = !!(value as Array<any>).filter(e => e.path);
         if (!editable && isLinkedFile) val = (value as LinkedFile[]).map(v => v.path).join(", ");
         else if (!isLinkedFile) val = value.join(", ");
-    } else if (isNullOrUndefined)
+    } else if (isNullOrUndefined && !editable)
         nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
     else if (isBoolean) val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
     else if (isDateField && editable) {
         val = new Date(val as string).toISOString().split("T")[0];
+    } else if (isDateField && !editable) {
+        val = formatDateString(val as string);
     }
     return val;
 }

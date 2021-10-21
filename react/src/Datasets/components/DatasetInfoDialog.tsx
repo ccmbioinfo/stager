@@ -9,6 +9,7 @@ import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
     formatDateString,
+    formatFieldValue,
     getAnalysisInfoList,
     getDatasetFields,
     getSecDatasetFields,
@@ -67,7 +68,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
         const newData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
-                    return { [field.fieldName]: field.value };
+                    return { [field.fieldName]: formatFieldValue(field.value, false, true) };
                 } else return false;
             })
             .filter(Boolean)

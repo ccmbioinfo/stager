@@ -3,7 +3,7 @@ import MaterialTable, { MTableCell } from "@material-table/core";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
 import { DateTimeText, InfoList } from "../../components";
-import { createFieldObj, formatDateString } from "../../functions";
+import { createFieldObj } from "../../functions";
 import { Dataset, Info, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -26,14 +26,14 @@ function getFields(dataset: Dataset) {
         createFieldObj("Extraction Protocol", dataset.extraction_protocol),
         createFieldObj("Capture Kit", dataset.capture_kit),
         createFieldObj("Library Prep Method", dataset.library_prep_method),
-        createFieldObj("Library Prep Date", formatDateString(dataset.library_prep_date)),
+        createFieldObj("Library Prep Date", dataset.library_prep_date),
         createFieldObj("Read Length", dataset.read_length),
         createFieldObj("Read Type", dataset.read_type),
         createFieldObj("Sequencing ID", dataset.sequencing_id),
         createFieldObj("Sequencing Centre", dataset.sequencing_centre),
-        createFieldObj("Creation Time", formatDateString(dataset.created)),
+        createFieldObj("Creation Time", dataset.created),
         createFieldObj("Created By", dataset.created_by),
-        createFieldObj("Last Updated", formatDateString(dataset.updated)),
+        createFieldObj("Last Updated", dataset.updated),
         createFieldObj("Updated By", dataset.updated_by),
         createFieldObj("Discriminator", dataset.discriminator),
     ];
