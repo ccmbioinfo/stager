@@ -6,7 +6,7 @@
 #
 alembic==1.5.8
     # via flask-migrate
-authlib==0.15.3
+authlib==0.15.5
     # via -r requirements.in
 certifi==2020.12.5
     # via
