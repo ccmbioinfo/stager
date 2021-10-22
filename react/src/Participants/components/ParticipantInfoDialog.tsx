@@ -60,7 +60,7 @@ function getParticipantFields(participant: Participant): Field[] {
         ),
         createFieldObj(
             "Month of Birth",
-            formatDateString(participant.month_of_birth, "month_of_birth"),
+            formatDateString(participant.month_of_birth),
             "month_of_birth"
         ),
         createFieldObj("Sex", participant.sex, "sex"),

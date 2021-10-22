@@ -29,8 +29,8 @@ from .utils import (
 )
 
 editable_columns = [
-    "participant_codename",
     "participant_aliases",
+    "participant_codename",
     "sex",
     "participant_type",
     "affected",
