@@ -231,7 +231,7 @@ function LoginForm({
                     src={brand}
                     alt={process.env.REACT_APP_NAME}
                     title={process.env.REACT_APP_NAME}
-                    aria-role="banner"
+                    role="banner"
                 />
                 {error && (
                     <Typography component="p" color="error">
