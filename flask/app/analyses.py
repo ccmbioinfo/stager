@@ -2,8 +2,9 @@ from dataclasses import asdict
 from datetime import datetime
 
 from flask_login import login_required
-from sqlalchemy import distinct, func, or_
-from sqlalchemy.orm import aliased, selectinload
+from sqlalchemy import distinct, func, or_, and_
+from sqlalchemy.orm import aliased, selectinload, joinedload
+
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from sqlalchemy.sql.expression import cast
@@ -25,6 +26,8 @@ from .utils import (
     paginated_response,
     transaction_or_abort,
     validate_json,
+    create_genotype_obj,
+    create_variant_obj,
 )
 
 analyses_blueprint = Blueprint(
@@ -693,4 +696,122 @@ def update_analysis(id: int):
             "requester": analysis.requester_id and analysis.requester.username,
             "updated_by_id": analysis.updated_by_id and analysis.updated_by.username,
         }
+    )
+
+
+@analyses_blueprint.route(
+    "/api/analyses/<int:analysis_id>/datasets/<int:dataset_id>/variants",
+    methods=["POST"],
+)
+@login_required
+@validate_json
+def insert_participant_report(analysis_id: int, dataset_id: int):
+
+    dat = request.json
+    vt_dat = dat["variant"]
+    ptp_codename = dat["participant"].split("_")[1]
+
+    for k in ["analysis", "participant", "family"]:
+        app.logger.debug("{} : {}".format(k, dat[k]))
+
+    # check analysis and datasets exists at all
+    valid_analysis = models.Analysis.query.filter(
+        models.Analysis.analysis_id == analysis_id
+    ).one_or_none()
+
+    if not valid_analysis:
+        abort(404, "Analysis ID not found")
+
+    valid_dataset = models.Dataset.query.filter(
+        models.Dataset.dataset_id == dataset_id
+    ).one_or_none()
+
+    if not valid_dataset:
+        abort(404, "Dataset ID not found")
+
+    # check ptp belongs to dataset otherwise one could insert any variant and genotype as long as dataset and analysis are valid
+    valid_participant_dataset = (
+        db.session.query(models.Dataset)
+        .options(
+            joinedload(models.Dataset.tissue_sample).joinedload(
+                models.TissueSample.participant
+            )
+        )
+        .filter(
+            and_(
+                models.Dataset.dataset_id == dataset_id,
+                or_(
+                    models.Participant.participant_codename == ptp_codename,
+                    models.Participant.participant_aliases.like(
+                        "%{}%".format(ptp_codename)
+                    ),
+                ),
+            )
+        )
+    ).one_or_none()
+
+    if not valid_participant_dataset:
+        abort(
+            404,
+            "Dataset ID and/or participant codename does not match up - please check both are properly formatted.",
+        )
+
+    # check dataset id and analysis id are associated
+    valid_dataset_analysis = (
+        db.session.query(models.datasets_analyses_table)
+        .filter(
+            and_(
+                models.datasets_analyses_table.c.dataset_id == dataset_id,
+                models.datasets_analyses_table.c.analysis_id == analysis_id,
+            )
+        )
+        .one_or_none()
+    )
+    if not valid_dataset_analysis:
+        abort(
+            404,
+            "Dataset and analysis IDs are not linked.",
+        )
+
+    app.logger.debug(valid_dataset_analysis)
+
+    # how should this be handled?
+    existing_vt = (
+        db.session.query(models.Variant)
+        .filter(models.Variant.analysis_id == analysis_id)
+        .all()
+    )
+
+    if existing_vt:
+        app.logger.warning(
+            "{} Variants already exist for dataset id: {} and analysis id: {}".format(
+                len(existing_vt), dataset_id, analysis_id
+            )
+        )
+
+    for i, vt_row in enumerate(vt_dat):
+
+        vt_obj = create_variant_obj(vt_row, analysis_id)
+
+        db.session.add(vt_obj)
+
+        transaction_or_abort(db.session.flush)
+
+        variant_id = vt_obj.variant_id
+
+        gt_obj = create_genotype_obj(
+            vt_row["genotype"],
+            analysis_id=analysis_id,
+            dataset_id=dataset_id,
+            variant_id=variant_id,
+        )
+        db.session.add(gt_obj)
+
+        transaction_or_abort(db.session.flush)
+
+    transaction_or_abort(db.session.commit)
+
+    return (
+        jsonify(request.json),
+        201,
     )

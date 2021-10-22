@@ -27,7 +27,90 @@ from werkzeug.exceptions import HTTPException
 
 from .extensions import db
 from .madmin import MinioAdmin
-from .models import User, Group, Dataset
+from .models import User, Group, Dataset, Variant, Genotype
+
+
+from typing import Dict
+
+
+def try_int(value: str):
+    if value is not None:
+        try:
+            int_value = int(value)
+        except ValueError as e:
+            int_value = None
+        return int_value
+    else:
+        return value
+
+
+def create_variant_obj(row: Dict[str, any], analysis_id: int) -> Variant:
+    vt_obj = Variant(
+        analysis_id=analysis_id,
+        chromosome=row.get("chromosome"),
+        position=row.get("position"),
+        reference_allele=row.get("reference_allele"),
+        alt_allele=row.get("alt_allele"),
+        variation=row.get("variation"),
+        refseq_change=row.get("refseq_change"),
+        depth=row.get("depth"),
+        conserved_in_20_mammals=row.get("conserved_in_20_mammals"),
+        sift_score=row.get("sift_score"),
+        polyphen_score=row.get("polyphen_score"),
+        cadd_score=row.get("cadd_score"),
+        gnomad_af=row.get("gnomad_af"),
+        ucsc_link=row.get("ucsc_link"),
+        gnomad_link=row.get("gnomad_link"),
+        gene=row.get("gene"),
+        info=row.get("info"),
+        quality=row.get("quality"),
+        clinvar=row.get("clinvar"),
+        gnomad_af_popmax=row.get("gnomad_af_popmax"),
+        gnomad_ac=row.get("gnomad_ac"),
+        gnomad_hom=row.get("gnomad_hom"),
+        report_ensembl_gene_id=row.get("ensembl_gene_id"),
+        ensembl_transcript_id=row.get("ensembl_transcript_id"),
+        aa_position=row.get("aa_position"),
+        exon=row.get("exon"),
+        protein_domains=row.get("protein_domains"),
+        rsids=row.get("rsids"),
+        gnomad_oe_lof_score=row.get("gnomad_oe_lof_score"),
+        gnomad_oe_mis_score=row.get("gnomad_oe_mis_score"),
+        exac_pli_score=row.get("gnomad_oe_mis_score"),
+        exac_prec_score=row.get("exac_prec_score"),
+        exac_pnull_score=row.get("exac_pnull_score"),
+        spliceai_impact=row.get("spliceai_impact"),
+        spliceai_score=row.get("spliceai_score"),
+        vest3_score=row.get("vest3_score"),
+        revel_score=row.get("revel_score"),
+        gerp_score=row.get("gerp_score"),
+        imprinting_status=row.get("imprinting_status"),
+        imprinting_expressed_allele=row.get("imprinting_expressed_allele"),
+        pseudoautosomal=row.get("pseudoautosomal"),
+        number_of_callers=try_int(row.get("number_of_callers")),
+        old_multiallelic=row.get("old_multiallelic"),
+        uce_100bp=row.get("uce_100bp"),
+        uce_200bp=row.get("uce_200bp"),
+    )
+
+    return vt_obj
+
+
+def create_genotype_obj(
+    row: Dict[str, any], analysis_id: int, dataset_id: int, variant_id: int
+) -> Genotype:
+    gt_obj = Genotype(
+        variant_id=variant_id,
+        analysis_id=analysis_id,
+        dataset_id=dataset_id,
+        zygosity=row.get("zygosity"),
+        burden=try_int(row.get("burden")),
+        alt_depths=try_int(row.get("alt_depths")),
+        coverage=try_int(row.get("coverage")),
+        genotype=row.get("genotype"),
+    )
+
+    return gt_obj
 
 
 def str_to_bool(param: str) -> bool:
