@@ -20,7 +20,7 @@ import {
     useParticipantQuery,
     useParticipantUpdateMutation,
 } from "../../hooks";
-import { Analysis, Field, Participant } from "../../typings";
+import { Analysis, Family, Field, Participant } from "../../typings";
 import SampleTable from "./SampleTable";
 
 const useStyles = makeStyles(theme => ({
@@ -120,7 +120,19 @@ export default function ParticipantInfoDialog({
     const { data: enums } = useEnumsQuery();
 
     const updateParticipant = async (fields: Field[]) => {
-        const newData = fields
+        const newFamilyData = fields
+            .map(field => {
+                if (
+                    field.fieldName &&
+                    (field.fieldName === "family_codename" || field.fieldName === "family_aliases")
+                ) {
+                    return { [field.fieldName]: field.value };
+                } else return false;
+            })
+            .filter(Boolean)
+            .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Family);
+
+        const newParticipantData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
                     if (
@@ -139,7 +151,7 @@ export default function ParticipantInfoDialog({
 
         familyUpdateMutation.mutate(
             {
-                ...newData,
+                ...newFamilyData,
                 family_id,
             },
             {
@@ -154,7 +166,7 @@ export default function ParticipantInfoDialog({
 
         participantUpdateMutation.mutate(
             {
-                ...newData,
+                ...newParticipantData,
                 participant_id,
             },
             {

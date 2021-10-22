@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "react-query";
 
-import { Participant } from "../../typings";
+import { Family } from "../../typings";
 import { changeFetch } from "../utils";
 
-async function patchFamily(newFamily: Partial<Participant>) {
+async function patchFamily(newFamily: Partial<Family>) {
     return changeFetch("/api/families/" + newFamily.family_id, "PATCH", newFamily);
 }
 
@@ -14,7 +14,7 @@ async function patchFamily(newFamily: Partial<Participant>) {
  */
 export function useFamilyUpdateMutation() {
     const queryClient = useQueryClient();
-    const mutation = useMutation<Participant, Response, Partial<Participant>>(patchFamily, {
+    const mutation = useMutation<Family, Response, Partial<Family>>(patchFamily, {
         onSuccess: () => queryClient.invalidateQueries("families"),
     });
     return mutation;
