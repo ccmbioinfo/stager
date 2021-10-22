@@ -30,9 +30,6 @@ from .madmin import MinioAdmin
 from .models import User, Group, Dataset, Variant, Genotype
 
 
-from typing import Dict
-
-
 def try_int(value: str):
     if value is not None:
         try:
