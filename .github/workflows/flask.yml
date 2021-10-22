@@ -1,4 +1,4 @@
-name: Build and test backend
+name: Build, test, and deploy backend
 on:
   push:
     branches:
@@ -30,6 +30,13 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+      - name: Infer metadata (development image)
+        uses: docker/metadata-action@v3
+        id: meta-dev
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            dev
       - uses: docker/login-action@v1
         if: github.event_name == 'push'
         with:
@@ -39,15 +46,13 @@ jobs:
       - name: Build development image
         uses: docker/build-push-action@v2
         with:
-          tags: ghcr.io/ccmbioinfo/stager:dev
+          tags: ${{ steps.meta-dev.outputs.tags }}
+          labels: ${{ steps.meta-dev.outputs.labels }}
           context: flask
           pull: true
           load: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-      - name: Push development image
-        if: ${{ github.event_name == 'push' }}
-        run: docker push ghcr.io/ccmbioinfo/stager:dev
       - run: cp sample.env .env
       - name: Pytest
         run: docker-compose run --rm app
@@ -55,23 +60,89 @@ jobs:
         run: docker-compose run --rm app black --check
       - name: Stop services
         run: docker-compose down
-      - name: Infer production image tag
-        id: infer
-        if: github.event_name == 'push'
-        run: |
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Use Docker `latest` tag convention
-          [[ "$VERSION" == "master" ]] && VERSION=latest
-          echo "::set-output name=tag::$VERSION"
-      - name: Build and push production image
+      - name: Push development image
         uses: docker/build-push-action@v2
+        if: github.event_name == 'push'
         with:
-          tags: ghcr.io/ccmbioinfo/stager:${{ steps.infer.outputs.tag || 'latest' }}
+          push: true
+          tags: ${{ steps.meta-dev.outputs.tags }}
+          labels: ${{ steps.meta-dev.outputs.labels }}
+          context: flask
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+      - name: Infer metadata (production image)
+        uses: docker/metadata-action@v3
+        if: github.event_name == 'push'
+        id: meta-prod
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: latest=${{ github.ref == 'refs/heads/master' }}
+          tags: |
+            type=ref,event=tag
+            type=sha,format=long
+      - name: Build production image
+        uses: docker/build-push-action@v2
+        if: github.event_name == 'push'
+        with:
+          push: true
+          tags: ${{ steps.meta-prod.outputs.tags }}
+          labels: ${{ steps.meta-prod.outputs.labels }}
           context: flask
           file: "{context}/../Dockerfile"
           build-args: GIT_SHA=${{ github.sha }}
           pull: true
-          push: ${{ github.event_name == 'push' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+  deploy:
+    runs-on: [self-hosted, cheo-ri]
+    needs: build
+    if: github.event_name == 'push'
+    environment: CHEO-RI_backend
+    concurrency: CHEO-RI_backend
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure SSH
+        id: configure
+        # The self-hosted runner is not ephemeral, so we load the secret key into
+        # an agent instead in memory. Keep track of it for further workflow steps
+        # and so we can clean it up and not leave orphaned processes hanging around.
+        #
+        # https://docs.docker.com/engine/context/working-with-contexts/
+        # This avoids passing an -H parameter to every Docker CLI call.
+        run: |
+          SSH_AGENT_EVAL=$(ssh-agent -s)
+          eval "$SSH_AGENT_EVAL"
+          ssh-add - <<< "${{ secrets.DEPLOY_PRIVATE_KEY }}"
+          echo "::set-output name=ssh-agent-eval::$SSH_AGENT_EVAL"
+          echo "::set-output name=ssh-agent-pid::$SSH_AGENT_PID"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_HOST_KEY }}" > ~/.ssh/known_hosts
+          chmod -R g-rwx,o-rwx ~/.ssh
+          docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_SSH_HOST }}
+          docker context use deploy-target
+      - name: Deploy
+        # Even though this is deploying to a remote Docker Engine,
+        # Compose uses the registry credentials of the client
+        env:
+          COMPOSE_FILE: docker-compose.cheo.yaml
+          ST_VERSION: latest
+          ST_SECRET_KEY: ${{ secrets.ST_SECRET_KEY }}
+          MYSQL_CONNECTION_STRING: ${{ secrets.MYSQL_CONNECTION_STRING }}
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          eval "${{ steps.configure.outputs.ssh-agent-eval }}"
+          docker-compose pull
+          docker-compose up -d --remove-orphans
+      - name: Clean up
+        if: always()
+        run: |
+          docker context rm -f deploy-target
+          eval "${{ steps.configure.outputs.ssh-agent-eval }}"
+          SSH_AGENT_PID="${{ steps.configure.outputs.ssh-agent-pid }}" ssh-agent -k

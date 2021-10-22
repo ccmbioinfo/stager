@@ -10,7 +10,7 @@ astroid==2.8.0
     # via pylint
 attrs==20.3.0
     # via pytest
-authlib==0.15.3
+authlib==0.15.5
     # via -r requirements.in
 black==21.9b0
     # via -r requirements-dev.in
@@ -30,7 +30,7 @@ cryptography==3.4.7
     # via
     #   authlib
     #   pymysql
-flask==2.0.1
+flask==2.0.2
     # via
     #   -r requirements.in
     #   flask-login
@@ -66,7 +66,7 @@ markupsafe==2.0.1
     #   mako
 mccabe==0.6.1
     # via pylint
-minio==7.1.0
+minio==7.1.1
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
