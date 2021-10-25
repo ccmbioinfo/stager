@@ -789,7 +789,7 @@ def insert_participant_report(analysis_id: int, dataset_id: int):
             )
         )
 
-    for i, vt_row in enumerate(vt_dat):
+    for vt_row in vt_dat:
 
         vt_obj = create_variant_obj(vt_row, analysis_id)
 
