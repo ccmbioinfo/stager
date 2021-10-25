@@ -4,12 +4,10 @@ import {
     Collapse,
     FormControlLabel,
     Grid,
-    IconButton,
     makeStyles,
     Switch,
     Typography,
 } from "@material-ui/core";
-import { Check } from "@material-ui/icons";
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -23,14 +21,6 @@ const gridSpacing = 2;
 const titleWidth = 12;
 
 const useStyles = makeStyles(theme => ({
-    fab: {
-        display: "block",
-        width: "40%",
-        left: "30%",
-        right: "30%",
-        padding: theme.spacing(1),
-        margin: 0,
-    },
     switch: {
         display: "block",
         padding: theme.spacing(1),
@@ -143,20 +133,6 @@ export default function DetailSection(props: DetailSectionProps) {
                                 setEditMode(!editMode);
                             }}
                         />
-                        {editMode && (
-                            <IconButton
-                                className={classes.fab}
-                                color="secondary"
-                                onClick={() => {
-                                    setEditMode(false);
-                                    if (props.update) {
-                                        props.update(primaryFields.concat(secondaryFields));
-                                    }
-                                }}
-                            >
-                                <Check fontSize="large" />
-                            </IconButton>
-                        )}
                     </Grid>
                 )}
             </Grid>
@@ -184,6 +160,21 @@ export default function DetailSection(props: DetailSectionProps) {
                         {moreDetails ? "Hide" : "Show"} more details
                     </Button>
                 </>
+            )}
+            {editMode && (
+                <Button
+                    variant="contained"
+                    size="small"
+                    color="secondary"
+                    onClick={() => {
+                        setEditMode(false);
+                        if (props.update) {
+                            props.update(primaryFields.concat(secondaryFields));
+                        }
+                    }}
+                >
+                    Save changes
+                </Button>
             )}
         </>
     );
