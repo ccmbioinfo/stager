@@ -12,6 +12,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
+import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
 import { CurrentUser } from "./typings";
 
@@ -55,6 +56,9 @@ const useStyles = makeStyles(theme => ({
         background:
             "linear-gradient(90deg, rgba(167, 112, 239, 0.7) 0%, rgba(207, 139, 243, 0.7) 50%, rgba(253, 185, 155, 0.7) 100%)",
         filter: "blur(200px)",
+    },
+    brand: {
+        width: 404, // match button
     },
     form: {
         padding: theme.spacing(1),
@@ -222,11 +226,13 @@ function LoginForm({
             alignItems="center"
         >
             <Grid item>
-                <Typography variant="h4" align="center">
-                    <Box fontWeight="fontWeightBold" m={1}>
-                        Welcome back to {process.env.REACT_APP_NAME || "Stager"}.
-                    </Box>
-                </Typography>
+                <img
+                    className={classes.brand}
+                    src={brand}
+                    alt={process.env.REACT_APP_NAME}
+                    title={process.env.REACT_APP_NAME}
+                    role="banner"
+                />
                 {error && (
                     <Typography component="p" color="error">
                         {error}
@@ -268,7 +274,7 @@ function LoginForm({
                 </form>
             </Grid>
             <Grid item className={classes.graphics}>
-                <img className={classes.img} src={cover} alt="" />
+                <img className={classes.img} src={cover} alt="DNA double helix" />
                 <div className={classes.ellipse} />
             </Grid>
         </Grid>

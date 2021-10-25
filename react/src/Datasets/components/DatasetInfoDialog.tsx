@@ -3,13 +3,13 @@ import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
 
-import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
     formatDateString,
+    formatFieldValue,
     getAnalysisInfoList,
     getDatasetFields,
     getSecDatasetFields,
@@ -68,16 +68,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
         const newData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
-                    if (
-                        field.fieldName === "library_prep_date" &&
-                        field.value &&
-                        typeof field.value === "string" &&
-                        /[A-Z]/.test(field.value[0])
-                    ) {
-                        const datePart = field.value.substring(field.value.indexOf(",") + 2);
-                        field.value = dayjs(datePart, "MMMM D, YYYY h:mm A").format("YYYY-MM-D");
-                    }
-                    return { [field.fieldName]: field.value };
+                    return { [field.fieldName]: formatFieldValue(field.value, false, true) };
                 } else return false;
             })
             .filter(Boolean)
@@ -90,9 +81,12 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             },
             {
                 onSuccess: receiveDataset => {
-                    enqueueSnackbar(`Dataset ID ${dataset_id} updated successfully`, {
-                        variant: "success",
-                    });
+                    enqueueSnackbar(
+                        `Dataset ID ${receiveDataset.dataset_id} updated successfully`,
+                        {
+                            variant: "success",
+                        }
+                    );
                 },
                 onError: response => {
                     console.error(
