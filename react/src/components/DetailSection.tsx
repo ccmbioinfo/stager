@@ -83,7 +83,7 @@ export default function DetailSection(props: DetailSectionProps) {
             } else if (
                 field.fieldName === "month_of_birth" &&
                 value &&
-                value.match(/^(0[1-9]|1[012])-\d{4}$/) === null
+                value.match(/^\d{4}-(0[1-9]|1[012])$/) === null
             ) {
                 field.entryError = true;
             }

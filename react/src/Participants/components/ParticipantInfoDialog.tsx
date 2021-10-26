@@ -9,6 +9,7 @@ import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
     createFieldObj,
     formatDateString,
+    formatFieldValue,
     getAnalysisInfoList,
     stringToBoolean,
 } from "../../functions";
@@ -60,7 +61,7 @@ function getParticipantFields(participant: Participant): Field[] {
         ),
         createFieldObj(
             "Month of Birth",
-            formatDateString(participant.month_of_birth),
+            formatDateString(participant.month_of_birth, true),
             "month_of_birth"
         ),
         createFieldObj("Sex", participant.sex, "sex"),
@@ -135,15 +136,7 @@ export default function ParticipantInfoDialog({
         const newParticipantData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
-                    if (
-                        field.fieldName === "month_of_birth" &&
-                        field.value &&
-                        typeof field.value === "string" &&
-                        /^0[1-9]|1[012]-\d{4}$/.test(field.value)
-                    ) {
-                        field.value = dayjs(field.value, "MM-YYYY").format("YYYY-MM-1");
-                    }
-                    return { [field.fieldName]: field.value };
+                    return { [field.fieldName]: formatFieldValue(field.value, false, true)};
                 } else return false;
             })
             .filter(Boolean)

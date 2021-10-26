@@ -76,7 +76,7 @@ function EnhancedTextField({
         id: "standard-error",
         helperText:
             field.entryError && field.fieldName === "month_of_birth"
-                ? "MM-YYYY"
+                ? "YYYY-MM"
                 : field.entryError
                 ? "Incorrect entry"
                 : " ",
@@ -84,7 +84,7 @@ function EnhancedTextField({
         fullWidth: true,
         margin: "dense",
         label: field.title,
-        value: formatFieldValue(field.value, false, true),
+        value:  field.fieldName === "month_of_birth" ? field.value : formatFieldValue(field.value, false, true),
         required: nonNullableFields.includes(field.fieldName),
         disabled: field.disableEdit,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default
@@ -176,7 +176,6 @@ export default function FieldDisplayEditable(props: {
     enums?: Record<string, string[]>;
 }) {
     const classes = useStyles();
-
     return (
         <>
             <Fade in={props.editMode}>

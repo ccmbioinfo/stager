@@ -42,7 +42,11 @@ export function toKeyValue(items: string[]) {
 /**
  * Convert an ISO datetime to human-readable format in the user's locale.
  */
-export function formatDateString(date: string) {
+export function formatDateString(date: string, isMonth?: boolean) {
+    if (isMonth){
+        let datestring = dayjs(date).isValid() ? dayjs(date).format("YYYY-MM") : "";
+        return datestring;
+    }
     const datetime = dayjs.utc(date);
     return datetime.isValid() ? datetime.format("LLLL") : null;
 }
@@ -347,7 +351,7 @@ export function formatFieldValue(
     editable: boolean
 ) {
     let val = value;
-
+    const isMonthField = typeof value === "string" && /^\d{4}-0[1-9]|1[012]$/.test(value);
     const isDateField = isNaN(Number(value)) && !isNaN(new Date(value as string).getTime());
     const isBoolean = typeof value === "boolean";
     const isNullOrUndefined = value === null || value === undefined;
@@ -359,9 +363,16 @@ export function formatFieldValue(
     } else if (isNullOrUndefined && !editable)
         nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
     else if (isBoolean) val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
+    else if(isMonthField && !editable){
+        val = formatDateString(val as string, true);
+    }
+    else if(isMonthField && editable){
+        val = dayjs(value, "YYYY-MM").format("YYYY-MM-1");
+    }
     else if (isDateField && editable) {
         val = new Date(val as string).toISOString().split("T")[0];
     } else if (isDateField && !editable) {
+
         val = formatDateString(val as string);
     }
     return val;
