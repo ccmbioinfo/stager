@@ -85,9 +85,9 @@ function EnhancedTextField({
         margin: "dense",
         label: field.title,
         value:
-            field.fieldName === "month_of_birth"
+            field.fieldName === "month_of_birth" || field.fieldName === "solved"
                 ? field.value
-                : formatFieldValue(field.value, false, true),
+                : formatFieldValue(field.value, false, true, field.fieldName),
         required: nonNullableFields.includes(field.fieldName),
         disabled: field.disableEdit,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default
@@ -127,7 +127,7 @@ function EnhancedTextField({
             }
             onEdit(field.fieldName, val);
         };
-        textFieldProps.value = formatFieldValue(field.value, true, true);
+        textFieldProps.value = formatFieldValue(field.value, true, false, field.fieldName);
 
         const options = Object.values(PseudoBooleanReadableMap);
         children = [
@@ -194,6 +194,7 @@ export default function FieldDisplayEditable(props: {
                 <Box className={classes.box} hidden={props.editMode}>
                     <FieldDisplay
                         title={props.field.title}
+                        fieldName={props.field.fieldName}
                         value={props.field.value}
                         bool={
                             !!props.field.fieldName &&

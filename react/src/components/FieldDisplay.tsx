@@ -5,6 +5,7 @@ import { FieldDisplayValueType } from "../typings";
 
 export interface FieldDisplayProps {
     title: string;
+    fieldName: string | undefined;
     value?: FieldDisplayValueType;
     className?: string;
     bool?: boolean;
@@ -16,7 +17,7 @@ export default function FieldDisplay(props: FieldDisplayProps) {
         <Typography variant="body1" gutterBottom>
             <b>{props.title}:</b>{" "}
             <span className={props.className}>
-                {formatFieldValue(props.value, props.bool, false)}
+                {formatFieldValue(props.value, props.bool, false, props.fieldName)}
             </span>
         </Typography>
     );

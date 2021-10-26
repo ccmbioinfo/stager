@@ -135,7 +135,14 @@ export default function ParticipantInfoDialog({
         const newParticipantData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
-                    return { [field.fieldName]: formatFieldValue(field.value, false, true) };
+                    return {
+                        [field.fieldName]: formatFieldValue(
+                            field.value,
+                            false,
+                            true,
+                            field.fieldName
+                        ),
+                    };
                 } else return false;
             })
             .filter(Boolean)

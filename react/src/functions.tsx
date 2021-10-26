@@ -348,29 +348,32 @@ export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
 export function formatFieldValue(
     value: FieldDisplayValueType,
     nullUnknown: boolean = false,
-    editable: boolean
+    editable: boolean,
+    fieldName: string | undefined
 ) {
     let val = value;
-    const isMonthField = typeof value === "string" && /^\d{4}-0[1-9]|1[012]$/.test(value);
-    const isDateField = isNaN(Number(value)) && !isNaN(new Date(value as string).getTime());
-    const isBoolean = typeof value === "boolean";
-    const isNullOrUndefined = value === null || value === undefined;
-    const isLinkedFile = Array.isArray(value) && !!(value as Array<any>).filter(e => e.path);
-
-    if (Array.isArray(value)) {
-        if (!editable && isLinkedFile) val = (value as LinkedFile[]).map(v => v.path).join(", ");
-        else if (!isLinkedFile) val = value.join(", ");
-    } else if (isNullOrUndefined && !editable)
+    if (fieldName === "linked_files" && !editable) {
+        val = (value as LinkedFile[]).map(v => v.path).join(", ");
+    } else if (Array.isArray(value) && fieldName !== "linked_files") {
+        val = value.join(", ");
+    } else if (
+        (value === null || value === undefined) &&
+        !editable &&
+        fieldName !== "library_prep_date"
+    ) {
         nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
-    else if (isBoolean) val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
-    else if (isMonthField && !editable) {
-        val = formatDateString(val as string, true);
-    } else if (isMonthField && editable) {
-        val = dayjs(value, "YYYY-MM").format("YYYY-MM-1");
-    } else if (isDateField && editable) {
+    } else if (fieldName === "library_prep_date" && value === "") {
+        val = null;
+    } else if (value && fieldName === "library_prep_date" && editable) {
         val = new Date(val as string).toISOString().split("T")[0];
-    } else if (isDateField && !editable) {
+    } else if (value && fieldName === "library_prep_date" && !editable) {
         val = formatDateString(val as string);
+    } else if (fieldName === "month_of_birth" && !editable) {
+        val = formatDateString(value as string, true);
+    } else if (fieldName === "month_of_birth" && editable) {
+        val = dayjs(value as string, "YYYY-MM").format("YYYY-MM-1");
+    } else if (fieldName === "solved" && !editable) {
+        val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
     }
     return val;
 }
