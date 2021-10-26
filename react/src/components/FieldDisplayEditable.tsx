@@ -84,7 +84,10 @@ function EnhancedTextField({
         fullWidth: true,
         margin: "dense",
         label: field.title,
-        value:  field.fieldName === "month_of_birth" ? field.value : formatFieldValue(field.value, false, true),
+        value:
+            field.fieldName === "month_of_birth"
+                ? field.value
+                : formatFieldValue(field.value, false, true),
         required: nonNullableFields.includes(field.fieldName),
         disabled: field.disableEdit,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default

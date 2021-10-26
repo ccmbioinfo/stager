@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 
-import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
@@ -136,7 +135,7 @@ export default function ParticipantInfoDialog({
         const newParticipantData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
-                    return { [field.fieldName]: formatFieldValue(field.value, false, true)};
+                    return { [field.fieldName]: formatFieldValue(field.value, false, true) };
                 } else return false;
             })
             .filter(Boolean)
