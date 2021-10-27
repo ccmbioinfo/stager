@@ -15,7 +15,7 @@ def send_error_notification(err_code: int, error: Exception):
 
     try:
         err_notification = MSTeamsMessage(webhook_url)
-        err_notification.title(f"[TEST]Server error - {err_code}")
+        err_notification.title(f"Server error - {err_code}")
         err_notification.text(f"{str(request)}\n\n{str(error)}")
         err_notification.send()
     except TeamsWebhookException:
