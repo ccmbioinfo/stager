@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
@@ -7,9 +7,7 @@ import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
 import {
-    createFieldObj,
-    formatDateString,
-    formatFieldValue,
+    formatSubmitValue,
     getAnalysisInfoList,
     getDatasetFields,
     getSecDatasetFields,
@@ -32,16 +30,56 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getSamplesFields(sample: Sample) {
+function getSamplesFields(sample: Sample): Field[] {
     return [
-        createFieldObj("Sample Type", sample.tissue_sample_type),
-        createFieldObj("Extraction Date", formatDateString(sample.extraction_date)),
-        createFieldObj("Tissue Processing Protocol", sample.tissue_processing),
-        createFieldObj("Notes", sample.notes),
-        createFieldObj("Created", formatDateString(sample.created)),
-        createFieldObj("Created By", sample.created_by),
-        createFieldObj("Updated", formatDateString(sample.updated)),
-        createFieldObj("Updated By", sample.updated_by),
+        {
+            title: "Sample Type",
+            fieldName: "tissue_sample_type",
+            value: sample.tissue_sample_type,
+            editable: false,
+        },
+        {
+            title: "Extraction Date",
+            value: sample.extraction_date,
+            fieldName: "extraction_date",
+            type: "date",
+            editable: false,
+        },
+        {
+            title: "Tissue Processing Protocol",
+            value: sample.tissue_processing,
+            fieldName: "tissue_processing",
+            editable: false,
+        },
+        { title: "Notes", value: sample.notes, fieldName: "notes", editable: false },
+        {
+            title: "Created",
+            value: sample.created,
+            fieldName: "created",
+            type: "date",
+            editable: false,
+        },
+        {
+            title: "Created By",
+            value: sample.created_by,
+            type: "date",
+            fieldName: "created_by",
+            editable: false,
+        },
+        {
+            title: "Updated",
+            value: sample.updated,
+            fieldName: "updated",
+            type: "date",
+            editable: false,
+        },
+        {
+            title: "Updated By",
+            type: "date",
+            value: sample.updated_by,
+            fieldName: "updated_by",
+            editable: false,
+        },
     ];
 }
 
@@ -67,14 +105,9 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
     const updateDataset = async (fields: Field[]) => {
         const newData = fields
             .map(field => {
-                if (field.fieldName && !field.disableEdit) {
+                if (field.fieldName && field.editable) {
                     return {
-                        [field.fieldName]: formatFieldValue(
-                            field.value,
-                            false,
-                            true,
-                            field.fieldName
-                        ),
+                        [field.fieldName]: formatSubmitValue(field),
                     };
                 } else return false;
             })

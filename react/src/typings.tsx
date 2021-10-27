@@ -294,12 +294,14 @@ export interface Group {
     users?: string[]; // User.username
 }
 
+// todo: add display type here [bool, date, file, etc]
 export interface Field {
     title: string;
     value: FieldDisplayValueType;
-    fieldName?: string;
+    fieldName: string;
+    editable: boolean;
+    type?: "date" | "boolean" | "linked_files";
     fullWidth?: boolean;
-    disableEdit?: boolean;
     maxLength?: number;
     entryError?: boolean;
 }

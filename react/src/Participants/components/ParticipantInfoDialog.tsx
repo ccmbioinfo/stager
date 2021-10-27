@@ -1,17 +1,11 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Box, Dialog, DialogContent, Divider, makeStyles } from "@material-ui/core";
 import { ShowChart } from "@material-ui/icons";
 
 import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
-import {
-    createFieldObj,
-    formatDateString,
-    formatFieldValue,
-    getAnalysisInfoList,
-    stringToBoolean,
-} from "../../functions";
+import { formatSubmitValue, getAnalysisInfoList } from "../../functions";
 import {
     useDatasetQueries,
     useEnumsQuery,
@@ -35,49 +29,101 @@ const useStyles = makeStyles(theme => ({
 
 function getParticipantFields(participant: Participant): Field[] {
     return [
-        createFieldObj(
-            "Family Codename",
-            participant.family_codename,
-            "family_codename",
-            false,
-            50
-        ),
-        createFieldObj("Family Aliases", participant.family_aliases, "family_aliases", false, 100),
-        createFieldObj("Participant Type", participant.participant_type, "participant_type"),
-        createFieldObj(
-            "Participant Codename",
-            participant.participant_codename,
-            "participant_codename",
-            false,
-            50
-        ),
-        createFieldObj(
-            "Participant Aliases",
-            participant.participant_aliases,
-            "participant_aliases",
-            false,
-            100
-        ),
-        createFieldObj(
-            "Month of Birth",
-            formatDateString(participant.month_of_birth, true),
-            "month_of_birth"
-        ),
-        createFieldObj("Sex", participant.sex, "sex"),
-        createFieldObj("Affected", stringToBoolean(participant.affected), "affected", true),
-        createFieldObj("Solved", stringToBoolean(participant.solved), "solved"),
-        createFieldObj(
-            "Dataset Types",
-            participant.dataset_types.join(", "),
-            "dataset_types",
-            true
-        ),
-        createFieldObj("Notes", participant.notes, "notes"),
-        createFieldObj("Time of Creation", formatDateString(participant.created), "created", true),
-        createFieldObj("Created By", participant.created_by, "created_by", true),
-        createFieldObj("Time of Update", formatDateString(participant.updated), "updated", true),
-        createFieldObj("Updated By", participant.updated_by, "updated_by", true),
-        createFieldObj("Institution", participant.institution, "institution", true),
+        {
+            title: "Family Codename",
+            value: participant.family_codename,
+            fieldName: "family_codename",
+            editable: true,
+            maxLength: 50,
+        },
+        {
+            title: "Family Aliases",
+            value: participant.family_aliases,
+            fieldName: "family_aliases",
+            editable: true,
+            maxLength: 100,
+        },
+        {
+            title: "Participant Type",
+            value: participant.participant_type,
+            fieldName: "participant_type",
+            editable: true,
+        },
+        {
+            title: "Participant Codename",
+            value: participant.participant_codename,
+            fieldName: "participant_codename",
+            editable: true,
+            maxLength: 50,
+        },
+        {
+            title: "Participant Aliases",
+            value: participant.participant_aliases,
+            fieldName: "participant_aliases",
+            editable: true,
+            maxLength: 100,
+        },
+        {
+            title: "Month of Birth",
+            value: participant.month_of_birth,
+            fieldName: "month_of_birth",
+            type: "date",
+            editable: true,
+        },
+        { title: "Sex", value: participant.sex, editable: true, fieldName: "sex" },
+        {
+            title: "Affected",
+            value: participant.affected,
+            type: "boolean",
+            fieldName: "affected",
+            editable: true,
+        },
+        {
+            title: "Solved",
+            value: participant.solved,
+            type: "boolean",
+            editable: true,
+            fieldName: "solved",
+        },
+        {
+            title: "Dataset Types",
+            value: participant.dataset_types.join(", "),
+            fieldName: "dataset_types",
+            editable: false,
+        },
+        { title: "Notes", value: participant.notes, fieldName: "notes", editable: true },
+        {
+            title: "Time of Creation",
+            value: participant.created,
+            type: "date",
+            fieldName: "created",
+            editable: false,
+        },
+        {
+            title: "Created By",
+            value: participant.created_by,
+            fieldName: "created_by",
+            editable: false,
+        },
+        {
+            title: "Time of Update",
+            value: participant.updated,
+            type: "date",
+            fieldName: "updated",
+            editable: false,
+        },
+        {
+            title: "Updated By",
+            value: participant.updated_by,
+            fieldName: "updated_by",
+            editable: false,
+        },
+        {
+            title: "Institution",
+            value: participant.institution,
+            fieldName: "institution",
+            editable: true,
+        },
     ];
 }
 
@@ -134,14 +180,9 @@ export default function ParticipantInfoDialog({
 
         const newParticipantData = fields
             .map(field => {
-                if (field.fieldName && !field.disableEdit) {
+                if (field.fieldName && field.editable) {
                     return {
-                        [field.fieldName]: formatFieldValue(
-                            field.value,
-                            false,
-                            true,
-                            field.fieldName
-                        ),
+                        [field.fieldName]: formatSubmitValue(field),
                     };
                 } else return false;
             })

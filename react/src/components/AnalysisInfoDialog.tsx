@@ -3,14 +3,14 @@ import { Button, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dns, Replay } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { createFieldObj, formatDateString, getDatasetInfoList } from "../functions";
+import { getDatasetInfoList } from "../functions";
 import {
     useAnalysisCreateMutation,
     useAnalysisQuery,
     useEnumsQuery,
     useErrorSnackbar,
 } from "../hooks";
-import { Analysis, Pipeline } from "../typings";
+import { Analysis, Field, Pipeline } from "../typings";
 import DetailSection from "./DetailSection";
 import DialogHeader from "./DialogHeader";
 import InfoList from "./InfoList";
@@ -28,16 +28,47 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
+function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined): Field[] {
     return [
-        createFieldObj("Assigned to", analysis.assignee),
-        createFieldObj("Requested by", analysis.requester),
-        createFieldObj("Status", analysis.analysis_state),
-        createFieldObj("Path Prefix", analysis.result_path),
-        createFieldObj("Last Updated", formatDateString(analysis.updated)),
-        createFieldObj("Notes", analysis.notes),
-        createFieldObj("Pipeline", `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`),
-        createFieldObj("Supported Types", pipeline?.supported_types),
+        { title: "Assigned to", editable: false, value: analysis.assignee, fieldName: "assignee" },
+        {
+            title: "Requested by",
+            editable: false,
+            value: analysis.requester,
+            fieldName: "requester",
+        },
+        {
+            title: "Status",
+            editable: false,
+            value: analysis.analysis_state,
+            fieldName: "analysis_state",
+        },
+        {
+            title: "Path Prefix",
+            editable: false,
+            value: analysis.result_path,
+            fieldName: "result_path",
+        },
+        {
+            title: "Last Updated",
+            editable: false,
+            type: "date",
+            value: analysis.updated,
+            fieldName: "updated",
+        },
+        { title: "Notes", editable: false, value: analysis.notes, fieldName: "notes" },
+        {
+            title: "Pipeline",
+            editable: false,
+            value: `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`,
+            fieldName: "pipeline",
+        },
+        {
+            title: "Supported Types",
+            editable: false,
+            value: pipeline?.supported_types,
+            fieldName: "supported_types",
+        },
     ];
 }
 
