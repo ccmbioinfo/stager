@@ -3,8 +3,25 @@ from werkzeug.exceptions import HTTPException
 import traceback
 from sqlalchemy import exc
 from .extensions import db
+from pymsteams import TeamsWebhookException, connectorcard as MSTeamsMessage
 
 error_blueprint = Blueprint("error_handler", __name__)
+
+
+def send_error_notification(err_code: int, error: Exception):
+    webhook_url = app.config.get("MSTEAMS_WEBHOOK_URL")
+    if not webhook_url:
+        return
+
+    try:
+        err_notification = MSTeamsMessage(webhook_url)
+        err_notification.title(f"[TEST]Server error - {err_code}")
+        err_notification.text(f"{str(request)}\n\n{str(error)}")
+        err_notification.send()
+    except TeamsWebhookException:
+        # can't really do anything about it, ignore...
+        app.logger.error("Failed to post error notification on MS Teams webhook")
+
 
 # dump relavant request info into a string
 def get_request_info() -> str:
@@ -21,9 +38,10 @@ def get_request_info() -> str:
     return info
 
 
-def dump_error_context() -> None:
+def dump_error_context(err_code: int, error: Exception) -> None:
     app.logger.error(get_request_info())
     app.logger.error(traceback.format_exc())
+    send_error_notification(err_code, error)
 
 
 @error_blueprint.app_errorhandler(Exception)
@@ -45,9 +63,9 @@ def handle_error(error: Exception):
         msg = error.description
         # 500 codes are handled as they all exist as a subclass of HTTPException
         if code in werkzeug_500_codes:
-            dump_error_context()
+            dump_error_context(code, error)
     else:
         # this is useful for non-http exceptions as well
-        dump_error_context()
+        dump_error_context(code, error)
 
     return jsonify(error=str(msg)), code
