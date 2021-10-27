@@ -131,8 +131,11 @@ function EnhancedTextField({
             // Value is typed in, and can be really long (notes)
             textFieldProps.multiline = true;
             textFieldProps.maxRows = 2;
+        } else if (field.fieldName === "month_of_birth") {
+            textFieldProps.InputLabelProps = { shrink: true };
+            textFieldProps.type = "month";
+            textFieldProps.value = formatDisplayValue(field);
         } else if (field.type === "date") {
-            // Value is a date string
             textFieldProps.InputLabelProps = { shrink: true };
             textFieldProps.type = "date";
         } else {
@@ -176,7 +179,6 @@ export default function FieldDisplayEditable(props: {
         <>
             <Fade in={props.editMode}>
                 <Box hidden={!props.editMode}>
-                    {/* cut down on unnecessary renders calls here to formatFieldValue -- not essential but helful */}
                     {props.editMode && (
                         <EnhancedTextField
                             field={props.field}

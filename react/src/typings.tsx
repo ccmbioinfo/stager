@@ -300,7 +300,7 @@ export interface Field {
     value: FieldDisplayValueType;
     fieldName: string;
     editable: boolean;
-    type?: "date" | "boolean" | "linked_files";
+    type?: "date" | "timestamp" | "boolean" | "linked_files";
     fullWidth?: boolean;
     maxLength?: number;
     entryError?: boolean;

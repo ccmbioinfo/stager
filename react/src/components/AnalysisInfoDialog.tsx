@@ -52,7 +52,7 @@ function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined): 
         {
             title: "Last Updated",
             editable: false,
-            type: "date",
+            type: "timestamp",
             value: analysis.updated,
             fieldName: "updated",
         },

@@ -41,9 +41,10 @@ export function toKeyValue(items: string[]) {
 /**
  * Convert an ISO datetime to human-readable format in the user's locale.
  */
-export function formatDateString(date: string) {
+export function formatDateString(date: string, type: string) {
     const datetime = dayjs.utc(date);
-    return datetime.isValid() ? datetime.format("LLLL") : null;
+    if (type === "timestamp") return datetime.isValid() ? datetime.format("LLLL") : null;
+    else return datetime.isValid() ? datetime.format("ll") : null;
 }
 
 /**
@@ -210,7 +211,7 @@ export function getDatasetFields(dataset: Dataset): Field[] {
         {
             title: "Created",
             value: dataset.created,
-            type: "date",
+            type: "timestamp",
             fieldName: "created",
             editable: false,
         },
@@ -222,7 +223,7 @@ export function getDatasetFields(dataset: Dataset): Field[] {
         },
         {
             title: "Updated",
-            type: "date",
+            type: "timestamp",
             value: dataset.updated,
             fieldName: "updated",
             editable: false,
@@ -447,8 +448,8 @@ export function formatDisplayValue(field: Field) {
         return (value as LinkedFile[]).map(v => v.path).join(", ");
     } else if (type === "boolean") {
         return PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
-    } else if (type === "date") {
-        return formatDateString(value as string);
+    } else if (type === "date" || type === "timestamp") {
+        return formatDateString(value as string, type);
     }
     return value;
 }
@@ -458,11 +459,9 @@ export function formatSubmitValue(field: Field) {
     const { type, fieldName, value } = field;
     let val = value;
     if (fieldName === "month_of_birth") {
-        val = dayjs(value as string).isValid()
-            ? dayjs(value as string, "YYYY-MM").format("YYYY-MM-1")
-            : null;
+        val = dayjs(value as string).isValid() ? dayjs(value as string).format("YYYY-MM-1") : null;
     }
-    if (type === "date" && !dayjs(val as string).isValid()) {
+    if ((type === "date" || type === "timestamp") && !dayjs(val as string).isValid()) {
         val = null;
     }
 

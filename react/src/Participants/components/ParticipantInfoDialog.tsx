@@ -67,7 +67,6 @@ function getParticipantFields(participant: Participant): Field[] {
             title: "Month of Birth",
             value: participant.month_of_birth,
             fieldName: "month_of_birth",
-            type: "date",
             editable: true,
         },
         { title: "Sex", value: participant.sex, editable: true, fieldName: "sex" },
@@ -95,7 +94,7 @@ function getParticipantFields(participant: Participant): Field[] {
         {
             title: "Time of Creation",
             value: participant.created,
-            type: "date",
+            type: "timestamp",
             fieldName: "created",
             editable: false,
         },
@@ -108,7 +107,7 @@ function getParticipantFields(participant: Participant): Field[] {
         {
             title: "Time of Update",
             value: participant.updated,
-            type: "date",
+            type: "timestamp",
             fieldName: "updated",
             editable: false,
         },

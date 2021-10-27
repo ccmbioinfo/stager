@@ -70,7 +70,7 @@ function getFields(dataset: Dataset): Field[] {
         },
         {
             title: "Creation Time",
-            type: "date",
+            type: "timestamp",
             fieldName: "created",
             editable: false,
             value: dataset.created,
@@ -83,7 +83,7 @@ function getFields(dataset: Dataset): Field[] {
         },
         {
             title: "Last Updated",
-            type: "date",
+            type: "timestamp",
             fieldName: "updated",
             editable: false,
             value: dataset.updated,
