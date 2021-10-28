@@ -3,7 +3,7 @@ from werkzeug.exceptions import HTTPException
 import traceback
 from sqlalchemy import exc
 from .extensions import db
-from pymsteams import TeamsWebhookException, connectorcard as MSTeamsMessage
+from requests import post as send_post_request
 
 error_blueprint = Blueprint("error_handler", __name__)
 
@@ -13,12 +13,15 @@ def send_error_notification(err_code: int, error: Exception):
     if not webhook_url:
         return
 
+    payload = {
+        "title": f"Server error - {err_code}",
+        "text": f"{str(request)}\n\n{str(error)}",
+    }
+    headers = {"Content-Type": "application/json"}
+
     try:
-        err_notification = MSTeamsMessage(webhook_url)
-        err_notification.title(f"Server error - {err_code}")
-        err_notification.text(f"{str(request)}\n\n{str(error)}")
-        err_notification.send()
-    except TeamsWebhookException:
+        send_post_request(webhook_url, json=payload, headers=headers)
+    except:
         # can't really do anything about it, ignore...
         app.logger.error("Failed to post error notification on MS Teams webhook")
 

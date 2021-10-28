@@ -134,6 +134,6 @@ werkzeug==2.0.1
     # via flask
 wrapt==1.12.1
     # via astroid
-pymsteams
+
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
