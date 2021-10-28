@@ -1,9 +1,8 @@
+import requests
+import traceback
 from flask import Blueprint, json, jsonify, request, current_app as app
 from werkzeug.exceptions import HTTPException
-import traceback
-from sqlalchemy import exc
-from .extensions import db
-from requests import post as send_post_request
+
 
 error_blueprint = Blueprint("error_handler", __name__)
 
@@ -20,10 +19,12 @@ def send_error_notification(err_code: int, error: Exception):
     headers = {"Content-Type": "application/json"}
 
     try:
-        send_post_request(webhook_url, json=payload, headers=headers)
-    except:
+        requests.post(webhook_url, json=payload, headers=headers)
+    except Exception as e:
         # can't really do anything about it, ignore...
-        app.logger.error("Failed to post error notification on MS Teams webhook")
+        app.logger.error(
+            f"Failed to post error notification on MS Teams webhook:\n{str(e)}"
+        )
 
 
 # dump relavant request info into a string
