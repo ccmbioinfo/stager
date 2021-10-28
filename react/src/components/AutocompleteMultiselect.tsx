@@ -54,9 +54,7 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
                     removedOptions.push(details!.option);
                     setRemovedOptions(removedOptions);
                 } else if (reason === "select-option") {
-                    setRemovedOptions(
-                        removedOptions.filter(v => v.path !== details!.option.path)
-                    );
+                    setRemovedOptions(removedOptions.filter(v => v.path !== details!.option.path));
                 }
 
                 //prevent keypress events from propagating to parent listeners
