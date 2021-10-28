@@ -1,6 +1,6 @@
 # Development image only. Runs a Flask development server.
 FROM minio/mc AS mc
-FROM python:3.7-slim as base
+FROM python:3.7-slim
 LABEL org.opencontainers.image.title Stager development
 LABEL org.opencontainers.image.authors https://ccm.sickkids.ca/
 LABEL org.opencontainers.image.source https://github.com/ccmbioinfo/stager
@@ -18,9 +18,4 @@ EXPOSE 5000
 ENTRYPOINT ["./utils/wait-for-it.sh", "mysql:3306", "--timeout=0", "--", "./utils/run.sh"]
 # Allows us to replace the parameters to run tests or formatters instead of the app.
 CMD ["--host=0.0.0.0"]
-
-FROM base as debug
-ENV PYTHONDONTWRITEBYTECODE 1
-# Turns off buffering for easier container logging
-ENV PYTHONUNBUFFERED 1
 
