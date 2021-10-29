@@ -41,7 +41,11 @@ export function toKeyValue(items: string[]) {
 /**
  * Convert an ISO datetime to human-readable format in the user's locale.
  */
-export function formatDateString(date: string, type: string) {
+export function formatDateString(date: string, type?: string) {
+    if (type === "month_of_birth") {
+        return dayjs(date).isValid() ? dayjs(date).format("YYYY-MM") : "";
+    }
+
     const datetime = dayjs.utc(date);
     if (type === "timestamp") return datetime.isValid() ? datetime.format("LLLL") : null;
     else return datetime.isValid() ? datetime.format("ll") : null;
@@ -440,7 +444,7 @@ export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
  * Transforms the 'database' value to a user-readable string.
  */
 export function formatDisplayValue(field: Field) {
-    const { type, value, fieldName } = field;
+    const { fieldName, type, value } = field;
     if (fieldName === "month_of_birth") {
         return dayjs(value as string).isValid() ? dayjs(value as string).format("YYYY-MM") : "";
     }
@@ -459,7 +463,9 @@ export function formatSubmitValue(field: Field) {
     const { type, fieldName, value } = field;
     let val = value;
     if (fieldName === "month_of_birth") {
-        val = dayjs(value as string).isValid() ? dayjs(value as string).format("YYYY-MM-1") : null;
+        val = dayjs(value as string).isValid()
+            ? dayjs(value as string, "YYYY-MM").format("YYYY-MM-1")
+            : null;
     }
     if ((type === "date" || type === "timestamp") && !dayjs(val as string).isValid()) {
         val = null;

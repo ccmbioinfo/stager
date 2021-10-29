@@ -80,6 +80,12 @@ export default function DetailSection(props: DetailSectionProps) {
             field.entryError = false;
             if (field.fieldName === "read_length" && value && value.match(/^[0-9]+$/) === null) {
                 field.entryError = true;
+            } else if (
+                field.fieldName === "month_of_birth" &&
+                value &&
+                value.match(/^\d{4}-(0[1-9]|1[012])$/) === null
+            ) {
+                field.entryError = true;
             }
             const newField = {
                 ...field,

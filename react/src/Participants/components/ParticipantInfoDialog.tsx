@@ -5,7 +5,7 @@ import { ShowChart } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
-import { formatSubmitValue, getAnalysisInfoList } from "../../functions";
+import { formatDateString, formatSubmitValue, getAnalysisInfoList } from "../../functions";
 import {
     useDatasetQueries,
     useEnumsQuery,
@@ -65,7 +65,7 @@ function getParticipantFields(participant: Participant): Field[] {
         },
         {
             title: "Month of Birth",
-            value: participant.month_of_birth,
+            value: formatDateString(participant.month_of_birth, "month_of_birth"),
             fieldName: "month_of_birth",
             editable: true,
         },

@@ -68,7 +68,12 @@ function EnhancedTextField({
     const textFieldProps: TextFieldProps = {
         error: field.entryError,
         id: "standard-error",
-        helperText: field.entryError ? "Incorrect entry" : " ",
+        helperText:
+            field.entryError && field.fieldName === "month_of_birth"
+                ? "YYYY-MM"
+                : field.entryError
+                ? "Incorrect entry"
+                : " ",
         className: classes.textField,
         fullWidth: true,
         margin: "dense",
@@ -131,10 +136,6 @@ function EnhancedTextField({
             // Value is typed in, and can be really long (notes)
             textFieldProps.multiline = true;
             textFieldProps.maxRows = 2;
-        } else if (field.fieldName === "month_of_birth") {
-            textFieldProps.InputLabelProps = { shrink: true };
-            textFieldProps.type = "month";
-            textFieldProps.value = formatDisplayValue(field);
         } else if (field.type === "date") {
             textFieldProps.InputLabelProps = { shrink: true };
             textFieldProps.type = "date";
