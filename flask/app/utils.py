@@ -27,7 +27,52 @@ from werkzeug.exceptions import HTTPException
 
 from .extensions import db
 from .madmin import MinioAdmin
-from .models import User, Group, Dataset
+from .models import User, Group, Dataset, Variant, Genotype
+
+
+def try_int(value: str):
+    if value is not None:
+        try:
+            int_value = int(value)
+        except ValueError as e:
+            int_value = None
+        return int_value
+    else:
+        return value
+
+
+def create_variant_obj(row: Dict[str, any], analysis_id: int) -> Variant:
+
+    cols_list = list(inspect(Variant).mapper.columns)
+
+    potential_int_cols = ["number_of_callers"]
+    vt = Variant(**{col.name: row.get(col.name) for col in cols_list})
+
+    for col in potential_int_cols:
+        setattr(vt, col, try_int(row[col]))
+
+    vt.analysis_id = analysis_id
+
+    return vt
+
+
+def create_genotype_obj(
+    row: Dict[str, any], analysis_id: int, dataset_id: int, variant_id: int
+) -> Genotype:
+
+    cols_list = list(inspect(Genotype).mapper.columns)
+    potential_int_cols = ["burden", "alt_depths", "coverage"]
+
+    gt = Genotype(**{col.name: row.get(col.name) for col in cols_list})
+
+    for col in potential_int_cols:
+        setattr(gt, col, try_int(row[col]))
+
+    gt.analysis_id = analysis_id
+    gt.dataset_id = dataset_id
+    gt.variant_id = variant_id
+
+    return gt
 
 
 def str_to_bool(param: str) -> bool:
