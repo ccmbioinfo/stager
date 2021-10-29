@@ -35,3 +35,5 @@ class Config(object):
         "OIDC_WELL_KNOWN",
         "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration",
     )
+
+    MSTEAMS_WEBHOOK_URL = os.getenv("MSTEAMS_WEBHOOK_URL")
