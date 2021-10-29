@@ -56,7 +56,7 @@ VSCode & remote containers: [https://code.visualstudio.com/docs/remote/container
 
 To set up a development environment with Flask, Docker and VSCode when the docker context points to the local machine, see the steps below. If the Flask application container is running on the VM, an additional step is required to set the local docker context to point to the VM.
 
-To start a Docker development that supports debugging in the container:
+To start a Docker development that supports debugging in the container and launch the debugger:
 
 -   Step 1: `docker-compose -p stager-debug -f docker-compose.debug.yaml up`
 -   Step 2, Click on remote connection icon in VSCode, choose "Attach to running container".
