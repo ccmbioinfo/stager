@@ -43,7 +43,6 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
     function onFileAdd(files: FileList | null) {
         if (files && files[0]) {
             setFile(files[0]);
-            console.log(files[0].name);
         } else {
             setFile(null);
         }
