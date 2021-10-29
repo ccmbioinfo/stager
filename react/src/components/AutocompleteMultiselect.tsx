@@ -32,6 +32,7 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
     uniqueLabelPath,
 }: AutocompleteMultiselectProps<T>) {
     const [inputValue, setInputValue] = useState("");
+    const [removedOptions, setRemovedOptions] = useState<T[]>([]);
     return (
         <Autocomplete
             autoComplete
@@ -48,7 +49,14 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
             }}
             disableClearable={true}
             disableCloseOnSelect
-            onChange={(event, selectedOptions, reason) => {
+            onChange={(event, selectedOptions, reason, details) => {
+                if (reason === "remove-option") {
+                    removedOptions.push(details!.option);
+                    setRemovedOptions(removedOptions);
+                } else if (reason === "select-option") {
+                    setRemovedOptions(removedOptions.filter(v => v.path !== details!.option.path));
+                }
+
                 //prevent keypress events from propagating to parent listeners
                 event.stopPropagation();
                 if (selectedOptions && ["select-option", "remove-option"].includes(reason)) {
@@ -61,7 +69,7 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
             getOptionSelected={(option, value) =>
                 option[uniqueLabelPath] === value[uniqueLabelPath]
             }
-            options={options}
+            options={[...new Set(options.concat(removedOptions))]}
             filterOptions={createFilterOptions({
                 limit,
                 stringify: o => o[uniqueLabelPath],

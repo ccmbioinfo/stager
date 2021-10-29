@@ -11,6 +11,7 @@ services:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
       MINIO_REGION_NAME: hpc4health
+      MSTEAMS_WEBHOOK_URL: "${MSTEAMS_WEBHOOK_URL}"
     ports:
       - "5000:5000"
     entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
