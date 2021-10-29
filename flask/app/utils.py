@@ -48,8 +48,6 @@ def create_variant_obj(row: Dict[str, any], analysis_id: int) -> Variant:
     potential_int_cols = ["number_of_callers"]
     vt = Variant(**{col.name: row.get(col.name) for col in cols_list})
 
-    # name of model field is different from report name
-    vt.report_ensembl_gene_id = row.get("ensembl_gene_id")
     for col in potential_int_cols:
         setattr(vt, col, try_int(row[col]))
 
