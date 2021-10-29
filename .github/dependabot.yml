@@ -10,7 +10,7 @@ updates:
       - cklamann
     schedule:
       interval: monthly
-      time: 07:00
+      time: "07:00"
       timezone: America/Toronto
   - package-ecosystem: npm
     directory: /react
@@ -22,7 +22,7 @@ updates:
       - cklamann
     schedule:
       interval: monthly
-      time: 07:00
+      time: "07:00"
       timezone: America/Toronto
   - package-ecosystem: docker
     directory: /
@@ -34,7 +34,7 @@ updates:
       - cklamann
     schedule:
       interval: monthly
-      time: 07:00
+      time: "07:00"
       timezone: America/Toronto
   - package-ecosystem: github-actions
     directory: /
@@ -46,5 +46,5 @@ updates:
       - cklamann
     schedule:
       interval: monthly
-      time: 07:00
+      time: "07:00"
       timezone: America/Toronto
