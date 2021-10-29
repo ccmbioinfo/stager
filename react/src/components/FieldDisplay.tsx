@@ -15,7 +15,9 @@ export default function FieldDisplay(props: FieldDisplayProps) {
     return (
         <Typography variant="body1" gutterBottom>
             <b>{props.title}:</b>{" "}
-            <span className={props.className}>{formatFieldValue(props.value, props.bool)}</span>
+            <span className={props.className}>
+                {formatFieldValue(props.value, props.bool, false)}
+            </span>
         </Typography>
     );
 }
