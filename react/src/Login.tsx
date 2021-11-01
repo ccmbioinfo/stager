@@ -14,6 +14,7 @@ import {
 import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
 import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
+import LabDropdownSelect from "./components/LabDropdownSelect";
 import { CurrentUser } from "./typings";
 
 interface LoginProps {
@@ -70,6 +71,11 @@ const useStyles = makeStyles(theme => ({
     center: {
         display: "flex",
         justifyContent: "center",
+    },
+    columnCenter: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
     },
     flex: {
         display: "flex",
@@ -241,7 +247,7 @@ function LoginForm({
                 <Typography variant="subtitle1" align="center">
                     <Box fontWeight="fontWeightLight">Sample Tracking and Genomics Resources</Box>
                 </Typography>
-                <form>
+                <form className={classes.columnCenter}>
                     <TextField
                         required
                         variant="filled"
@@ -261,6 +267,11 @@ function LoginForm({
                         label="Password"
                         onChange={bind(setPassword)}
                         autoComplete="current-password"
+                    />
+                    <LabDropdownSelect
+                        onSelect={v => {
+                            console.log("[Login]: Selected", v);
+                        }}
                     />
                     <Button
                         variant="contained"
