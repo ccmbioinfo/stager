@@ -12,7 +12,7 @@ attrs==20.3.0
     # via pytest
 authlib==0.15.5
     # via -r requirements.in
-black==21.9b0
+black==21.10b0
     # via -r requirements-dev.in
 certifi==2020.12.5
     # via
@@ -70,7 +70,7 @@ minio==7.1.1
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
-numpy==1.20.2
+numpy==1.21.3
     # via pandas
 packaging==20.9
     # via pytest
@@ -122,10 +122,7 @@ toml==0.10.2
 tomli==1.1.0
     # via black
 typing-extensions==3.10.0.2
-    # via
-    #   astroid
-    #   black
-    #   pylint
+    # via black
 urllib3==1.26.5
     # via
     #   minio
