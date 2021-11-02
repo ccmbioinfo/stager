@@ -10,7 +10,7 @@ import {
     UseQueryOptions,
     UseQueryResult,
 } from "react-query";
-import { Query, SetDataOptions } from "react-query/types/core/query";
+import { Query, SetDataOptions } from "react-query";
 import { stringToBoolean } from "../functions";
 import { QueryWithSearchOptions as MTQueryWithSearchOptions } from "../typings";
 
