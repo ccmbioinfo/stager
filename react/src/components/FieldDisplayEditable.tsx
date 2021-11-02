@@ -136,6 +136,9 @@ function EnhancedTextField({
             // Value is typed in, and can be really long (notes)
             textFieldProps.multiline = true;
             textFieldProps.maxRows = 2;
+        } else if (field.fieldName === "month_of_birth") {
+            textFieldProps.InputLabelProps = { shrink: true };
+            textFieldProps.type = "month";
         } else if (field.type === "date") {
             textFieldProps.InputLabelProps = { shrink: true };
             textFieldProps.type = "date";
