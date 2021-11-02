@@ -7,11 +7,7 @@ import {
     MenuItem,
     Select,
 } from "@material-ui/core";
-
-interface LabSelection {
-    name: string;
-    endpoint: string;
-}
+import { LabSelection } from "../typings";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -31,13 +27,13 @@ const useStyles = makeStyles(theme => ({
 async function getLabs(): Promise<LabSelection[]> {
     // TODO: update this when API call is ready
     const DUMMY_LAB_OPTIONS: LabSelection[] = [
-        { name: "Lab 1", endpoint: "lab1.endpoint@lab1.ca" },
-        { name: "Lab 2", endpoint: "lab1.endpoint@lab2.ca" },
-        { name: "Lab 3", endpoint: "lab1.endpoint@lab3.ca" },
-        { name: "Lab 4", endpoint: "lab1.endpoint@lab4.ca" },
+        { name: "Lab 1", endpoint: "lab1.stager.ca" },
+        { name: "Lab 2", endpoint: "lab2.stager.ca" },
+        { name: "Lab 3", endpoint: "lab3.stager.ca" },
+        { name: "Lab 4", endpoint: "lab4.stager.ca" },
     ];
 
-    return [];
+    return DUMMY_LAB_OPTIONS;
 }
 
 export default function LabDropdownSelect(props: {
@@ -57,6 +53,7 @@ export default function LabDropdownSelect(props: {
                 }
             })
             .catch(err => console.error(err));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return optionsList.length > 0 ? (

@@ -344,6 +344,7 @@ export interface GeneAlias {
 
 interface APIInfoBase {
     sha: string;
+    endpoint?: string;
 }
 
 interface APIInfoOAuth {
@@ -356,3 +357,8 @@ interface APIInfoNoOauth {
 }
 
 export type APIInfo = APIInfoBase & (APIInfoOAuth | APIInfoNoOauth);
+
+export interface LabSelection {
+    name: string;
+    endpoint: string;
+}

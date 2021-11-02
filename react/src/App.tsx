@@ -131,6 +131,11 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
                 oauth={apiInfo.oauth}
+                setEndpoint={newEndpoint => {
+                    console.log("[Login]: Selected", newEndpoint);
+                    const newApiInfo: APIInfo = { ...apiInfo, endpoint: newEndpoint };
+                    setApiInfo(newApiInfo);
+                }}
             />
         );
     } else {

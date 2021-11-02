@@ -22,6 +22,7 @@ interface LoginProps {
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
+    setEndpoint: (endpoint: string) => void;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -198,6 +199,7 @@ function OIDCRedirectHandler(props: LoginProps) {
 function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
+    setEndpoint = (endpoint: string) => {},
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -269,9 +271,7 @@ function LoginForm({
                         autoComplete="current-password"
                     />
                     <LabDropdownSelect
-                        onSelect={v => {
-                            console.log("[Login]: Selected", v);
-                        }}
+                        onSelect={labSelection => setEndpoint(labSelection.endpoint)}
                     />
                     <Button
                         variant="contained"
