@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import { Backdrop, CircularProgress, Dialog, DialogContent, Divider } from "@material-ui/core";
+import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 
-import { DetailSection, DialogHeader, InfoList } from "../../components";
+import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from "../../components";
 import {
     createFieldObj,
     formatDateString,
@@ -28,10 +28,6 @@ const useStyles = makeStyles(theme => ({
     },
     infoSection: {
         margin: theme.spacing(3),
-    },
-    backdrop: {
-        zIndex: theme.zIndex.drawer + 1,
-        color: "#fff",
     },
 }));
 
@@ -149,9 +145,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                     )}
                 </div>
             </DialogContent>
-            <Backdrop className={classes.backdrop} open={loadingOpen || loadingUpdate}>
-                <CircularProgress color="inherit" />
-            </Backdrop>
+            <LoadingIndicator open={loadingOpen || loadingUpdate} />
         </Dialog>
     );
 }
