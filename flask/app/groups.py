@@ -100,14 +100,16 @@ def update_group(group_code) -> Response:
     Potential problems: MinIO operations failing result in an inconsistent state.
     """
 
+    if type(request.json) is not dict:
+        abort(400, description="Expected object")
+
     app.logger.debug("Getting new group users, if any..")
     strlist_users = (
         request.json.get("users")  # Ignores the empty list
         and type(request.json["users"]) is list
         and all([type(user) is str for user in request.json["users"]])
     )
-    if type(request.json) is not dict:
-        abort(400, description="Expected object")
+
     if "users" in request.json and not strlist_users:
         abort(400, description="users should be a string array")
 
@@ -167,8 +169,9 @@ def create_group():
 
     Potential problems: MinIO operations failing result in an inconsistent state.
     """
-    group_name = request.json.get("group_name")
-    group_code = request.json.get("group_code")
+
+    if type(request.json) is not dict:
+        abort(400, description="Expected object")
 
     app.logger.debug("Getting new group users, if any..")
     strlist_users = (
@@ -176,14 +179,18 @@ def create_group():
         and type(request.json["users"]) is list
         and all([type(user) is str for user in request.json["users"]])
     )
-    if type(request.json) is not dict:
-        abort(400, description="Expected object")
+    group_name = request.json.get("group_name")
+    group_code = request.json.get("group_code")
+
     if "users" in request.json and not strlist_users:
         abort(400, description="users should be a string array")
     if not group_name:
         abort(400, description="A group display name must be provided")
-    if not group_code:
+    if not group_code or type(group_code) is not str:
         abort(400, description="A group codename must be provided")
+    if group_code.startswith("results-"):
+        # madmin.py::stager_buckets_policy
+        abort(400, "A group codename cannot start with 'results-'")
 
     app.logger.debug("Checking if group already exists..")
     if (
