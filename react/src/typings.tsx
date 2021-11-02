@@ -344,7 +344,7 @@ export interface GeneAlias {
 
 interface APIInfoBase {
     sha: string;
-    endpoint?: string;
+    endpoint: string | null; // null endpoint value -> use the default endpoint
 }
 
 interface APIInfoOAuth {
