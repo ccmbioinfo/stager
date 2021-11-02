@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { CircularProgress, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
@@ -57,7 +57,7 @@ interface DialogProp {
 export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
-    const { data: dataset } = useDatasetQuery(dataset_id);
+    const { data: dataset, isSuccess } = useDatasetQuery(dataset_id);
     const { data: enums } = useEnumsQuery();
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
@@ -115,7 +115,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
     };
 
     return (
-        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open && isSuccess} maxWidth="lg" fullWidth>
             <DialogHeader id={labeledBy} onClose={onClose}>
                 Details of Dataset ID {dataset_id}
             </DialogHeader>
