@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { CircularProgress, Dialog, DialogContent, Divider } from "@material-ui/core";
+import React, { useMemo } from "react";
+import { Backdrop, CircularProgress, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
-
 import { useSnackbar } from "notistack";
 
 import { DetailSection, DialogHeader, InfoList } from "../../components";
@@ -27,11 +26,12 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(0),
         margin: theme.spacing(0),
     },
-    datasetInfo_blurred: {
-        filter: "blur(1px)",
-    },
     infoSection: {
         margin: theme.spacing(3),
+    },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1,
+        color: "#fff",
     },
 }));
 
@@ -57,22 +57,18 @@ interface DialogProp {
 export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
-    const { data: dataset, isSuccess } = useDatasetQuery(dataset_id);
+    const { data: dataset, isLoading: loadingOpen } = useDatasetQuery(dataset_id);
     const { data: enums } = useEnumsQuery();
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
     const datasetUpdateMutation = useDatasetUpdateMutation();
+    const loadingUpdate = datasetUpdateMutation.isLoading;
 
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
-    // const[infoDialogLoading, setDialogLoading] = useState(false);
-    const [classType, setClassType] = useState(classes.datasetInfo);
 
     const updateDataset = async (fields: Field[]) => {
-        // setDialogLoading(true);
-        setClassType(classes.datasetInfo_blurred);
-
         const newData = fields
             .map(field => {
                 if (field.fieldName && !field.disableEdit) {
@@ -89,9 +85,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             },
             {
                 onSuccess: receiveDataset => {
-                    // setDialogLoading(false); // solution 1.
-                    setClassType(classes.datasetInfo);
-
                     enqueueSnackbar(
                         `Dataset ID ${receiveDataset.dataset_id} updated successfully`,
                         {
@@ -100,8 +93,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                     );
                 },
                 onError: response => {
-                    // setDialogLoading(false);
-                    setClassType(classes.datasetInfo);
                     console.error(
                         `PATCH /api/datasets/${newData.dataset_id} failed with ${response.status}: ${response.statusText}`
                     );
@@ -115,11 +106,11 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
     };
 
     return (
-        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open && isSuccess} maxWidth="lg" fullWidth>
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
             <DialogHeader id={labeledBy} onClose={onClose}>
                 Details of Dataset ID {dataset_id}
             </DialogHeader>
-            <DialogContent className={classType} dividers>
+            <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
                     {dataset && (
                         <DetailSection
@@ -131,7 +122,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                             update={updateDataset}
                         />
                     )}
-                    {classType === classes.datasetInfo_blurred && <CircularProgress />}
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
@@ -159,6 +149,9 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                     )}
                 </div>
             </DialogContent>
+            <Backdrop className={classes.backdrop} open={loadingOpen || loadingUpdate}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </Dialog>
     );
 }
