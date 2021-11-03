@@ -5,6 +5,7 @@ import {
     CircularProgress,
     Container,
     Grid,
+    Fade,
     Link,
     makeStyles,
     Paper,
@@ -15,14 +16,14 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
 import LabDropdownSelect from "./components/LabDropdownSelect";
-import { CurrentUser } from "./typings";
+import { CurrentUser, LabSelection } from "./typings";
 
 interface LoginProps {
     signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
-    setEndpoint: (endpoint: string) => void;
+    setEndpoint: (endpoint: string | null) => void;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -72,11 +73,6 @@ const useStyles = makeStyles(theme => ({
     center: {
         display: "flex",
         justifyContent: "center",
-    },
-    columnCenter: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
     },
     flex: {
         display: "flex",
@@ -199,11 +195,12 @@ function OIDCRedirectHandler(props: LoginProps) {
 function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
-    setEndpoint = (endpoint: string) => {},
+    setEndpoint = (endpoint: string | null) => {},
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showForm, setShowForm] = useState(false);
     function bind(set: typeof setUsername) {
         // @ts-ignore
         return e => set(e.target.value);
@@ -224,6 +221,11 @@ function LoginForm({
         }
         setAuthenticated(result.ok);
     }
+
+    const handleLabSelect = (lab: LabSelection) => {
+        setEndpoint(lab.endpoint);
+        setShowForm(lab.endpoint !== null);
+    };
     const classes = useStyles();
     return (
         <Grid
@@ -249,39 +251,43 @@ function LoginForm({
                 <Typography variant="subtitle1" align="center">
                     <Box fontWeight="fontWeightLight">Sample Tracking and Genomics Resources</Box>
                 </Typography>
-                <form className={classes.columnCenter}>
-                    <TextField
-                        required
-                        variant="filled"
-                        fullWidth
-                        margin="normal"
-                        className={classes.textField}
-                        label="Username"
-                        onChange={bind(setUsername)}
-                    />
-                    <TextField
-                        required
-                        variant="filled"
-                        fullWidth
-                        margin="normal"
-                        className={classes.textField}
-                        type="password"
-                        label="Password"
-                        onChange={bind(setPassword)}
-                        autoComplete="current-password"
-                    />
-                    <LabDropdownSelect
-                        onSelect={labSelection => setEndpoint(labSelection.endpoint)}
-                    />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        className={classes.button}
-                        type="submit"
-                        onClick={authenticate}
-                    >
-                        Sign in
-                    </Button>
+                <form>
+                    <Grid direction="column" alignItems="center" container>
+                        <LabDropdownSelect onSelect={handleLabSelect} />
+                        <Fade in={showForm}>
+                            <div>
+                                <TextField
+                                    required
+                                    variant="filled"
+                                    fullWidth
+                                    margin="normal"
+                                    className={classes.textField}
+                                    label="Username"
+                                    onChange={bind(setUsername)}
+                                />
+                                <TextField
+                                    required
+                                    variant="filled"
+                                    fullWidth
+                                    margin="normal"
+                                    className={classes.textField}
+                                    type="password"
+                                    label="Password"
+                                    onChange={bind(setPassword)}
+                                    autoComplete="current-password"
+                                />
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    className={classes.button}
+                                    type="submit"
+                                    onClick={authenticate}
+                                >
+                                    Sign in
+                                </Button>
+                            </div>
+                        </Fade>
+                    </Grid>
                 </form>
             </Grid>
             <Grid item className={classes.graphics}>
