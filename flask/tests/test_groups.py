@@ -144,6 +144,10 @@ def test_delete_group(test_database, client, login_as, minio_admin):
 
 def test_update_group(test_database, client, login_as, minio_admin):
     login_as("admin")
+    # Test bad payloads
+    assert client.patch("/api/groups/code").status_code == 415
+    assert client.patch("/api/groups/code", json="").status_code == 400
+    assert client.patch("/api/groups/code", json="5").status_code == 400
     # Test existence
     assert (
         client.patch("/api/groups/code", json={"group_name": "yes"}).status_code == 404
@@ -180,6 +184,10 @@ def test_create_group(test_database, client, login_as, minio_admin):
     assert client.post("/api/groups").status_code == 401
 
     login_as("admin")
+    # Test bad payloads
+    assert client.post("/api/groups").status_code == 415
+    assert client.post("/api/groups", json="").status_code == 400
+    assert client.post("/api/groups", json="5").status_code == 400
     # Test no group_code given
     assert (
         client.post(
@@ -226,6 +234,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
         secure=False,
     )
     # Clean up
+    minio_client.remove_bucket("results-code")
     minio_client.remove_bucket("code")
     minio_admin.remove_policy("code")
 
@@ -256,6 +265,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
         secure=False,
     )
     # Clean up
+    minio_client.remove_bucket("results-code2")
     minio_client.remove_bucket("code2")
     minio_admin.remove_policy("code2")
     minio_admin.remove_user("user")
