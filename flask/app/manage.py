@@ -50,12 +50,27 @@ def register_commands(app: Flask) -> None:
 @click.command("migrate-minio-policies")
 @with_appcontext
 def migrate_minio_policies() -> None:
+    minio_client = Minio(
+        app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
+        secure=False,
+    )
     minio_admin = get_minio_admin()
     groups = models.Group.query.all()
     for group in groups:
         policy = stager_buckets_policy(group.group_code)
         # All adds are upserts
         minio_admin.add_policy(group.group_code, policy)
+        if not minio_client.bucket_exists(group.group_code):
+            minio_client.make_bucket(
+                bucket_name=group.group_code, location=app.config["MINIO_REGION_NAME"]
+            )
+        if not minio_client.bucket_exists(f"results-{group.group_code}"):
+            minio_client.make_bucket(
+                bucket_name=f"results-{group.group_code}",
+                location=app.config["MINIO_REGION_NAME"],
+            )
 
 
 @click.command("map-insert-c4r-reports")
