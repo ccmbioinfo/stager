@@ -93,6 +93,12 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             }
         })();
     }, []);
+
+    const setEndpoint = (newEndpoint: string | null) => {
+        const newApiInfo: APIInfo = { ...(apiInfo as APIInfo), endpoint: newEndpoint };
+        setApiInfo(newApiInfo);
+    };
+
     if (authenticated && apiInfo) {
         return (
             <UserContext.Provider value={userClient}>
@@ -134,11 +140,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
                 oauth={apiInfo.oauth}
-                setEndpoint={(newEndpoint: string | null) => {
-                    console.log("[Login]: Selected", newEndpoint);
-                    const newApiInfo: APIInfo = { ...apiInfo, endpoint: newEndpoint };
-                    setApiInfo(newApiInfo);
-                }}
+                setEndpoint={setEndpoint}
             />
         );
     } else {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import {
     FormControl,
     InputLabel,
@@ -24,14 +24,7 @@ const useStyles = makeStyles(theme => ({
 
 async function getLabs(): Promise<LabSelection[]> {
     // TODO: replace this
-    const DUMMY_LAB_OPTIONS: LabSelection[] = [
-        { name: "Lab 1", endpoint: "lab1.stager.ca" },
-        { name: "Lab 2", endpoint: "lab2.stager.ca" },
-        { name: "Lab 3", endpoint: "lab3.stager.ca" },
-        { name: "Lab 4", endpoint: "lab4.stager.ca" },
-    ];
-
-    return DUMMY_LAB_OPTIONS;
+    return [];
 }
 
 export default function LabDropdownSelect(props: {
@@ -63,6 +56,16 @@ export default function LabDropdownSelect(props: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const handleDropdownChange = (ev: ChangeEvent<{ name?: string; value: unknown }>) => {
+        optionsList.forEach(v => {
+            if (v.name === ev.target.value) {
+                setSelected(v.name);
+                localStorage.setItem("lab", v.name);
+                props.onSelect(v);
+            }
+        });
+    };
+
     return optionsList.length > 0 ? (
         <div className={classes.root}>
             <FormControl fullWidth className={classes.formControl}>
@@ -74,15 +77,7 @@ export default function LabDropdownSelect(props: {
                     id="login-lab-select"
                     value={selected}
                     label="Lab"
-                    onChange={ev => {
-                        optionsList.forEach(v => {
-                            if (v.name === ev.target.value) {
-                                setSelected(v.name);
-                                localStorage.setItem("lab", v.name);
-                                props.onSelect(v);
-                            }
-                        });
-                    }}
+                    onChange={handleDropdownChange}
                 >
                     {optionsList.map((v, i) => (
                         <MenuItem value={v.name} key={i}>
