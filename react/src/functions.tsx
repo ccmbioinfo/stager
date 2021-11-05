@@ -7,7 +7,6 @@ import {
     Counts,
     Dataset,
     Field,
-    FieldDisplayValueType,
     Info,
     isRNASeqDataset,
     KeyValue,
@@ -42,9 +41,14 @@ export function toKeyValue(items: string[]) {
 /**
  * Convert an ISO datetime to human-readable format in the user's locale.
  */
-export function formatDateString(date: string) {
+export function formatDateString(date: string, type?: string) {
+    if (type === "month_of_birth") {
+        return dayjs(date).isValid() ? dayjs(date).format("YYYY-MM") : "";
+    }
+
     const datetime = dayjs.utc(date);
-    return datetime.isValid() ? datetime.format("LLLL") : null;
+    if (type === "timestamp") return datetime.isValid() ? datetime.format("LLLL") : null;
+    else return datetime.isValid() ? datetime.format("ll") : null;
 }
 
 /**
@@ -86,18 +90,56 @@ export function isRowSelected(row: any): boolean {
 }
 
 /**
- * Return the titles and values  of analysis detail as a Field Object in dialogs
+ * Return the titles and values of analysis detail as a Field Object in dialogs
  */
-export function getAnalysisFields(analysis: Analysis) {
+export function getAnalysisFields(analysis: Analysis): Field[] {
     return [
-        createFieldObj("State", analysis.analysis_state),
-        createFieldObj("Assigned to", analysis.assignee),
-        createFieldObj("Path Prefix", analysis.result_path),
-        createFieldObj("Notes", analysis.notes),
-        createFieldObj("Requested", formatDateString(analysis.requested)),
-        createFieldObj("Requested By", analysis.requester),
-        createFieldObj("Started", formatDateString(analysis.started)),
-        createFieldObj("Last Updated", formatDateString(analysis.updated)),
+        {
+            title: "State",
+            value: analysis.analysis_state,
+            fieldName: "analysis_state",
+            editable: false,
+        },
+        {
+            title: "Assigned to",
+            value: analysis.assignee,
+            fieldName: "assignee",
+            editable: false,
+        },
+        {
+            title: "Path Prefix",
+            value: analysis.result_path,
+            fieldName: "result_path",
+            editable: false,
+        },
+        { title: "Notes", value: analysis.notes, fieldName: "notes", editable: false },
+        {
+            title: "Requested",
+            value: analysis.requested,
+            type: "date",
+            fieldName: "requested",
+            editable: false,
+        },
+        {
+            title: "Requested By",
+            value: analysis.requester,
+            fieldName: "requester",
+            editable: false,
+        },
+        {
+            title: "Started",
+            value: analysis.started,
+            type: "date",
+            fieldName: "started",
+            editable: false,
+        },
+        {
+            title: "Last Updated",
+            value: analysis.updated,
+            type: "date",
+            fieldName: "updated",
+            editable: false,
+        },
     ];
 }
 
@@ -118,82 +160,160 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
 /**
  * Return the titles and values of dataset detail as a Field object in dialogs
  */
-export function getDatasetFields(dataset: Dataset) {
+export function getDatasetFields(dataset: Dataset): Field[] {
     return [
-        createFieldObj("Dataset Type", dataset.dataset_type, "dataset_type"),
-        createFieldObj(
-            "Participant Codename",
-            dataset.participant_codename,
-            "participant_codename",
-            true
-        ),
-        createFieldObj(
-            "Participant Aliases",
-            dataset.participant_aliases,
-            "participant_aliases",
-            true
-        ),
-        createFieldObj("Family Codename", dataset.family_codename, "family_codename", true),
-        createFieldObj("Family Aliases", dataset.family_aliases, "family_aliases", true),
-        createFieldObj("Permission Groups", dataset.group_code.join(", "), "group_codes", true),
-        createFieldObj(
-            "Tissue Sample Type",
-            dataset.tissue_sample_type,
-            "tissue_sample_type",
-            true
-        ),
-        createFieldObj(
-            "Sequencing Centre",
-            dataset.sequencing_centre,
-            "sequencing_centre",
-            false,
-            100
-        ),
-        createFieldObj("Notes", dataset.notes, "notes"),
-        createFieldObj("Created", formatDateString(dataset.created), "created", true),
-        createFieldObj("Created By", dataset.created_by, "created_by", true),
-        createFieldObj("Updated", formatDateString(dataset.updated), "updated", true),
-        createFieldObj("Updated By", dataset.updated_by, "updated_by", true),
+        {
+            title: "Dataset Type",
+            value: dataset.dataset_type,
+            fieldName: "dataset_type",
+            editable: true,
+        },
+
+        {
+            title: "Participant Codename",
+            value: dataset.participant_codename,
+            fieldName: "participant_codename",
+            editable: false,
+        },
+        {
+            title: "Participant Aliases",
+            value: dataset.participant_aliases,
+            fieldName: "participant_aliases",
+            editable: false,
+        },
+        {
+            title: "Family Codename",
+            value: dataset.family_codename,
+            fieldName: "family_codename",
+            editable: false,
+        },
+        {
+            title: "Family Aliases",
+            value: dataset.family_aliases,
+            fieldName: "family_aliases",
+            editable: false,
+        },
+        {
+            title: "Permission Groups",
+            value: dataset.group_code.join(", "),
+            fieldName: "group_codes",
+            editable: false,
+        },
+        {
+            title: "Tissue Sample Type",
+            value: dataset.tissue_sample_type,
+            fieldName: "tissue_sample_type",
+            editable: false,
+        },
+        {
+            title: "Sequencing Centre",
+            value: dataset.sequencing_centre,
+            fieldName: "sequencing_centre",
+            editable: true,
+        },
+        { title: "Notes", value: dataset.notes, fieldName: "notes", editable: true },
+        {
+            title: "Created",
+            value: dataset.created,
+            type: "timestamp",
+            fieldName: "created",
+            editable: false,
+        },
+        {
+            title: "Created By",
+            value: dataset.created_by,
+            fieldName: "created_by",
+            editable: false,
+        },
+        {
+            title: "Updated",
+            type: "timestamp",
+            value: dataset.updated,
+            fieldName: "updated",
+            editable: false,
+        },
+        {
+            title: "Updated By",
+            value: dataset.updated_by,
+            fieldName: "updated_by",
+            editable: false,
+        },
     ];
 }
 
 /**
  * Return the secondary titles and values (hidden in show more detail) of dataset detail as a Field object in dialogs
  */
-export function getSecDatasetFields(dataset: Dataset) {
+export function getSecDatasetFields(dataset: Dataset): Field[] {
     let fields = [
-        createFieldObj("Batch ID", dataset.batch_id, "batch_id", false, 50),
-        createFieldObj("Linked Files", dataset.linked_files, "linked_files", false),
-        createFieldObj("Condition", dataset.condition, "condition"),
-        createFieldObj(
-            "Extraction Protocol",
-            dataset.extraction_protocol,
-            "extraction_protocol",
-            false,
-            100
-        ),
-        createFieldObj("Capture Kit", dataset.capture_kit, "capture_kit", false, 50),
-        createFieldObj(
-            "Library Prep Method",
-            dataset.library_prep_method,
-            "library_prep_method",
-            false,
-            50
-        ),
-        createFieldObj(
-            "Library Prep Date",
-            formatDateString(dataset.library_prep_date),
-            "library_prep_date"
-        ),
-        createFieldObj("Read Length", dataset.read_length, "read_length", false, 10),
-        createFieldObj("Read Type", dataset.read_type, "read_type"),
+        {
+            title: "Batch ID",
+            value: dataset.batch_id,
+            fieldName: "batch_id",
+            editable: true,
+            maxLength: 50,
+        },
+        {
+            title: "Linked Files",
+            value: dataset.linked_files,
+            fieldName: "linked_files",
+            type: "linked_files" as "linked_files",
+            editable: true,
+        },
+        { title: "Condition", value: dataset.condition, fieldName: "condition", editable: true },
+        {
+            title: "Extraction Protocol",
+            value: dataset.extraction_protocol,
+            fieldName: "extraction_protocol",
+            editable: true,
+            maxLength: 100,
+        },
+        {
+            title: "Capture Kit",
+            value: dataset.capture_kit,
+            fieldName: "capture_kit",
+            editable: true,
+            maxLength: 50,
+        },
+        {
+            title: "Library Prep Method",
+            value: dataset.library_prep_method,
+            fieldName: "library_prep_method",
+            editable: true,
+            maxLength: 50,
+        },
+        {
+            title: "Library Prep Date",
+            value: dataset.library_prep_date,
+            type: "date" as "date",
+            fieldName: "library_prep_date",
+            editable: true,
+        },
+        {
+            title: "Read Length",
+            value: dataset.read_length,
+            fieldName: "read_length",
+            editable: true,
+            maxLength: 10,
+        },
+        { title: "Read Type", value: dataset.read_type, fieldName: "read_type", editable: true },
     ];
 
     if (isRNASeqDataset(dataset)) {
         fields = [
             ...fields,
-            createFieldObj("VCF Available", dataset.vcf_available, "vcf_available"),
-            createFieldObj("Candidate Genes", dataset.candidate_genes, "candidate_genes"),
+            {
+                title: "VCF Available",
+                value: dataset.vcf_available,
+                fieldName: "vcf_available",
+                editable: false,
+            },
+            {
+                title: "Candidate Genes",
+                value: dataset.candidate_genes,
+                fieldName: "candidate_genes",
+                editable: false,
+            },
         ];
     }
 
@@ -230,24 +350,6 @@ export function snakeCaseToTitle(str: string): string {
  */
 export function toTitleCase(str: string): string {
     return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-}
-
-export function createFieldObj(
-    title: string,
-    value: FieldDisplayValueType,
-    fieldName?: string,
-    disableEdit?: boolean,
-    maxLength?: number,
-    entryError?: boolean
-): Field {
-    return {
-        title,
-        value,
-        fieldName,
-        disableEdit,
-        maxLength,
-        entryError,
-    };
 }
 
 type NumberOrString = number | string;
@@ -339,31 +441,36 @@ export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
 }
 
 /**
- * Formats the provided FieldDisplay value as a user-readable string.
+ * Transforms the 'database' value to a user-readable string.
  */
-export function formatFieldValue(
-    value: FieldDisplayValueType,
-    nullUnknown: boolean = false,
-    editable: boolean
-) {
-    let val = value;
-
-    const isDateField = isNaN(Number(value)) && !isNaN(new Date(value as string).getTime());
-    const isBoolean = typeof value === "boolean";
-    const isNullOrUndefined = value === null || value === undefined;
-    const isLinkedFile = Array.isArray(value) && !!(value as Array<any>).filter(e => e.path);
-
-    if (Array.isArray(value)) {
-        if (!editable && isLinkedFile) val = (value as LinkedFile[]).map(v => v.path).join(", ");
-        else if (!isLinkedFile) val = value.join(", ");
-    } else if (isNullOrUndefined && !editable)
-        nullUnknown ? (val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean]) : (val = "");
-    else if (isBoolean) val = PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
-    else if (isDateField && editable) {
-        val = new Date(val as string).toISOString().split("T")[0];
-    } else if (isDateField && !editable) {
-        val = formatDateString(val as string);
+export function formatDisplayValue(field: Field) {
+    const { fieldName, type, value } = field;
+    if (fieldName === "month_of_birth") {
+        return dayjs(value as string).isValid() ? dayjs(value as string).format("YYYY-MM") : "";
     }
+    if (type === "linked_files") {
+        return (value as LinkedFile[]).map(v => v.path).join(", ");
+    } else if (type === "boolean") {
+        return PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
+    } else if (type === "date" || type === "timestamp") {
+        return formatDateString(value as string, type);
+    }
+    return value;
+}
+
+/* Transform input value to value that the database will accept, mainly for dealing with exceptions to standard rules */
+export function formatSubmitValue(field: Field) {
+    const { type, fieldName, value } = field;
+    let val = value;
+    if (fieldName === "month_of_birth") {
+        val = dayjs(value as string).isValid()
+            ? dayjs(value as string, "YYYY-MM").format("YYYY-MM-1")
+            : null;
+    }
+    if ((type === "date" || type === "timestamp") && !dayjs(val as string).isValid()) {
+        val = null;
+    }
+
     return val;
 }
 

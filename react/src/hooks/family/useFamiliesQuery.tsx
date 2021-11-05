@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
-import { Family } from "../typings";
-import { basicFetch } from "./utils";
+import { Family } from "../../typings";
+import { basicFetch } from "../utils";
 
 async function fetchFamilies(params: Record<string, any>) {
     return await basicFetch("/api/families", params);

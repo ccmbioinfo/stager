@@ -136,7 +136,7 @@ export default function ParticipantTable() {
             },
             {
                 title: "Dataset Types",
-                field: "dataset_type",
+                field: "dataset_types",
                 editable: "never",
                 lookup: datasetTypes,
                 sorting: false,
@@ -174,6 +174,7 @@ export default function ParticipantTable() {
                 <ParticipantInfoDialog
                     open={detail}
                     participant_id={activeRow.participant_id}
+                    family_id={activeRow.family_id}
                     onClose={() => {
                         setDetail(false);
                     }}
