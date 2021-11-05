@@ -94,8 +94,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
-    const datasetUpdateMutation = useDatasetUpdateMutation();
-    const loadingUpdate = datasetUpdateMutation.isLoading;
+    const { mutate: datasetUpdateMutate, isLoading: loadingUpdate } = useDatasetUpdateMutation();
 
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
@@ -112,7 +111,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             .filter(Boolean)
             .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Dataset);
 
-        datasetUpdateMutation.mutate(
+        datasetUpdateMutate(
             {
                 ...newData,
                 dataset_id,
