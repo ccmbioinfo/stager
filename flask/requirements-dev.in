@@ -1,5 +1,6 @@
 -r requirements.in
 
 black
+debugpy
 pylint
 pytest
