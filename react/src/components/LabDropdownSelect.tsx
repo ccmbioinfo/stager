@@ -29,6 +29,7 @@ async function getLabs(): Promise<LabSelection[]> {
 
 export default function LabDropdownSelect(props: {
     onSelect: (selectedItem: LabSelection) => void;
+    setDisabled: () => void;
 }) {
     const classes = useStyles();
     const [selected, setSelected] = useState<string>("");
@@ -51,6 +52,7 @@ export default function LabDropdownSelect(props: {
                 labOptions = [{ name: "Select a lab", endpoint: null }, ...labOptions]; // add default value
                 setOptionsList(labOptions);
                 setDefaultLab(labOptions);
+                labOptions.length <= 1 && props.setDisabled();
             })
             .catch(err => console.error(err));
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +68,7 @@ export default function LabDropdownSelect(props: {
         });
     };
 
-    return optionsList.length > 0 ? (
+    return optionsList.length > 1 ? (
         <div className={classes.root}>
             <FormControl fullWidth className={classes.formControl}>
                 <Typography variant="h3">
