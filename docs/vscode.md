@@ -71,14 +71,14 @@ Explanation:
 
 # Other explored options:
 
-### Option 2: Reopen the VSCode in container, starting the flask app only when the debugger session starts in the container.
+### Option 1: Reopen the VSCode in container, starting the flask app only when the debugger session starts in the container.
 
 Conor's working solution.
 Set the entrypoint to `tail -f /dev/null` in `./devcontainer/docker-compose.yml` such that the flask app is not started when we reopen the VSCode session in the container. When we launch the debugger, the app is started using the `launch` request in `.vscode/launch.json`.
 
 Install the necessary extensions for the container in `.vscode/extensions.json`.
 
-### Option 3: Attach to a running container, kill the flask app right before the debugger is launched.
+### Option 2: Attach to a running container, kill the flask app right before the debugger is launched.
 
 This is an ideal solution. We don't have a working version of it yet. Here's the proposed workflow:
 1, All the containers are up and running.
@@ -89,7 +89,7 @@ To achieve this, one idea is to add a prelaunch command in `.vscode/launch.json`
 
 The debugger will fail if the app is already running and listening at the port 5000. We need to restart the app via VSCode's debugger.
 
-### Option 4: Using VSCode to launch a debugger while simultaneously launching a Docker container and attaching the debugger to the container.
+### Option 3: Using VSCode to launch a debugger while simultaneously launching a Docker container and attaching the debugger to the container.
 
 Note that in this option, when we start the debugger in VSCode, the image is rebuilt and the new container is launched.
 [https://code.visualstudio.com/docs/containers/debug-common]
