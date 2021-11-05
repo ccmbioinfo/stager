@@ -190,6 +190,7 @@ export default function Settings() {
                         <Link
                             href={process.env.REACT_APP_MINIO_URL}
                             target="_blank"
+                            rel="noreferrer"
                             className={classes.link}
                         >
                             <Button variant="contained" color="primary">

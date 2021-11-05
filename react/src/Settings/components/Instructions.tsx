@@ -25,11 +25,11 @@ export default function Instructions() {
                 Using MinIO with {process.env.REACT_APP_NAME}
             </Typography>
             <P>
-                <Link href="https://min.io/" color="textSecondary">
+                <Link href="https://min.io/" rel="noreferrer" color="textSecondary">
                     MinIO
                 </Link>{" "}
                 is an open-source{" "}
-                <Link href="https://aws.amazon.com/s3/" color="textSecondary">
+                <Link href="https://aws.amazon.com/s3/" rel="noreferrer" color="textSecondary">
                     Amazon S3
                 </Link>
                 -compatible object storage server. We're using an instance managed by{" "}
@@ -46,6 +46,7 @@ export default function Instructions() {
                 pertain to the{" "}
                 <Link
                     href="https://docs.min.io/docs/minio-client-complete-guide.html"
+                    rel="noreferrer"
                     color="textSecondary"
                 >
                     command-line MinIO Client
@@ -55,6 +56,7 @@ export default function Instructions() {
             <Typography variant="h6" gutterBottom>
                 <Link
                     href="https://docs.min.io/docs/minio-client-quickstart-guide.html"
+                    rel="noreferrer"
                     color="textSecondary"
                 >
                     <GetApp /> Download the MinIO Client for your operating system here.
@@ -123,6 +125,7 @@ export default function Instructions() {
                 Full documentation is available from MinIO's{" "}
                 <Link
                     href="https://docs.min.io/docs/minio-client-complete-guide.html"
+                    rel="noreferrer"
                     color="textSecondary"
                 >
                     documentation site
