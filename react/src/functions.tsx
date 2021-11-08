@@ -52,6 +52,39 @@ export function formatDateString(date: string, type?: string) {
 }
 
 /**
+ * Transforms the 'database' value to a user-readable string.
+ */
+export function formatDisplayValue(field: Field) {
+    const { fieldName, type, value } = field;
+    if (fieldName === "month_of_birth") {
+        return dayjs(value as string).isValid() ? dayjs(value as string).format("YYYY-MM") : "";
+    }
+    if (type === "linked_files") {
+        return (value as LinkedFile[]).map(v => v.path).join(", ");
+    } else if (type === "boolean") {
+        return PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
+    } else if (type === "date" || type === "timestamp") {
+        return formatDateString(value as string, type);
+    }
+    return value;
+}
+
+/* Transform input value to value that the database will accept, mainly for dealing with exceptions to standard rules */
+export function formatSubmitValue(field: Field) {
+    const { type, fieldName, value } = field;
+    let val = value;
+    if (fieldName === "month_of_birth") {
+        val = dayjs(value as string).isValid()
+            ? dayjs(value as string, "YYYY-MM").format("YYYY-MM-01")
+            : null;
+    }
+    if ((type === "date" || type === "timestamp") && !dayjs(val as string).isValid()) {
+        val = null;
+    }
+    return val;
+}
+
+/**
  * Convert the provided JSON Array to a valid array of Analysis.
  */
 export function jsonToAnalyses(data: Array<any>): Analysis[] {
@@ -245,6 +278,7 @@ export function getDatasetFields(dataset: Dataset): Field[] {
  * Return the secondary titles and values (hidden in show more detail) of dataset detail as a Field object in dialogs
  */
 export function getSecDatasetFields(dataset: Dataset): Field[] {
+    console.log("dataset updated is ", dataset.updated, typeof dataset.updated);
     let fields = [
         {
             title: "Batch ID",
@@ -438,40 +472,6 @@ export function rowDiff<T>(newRow: T, oldRow: T | undefined): Partial<T> {
         }
         return { ...diffRow };
     }
-}
-
-/**
- * Transforms the 'database' value to a user-readable string.
- */
-export function formatDisplayValue(field: Field) {
-    const { fieldName, type, value } = field;
-    if (fieldName === "month_of_birth") {
-        return dayjs(value as string).isValid() ? dayjs(value as string).format("YYYY-MM") : "";
-    }
-    if (type === "linked_files") {
-        return (value as LinkedFile[]).map(v => v.path).join(", ");
-    } else if (type === "boolean") {
-        return PseudoBooleanReadableMap[("" + value) as PseudoBoolean];
-    } else if (type === "date" || type === "timestamp") {
-        return formatDateString(value as string, type);
-    }
-    return value;
-}
-
-/* Transform input value to value that the database will accept, mainly for dealing with exceptions to standard rules */
-export function formatSubmitValue(field: Field) {
-    const { type, fieldName, value } = field;
-    let val = value;
-    if (fieldName === "month_of_birth") {
-        val = dayjs(value as string).isValid()
-            ? dayjs(value as string, "YYYY-MM").format("YYYY-MM-1")
-            : null;
-    }
-    if ((type === "date" || type === "timestamp") && !dayjs(val as string).isValid()) {
-        val = null;
-    }
-
-    return val;
 }
 
 /**

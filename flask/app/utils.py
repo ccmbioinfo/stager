@@ -56,6 +56,15 @@ def validate_enums_and_set_fields(
     """
     for field in allowed_columns:
         if field in json_mixin:
+
+            # convert string to datetime.Date() object
+            if (
+                field == "library_prep_date" or field == "month_of_birth"
+            ) and json_mixin[field]:
+                json_mixin[field] = datetime.strptime(
+                    request.json[field], "%Y-%m-%d"
+                ).date()
+
             validate_enum(entity, field, json_mixin[field])
             setattr(entity, field, json_mixin[field])
 
