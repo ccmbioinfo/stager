@@ -53,3 +53,32 @@ services:
       - minio
     volumes:
       - ./flask:/usr/src/stager
+  app_debug:
+    build: flask
+    image: ghcr.io/ccmbioinfo/stager:dev
+    user: "${FLASK_UIDGID:-www-data}"
+    profiles:
+      - debug
+    environment:
+      ST_SECRET_KEY: "${ST_SECRET_KEY}"
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
+      ENABLE_OIDC: "${ENABLE_OIDC:-}"
+      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"
+      OIDC_WELL_KNOWN: "${OIDC_WELL_KNOWN}"
+      OIDC_PROVIDER: "${OIDC_PROVIDER}"
+      FLASK_DEBUG: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    ports:
+      - "${FLASK_HOST_PORT}:5000"
+      - "5678:5678"
+    depends_on:
+      - mysql
+      - minio
+    volumes:
+      - ./flask:/usr/src/stager
+    entrypoint: ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "flask", "run", "--host=0.0.0.0"]
