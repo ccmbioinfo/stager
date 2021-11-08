@@ -51,6 +51,10 @@ whether they are globally installed or in a virtualenv. Sample `.vscode/settings
 
 ## Debugging in the Flask container
 
+-   [Debugging in VSCode](https://code.visualstudio.com/docs/editor/debugging)
+-   [Remote - Containers extension](https://code.visualstudio.com/docs/remote/containers)
+-   [Using profiles with Compose](https://docs.docker.com/compose/profiles/)
+
 To directly enter a Docker development that supports debugging in the container and launch the debugger:
 
 1. `docker-compose up -d app_debug`
@@ -69,5 +73,5 @@ To start the Docker development without debugging functionality enabled, and lat
 
 Explanation:
 
--   Debugpy extension is already added to `requirements-dev.txt` and `requirements-dev.in`.
+-   Debugpy extension is already added in `requirements-dev.txt` and `requirements-dev.in`.
 -   `app_debug` is a service added in `docker-compose.yaml`. By using profile, this service is only started when it is targeted.
