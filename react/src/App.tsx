@@ -86,9 +86,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             const apiInfoResult = await fetch("/api");
             if (apiInfoResult.ok) {
                 let apiInfo = await apiInfoResult.json();
-                if (!("endpoint" in apiInfo)) {
-                    apiInfo = { ...apiInfo, endpoint: null }; // null endpoint value -> use the default endpoint
-                }
                 setApiInfo(apiInfo as APIInfo);
             }
         })();
