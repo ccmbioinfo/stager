@@ -49,60 +49,25 @@ whether they are globally installed or in a virtualenv. Sample `.vscode/settings
 }
 ```
 
-## VSCode debugger for flask container
-
-VSCode debugger: [https://code.visualstudio.com/docs/editor/debugging]
-VSCode & remote containers: [https://code.visualstudio.com/docs/remote/containers]
-Using profiels with Compose: [docs.docker.com/compose/profiles]
-
-To set up a development environment with Flask, Docker and VSCode when the docker context points to the local machine, see the steps below. If the Flask application container is running on the VM, an additional step is required to set the local docker context to point to the docker instance on the VM.
+## Debugging in the Flask container
 
 To directly enter a Docker development that supports debugging in the container and launch the debugger:
 
--   Step 1: `docker-compose up -d mysql minio app_debug`
--   Step 2, Click on remote connection icon in VSCode, choose "Attach to running container".
--   Step 3, When the prompt "Select the container to the attach VS Code" comes up, choose "/stager-app_debug_1".
--   Step 4, In the VSCode window that runs in the app container, use F5 to launch the debugger.
+1. `docker-compose up -d app_debug`
+2. Click on remote connection icon in VSCode, choose "Attach to running container".
+3. When the prompt "Select the container to the attach VS Code" comes up, choose "/stager-app_debug_1".
+4. In the VSCode window that runs in the app container, use F5 to launch the debugger.
 
 To start the Docker development without debugging functionality enabled, and later enable the debugger functionality:
 
--   Step 1: `docker-compose up`
--   Step 2: Stop and remove the Docker container `app`
--   Step 3: `docker-compose up app_debug`
--   Step 4, Click on remote connection icon in VSCode, choose "Attach to running container".
--   Step 5, When the prompt "Select the container to the attach VS Code" comes up, choose "/stager-app_debug_1".
--   Step 6, In the VSCode window that runs in the app container, use F5 to launch the debugger.
+1. `docker-compose up`
+2. `docker-compose rm -sf app`
+3. `docker-compose up app_debug`
+4. Click on remote connection icon in VSCode, choose "Attach to running container".
+5. When the prompt "Select the container to the attach VS Code" comes up, choose "/stager-app_debug_1".
+6. In the VSCode window that runs in the app container, use F5 to launch the debugger.
 
 Explanation:
 
 -   Debugpy extension is already added to `requirements-dev.txt` and `requirements-dev.in`.
 -   `app_debug` is a service added in `docker-compose.yaml`. By using profile, this service is only started when it is targeted.
-
-# Other explored options:
-
-### Option 1: Reopen the VSCode in container, starting the flask app only when the debugger session starts in the container.
-
-Conor's working solution.
-Set the entrypoint to `tail -f /dev/null` in `./devcontainer/docker-compose.yml` such that the flask app is not started when we reopen the VSCode session in the container. When we launch the debugger, the app is started using the `launch` request in `.vscode/launch.json`.
-
-Install the necessary extensions for the container in `.vscode/extensions.json`.
-
-### Option 2: Attach to a running container, kill the flask app right before the debugger is launched.
-
-This is an ideal solution. We don't have a working version of it yet. Here's the proposed workflow:
-1, All the containers are up and running.
-2, Use "attach to a running container" command in vscode to attach to the flask app.
-3, Start the debugger session.
-
-To achieve this, one idea is to add a prelaunch command in `.vscode/launch.json` such that the app is killed when the debugger starts. The debugger is responsible for launching the app.
-
-The debugger will fail if the app is already running and listening at the port 5000. We need to restart the app via VSCode's debugger.
-
-### Option 3: Using VSCode to launch a debugger while simultaneously launching a Docker container and attaching the debugger to the container.
-
-Note that in this option, when we start the debugger in VSCode, the image is rebuilt and the new container is launched.
-[https://code.visualstudio.com/docs/containers/debug-common]
-
-So far, I have not managed to get a working version of this. What needs to be done is to mount a volume to the appropriate directory in the container. The entrypoint should be flask/wsgi.py.
-
-In this setting, VSCode would build an image according to stager/Dockerfile, but the container isn't started with docker-compose, it is rather started with the configurations in `tasks.json`.
