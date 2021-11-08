@@ -27,6 +27,7 @@ export { default as FileLinkingComponent } from "./FileLinkingComponent";
 export { default as InfoList } from "./InfoList";
 export { default as LastLoginDisplay } from "./LastLoginDisplay";
 export { default as ListItemRouterLink } from "./ListItemRouterLink";
+export { default as LoadingIndicator } from "./LoadingIndicator";
 export { default as MaterialTablePrimary } from "./MaterialTablePrimary";
 export { default as MaterialTablePaginationOverride } from "./MaterialTablePaginationOverride";
 export { default as MinioKeyDisplay } from "./MinioKeyDisplay";

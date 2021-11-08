@@ -4,7 +4,7 @@ import { ShowChart } from "@material-ui/icons";
 
 import { useSnackbar } from "notistack";
 
-import { DetailSection, DialogHeader, InfoList } from "../../components";
+import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from "../../components";
 import { formatDateString, formatSubmitValue, getAnalysisInfoList } from "../../functions";
 import {
     useDatasetQueries,
@@ -140,7 +140,7 @@ export default function ParticipantInfoDialog({
     open,
 }: DialogProp) {
     const classes = useStyles();
-    const { data: participant } = useParticipantQuery(participant_id);
+    const { data: participant, isLoading: loadingOpen } = useParticipantQuery(participant_id);
     const datasets = useMemo(
         () => (participant ? participant.tissue_samples.flatMap(sample => sample.datasets) : []),
         [participant]
@@ -156,8 +156,9 @@ export default function ParticipantInfoDialog({
         [datasetResults]
     );
 
-    const participantUpdateMutation = useParticipantUpdateMutation();
-    const familyUpdateMutation = useFamilyUpdateMutation();
+    const { mutate: participantUpdateMutate, isLoading: loadingUpdate } =
+        useParticipantUpdateMutation();
+    const { mutate: familyUpdateMutate } = useFamilyUpdateMutation();
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
 
@@ -169,6 +170,7 @@ export default function ParticipantInfoDialog({
             .map(field => {
                 if (
                     field.fieldName &&
+                    field.editable &&
                     (field.fieldName === "family_codename" || field.fieldName === "family_aliases")
                 ) {
                     return { [field.fieldName]: field.value };
@@ -188,7 +190,7 @@ export default function ParticipantInfoDialog({
             .filter(Boolean)
             .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Participant);
 
-        familyUpdateMutation.mutate(
+        familyUpdateMutate(
             {
                 ...newFamilyData,
                 family_id,
@@ -203,7 +205,7 @@ export default function ParticipantInfoDialog({
             }
         );
 
-        participantUpdateMutation.mutate(
+        participantUpdateMutate(
             {
                 ...newParticipantData,
                 participant_id,
@@ -274,6 +276,7 @@ export default function ParticipantInfoDialog({
                     </Box>
                 </>
             </DialogContent>
+            <LoadingIndicator open={loadingOpen || loadingUpdate} />
         </Dialog>
     );
 }

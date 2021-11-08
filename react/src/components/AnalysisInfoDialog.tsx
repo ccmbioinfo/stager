@@ -3,6 +3,7 @@ import { Button, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { Dns, Replay } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
+import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from ".";
 import { getDatasetInfoList } from "../functions";
 import {
     useAnalysisCreateMutation,
@@ -11,9 +12,6 @@ import {
     useErrorSnackbar,
 } from "../hooks";
 import { Analysis, Field, Pipeline } from "../typings";
-import DetailSection from "./DetailSection";
-import DialogHeader from "./DialogHeader";
-import InfoList from "./InfoList";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -81,6 +79,7 @@ interface AlertInfoDialogProp {
 export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const classes = useStyles();
     const analysisQuery = useAnalysisQuery(props.analysis.analysis_id);
+    const loadingOpen = analysisQuery.isLoading;
     const datasets = useMemo(
         () => (analysisQuery.isSuccess ? analysisQuery.data.datasets || [] : []),
         [analysisQuery]
@@ -89,7 +88,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
         () => (analysisQuery.isSuccess ? analysisQuery.data.pipeline : undefined),
         [analysisQuery]
     );
-    const mutation = useAnalysisCreateMutation();
+    const { mutate: analysisUpdateMutate, isLoading: loadingUpdate } = useAnalysisCreateMutation();
     const labeledBy = "analysis-info-dialog-slide-title";
     const { data: enums } = useEnumsQuery();
     const { enqueueSnackbar } = useSnackbar();
@@ -111,7 +110,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                     size="small"
                     endIcon={<Replay />}
                     onClick={() => {
-                        mutation.mutate(
+                        analysisUpdateMutate(
                             { type: "reanalysis", analysis_id: props.analysis.analysis_id },
                             {
                                 onSuccess: () => {
@@ -152,6 +151,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                     )}
                 </div>
             </DialogContent>
+            <LoadingIndicator open={loadingOpen || loadingUpdate} />
         </Dialog>
     );
 }

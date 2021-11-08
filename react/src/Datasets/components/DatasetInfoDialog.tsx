@@ -2,10 +2,9 @@ import { useMemo } from "react";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
-
 import { useSnackbar } from "notistack";
 
-import { DetailSection, DialogHeader, InfoList } from "../../components";
+import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from "../../components";
 import {
     formatSubmitValue,
     getAnalysisInfoList,
@@ -90,12 +89,12 @@ interface DialogProp {
 export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
-    const { data: dataset } = useDatasetQuery(dataset_id);
+    const { data: dataset, isLoading: loadingOpen } = useDatasetQuery(dataset_id);
     const { data: enums } = useEnumsQuery();
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
-    const datasetUpdateMutation = useDatasetUpdateMutation();
+    const { mutate: datasetUpdateMutate, isLoading: loadingUpdate } = useDatasetUpdateMutation();
 
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
@@ -112,7 +111,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
             .filter(Boolean)
             .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Dataset);
 
-        datasetUpdateMutation.mutate(
+        datasetUpdateMutate(
             {
                 ...newData,
                 dataset_id,
@@ -180,6 +179,7 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                     )}
                 </div>
             </DialogContent>
+            <LoadingIndicator open={loadingOpen || loadingUpdate} />
         </Dialog>
     );
 }
