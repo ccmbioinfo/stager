@@ -4,8 +4,8 @@ import {
     Button,
     CircularProgress,
     Container,
-    Grid,
     Fade,
+    Grid,
     Link,
     makeStyles,
     Paper,
@@ -253,7 +253,10 @@ function LoginForm({
                 </Typography>
                 <form>
                     <Grid direction="column" alignItems="center" container>
-                        <LabDropdownSelect onSelect={handleLabSelect} />
+                        <LabDropdownSelect
+                            onSelect={handleLabSelect}
+                            setDisabled={() => setShowForm(true)}
+                        />
                         <Fade in={showForm}>
                             <div>
                                 <TextField

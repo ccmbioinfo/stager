@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import {
     FormControl,
     InputLabel,
@@ -24,18 +24,12 @@ const useStyles = makeStyles(theme => ({
 
 async function getLabs(): Promise<LabSelection[]> {
     // TODO: replace this
-    const DUMMY_LAB_OPTIONS: LabSelection[] = [
-        { name: "Lab 1", endpoint: "lab1.stager.ca" },
-        { name: "Lab 2", endpoint: "lab2.stager.ca" },
-        { name: "Lab 3", endpoint: "lab3.stager.ca" },
-        { name: "Lab 4", endpoint: "lab4.stager.ca" },
-    ];
-
-    return DUMMY_LAB_OPTIONS;
+    return [];
 }
 
 export default function LabDropdownSelect(props: {
     onSelect: (selectedItem: LabSelection) => void;
+    setDisabled: () => void;
 }) {
     const classes = useStyles();
     const [selected, setSelected] = useState<string>("");
@@ -58,12 +52,23 @@ export default function LabDropdownSelect(props: {
                 labOptions = [{ name: "Select a lab", endpoint: null }, ...labOptions]; // add default value
                 setOptionsList(labOptions);
                 setDefaultLab(labOptions);
+                labOptions.length <= 1 && props.setDisabled();
             })
             .catch(err => console.error(err));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return optionsList.length > 0 ? (
+    const handleDropdownChange = (ev: ChangeEvent<{ name?: string; value: unknown }>) => {
+        optionsList.forEach(v => {
+            if (v.name === ev.target.value) {
+                setSelected(v.name);
+                localStorage.setItem("lab", v.name);
+                props.onSelect(v);
+            }
+        });
+    };
+
+    return optionsList.length > 1 ? (
         <div className={classes.root}>
             <FormControl fullWidth className={classes.formControl}>
                 <Typography variant="h3">
@@ -74,15 +79,7 @@ export default function LabDropdownSelect(props: {
                     id="login-lab-select"
                     value={selected}
                     label="Lab"
-                    onChange={ev => {
-                        optionsList.forEach(v => {
-                            if (v.name === ev.target.value) {
-                                setSelected(v.name);
-                                localStorage.setItem("lab", v.name);
-                                props.onSelect(v);
-                            }
-                        });
-                    }}
+                    onChange={handleDropdownChange}
                 >
                     {optionsList.map((v, i) => (
                         <MenuItem value={v.name} key={i}>
