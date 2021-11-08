@@ -1,5 +1,8 @@
 from datetime import datetime, date
-import random
+
+from pprint import pprint
+import gzip, pickle, random
+from sqlalchemy import exc
 
 import click
 from click.exceptions import ClickException
@@ -7,14 +10,13 @@ from click.exceptions import ClickException
 from flask import Flask, current_app as app
 from flask.cli import with_appcontext
 from minio import Minio
+import pandas as pd
 from sqlalchemy import and_
 
-from .models import *
+from app import models  # duplicated - how to best account for this
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
-
 from .manage_keycloak import *
-from .utils import stager_is_keycloak_admin
 
 # for report mapping and insertion
 from .mapping_utils import (
@@ -24,12 +26,8 @@ from .mapping_utils import (
     check_result_paths,
     try_int,
 )
-import pandas as pd
-from app import models  # duplicated - how to best account for this
-from sqlalchemy import exc
-from pprint import pprint
-import pickle
-import gzip
+from .models import *
+from .utils import get_minio_admin, stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
@@ -40,12 +38,39 @@ def register_commands(app: Flask) -> None:
     app.cli.add_command(map_insert_c4r_reports)
     app.cli.add_command(map_hiraki_datasets_analyses)
     app.cli.add_command(add_hiraki_reports)
+    app.cli.add_command(migrate_minio_policies)
     if app.config.get("ENABLE_OIDC"):
         app.cli.add_command(update_user)
         if os.getenv("KEYCLOAK_HOST") is not None:
             app.cli.add_command(create_realm)
             app.cli.add_command(create_client)
             app.cli.add_command(add_user)
+
+
+@click.command("migrate-minio-policies")
+@with_appcontext
+def migrate_minio_policies() -> None:
+    minio_client = Minio(
+        app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
+        secure=False,
+    )
+    minio_admin = get_minio_admin()
+    groups = models.Group.query.all()
+    for group in groups:
+        policy = stager_buckets_policy(group.group_code)
+        # All adds are upserts
+        minio_admin.add_policy(group.group_code, policy)
+        if not minio_client.bucket_exists(group.group_code):
+            minio_client.make_bucket(
+                bucket_name=group.group_code, location=app.config["MINIO_REGION_NAME"]
+            )
+        if not minio_client.bucket_exists(f"results-{group.group_code}"):
+            minio_client.make_bucket(
+                bucket_name=f"results-{group.group_code}",
+                location=app.config["MINIO_REGION_NAME"],
+            )
 
 
 @click.command("map-insert-c4r-reports")

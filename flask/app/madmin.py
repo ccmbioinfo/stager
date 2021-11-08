@@ -1,4 +1,5 @@
 import json, os, subprocess
+from itertools import chain
 from typing import Any, Dict, List, Optional, Union
 
 
@@ -141,13 +142,20 @@ def readwrite_buckets_policy(*buckets: str) -> Dict[str, Any]:
 
 # This is Stager-specific and probably not to be included if this module is made independent
 def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
+    # Give access to the bucket and the corresponding results bucket
+    arns = list(
+        chain.from_iterable(
+            (f"arn:aws:s3:::{bucket}/*", f"arn:aws:s3:::results-{bucket}/*")
+            for bucket in buckets
+        )
+    )
     return {
         "Version": "2012-10-17",
         "Statement": [
             {
                 "Effect": "Allow",
                 "Action": ["s3:*"],
-                "Resource": [f"arn:aws:s3:::{bucket}/*" for bucket in buckets],
+                "Resource": arns,
             },
             {
                 "Effect": "Deny",
@@ -157,7 +165,7 @@ def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
                     "s3:DeleteObject",
                     "s3:DeleteObjectVersion",
                 ],
-                "Resource": [f"arn:aws:s3:::{bucket}/*" for bucket in buckets],
+                "Resource": arns,
             },
         ],
     }
