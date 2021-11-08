@@ -10,12 +10,14 @@ services:
       MYSQL_PASSWORD: "${TEST_MYSQL_PASSWORD}"
       MYSQL_ROOT_PASSWORD: "${TEST_MYSQL_ROOT_PASSWORD}"
   minio:
-    image: minio/minio
+    image: minio/minio:RELEASE.2021-11-03T03-36-36Z
     environment:
       MINIO_ACCESS_KEY: "${TEST_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
       MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
-    command: server /data
+      MINIO_UPDATE: "off"
+    command: server /data --quiet --console-address ":9090"
+    # console address not needed but kept for consistency
   app:
     build: flask
     image: ghcr.io/ccmbioinfo/stager:dev
