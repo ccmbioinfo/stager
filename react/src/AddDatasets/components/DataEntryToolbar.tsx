@@ -107,7 +107,7 @@ export default function DataEntryToolbar(props: {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Go to MinIO">
-                    <Link href={process.env.REACT_APP_MINIO_URL} target="_blank">
+                    <Link href={process.env.REACT_APP_MINIO_URL} target="_blank" rel="noreferrer">
                         <IconButton>
                             <OpenInNew />
                         </IconButton>
