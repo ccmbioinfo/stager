@@ -23,7 +23,11 @@ const useStyles = makeStyles(theme => ({
 }));
 
 async function getLabs(): Promise<LabSelection[]> {
-    // TODO: replace this
+    const labs = await fetch("/labs.json");
+    if (labs.ok) {
+        return labs.json();
+    }
+
     return [];
 }
 
@@ -40,6 +44,9 @@ export default function LabDropdownSelect(props: {
         let selectionIndex = 0;
         if (lastSelection) {
             selectionIndex = options.findIndex(selection => selection.name === lastSelection);
+            if (selectionIndex === -1) {
+                selectionIndex = 0;
+            }
         }
 
         setSelected(options[selectionIndex].name);
