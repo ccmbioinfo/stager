@@ -22,7 +22,7 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
     <<: *common
   minio:
-    image: minio/minio:RELEASE.2021-11-03T03-36-36Z
+    image: minio/minio:RELEASE.2021-11-09T03-21-45Z
     user: "${MINIO_UIDGID}"
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
@@ -31,7 +31,6 @@ services:
       MINIO_UPDATE: "off"
     volumes:
       - ${MINIO_VOLUME}:/data
-      - "${CONSOLE_HOST_PORT:-127.0.0.1:9090}:9090"
     command: server /data --quiet --console-address ":9090"
     <<: *common
   app:
