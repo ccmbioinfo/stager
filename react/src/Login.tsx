@@ -24,6 +24,7 @@ interface LoginProps {
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
     setEndpoint: (endpoint: string | null) => void;
+    labs: LabSelection[];
 }
 
 const useStyles = makeStyles(theme => ({
@@ -196,6 +197,7 @@ function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
     setEndpoint = (endpoint: string | null) => {},
+    labs = [] as LabSelection[],
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -256,6 +258,7 @@ function LoginForm({
                         <LabDropdownSelect
                             onSelect={handleLabSelect}
                             setDisabled={() => setShowForm(true)}
+                            labs={labs}
                         />
                         <Fade in={showForm}>
                             <div>

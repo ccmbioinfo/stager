@@ -22,18 +22,10 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-async function getLabs(): Promise<LabSelection[]> {
-    const labs = await fetch("/labs.json");
-    if (labs.ok) {
-        return labs.json();
-    }
-
-    return [];
-}
-
 export default function LabDropdownSelect(props: {
     onSelect: (selectedItem: LabSelection) => void;
     setDisabled: () => void;
+    labs: LabSelection[];
 }) {
     const classes = useStyles();
     const [selected, setSelected] = useState<string>("");
@@ -54,20 +46,20 @@ export default function LabDropdownSelect(props: {
     };
 
     useEffect(() => {
-        getLabs()
-            .then((labOptions: LabSelection[]) => {
-                labOptions = [{ name: "Select a lab", endpoint: null }, ...labOptions]; // add default value
-                setOptionsList(labOptions);
-                setDefaultLab(labOptions);
-                labOptions.length <= 1 && props.setDisabled();
-            })
-            .catch(err => console.error(err));
+        const labOptions = [{ name: "Select a lab", endpoint: null }, ...props.labs];
+        setOptionsList(labOptions);
+        setDefaultLab(labOptions);
+        labOptions.length <= 1 && props.setDisabled();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.labs]);
 
     const handleDropdownChange = (ev: ChangeEvent<{ name?: string; value: unknown }>) => {
         optionsList.forEach(v => {
             if (v.name === ev.target.value) {
+                if (selected === v.name) {
+                    // changing to the same endpoint, ignore..
+                    return;
+                }
                 setSelected(v.name);
                 localStorage.setItem("lab", v.name);
                 props.onSelect(v);
