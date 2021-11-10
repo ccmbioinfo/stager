@@ -10,9 +10,6 @@ async function fetchParticipants(query: Query<Participant>) {
     const queryResult = await queryTableData<Participant>(query, GET_PARTICIPANTS_URL);
     // format results
     queryResult.data.forEach((participant: Participant) => {
-        participant.dataset_types = participant.tissue_samples.flatMap(({ datasets }) =>
-            datasets.map(dataset => dataset.dataset_type)
-        );
         participant.affected += "";
         participant.solved += "";
     });

@@ -206,6 +206,11 @@ def list_participants(page: int, limit: int) -> Response:
     results = [
         {
             **asdict(participant),
+            "dataset_types": [
+                dataset.dataset_type
+                for tissue_sample in participant.tissue_samples
+                for dataset in tissue_sample.datasets
+            ],
             "family_codename": participant.family.family_codename,
             "family_aliases": participant.family.family_aliases,
             "family_id": participant.family.family_id,
