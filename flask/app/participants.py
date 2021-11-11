@@ -206,11 +206,6 @@ def list_participants(page: int, limit: int) -> Response:
     results = [
         {
             **asdict(participant),
-            "dataset_types": [
-                dataset.dataset_type
-                for tissue_sample in participant.tissue_samples
-                for dataset in tissue_sample.datasets
-            ],
             "family_codename": participant.family.family_codename,
             "family_aliases": participant.family.family_aliases,
             "family_id": participant.family.family_id,
@@ -285,12 +280,6 @@ def get_participant(id: int):
     if not participant:
         abort(404)
 
-    dataset_types = []
-    for tissue_sample in participant.tissue_samples:
-        for dataset in tissue_sample.datasets:
-            if dataset.dataset_type not in dataset_types:
-                dataset_types.append(dataset.dataset_type)
-
     return jsonify(
         {
             **asdict(participant),
@@ -301,7 +290,6 @@ def get_participant(id: int):
             else None,
             "updated_by": participant.updated_by.username,
             "created_by": participant.created_by.username,
-            "dataset_types": dataset_types,
             "tissue_samples": [
                 {
                     **asdict(tissue_sample),
