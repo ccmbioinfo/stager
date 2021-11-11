@@ -9,3 +9,4 @@ pandas
 pymysql[rsa]
 requests
 sqlalchemy
+sendgrid
