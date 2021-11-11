@@ -59,10 +59,14 @@ To enable the debugger functionality:
 
 1. `docker-compose rm -sf app` (if the Flask app container is running)
 2. `docker-compose up app_debug`
-3. Click on remote connection icon in VSCode, choose "Attach to running container".
-4. When the prompt "Select the container to the attach VS Code" comes up, choose "/stager-app_debug_1".
-5. In the VSCode window that runs in the app container, use F5 to launch the debugger.
+3. In the VSCode window, press F5 to launch the debugger or use VSCode "Run and Debug" extension.
 
 Explanation:
 
-`debugpy` has been added to dev requirements. `app_debug` is a separate service in the Compose file. By assigning it a profile, it will only be started when targeted. If there is a running `app` container, it must be stopped and removed before the service `app_debug` is brought up because oterwise, the host port binding conflicts with the regular `app` container.
+`debugpy` has been added to dev requirements. `app_debug` is a separate service in the Compose file. By assigning it a profile, it will only be started when targeted. If there is a running `app` container, it must be stopped and removed before the service `app_debug` is brought up because otherwise, the host port binding conflicts with the regular `app` container.
+
+Troubleshooting:
+
+In the scenario where VSCode does not automatically attach to `Flask (stager)` and instead a drop down menu is prompted, without the `Flask (stager)` option, you will need to add `/usr/src/stager` as a folder to the Explorer on the left and open a `.py` file for the appropriate option to appear.
+
+Make sure VSCode version is up-to-date.
