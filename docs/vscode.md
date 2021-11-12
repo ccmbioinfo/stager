@@ -57,9 +57,37 @@ whether they are globally installed or in a virtualenv. Sample `.vscode/settings
 
 To enable the debugger functionality:
 
-1. `docker-compose rm -sf app` (if the Flask app container is running)
-2. `docker-compose up app_debug`
-3. In the VSCode window, press F5 to launch the debugger or use VSCode "Run and Debug" extension.
+1. Create a file `launch.json` in `stager/.vscode` directory:
+
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Remote Attach",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/flask",
+                    "remoteRoot": "."
+                }
+            ]
+        }
+    ]
+}
+```
+
+2. `docker-compose rm -sf app` (if the Flask app container is running)
+3. `docker-compose up app_debug`
+4. In the VSCode window, press F5 to launch the debugger or use VSCode "Run and Debug" extension.
 
 Explanation:
 
