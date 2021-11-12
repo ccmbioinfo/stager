@@ -16,6 +16,7 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
 import LabDropdownSelect from "./components/LabDropdownSelect";
+import { useFetchContext } from "./contexts";
 import { CurrentUser, LabSelection } from "./typings";
 
 interface LoginProps {
@@ -23,7 +24,7 @@ interface LoginProps {
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
-    setEndpoint: (endpoint: string | null) => void;
+    setEndpoint: (endpoint: string) => void;
     labs: LabSelection[];
 }
 
@@ -107,11 +108,12 @@ function OIDCRedirectHandler(props: LoginProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const fetchContext = useFetchContext();
 
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                const response = await fetch(`/api/authorize${location.search}`, {
+                const response = await fetch(`${fetchContext}/api/authorize${location.search}`, {
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                     },
@@ -196,20 +198,21 @@ function OIDCRedirectHandler(props: LoginProps) {
 function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
-    setEndpoint = (endpoint: string | null) => {},
+    setEndpoint = (endpoint: string) => {},
     labs = [] as LabSelection[],
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [showForm, setShowForm] = useState(false);
+    const fetchContext = useFetchContext();
     function bind(set: typeof setUsername) {
         // @ts-ignore
         return e => set(e.target.value);
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        const result = await fetch("/api/login", {
+        const result = await fetch(`${fetchContext}/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
@@ -226,7 +229,7 @@ function LoginForm({
 
     const handleLabSelect = (lab: LabSelection) => {
         setEndpoint(lab.endpoint);
-        setShowForm(lab.endpoint !== null);
+        setShowForm(lab.endpoint !== "");
     };
     const classes = useStyles();
     return (

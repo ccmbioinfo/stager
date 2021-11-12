@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { DataEntryFields, Dataset } from "../../typings";
+import { basicFetch } from "../utils";
 
 interface DatasetSubmitParameters {
     data: DataEntryFields[];
@@ -9,18 +10,15 @@ interface DatasetSubmitParameters {
 async function submitDatasets(parameters: DatasetSubmitParameters) {
     const { data, asGroups } = parameters;
     const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
-    const response = await fetch("/api/_bulk" + params, {
+    const response = await basicFetch("/api/_bulk" + params, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
     });
-    if (response.ok) {
-        return (await response.json()) as Dataset[];
-    } else {
-        throw response;
-    }
+
+    return response as Dataset[];
 }
 
 /**

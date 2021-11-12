@@ -344,7 +344,6 @@ export interface GeneAlias {
 
 interface APIInfoBase {
     sha: string;
-    endpoint: string | null; // null endpoint value -> use the default endpoint
 }
 
 interface APIInfoOAuth {
@@ -360,5 +359,5 @@ export type APIInfo = APIInfoBase & (APIInfoOAuth | APIInfoNoOauth);
 
 export interface LabSelection {
     name: string;
-    endpoint: string | null;
+    endpoint: string;
 }

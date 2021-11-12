@@ -32,10 +32,10 @@ export default function LabDropdownSelect(props: {
     const [optionsList, setOptionsList] = useState<LabSelection[]>([]);
 
     const setDefaultLab = (options: LabSelection[]) => {
-        const lastSelection: string | null = localStorage.getItem("lab");
+        const lastSelection: string | null = localStorage.getItem("endpoint");
         let selectionIndex = 0;
         if (lastSelection) {
-            selectionIndex = options.findIndex(selection => selection.name === lastSelection);
+            selectionIndex = options.findIndex(selection => selection.endpoint === lastSelection);
             if (selectionIndex === -1) {
                 selectionIndex = 0;
             }
@@ -46,7 +46,7 @@ export default function LabDropdownSelect(props: {
     };
 
     useEffect(() => {
-        const labOptions = [{ name: "Select a lab", endpoint: null }, ...props.labs];
+        const labOptions = [{ name: "Select a lab", endpoint: "" }, ...props.labs];
         setOptionsList(labOptions);
         setDefaultLab(labOptions);
         labOptions.length <= 1 && props.setDisabled();
@@ -61,7 +61,7 @@ export default function LabDropdownSelect(props: {
                     return;
                 }
                 setSelected(v.name);
-                localStorage.setItem("lab", v.name);
+                localStorage.setItem("endpoint", v.endpoint);
                 props.onSelect(v);
             }
         });

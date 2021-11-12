@@ -14,6 +14,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
+import { useFetchContext } from "../../contexts";
 import {
     countArray,
     resetAllTableFilters,
@@ -38,6 +39,7 @@ import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
 export default function ParticipantTable() {
+    const fetchContext = useFetchContext();
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
@@ -205,7 +207,7 @@ export default function ParticipantTable() {
                         );
 
                         const response = await fetch(
-                            `/api/participants/${newParticipant.participant_id}`,
+                            `${fetchContext}/api/participants/${newParticipant.participant_id}`,
                             {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
