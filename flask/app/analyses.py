@@ -80,8 +80,7 @@ def list_analyses(page: int, limit: int) -> Response:
             order = order.asc()
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
-        app.logger.debug("Ordering by '%s' in '%s' direction",
-                         order_by, order_dir)
+        app.logger.debug("Ordering by '%s' in '%s' direction", order_by, order_dir)
 
     app.logger.debug("Validating filter parameters..")
 
@@ -120,13 +119,11 @@ def list_analyses(page: int, limit: int) -> Response:
     updated = request.args.get("updated", type=str)
     if updated:
         app.logger.debug("Filter by updated: '%s'", updated)
-        filters.append(filter_updated_or_abort(
-            models.Analysis.updated, updated))
+        filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
     requested = request.args.get("requested", type=str)
     if requested:
         app.logger.debug("Filter by requested: '%s'", requested)
-        filters.append(filter_updated_or_abort(
-            models.Analysis.requested, requested))
+        filters.append(filter_updated_or_abort(models.Analysis.requested, requested))
     analysis_state = request.args.get("analysis_state", type=str)
     if analysis_state:
         app.logger.debug("Filter by analysis_state: '%s'", analysis_state)
@@ -211,8 +208,7 @@ def list_analyses(page: int, limit: int) -> Response:
 
     if request.args.get("search"):  # multifield search
         app.logger.debug(
-            "Searching across multiple fields by '%s'", request.args.get(
-                "search")
+            "Searching across multiple fields by '%s'", request.args.get("search")
         )
         subquery = (
             models.Analysis.query.join(models.Analysis.datasets)
@@ -222,12 +218,10 @@ def list_analyses(page: int, limit: int) -> Response:
             .filter(
                 or_(
                     func.instr(
-                        models.Family.family_codename, request.args.get(
-                            "search")
+                        models.Family.family_codename, request.args.get("search")
                     ),
                     func.instr(
-                        models.Family.family_aliases, request.args.get(
-                            "search")
+                        models.Family.family_aliases, request.args.get("search")
                     ),
                     func.instr(
                         models.Participant.participant_codename,
@@ -260,8 +254,7 @@ def list_analyses(page: int, limit: int) -> Response:
         else query
     )
 
-    analyses = query.order_by(order).limit(
-        limit).offset(page * (limit or 0)).all()
+    analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
     app.logger.info("Query successful")
 
@@ -468,8 +461,10 @@ def create_analysis():
         to_emails="hannah.lgbhan@gmail.com",
         subject="Test Sendgrid",
         content=f"Analysis requested",
-        id=analysis.analysis_id
+        id=analysis.analysis_id,
     )
+
+    email.retrieve_all_scheduled_sends()
 
     app.logger.debug("Analysis created successfully, returning JSON..")
 
@@ -628,8 +623,6 @@ def delete_analysis(id: int):
         db.session.delete(analysis)
         db.session.commit()
         app.logger.debug("Deletion successful")
-        email.cancel_scheduled_send(id)
-        email.get_canceled_scheduled_sends(id)
         return "Updated", 204
     except:
         db.session.rollback()
@@ -702,6 +695,10 @@ def update_analysis(id: int):
     # Error and Cancelled defaults to time set in 'updated'
 
     transaction_or_abort(db.session.commit)
+
+    # Cancel sends
+    # email.cancel_scheduled_send(id)
+    email.retrieve_all_scheduled_sends()
 
     app.logger.debug("Update successful, returning JSON..")
 

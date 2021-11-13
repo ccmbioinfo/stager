@@ -228,7 +228,7 @@ export function getDatasetFields(dataset: Dataset): Field[] {
         },
         {
             title: "Permission Groups",
-            value: dataset.group_code.join(", "),
+            value: dataset?.group_code?.join(", "),
             fieldName: "group_codes",
             editable: false,
         },
