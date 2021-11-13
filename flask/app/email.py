@@ -1,10 +1,11 @@
 # using SendGrid's Python Library
 # https://github.com/sendgrid/sendgrid-python
+from _typeshed import IdentityFunction
 import os
 import json
 from datetime import datetime, timedelta
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, SendAt, To, From, Subject, Content, MimeType
+from sendgrid.helpers.mail import Mail, SendAt, To, From, Subject, Content, MimeType, BatchId
 from flask import current_app as app
 from pytz import timezone
 import math
@@ -15,7 +16,7 @@ sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
 tz = timezone("EST")
 
 
-def send_email(from_email, to_emails, subject, content):
+def send_email(from_email, to_emails, subject, content, analysis_id):
 
     emails_stats = get_daily_stats()
 
@@ -28,6 +29,7 @@ def send_email(from_email, to_emails, subject, content):
     message.subject = Subject(subject)
     message.content = Content(MimeType.text, content)
     message.send_at = SendAt(math.ceil(scheduled_time))
+    message.batch_id = BatchId(str(analysis_id))
 
     try:
         sg.send(message)
@@ -69,9 +71,25 @@ def get_send_time(stats):
             if requests_count < limit_per_day:
                 send_at = send_at + timedelta(minutes=3)
             else:
-                send_at = send_at + timedelta(days=1, minutes=3)
+                send_at = send_at + timedelta(days=1, minutes=15)
 
     return send_at.timestamp()
+
+
+def cancel_scheduled_send(id):
+    request = {
+        "batch_id": id,
+        "status": "cancel"
+    }
+    sg.client.user.scheduled_sends.post(request_body=request)
+
+
+def get_canceled_scheduled_sends(id):
+    sg.client.user.scheduled_sends.get({
+        "batch_id": id
+    })
+
+# Utils
 
 
 def stringify_date(date):
