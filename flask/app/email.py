@@ -23,7 +23,7 @@ sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
 tz = timezone("EST")
 
 
-def send_email(from_email, to_emails, subject, content, id):
+def send_email(from_email, to_emails, subject, content):
 
     emails_stats = get_daily_stats()
 
@@ -38,11 +38,11 @@ def send_email(from_email, to_emails, subject, content, id):
     message.send_at = SendAt(math.ceil(scheduled_time))
 
     try:
-        app.logger.debug(message)
         sg.send(message)
         app.logger.info(
             f"Email successfully sent from {from_email} to {to_emails} at {datetime.fromtimestamp(scheduled_time, tz)}"
         )
+        app.logger.debug(message)
     except Exception as e:
         app.logger.error(f"Failed to send email {id}...")
         app.logger.error(e)
@@ -76,9 +76,9 @@ def get_send_time(stats):
 
         if stat.get("date") == stringify_date(send_at):
             if requests_count < limit_per_day:
-                send_at = send_at + timedelta(minutes=55)
+                send_at = send_at + timedelta(minutes=1)
             else:
-                send_at = send_at + timedelta(days=1, minutes=55)
+                send_at = send_at + timedelta(days=1, minutes=1)
 
     return send_at.timestamp()
 
