@@ -464,8 +464,6 @@ def create_analysis():
         id=analysis.analysis_id,
     )
 
-    email.retrieve_all_scheduled_sends()
-
     app.logger.debug("Analysis created successfully, returning JSON..")
 
     return (
@@ -695,10 +693,6 @@ def update_analysis(id: int):
     # Error and Cancelled defaults to time set in 'updated'
 
     transaction_or_abort(db.session.commit)
-
-    # Cancel sends
-    # email.cancel_scheduled_send(id)
-    email.retrieve_all_scheduled_sends()
 
     app.logger.debug("Update successful, returning JSON..")
 

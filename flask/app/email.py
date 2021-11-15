@@ -89,53 +89,6 @@ def get_send_time(stats):
     return send_at.timestamp()
 
 
-def generate_batch_id():
-    try:
-        response = sg.client.mail.batch.post()
-        app.logger.info(f"Successfully created new batch")
-        app.logger.debug(response.status_code)
-        app.logger.debug(response.body)
-        batch = json.loads(response.body.decode("utf-8"))
-        return batch.get("batch_id")
-    except Exception as e:
-        app.logger.error(f"Failed to create new batch")
-        app.logger.error(e)
-
-
-def validate_batch_id(id):
-    try:
-        response = sg.client.mail.batch._(id).get()
-        app.logger.info(f"Whether batch id {id} is valid...")
-        app.logger.debug(response.to_dict)
-    except Exception as e:
-        app.logger.error(f"Failed to validate batch with id {id}")
-        app.logger.error(e)
-
-
-def cancel_scheduled_send(id):
-    try:
-        request = {"batch_id": str(id), "status": "cancel"}
-        response = sg.client.user.scheduled_sends.post(request_body=request)
-        print("h1")
-        print(response.to_dict)
-    except Exception as e:
-        app.logger.error(f"Failed to cancel scheduled send with id {id}")
-        app.logger.error(e)
-
-
-# To-do: Why does it return empty???
-def retrieve_all_scheduled_sends():
-    try:
-        response = sg.client.user.scheduled_sends.get()
-        app.logger.info("Retrieving all scheduled sends...")
-        app.logger.debug(response.status_code)
-        app.logger.debug(response.body)
-        app.logger.debug(response.headers)
-    except Exception as e:
-        app.logger.error(f"Failed to retrieve all scheduled sends")
-        app.logger.error(e)
-
-
 # Utils
 
 
