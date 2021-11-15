@@ -12,7 +12,6 @@ from sendgrid.helpers.mail import (
     Subject,
     Content,
     MimeType,
-    BatchId,
 )
 from flask import current_app as app
 from pytz import timezone
@@ -30,10 +29,6 @@ def send_email(from_email, to_emails, subject, content, id):
 
     scheduled_time = get_send_time(emails_stats)
 
-    batch_id = generate_batch_id()
-
-    validate_batch_id(batch_id)
-
     message = Mail()
 
     message.to = To(to_emails)
@@ -41,7 +36,6 @@ def send_email(from_email, to_emails, subject, content, id):
     message.subject = Subject(subject)
     message.content = Content(MimeType.text, content)
     message.send_at = SendAt(math.ceil(scheduled_time))
-    message.batch_id = BatchId(batch_id)
 
     try:
         app.logger.debug(message)
