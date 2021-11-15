@@ -3,7 +3,11 @@ import { Participant } from "../../typings";
 import { basicFetch } from "../utils";
 
 async function fetchDataset(id: string) {
-    return await basicFetch("/api/participants/" + id);
+    const result: Participant = await basicFetch("/api/participants/" + id);
+    result.dataset_types = result.tissue_samples.flatMap(({ datasets }) =>
+        datasets.map(dataset => dataset.dataset_type)
+    );
+    return result;
 }
 
 /**
