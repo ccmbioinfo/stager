@@ -201,7 +201,7 @@ export function getDatasetFields(dataset: DatasetDetailed ): Field[] {
             title: "Dataset Type",
             value: dataset.dataset_type,
             fieldName: "dataset_type",
-            editable: dataset.analyses.length>0 ? false : true,
+            editable: dataset.analyses?.length>0 ? false : true,
         },
 
         {

@@ -119,23 +119,15 @@ interface RNASeqDataset extends DNADataset {
 
 export type Dataset = RNASeqDataset | DNADataset;
 
-// dataset typeguard
-export const isRNASeqDataset = (dataset: RNASeqDataset | Dataset): dataset is RNASeqDataset =>
-    dataset.discriminator === "rnaseq_dataset";
-
-// Result from /api/datasets/:id
-// export interface DatasetDetails {
-//     tissue_sample?: Sample;
-//     institution?: string;
-//     analyses?: Analysis[];
-// }
-
 export type DatasetDetailed = Dataset & {
     tissue_sample: Sample;
     institution: string;
     analyses: Analysis[];
 };
 
+// dataset typeguard
+export const isRNASeqDataset = (dataset: Dataset): dataset is RNASeqDataset =>
+    dataset.discriminator === "rnaseq_dataset";
 
 
 export interface Analysis {

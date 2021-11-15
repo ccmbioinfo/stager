@@ -33,7 +33,7 @@ import {
     useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
-import { Dataset, isRNASeqDataset, LinkedFile } from "../../typings";
+import { Dataset, DatasetDetailed, isRNASeqDataset, LinkedFile } from "../../typings";
 import AnalysisRunnerDialog from "./AnalysisRunnerDialog";
 import DatasetInfoDialog from "./DatasetInfoDialog";
 import LinkedFilesButton from "./LinkedFilesButton";
@@ -50,14 +50,14 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const customFileFilterAndSearch = (filter: string, rowData: Dataset) => {
+const customFileFilterAndSearch = (filter: string, rowData: DatasetDetailed) => {
     return (
         filter === "" + rowData.linked_files.length ||
         rowData.linked_files.some(f => f.path.includes(filter))
     );
 };
 
-const EditFilesComponent = (props: EditComponentProps<Dataset>) => {
+const EditFilesComponent = (props: EditComponentProps<DatasetDetailed>) => {
     const filesQuery = useUnlinkedFilesQuery();
     const files = filesQuery.data || [];
     return (
@@ -128,16 +128,16 @@ export default function DatasetTable() {
 
     const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
 
-    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Dataset>(
+    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<DatasetDetailed>(
         "datasetTableDefaultHidden"
     );
-    const { handleOrderChange, setInitialSorting } = useSortOrderCache<Dataset>(
+    const { handleOrderChange, setInitialSorting } = useSortOrderCache<DatasetDetailed>(
         MTRef,
         "datasetTableSortOrder"
     );
 
     const columns = useMemo(() => {
-        const columns: Column<Dataset>[] = [
+        const columns: Column<DatasetDetailed>[] = [
             {
                 title: "Family",
                 field: "family_codename",
@@ -160,6 +160,7 @@ export default function DatasetTable() {
                 title: "Type",
                 field: "dataset_type",
                 lookup: datasetTypes,
+                editable: (columnDef, row) => row.analyses.length>0 ? false : true,
             },
             {
                 title: "Condition",
