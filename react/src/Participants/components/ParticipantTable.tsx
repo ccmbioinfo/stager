@@ -14,7 +14,6 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
-import { useFetchContext } from "../../contexts";
 import {
     countArray,
     resetAllTableFilters,
@@ -39,7 +38,6 @@ import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
 export default function ParticipantTable() {
-    const fetchContext = useFetchContext();
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
@@ -170,6 +168,12 @@ export default function ParticipantTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
     };
 
+    // can't use useFetch here since fetching is done inside a callback
+    const GetActiveEndpoint = () => {
+        const endpoint = localStorage.getItem("endpoint");
+        return endpoint === null ? "" : endpoint;
+    };
+
     return (
         <div>
             {activeRow && (
@@ -207,7 +211,9 @@ export default function ParticipantTable() {
                         );
 
                         const response = await fetch(
-                            `${fetchContext}/api/participants/${newParticipant.participant_id}`,
+                            `${GetActiveEndpoint()}/api/participants/${
+                                newParticipant.participant_id
+                            }`,
                             {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },

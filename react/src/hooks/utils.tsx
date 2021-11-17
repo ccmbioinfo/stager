@@ -15,7 +15,7 @@ import { stringToBoolean } from "../functions";
 import { QueryWithSearchOptions as MTQueryWithSearchOptions } from "../typings";
 
 function getActiveEndpoint(): string {
-    let activeEndpoint = localStorage.getItem("endpoint");
+    const activeEndpoint = localStorage.getItem("endpoint");
     return activeEndpoint === null ? "" : activeEndpoint;
 }
 

@@ -9,8 +9,7 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { useFetchContext } from "../../contexts";
-import { useErrorSnackbar } from "../../hooks";
+import { useErrorSnackbar, useFetch } from "../../hooks";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -39,7 +38,6 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
     const [file, setFile] = React.useState<File | null>(null);
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
-    const fetchContext = useFetchContext();
 
     // File reference gets set here
     function onFileAdd(files: FileList | null) {
@@ -50,11 +48,13 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
         }
     }
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     async function sendFile(file: File | null) {
         if (file !== null) {
             // Upload
             const groupsParam = new URLSearchParams({ groups: groups.join(",") });
-            const response = await fetch(`${fetchContext}/api/_bulk?` + groupsParam.toString(), {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const response = await useFetch(`/api/_bulk?` + groupsParam.toString(), {
                 method: "POST",
                 body: file,
                 headers: new Headers({

@@ -5,7 +5,8 @@ import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
-import { APIInfoContext, emptyUser, FetchContext, UserClient, UserContext } from "./contexts";
+import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
+import { useFetch } from "./hooks";
 import { clearQueryCache } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
@@ -29,7 +30,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
     const [availableEndpoints, setAvailableEndpoints] = useState<LabSelection[]>([]);
-    const [activeEndpoint, setActiveEndpoint] = useState("");
 
     // React Context needs the provider value to be a complete package in a state var
     // or else extra re-renders will happen apparently
@@ -56,7 +56,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
-        const result = await fetch(`${activeEndpoint}/api/logout`, {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const result = await useFetch(`/api/logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
@@ -79,7 +80,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const loginResult = await fetch(`/api/login`, { method: "POST" });
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const loginResult = await useFetch(`/api/login`, { method: "POST" });
             if (loginResult.ok) {
                 const loginInfo = await loginResult.json();
                 setCurrentUser(loginInfo);
@@ -107,7 +109,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     }, []);
 
     const setEndpoint = async (newEndpoint: string) => {
-        setActiveEndpoint(newEndpoint);
         const apiInfoResult = await fetch(`${newEndpoint}/api`);
         if (apiInfoResult.ok) {
             let apiInfo = { ...(await apiInfoResult.json()) };
@@ -119,50 +120,46 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         return (
             <UserContext.Provider value={userClient}>
                 <APIInfoContext.Provider value={apiInfo}>
-                    <FetchContext.Provider value={activeEndpoint}>
-                        <QueryClientProvider client={queryClient}>
-                            <SnackbarProvider
-                                ref={notistackRef}
-                                action={key => (
-                                    <IconButton
-                                        aria-label="close"
-                                        color="inherit"
-                                        onClick={onClickDismiss(key)}
-                                    >
-                                        <Close fontSize="small" />
-                                    </IconButton>
-                                )}
-                                autoHideDuration={6000}
-                                anchorOrigin={{
-                                    horizontal: "center",
-                                    vertical: "bottom",
-                                }}
-                                hideIconVariant={true}
-                            >
-                                <Navigation
-                                    signout={signout}
-                                    darkMode={props.darkMode}
-                                    toggleDarkMode={props.toggleDarkMode}
-                                />
-                                <ReactQueryDevtools initialIsOpen={false} />
-                            </SnackbarProvider>
-                        </QueryClientProvider>
-                    </FetchContext.Provider>
+                    <QueryClientProvider client={queryClient}>
+                        <SnackbarProvider
+                            ref={notistackRef}
+                            action={key => (
+                                <IconButton
+                                    aria-label="close"
+                                    color="inherit"
+                                    onClick={onClickDismiss(key)}
+                                >
+                                    <Close fontSize="small" />
+                                </IconButton>
+                            )}
+                            autoHideDuration={6000}
+                            anchorOrigin={{
+                                horizontal: "center",
+                                vertical: "bottom",
+                            }}
+                            hideIconVariant={true}
+                        >
+                            <Navigation
+                                signout={signout}
+                                darkMode={props.darkMode}
+                                toggleDarkMode={props.toggleDarkMode}
+                            />
+                            <ReactQueryDevtools initialIsOpen={false} />
+                        </SnackbarProvider>
+                    </QueryClientProvider>
                 </APIInfoContext.Provider>
             </UserContext.Provider>
         );
     } else if (apiInfo || availableEndpoints.length > 0) {
         return (
-            <FetchContext.Provider value={activeEndpoint}>
-                <LoginPage
-                    signout={signout}
-                    setAuthenticated={setAuthenticated}
-                    setCurrentUser={setCurrentUser}
-                    oauth={apiInfo ? apiInfo.oauth : false}
-                    setEndpoint={setEndpoint}
-                    labs={availableEndpoints}
-                />
-            </FetchContext.Provider>
+            <LoginPage
+                signout={signout}
+                setAuthenticated={setAuthenticated}
+                setCurrentUser={setCurrentUser}
+                oauth={apiInfo ? apiInfo.oauth : false}
+                setEndpoint={setEndpoint}
+                labs={availableEndpoints}
+            />
         );
     } else {
         return <></>;

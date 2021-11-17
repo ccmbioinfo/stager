@@ -16,7 +16,7 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
 import LabDropdownSelect from "./components/LabDropdownSelect";
-import { useFetchContext } from "./contexts";
+import { useFetch } from "./hooks";
 import { CurrentUser, LabSelection } from "./typings";
 
 interface LoginProps {
@@ -108,12 +108,12 @@ function OIDCRedirectHandler(props: LoginProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const fetchContext = useFetchContext();
 
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                const response = await fetch(`${fetchContext}/api/authorize${location.search}`, {
+                // eslint-disable-next-line react-hooks/rules-of-hooks
+                const response = await useFetch(`/api/authorize${location.search}`, {
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                     },
@@ -205,14 +205,14 @@ function LoginForm({
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [showForm, setShowForm] = useState(false);
-    const fetchContext = useFetchContext();
     function bind(set: typeof setUsername) {
         // @ts-ignore
         return e => set(e.target.value);
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        const result = await fetch(`${fetchContext}/api/login`, {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const result = await useFetch(`/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
