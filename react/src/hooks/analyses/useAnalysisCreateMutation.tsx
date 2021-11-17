@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
-import { changeFetch } from "../utils";
+import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface NewAnalysisParams {
     type: "new";
@@ -37,8 +37,10 @@ async function createAnalysis(params: CreateAnalysisParams) {
 export function useAnalysisCreateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Analysis, Response, CreateAnalysisParams>(createAnalysis, {
-        onSuccess: newAnalysis => {
-            queryClient.invalidateQueries("analyses");
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                predicate: invalidateAnalysisPredicate,
+            });
         },
     });
     return mutation;
