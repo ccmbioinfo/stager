@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Analysis, AnalysisChange, AnalysisDetailed } from "../../typings";
+import { Analysis, AnalysisChange } from "../../typings";
 import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface UpdateSource {
@@ -36,24 +36,7 @@ async function patchAnalysis(newAnalysis: AnalysisOptions) {
 export function useAnalysisUpdateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Analysis, Response, AnalysisOptions>(patchAnalysis, {
-        onSuccess: (newAnalysis, changes) => {
-            let oldAnalysis: AnalysisOptions | Partial<AnalysisDetailed> | undefined;
-            oldAnalysis = queryClient.getQueryData<AnalysisDetailed>([
-                "analyses",
-                newAnalysis.analysis_id,
-            ]);
-            if (!oldAnalysis) {
-                // we may not have fetched for analysis details yet, so we account for that here
-                const oldAnalyses = queryClient.getQueryData<Analysis[]>("analyses");
-                if (oldAnalyses)
-                    oldAnalysis = oldAnalyses.find(a => a.analysis_id === newAnalysis.analysis_id);
-                else {
-                    const { source, ...rest } = changes;
-                    oldAnalysis = rest;
-                }
-            }
-            const updatedAnalysis = { ...oldAnalysis, ...newAnalysis };
-            queryClient.setQueryData(["analyses", newAnalysis.analysis_id], updatedAnalysis);
+        onSuccess: () => {
             queryClient.invalidateQueries({
                 predicate: invalidateAnalysisPredicate,
             });
