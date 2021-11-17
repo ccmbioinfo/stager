@@ -286,8 +286,8 @@ def test_database(client):
     analysis_2 = Analysis(
         analysis_id=2,
         analysis_state=AnalysisState.Requested,
-        requester_id=admin.user_id,
-        assignee_id=admin.user_id,
+        requester_id=user.user_id,
+        assignee_id=None,
         updated_by_id=admin.user_id,
         pipeline_id=pipeline_1.pipeline_id,
         requested="2020-07-28",

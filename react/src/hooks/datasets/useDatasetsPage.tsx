@@ -19,8 +19,9 @@ async function fetchDatasets(query: QueryWithSearchOptions<DatasetDetailed>) {
 export function useDatasetsPage() {
     const queryClient = useQueryClient();
     return async (query: QueryWithSearchOptions<DatasetDetailed>) => {
-        return await queryClient.fetchQuery<QueryResult<DatasetDetailed>, Error>(["datasets", query], () =>
-            fetchDatasets(query)
+        return await queryClient.fetchQuery<QueryResult<DatasetDetailed>, Error>(
+            ["datasets", query],
+            () => fetchDatasets(query)
         );
     };
 }

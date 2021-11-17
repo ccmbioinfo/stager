@@ -129,7 +129,6 @@ export type DatasetDetailed = Dataset & {
 export const isRNASeqDataset = (dataset: Dataset): dataset is RNASeqDataset =>
     dataset.discriminator === "rnaseq_dataset";
 
-
 export interface Analysis {
     analysis_id: string;
     analysis_state: PipelineStatus;

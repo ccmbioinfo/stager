@@ -244,7 +244,7 @@ def list_analyses(page: int, limit: int) -> Response:
 
     # this is needed to for sorting to work on assignee/requester
     query = (
-        query.join(assignee_user, models.Analysis.assignee)
+        query.join(assignee_user, models.Analysis.assignee, isouter=True)
         if order_by == "assignee"
         else query
     )

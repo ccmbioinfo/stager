@@ -194,14 +194,13 @@ export function getAnalysisInfoList(analyses: Analysis[]): Info[] {
 /**
  * Return the titles and values of dataset detail as a Field object in dialogs
  */
-export function getDatasetFields(dataset: DatasetDetailed ): Field[] {
-
+export function getDatasetFields(dataset: DatasetDetailed): Field[] {
     return [
         {
             title: "Dataset Type",
             value: dataset.dataset_type,
             fieldName: "dataset_type",
-            editable: dataset.analyses?.length>0 ? false : true,
+            editable: dataset.analyses?.length > 0 ? false : true,
         },
 
         {
@@ -359,7 +358,7 @@ export function getSecDatasetFields(dataset: Dataset): Field[] {
 /**
  * Return an Info object for dataset detail list in dialogs
  */
-export function getDatasetInfoList(datasets: DatasetDetailed[] ): Info[] {
+export function getDatasetInfoList(datasets: DatasetDetailed[]): Info[] {
     return datasets.map(dataset => {
         return {
             primaryListTitle: `Dataset ID ${dataset.dataset_id}`,

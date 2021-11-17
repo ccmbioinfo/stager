@@ -160,7 +160,7 @@ export default function DatasetTable() {
                 title: "Type",
                 field: "dataset_type",
                 lookup: datasetTypes,
-                editable: (columnDef, row) => row.analyses.length>0 ? false : true,
+                editable: (columnDef, row) => (row.analyses.length > 0 ? false : true),
             },
             {
                 title: "Condition",

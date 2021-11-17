@@ -34,6 +34,34 @@ def test_list_analyses_user_from_admin(test_database, client, login_as):
     assert len(response.get_json()["data"]) == 1
 
 
+def test_analyses_order_by_analyses_column(test_database, client, login_as):
+    login_as("admin")
+
+    response = client.get("/api/analyses?order_by=assignee&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 3
+    assert body["data"][2]["analysis_id"] == 2
+
+    response = client.get("/api/analyses?order_by=assignee&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 3
+    assert body["data"][0]["analysis_id"] == 2
+
+    response = client.get("/api/analyses?order_by=requester&order_dir=desc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 3
+    assert body["data"][0]["analysis_id"] == 2
+
+    response = client.get("/api/analyses?order_by=requester&order_dir=asc")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert len(body["data"]) == 3
+    assert body["data"][2]["analysis_id"] == 2
+
+
 # GET /api/analyses/:id
 
 
