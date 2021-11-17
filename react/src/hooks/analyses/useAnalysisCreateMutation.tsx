@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
-import { changeFetch, invalidateAnalysisPredicate } from "../utils";
+import { changeFetch } from "../utils";
 
 interface NewAnalysisParams {
     type: "new";
@@ -20,9 +20,9 @@ type CreateAnalysisParams = NewAnalysisParams | ReAnalysisParams;
 async function createAnalysis(params: CreateAnalysisParams) {
     if (params.type === "new" && params.notes?.trim() === "") params.notes = undefined;
     if (params.type === "reanalysis")
-        return await changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
+        return changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
 
-    return await changeFetch("/api/analyses", "POST", params);
+    return changeFetch("/api/analyses", "POST", params);
 }
 
 /**
@@ -38,10 +38,7 @@ export function useAnalysisCreateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Analysis, Response, CreateAnalysisParams>(createAnalysis, {
         onSuccess: newAnalysis => {
-            queryClient.setQueryData(["analyses", newAnalysis.analysis_id], newAnalysis);
-            queryClient.invalidateQueries({
-                predicate: invalidateAnalysisPredicate,
-            });
+            queryClient.invalidateQueries("analyses");
         },
     });
     return mutation;
