@@ -519,32 +519,6 @@ def create_reanalysis(id: int):
         abort(404, description="Some datasets were not found")
 
     # TODO: Do we need to check for compatibility if the previous analysis already exists?
-    app.logger.info(
-        f"Checking if datasets are still compatible with pipeline {analysis.pipeline_id}..."
-    )
-    compatible_datasets_pipelines_query = (
-        db.session.query(
-            models.Dataset,
-            models.MetaDatasetType_DatasetType,
-            models.PipelineDatasets,
-        )
-        .filter(models.Dataset.dataset_id.in_(datasets))
-        .join(
-            models.MetaDatasetType_DatasetType,
-            models.Dataset.dataset_type
-            == models.MetaDatasetType_DatasetType.dataset_type,
-        )
-        .join(
-            models.PipelineDatasets,
-            models.PipelineDatasets.supported_metadataset_type
-            == models.MetaDatasetType_DatasetType.metadataset_type,
-        )
-        .filter(models.PipelineDatasets.pipeline_id == analysis.pipeline_id)
-        .all()
-    )
-
-    if len(compatible_datasets_pipelines_query) != len(datasets):
-        abort(404, description="Requested pipelines are incompatible with datasets")
 
     app.logger.info("Cloning previous analysis...")
     # Clone attributes from existing analysis, overwrite some
