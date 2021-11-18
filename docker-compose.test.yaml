@@ -16,7 +16,7 @@ services:
       MINIO_SECRET_KEY: "${TEST_MINIO_SECRET_KEY}"
       MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
       MINIO_UPDATE: "off"
-    command: server /data --quiet --console-address ":9090"
+    command: server /data --console-address ":9090"
     # console address not needed but kept for consistency
   app:
     build: flask

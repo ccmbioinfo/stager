@@ -32,7 +32,7 @@ services:
       - "${CONSOLE_HOST_PORT:-127.0.0.1:9090}:9090"
     volumes:
       - ${MINIO_VOLUME}:/data
-    command: server /data --quiet --console-address ":9090"
+    command: server /data --console-address ":9090"
   app:
     build: flask
     image: ghcr.io/ccmbioinfo/stager:dev
