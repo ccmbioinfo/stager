@@ -5,15 +5,16 @@ services:
     image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
     user: www-data
     environment:
-      ST_SECRET_KEY: "${ST_SECRET_KEY}"
+      ST_SECRET_KEY:
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_CONNECTION_STRING}"
-      MINIO_ENDPOINT: "${MINIO_ENDPOINT}"
-      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
-      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_ENDPOINT:
+      MINIO_ACCESS_KEY:
+      MINIO_SECRET_KEY:
       MINIO_REGION_NAME: hpc4health
-      MSTEAMS_WEBHOOK_URL: "${MSTEAMS_WEBHOOK_URL}"
+      MSTEAMS_WEBHOOK_URL:
     ports:
       - "5000:5000"
+    # Not in Dockerfile yet because the base image is used on stager-dev
     entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
     command: --preload --workers 2 --threads 2
     healthcheck:
