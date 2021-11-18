@@ -17,7 +17,7 @@ services:
     entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
     command: --preload --workers 2 --threads 2
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:5000/api"]
+      test: ["CMD", "./healthcheck.py"]
     restart: unless-stopped
     logging:
       driver: journald
