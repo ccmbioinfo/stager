@@ -23,7 +23,7 @@ sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
 tz = timezone("EST")
 
 
-def send_email(from_email, to_emails, subject, content):
+def send_email(from_email, to_emails, subject, dynamic_template_object):
 
     emails_stats = get_daily_stats()
 
@@ -34,8 +34,9 @@ def send_email(from_email, to_emails, subject, content):
     message.to = To(to_emails)
     message.from_email = From(from_email)
     message.subject = Subject(subject)
-    message.content = Content(MimeType.text, content)
     message.send_at = SendAt(math.ceil(scheduled_time))
+    message.dynamic_template_data = dynamic_template_object
+    message.template_id = "d-a758270f93a44038b0e84f4c90950d41"
 
     try:
         sg.send(message)
@@ -88,3 +89,6 @@ def get_send_time(stats):
 
 def stringify_date(date):
     return datetime.strftime(date, "%Y-%m-%d")
+
+
+# Hi {name}, An analysis with ID {} has been requested in Stager for the following dataset. Priority:
