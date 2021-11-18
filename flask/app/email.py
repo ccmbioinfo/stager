@@ -89,6 +89,3 @@ def get_send_time(stats):
 
 def stringify_date(date):
     return datetime.strftime(date, "%Y-%m-%d")
-
-
-# Hi {name}, An analysis with ID {} has been requested in Stager for the following dataset. Priority:

@@ -465,6 +465,31 @@ def create_analysis():
             "requested": now.isoformat(),
             "notes": notes,
             "name": user.username.capitalize(),
+            "total_datasets": len(found_datasets),
+            "datasets": [
+                {
+                    "dataset_id": dataset.dataset_id,
+                    "notes": dataset.notes,
+                    "linked_files": ", ".join(dataset.linked_files),
+                    "group_code": ", ".join(
+                        [group.group_code for group in dataset.groups]
+                    ),
+                    "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                    "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                    "participant_type": dataset.tissue_sample.participant.participant_type,
+                    "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
+                    "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
+                    "institution": dataset.tissue_sample.participant.institution.institution
+                    if dataset.tissue_sample.participant.institution
+                    else None,
+                    "sex": dataset.tissue_sample.participant.sex,
+                    "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                    "updated_by": dataset.tissue_sample.updated_by.username,
+                    "created_by": dataset.tissue_sample.created_by.username,
+                    "participant_notes": dataset.tissue_sample.participant.notes,
+                }
+                for dataset in found_datasets
+            ],
         },
     )
 
