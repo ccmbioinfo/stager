@@ -61,8 +61,9 @@ def get_daily_stats():
     try:
         response = sg.client.stats.get(query_params=params)
         return json.loads(response.body.decode("utf-8"))
-    except:
+    except Exception as e:
         app.logger.error("Failed to get daily email stats")
+        app.logger.debug(e)
         return []
 
 
