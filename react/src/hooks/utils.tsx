@@ -14,7 +14,7 @@ import { Query } from "react-query";
 import { stringToBoolean } from "../functions";
 import { QueryWithSearchOptions as MTQueryWithSearchOptions } from "../typings";
 
-type SetDataOptions = NonNullable<Parameters<QueryClient['setQueryData']>[2]>
+type SetDataOptions = NonNullable<Parameters<QueryClient["setQueryData"]>[2]>;
 
 /**
  * Fetch the provided url. Return the JSON response if successful.
