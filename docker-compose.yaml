@@ -1,43 +1,37 @@
-version: "3.8"
+version: "3.9"
 
 services:
   mysql:
     image: mysql:8.0
-    user: "${MYSQL_UIDGID:-mysql}"
     restart: on-failure
     environment:
-      MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      MYSQL_USER: "${MYSQL_USER}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      KEYCLOAK_DATABASE: "${KEYCLOAK_DATABASE}"
-      KEYCLOAK_DB_USER: "${KEYCLOAK_DB_USER}"
-      KEYCLOAK_DB_PASSWORD: "${KEYCLOAK_DB_PASSWORD}"
+      MYSQL_DATABASE:
+      MYSQL_USER:
+      MYSQL_PASSWORD:
+      MYSQL_ROOT_PASSWORD:
     ports:
-      - "${MYSQL_HOST_PORT}:3306"
+      - "${MYSQL_HOST_PORT:-127.0.0.1:3306}:3306"
     volumes:
       - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
     image: minio/minio:RELEASE.2021-11-03T03-36-36Z
-    user: "${MINIO_UIDGID:-}"
     restart: on-failure
     environment:
-      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
-      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
-      MINIO_REGION_NAME: "${MINIO_REGION_NAME}"
+      MINIO_ROOT_USER: "${MINIO_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${MINIO_SECRET_KEY}"
+      MINIO_REGION_NAME:
       MINIO_UPDATE: "off"
     ports:
-      - "${MINIO_HOST_PORT}:9000"
+      - "${MINIO_HOST_PORT:-127.0.0.1:9000}:9000"
       - "${CONSOLE_HOST_PORT:-127.0.0.1:9090}:9090"
     volumes:
       - ${MINIO_VOLUME}:/data
-    command: server /data --quiet --console-address ":9090"
+    command: server /data --console-address ":9090"
   app:
     build: flask
     image: ghcr.io/ccmbioinfo/stager:dev
-    user: "${FLASK_UIDGID:-www-data}"
     environment:
-      ST_SECRET_KEY: "${ST_SECRET_KEY}"
+      ST_SECRET_KEY:
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
@@ -50,9 +44,32 @@ services:
       OIDC_PROVIDER: "${OIDC_PROVIDER}"
       SENDGRID_API_KEY: "${SENDGRID_API_KEY}"
     ports:
-      - "${FLASK_HOST_PORT}:5000"
+      - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
     depends_on:
       - mysql
       - minio
     volumes:
       - ./flask:/usr/src/stager
+  app_debug:
+    build: flask
+    image: ghcr.io/ccmbioinfo/stager:dev
+    profiles:
+      - debug
+    environment:
+      ST_SECRET_KEY:
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY:
+      MINIO_SECRET_KEY:
+      MINIO_REGION_NAME:
+      FLASK_DEBUG: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    ports:
+      - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
+      - "${DEBUG_HOST_PORT:-127.0.0.1:5678}:5678"
+    depends_on:
+      - mysql
+      - minio
+    volumes:
+      - ./flask:/usr/src/stager
+    entrypoint: ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "flask", "run", "--host=0.0.0.0"]

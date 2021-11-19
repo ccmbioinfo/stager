@@ -31,8 +31,7 @@ services:
       MINIO_UPDATE: "off"
     volumes:
       - ${MINIO_VOLUME}:/data
-      - "${CONSOLE_HOST_PORT:-127.0.0.1:9090}:9090"
-    command: server /data --quiet --console-address ":9090"
+    command: server /data --console-address ":9090"
     <<: *common
   app:
     build:
