@@ -383,8 +383,8 @@ export default function Analyses() {
                     analysis={activeRows[0]}
                     onClose={() => {
                         setDetail(false);
-                        tableRef.current.onQueryChange();
                     }}
+                    refreshTable={tableRef.current.onQueryChange()}
                 />
             )}
 
