@@ -5,13 +5,13 @@ import json
 from datetime import datetime, timedelta
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (
+    Asm,
     Mail,
     SendAt,
     To,
     From,
     Subject,
-    Content,
-    MimeType,
+    GroupId,
 )
 from flask import current_app as app
 from pytz import timezone
@@ -37,6 +37,7 @@ def send_email(from_email, to_emails, subject, dynamic_template_object):
     message.send_at = SendAt(math.ceil(scheduled_time))
     message.dynamic_template_data = dynamic_template_object
     message.template_id = "d-a758270f93a44038b0e84f4c90950d41"
+    message.asm = Asm(GroupId(20848))
 
     try:
         sg.send(message)
