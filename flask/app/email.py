@@ -36,8 +36,9 @@ def send_email(from_email, to_emails, subject, dynamic_template_object):
     message.subject = Subject(subject)
     message.send_at = SendAt(math.ceil(scheduled_time))
     message.dynamic_template_data = dynamic_template_object
-    message.template_id = "d-a758270f93a44038b0e84f4c90950d41"
-    message.asm = Asm(GroupId(20848))
+    message.template_id = os.environ.get("SENDGRID_EMAIL_TEMPLATE_ID")
+    message.asm = Asm(
+        GroupId(int(os.environ.get("SENDGRID_UNSUBSCRIBE_GROUP_ID"))))
 
     try:
         sg.send(message)
