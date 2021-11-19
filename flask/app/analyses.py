@@ -459,7 +459,6 @@ def create_analysis():
         to_emails="hannah.lgbhan@gmail.com",
         subject="Test Sendgrid",
         dynamic_template_object={
-            "asmGroupUnsubscribeUrl": "<%asm_group_unsubscribe_url%>",
             "analysis_id": analysis.analysis_id,
             "pipeline_id": pipeline_id,
             "priority": request.json.get("priority"),
