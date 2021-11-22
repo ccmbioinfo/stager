@@ -10,7 +10,7 @@ import {
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 import { useErrorSnackbar } from "../../hooks";
-import { customFetch } from "../../hooks/utils";
+import { apiFetch } from "../../hooks/utils";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -53,7 +53,7 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
         if (file !== null) {
             // Upload
             const groupsParam = new URLSearchParams({ groups: groups.join(",") });
-            const response = await customFetch(`/api/_bulk?` + groupsParam.toString(), {
+            const response = await apiFetch(`/api/_bulk?` + groupsParam.toString(), {
                 method: "POST",
                 body: file,
                 headers: new Headers({

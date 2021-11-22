@@ -16,7 +16,7 @@ import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from 
 import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
 import LabDropdownSelect from "./components/LabDropdownSelect";
-import { customFetch } from "./hooks/utils";
+import { apiFetch } from "./hooks/utils";
 import { CurrentUser, LabSelection } from "./typings";
 
 interface LoginProps {
@@ -24,7 +24,6 @@ interface LoginProps {
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
     oauth: boolean;
-    setEndpoint: (endpoint: string) => void;
     labs: LabSelection[];
 }
 
@@ -112,7 +111,7 @@ function OIDCRedirectHandler(props: LoginProps) {
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                const response = await customFetch(`/api/authorize${location.search}`, {
+                const response = await apiFetch(`/api/authorize${location.search}`, {
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                     },
@@ -197,7 +196,6 @@ function OIDCRedirectHandler(props: LoginProps) {
 function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
-    setEndpoint = (endpoint: string) => {},
     labs = [] as LabSelection[],
 }) {
     const [username, setUsername] = useState("");
@@ -210,7 +208,7 @@ function LoginForm({
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        const result = await customFetch(`/api/login`, {
+        const result = await apiFetch(`/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
@@ -226,7 +224,6 @@ function LoginForm({
     }
 
     const handleLabSelect = (lab: LabSelection) => {
-        setEndpoint(lab.endpoint);
         setShowForm(lab.endpoint !== "");
     };
     const classes = useStyles();

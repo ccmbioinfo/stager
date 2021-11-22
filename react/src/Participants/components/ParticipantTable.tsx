@@ -32,7 +32,7 @@ import {
     useParticipantsPage,
     useSortOrderCache,
 } from "../../hooks";
-import { customFetch, transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
+import { apiFetch, transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -204,7 +204,7 @@ export default function ParticipantTable() {
                             oldParticipant
                         );
 
-                        const response = await customFetch(
+                        const response = await apiFetch(
                             `/api/participants/${newParticipant.participant_id}`,
                             {
                                 method: "PATCH",

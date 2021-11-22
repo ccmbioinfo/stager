@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
-import { clearQueryCache, customFetch } from "./hooks/utils";
+import { clearQueryCache, apiFetch } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
 import { APIInfo, CurrentUser, LabSelection } from "./typings";
@@ -55,7 +55,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
-        const result = await customFetch(`/api/logout`, {
+        const result = await apiFetch(`/api/logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
@@ -78,7 +78,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const loginResult = await customFetch(`/api/login`, { method: "POST" });
+            const loginResult = await apiFetch(`/api/login`, { method: "POST" });
             if (loginResult.ok) {
                 const loginInfo = await loginResult.json();
                 setCurrentUser(loginInfo);
@@ -97,16 +97,12 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             }
             localStorage.removeItem("endpoint");
 
-            const apiInfoResult = await fetch(`/api`);
-            if (apiInfoResult.ok) {
-                let apiInfo = await apiInfoResult.json();
-                setApiInfo(apiInfo as APIInfo);
-            }
+            fetchAPIInfo();
         })();
     }, []);
 
-    const setEndpoint = async (newEndpoint: string) => {
-        const apiInfoResult = await fetch(`${newEndpoint}/api`);
+    const fetchAPIInfo = async () => {
+        const apiInfoResult = await apiFetch(`/api`);
         if (apiInfoResult.ok) {
             let apiInfo = { ...(await apiInfoResult.json()) };
             setApiInfo(apiInfo as APIInfo);
@@ -154,7 +150,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
                 oauth={apiInfo ? apiInfo.oauth : false}
-                setEndpoint={setEndpoint}
                 labs={availableEndpoints}
             />
         );
