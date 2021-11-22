@@ -194,7 +194,7 @@ def test_post_bulk(test_database, client, login_as):
                 "participant_codename": "1411",
                 "tissue_sample": "Blood",
                 "tissue_sample_type": "Blood",
-                "dataset_type": "WGS",
+                "dataset_type": "WES",
                 "condition": "GermLine",
                 "sequencing_date": "2020-12-17",
             }
@@ -294,7 +294,12 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk",
-            json=[DEFAULT_PAYLOAD],
+            json=[
+                {
+                    **DEFAULT_PAYLOAD,
+                    "dataset_type": "WES",
+                }
+            ],
         ).status_code
         == 200
     )
@@ -321,7 +326,7 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk?groups=ach",
-            json=[DEFAULT_PAYLOAD],
+            json=[{**DEFAULT_PAYLOAD, "tissue_sample_type": "Saliva"}],
         ).status_code
         == 200
     )
@@ -337,7 +342,7 @@ def test_bulk_multiple_csv(test_database, client, login_as):
             data="""
 family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
-HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/foo/bar,three
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-16,/path/yeet|/path/cross|/foo/bar,three
 HOOD,HERO,Proband,Saliva,RRS,Female,GermLine,2020-12-17,,three
 ,,,,,,,,,
 """,
@@ -352,6 +357,69 @@ HOOD,HERO,Proband,Saliva,RRS,Female,GermLine,2020-12-17,,three
     assert models.RNASeqDataset.query.count() == 1
     assert models.File.query.count() == 5
     assert models.TissueSample.query.count() == 7
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+
+def test_duplicate_datasets_csv(test_database, client, login_as):
+    login_as("admin")
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            data="""
+family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||
+""",
+            headers={"Content-Type": "text/csv"},
+        ).status_code
+        == 200
+    )
+
+    assert models.Dataset.query.count() == 7
+    assert models.File.query.count() == 2
+    assert models.TissueSample.query.count() == 5
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+    # The uploaded dataset is a duplicate of an existing dataset.
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            data="""
+family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
+HOOD,HERO,Proband,Saliva,WGS,Male,Control,2020-12-17,/path/yeet|/path/cross|/foo/bar,three
+""",
+            headers={"Content-Type": "text/csv"},
+        ).status_code
+        == 400
+    )
+
+    assert models.Dataset.query.count() == 7
+    assert models.File.query.count() == 2
+    assert models.TissueSample.query.count() == 5
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+    # The uploaded datsets are duplicate of each other.
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            data="""
+family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
+HOOD_B,HERO_B,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/foo/bar,
+HOOD_B,HERO_B,Proband,Saliva,WGS,Female,GermLine,2020-12-17,
+""",
+            headers={"Content-Type": "text/csv"},
+        ).status_code
+        == 400
+    )
+
+    assert models.Dataset.query.count() == 7
+    assert models.File.query.count() == 2
+    assert models.TissueSample.query.count() == 5
     assert models.Participant.query.count() == 4
     assert models.Family.query.count() == 3
 
@@ -398,6 +466,105 @@ def test_bulk_multiple_json(test_database, client, login_as):
     assert models.Dataset.query.count() == 8
     assert models.File.query.count() == 3
     assert models.TissueSample.query.count() == 6
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+
+def test_duplicate_datasets_json(test_database, client, login_as):
+    login_as("admin")
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            json=[
+                {
+                    "family_codename": "HOOD",
+                    "participant_codename": "HERO",
+                    "participant_type": "Proband",
+                    "tissue_sample_type": "Saliva",
+                    "dataset_type": "WGS",
+                    "sex": "Female",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                    "linked_files": [
+                        {"path": "/otonashi/yuzuru", "path": "/tachibana/kanade"}
+                    ],
+                },
+            ],
+        ).status_code
+        == 200
+    )
+
+    assert models.Dataset.query.count() == 7
+    assert models.File.query.count() == 1
+    assert models.TissueSample.query.count() == 5
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+    # The uploaded dataset is a duplicate of an existing dataset.
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            json=[
+                {
+                    "family_codename": "HOOD",
+                    "participant_codename": "HERO",
+                    "participant_type": "Proband",
+                    "tissue_sample_type": "Saliva",
+                    "dataset_type": "WGS",
+                    "sex": "Male",
+                    "condition": "Somatic",
+                    "sequencing_date": "2020-12-17",
+                },
+            ],
+        ).status_code
+        == 400
+    )
+
+    assert models.Dataset.query.count() == 7
+    assert models.File.query.count() == 1
+    assert models.TissueSample.query.count() == 5
+    assert models.Participant.query.count() == 4
+    assert models.Family.query.count() == 3
+
+    # The uploaded datsets are duplicate of each other.
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            json=[
+                {
+                    "family_codename": "HOOD_B",
+                    "participant_codename": "HERO_B",
+                    "participant_type": "Proband",
+                    "tissue_sample_type": "Saliva",
+                    "dataset_type": "WGS",
+                    "sex": "Female",
+                    "condition": "GermLine",
+                    "sequencing_date": "2020-12-17",
+                    "linked_files": [
+                        {"path": "/perfectly/balanced"},
+                    ],
+                },
+                {
+                    "family_codename": "HOOD_B",
+                    "participant_codename": "HERO_B",
+                    "participant_type": "Proband",
+                    "tissue_sample_type": "Saliva",
+                    "dataset_type": "WGS",
+                    "sex": "Male",
+                    "condition": "Somatic",
+                    "sequencing_date": "2020-12-17",
+                },
+            ],
+        ).status_code
+        == 400
+    )
+
+    assert models.Dataset.query.count() == 7
+    assert models.File.query.count() == 1
+    assert models.TissueSample.query.count() == 5
     assert models.Participant.query.count() == 4
     assert models.Family.query.count() == 3
 
