@@ -546,7 +546,8 @@ def bulk_update():
             app.logger.error("\tThe dataset is a duplicate of an existing dataset.")
             db.session.rollback()
             abort(
-                400, "One of the added datasets is a duplicate of an existing dataset."
+                400,
+                "One of the added datasets is a duplicate of an existing or added dataset.",
             )
 
         # Create a new tissue sample under this participant
