@@ -252,6 +252,7 @@ def list_datasets(page: int, limit: int) -> Response:
             "created_by": dataset.created_by.username,
             "updated_by": dataset.updated_by.username,
             "group_code": [group.group_code for group in dataset.groups],
+            "analyses": [{**asdict(analysis)} for analysis in dataset.analyses],
         }
         for dataset in datasets
     ]

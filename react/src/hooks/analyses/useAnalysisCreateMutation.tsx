@@ -20,9 +20,9 @@ type CreateAnalysisParams = NewAnalysisParams | ReAnalysisParams;
 async function createAnalysis(params: CreateAnalysisParams) {
     if (params.type === "new" && params.notes?.trim() === "") params.notes = undefined;
     if (params.type === "reanalysis")
-        return await changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
+        return changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
 
-    return await changeFetch("/api/analyses", "POST", params);
+    return changeFetch("/api/analyses", "POST", params);
 }
 
 /**
@@ -37,8 +37,7 @@ async function createAnalysis(params: CreateAnalysisParams) {
 export function useAnalysisCreateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Analysis, Response, CreateAnalysisParams>(createAnalysis, {
-        onSuccess: newAnalysis => {
-            queryClient.setQueryData(["analyses", newAnalysis.analysis_id], newAnalysis);
+        onSuccess: () => {
             queryClient.invalidateQueries({
                 predicate: invalidateAnalysisPredicate,
             });

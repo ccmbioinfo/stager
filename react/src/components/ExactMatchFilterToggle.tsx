@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Column } from "@material-table/core";
 import { Checkbox, makeStyles, TextField, Tooltip } from "@material-ui/core";
 import { updateSearchTypeAndRequery } from "../functions";
-import { Dataset, Participant } from "../typings";
+import { DatasetDetailed, Participant } from "../typings";
 
 interface ExactMatchFilterToggleProps {
     MTRef: React.MutableRefObject<any>;
-    columnDef: Column<Participant> | Column<Dataset>;
+    columnDef: Column<Participant> | Column<DatasetDetailed>;
     onFilterChanged: (rowId: string, value: any) => void;
 }
 
