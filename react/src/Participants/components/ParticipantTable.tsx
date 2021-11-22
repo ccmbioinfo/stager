@@ -205,9 +205,7 @@ export default function ParticipantTable() {
                         );
 
                         const response = await customFetch(
-                            `/api/participants/${
-                                newParticipant.participant_id
-                            }`,
+                            `/api/participants/${newParticipant.participant_id}`,
                             {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
