@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
-import { clearQueryCache, apiFetch } from "./hooks/utils";
+import { apiFetch, clearQueryCache } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
 import { APIInfo, CurrentUser, LabSelection } from "./typings";
