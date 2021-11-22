@@ -345,7 +345,6 @@ export default function Analyses() {
                     onAccept={() => {
                         changeAnalysisState(PipelineStatus.CANCELLED).then(
                             ({ changed, skipped, failed }) => {
-                                setCancel(false);
                                 if (changed > 0)
                                     enqueueSnackbar(
                                         `${changed} ${
@@ -368,6 +367,8 @@ export default function Analyses() {
                                         }`,
                                         { variant: "error" }
                                     );
+                                setCancel(false);
+                                tableRef.current.onQueryChange();
                             }
                         );
                     }}
@@ -383,6 +384,7 @@ export default function Analyses() {
                     onClose={() => {
                         setDetail(false);
                     }}
+                    refreshTable={tableRef.current.onQueryChange}
                 />
             )}
 
