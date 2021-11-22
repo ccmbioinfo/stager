@@ -186,8 +186,7 @@ export default function Analyses() {
         "analysisTableSortOrder"
     );
 
-    function changeAnalysisState(newState: PipelineStatus, activeRowsParam?: Analysis[]) {
-        const rows = activeRowsParam || activeRows;
+    function changeAnalysisState(newState: PipelineStatus, rows = activeRows) {
         return _changeStateForSelectedRows(rows, analysisUpdateMutation, newState);
     }
 
