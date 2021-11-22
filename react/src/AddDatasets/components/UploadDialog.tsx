@@ -49,12 +49,10 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
         }
     }
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     async function sendFile(file: File | null) {
         if (file !== null) {
             // Upload
             const groupsParam = new URLSearchParams({ groups: groups.join(",") });
-            // eslint-disable-next-line react-hooks/rules-of-hooks
             const response = await customFetch(`/api/_bulk?` + groupsParam.toString(), {
                 method: "POST",
                 body: file,

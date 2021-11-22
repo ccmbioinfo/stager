@@ -55,7 +55,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
-        // eslint-disable-next-line react-hooks/rules-of-hooks
         const result = await customFetch(`/api/logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -79,7 +78,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
             const loginResult = await customFetch(`/api/login`, { method: "POST" });
             if (loginResult.ok) {
                 const loginInfo = await loginResult.json();

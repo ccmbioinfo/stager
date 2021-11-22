@@ -112,7 +112,6 @@ function OIDCRedirectHandler(props: LoginProps) {
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                // eslint-disable-next-line react-hooks/rules-of-hooks
                 const response = await customFetch(`/api/authorize${location.search}`, {
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -211,7 +210,6 @@ function LoginForm({
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        // eslint-disable-next-line react-hooks/rules-of-hooks
         const result = await customFetch(`/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
