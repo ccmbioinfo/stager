@@ -32,7 +32,7 @@ import {
     useParticipantsPage,
     useSortOrderCache,
 } from "../../hooks";
-import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
+import { customFetch, transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
@@ -168,12 +168,6 @@ export default function ParticipantTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
     };
 
-    // can't use useFetch here since fetching is done inside a callback
-    const GetActiveEndpoint = () => {
-        const endpoint = localStorage.getItem("endpoint");
-        return endpoint === null ? "" : endpoint;
-    };
-
     return (
         <div>
             {activeRow && (
@@ -210,8 +204,8 @@ export default function ParticipantTable() {
                             oldParticipant
                         );
 
-                        const response = await fetch(
-                            `${GetActiveEndpoint()}/api/participants/${
+                        const response = await customFetch(
+                            `/api/participants/${
                                 newParticipant.participant_id
                             }`,
                             {

@@ -9,7 +9,8 @@ import {
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { useErrorSnackbar, useFetch } from "../../hooks";
+import { useErrorSnackbar } from "../../hooks";
+import { customFetch } from "../../hooks/utils";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
@@ -54,7 +55,7 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
             // Upload
             const groupsParam = new URLSearchParams({ groups: groups.join(",") });
             // eslint-disable-next-line react-hooks/rules-of-hooks
-            const response = await useFetch(`/api/_bulk?` + groupsParam.toString(), {
+            const response = await customFetch(`/api/_bulk?` + groupsParam.toString(), {
                 method: "POST",
                 body: file,
                 headers: new Headers({

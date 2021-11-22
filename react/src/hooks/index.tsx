@@ -47,5 +47,3 @@ export { useSortOrderCache } from "./useSortOrderCache";
 export { useHiddenColumnCache } from "./useHiddenColumnCache";
 
 export * from "./useModalState";
-
-export { useFetch } from "./useFetch";
