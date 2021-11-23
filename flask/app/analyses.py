@@ -7,8 +7,8 @@ from sqlalchemy.orm import aliased, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from sqlalchemy.sql.expression import cast
-from . import models, email
-from .extensions import db
+from . import models
+from .extensions import db, cache
 from .utils import (
     check_admin,
     clone_entity,
@@ -80,7 +80,8 @@ def list_analyses(page: int, limit: int) -> Response:
             order = order.asc()
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
-        app.logger.debug("Ordering by '%s' in '%s' direction", order_by, order_dir)
+        app.logger.debug("Ordering by '%s' in '%s' direction",
+                         order_by, order_dir)
 
     app.logger.debug("Validating filter parameters..")
 
@@ -119,11 +120,13 @@ def list_analyses(page: int, limit: int) -> Response:
     updated = request.args.get("updated", type=str)
     if updated:
         app.logger.debug("Filter by updated: '%s'", updated)
-        filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
+        filters.append(filter_updated_or_abort(
+            models.Analysis.updated, updated))
     requested = request.args.get("requested", type=str)
     if requested:
         app.logger.debug("Filter by requested: '%s'", requested)
-        filters.append(filter_updated_or_abort(models.Analysis.requested, requested))
+        filters.append(filter_updated_or_abort(
+            models.Analysis.requested, requested))
     analysis_state = request.args.get("analysis_state", type=str)
     if analysis_state:
         app.logger.debug("Filter by analysis_state: '%s'", analysis_state)
@@ -208,7 +211,8 @@ def list_analyses(page: int, limit: int) -> Response:
 
     if request.args.get("search"):  # multifield search
         app.logger.debug(
-            "Searching across multiple fields by '%s'", request.args.get("search")
+            "Searching across multiple fields by '%s'", request.args.get(
+                "search")
         )
         subquery = (
             models.Analysis.query.join(models.Analysis.datasets)
@@ -218,10 +222,12 @@ def list_analyses(page: int, limit: int) -> Response:
             .filter(
                 or_(
                     func.instr(
-                        models.Family.family_codename, request.args.get("search")
+                        models.Family.family_codename, request.args.get(
+                            "search")
                     ),
                     func.instr(
-                        models.Family.family_aliases, request.args.get("search")
+                        models.Family.family_aliases, request.args.get(
+                            "search")
                     ),
                     func.instr(
                         models.Participant.participant_codename,
@@ -254,7 +260,8 @@ def list_analyses(page: int, limit: int) -> Response:
         else query
     )
 
-    analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
+    analyses = query.order_by(order).limit(
+        limit).offset(page * (limit or 0)).all()
 
     app.logger.info("Query successful")
 
@@ -454,46 +461,46 @@ def create_analysis():
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
-    email.send_email(
-        from_email="test@ccmdev.ca",
-        to_emails="hannah.lgbhan@gmail.com",
-        subject="Test Sendgrid",
-        dynamic_template_object={
-            "analysis_id": analysis.analysis_id,
-            "pipeline_id": pipeline_id,
-            "priority": request.json.get("priority"),
-            "requested": now.isoformat(),
-            "notes": notes,
-            "name": user.username.capitalize(),
-            "total_datasets": len(found_datasets),
-            "datasets": [
-                {
-                    "dataset_id": dataset.dataset_id,
-                    "notes": dataset.notes,
-                    "linked_files": ", ".join(dataset.linked_files),
-                    "group_code": ", ".join(
-                        [group.group_code for group in dataset.groups]
-                    ),
-                    "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
-                    "participant_codename": dataset.tissue_sample.participant.participant_codename,
-                    "participant_type": dataset.tissue_sample.participant.participant_type,
-                    "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
-                    "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
-                    "institution": dataset.tissue_sample.participant.institution.institution
-                    if dataset.tissue_sample.participant.institution
-                    else None,
-                    "sex": dataset.tissue_sample.participant.sex,
-                    "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                    "updated_by": dataset.tissue_sample.updated_by.username,
-                    "created_by": dataset.tissue_sample.created_by.username,
-                    "participant_notes": dataset.tissue_sample.participant.notes,
-                }
-                for dataset in found_datasets
-            ],
-        },
-    )
+    dynamic_object = {
+        "analysis_id": analysis.analysis_id,
+        "pipeline_id": pipeline_id,
+        "priority": request.json.get("priority"),
+        "requested": now.strftime("%Y-%m-%d"),
+        "notes": notes,
+        "name": user.username.capitalize(),
+        "datasets": [
+            {
+                "dataset_id": dataset.dataset_id,
+                "notes": dataset.notes,
+                "linked_files": ", ".join(dataset.linked_files),
+                "group_code": ", ".join([group.group_code for group in dataset.groups]),
+                "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                "participant_type": dataset.tissue_sample.participant.participant_type,
+                "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
+                "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
+                "institution": dataset.tissue_sample.participant.institution.institution
+                if dataset.tissue_sample.participant.institution
+                else None,
+                "sex": dataset.tissue_sample.participant.sex,
+                "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                "updated_by": dataset.tissue_sample.updated_by.username,
+                "created_by": dataset.tissue_sample.created_by.username,
+                "participant_notes": dataset.tissue_sample.participant.notes,
+            }
+            for dataset in found_datasets
+        ],
+    }
 
+    # Add cache
+    current_cache = cache.get("analyses_emails")
+    if current_cache != None:
+        cache.set("analyses_emails", [dynamic_object] + current_cache, 0)
+    else:
+        cache.set("analyses_emails", [dynamic_object], 0)
     app.logger.debug("Analysis created successfully, returning JSON..")
+
+    app.logger.debug("Current cache", cache.get("analyses_emails"))
 
     return (
         jsonify(

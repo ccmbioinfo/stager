@@ -1,28 +1,22 @@
 # using SendGrid's Python Library
 # https://github.com/sendgrid/sendgrid-python
-import os
 import json
-from datetime import datetime, timedelta
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import (
-    Asm,
-    Mail,
-    SendAt,
-    To,
-    From,
-    Subject,
-)
-from flask import current_app as app
-from pytz import timezone
 import math
+import os
+from datetime import datetime, timedelta
 
+from pytz import timezone
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import From, Mail, ReplyTo, SendAt, To
 
-sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
+from flask import current_app as app
+
+sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
 
 tz = timezone("EST")
 
 
-def send_email(from_email, to_emails, subject, dynamic_template_object):
+def send_email(from_email, to_emails, dynamic_template_object):
 
     emails_stats = get_daily_stats()
 
@@ -31,11 +25,11 @@ def send_email(from_email, to_emails, subject, dynamic_template_object):
     message = Mail()
 
     message.to = To(to_emails)
-    message.from_email = From(from_email)
-    message.subject = Subject(subject)
+    message.from_email = From(from_email, "Stager Team")
+    message.reply_to = ReplyTo("ccm.stager@sickkids.ca", "Stager Team Reply")
     message.send_at = SendAt(math.ceil(scheduled_time))
     message.dynamic_template_data = dynamic_template_object
-    message.template_id = os.environ.get("SENDGRID_EMAIL_TEMPLATE_ID")
+    message.template_id = os.getenv("SENDGRID_EMAIL_TEMPLATE_ID")
 
     try:
         sg.send(message)
@@ -43,6 +37,7 @@ def send_email(from_email, to_emails, subject, dynamic_template_object):
             f"Email successfully sent from {from_email} to {to_emails} at {datetime.fromtimestamp(scheduled_time, tz)}"
         )
         app.logger.debug(message)
+
     except Exception as e:
         app.logger.error(f"Failed to send email {id}...")
         app.logger.error(e)
@@ -75,17 +70,10 @@ def get_send_time(stats):
             [r.get("metrics").get("requests") for r in stat.get("stats")]
         )
 
-        if stat.get("date") == stringify_date(send_at):
+        if stat.get("date") == datetime.strftime(send_at, "%Y-%m-%d"):
             if requests_count < limit_per_day:
-                send_at = send_at + timedelta(minutes=1)
+                send_at = send_at + timedelta(seconds=15)
             else:
-                send_at = send_at + timedelta(days=1, minutes=1)
+                send_at = send_at + timedelta(days=1, seconds=15)
 
     return send_at.timestamp()
-
-
-# Utils
-
-
-def stringify_date(date):
-    return datetime.strftime(date, "%Y-%m-%d")

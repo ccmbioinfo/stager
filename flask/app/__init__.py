@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, logging as flask_logging
-from .extensions import db, login, migrate, oauth
+from .extensions import db, login, migrate, oauth, cache
 from .utils import DateTimeEncoder
 
 from app import (
@@ -24,7 +24,6 @@ def create_app(config):
     """
     The application factory. Returns an instance of the app.
     """
-
     # Create the application object
     app = Flask(__name__)
     app.config.from_object(config)
@@ -62,6 +61,7 @@ def register_extensions(app):
     migrate.init_app(app, db)
     login.init_app(app)
     oauth.init_app(app)
+    cache.init_app(app)
     oauth.register(
         name=app.config["OIDC_PROVIDER"],
         client_id=app.config["OIDC_CLIENT_ID"],
