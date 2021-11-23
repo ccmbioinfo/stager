@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import atexit
-
-import time
 from app import config, create_app, tasks, cache
 from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler(timezone="America/Toronto")
 scheduler.add_job(
-    tasks.send_email_notification, "cron", day_of_week="mon-fri", hour="9"
+    tasks.send_email_notification, "cron", day_of_week="mon-fri", hour="17", minute="58"
 )
 scheduler.start()
 
