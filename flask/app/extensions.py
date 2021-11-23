@@ -8,7 +8,8 @@ db = SQLAlchemy()
 login = LoginManager()
 migrate = Migrate(compare_type=True)
 oauth = OAuth()
-cache = Cache(config={"CACHE_TYPE": "SimpleCache",
-              "CACHE_DEFAULT_TIMEOUT": 922337203685477580})
+cache = Cache(
+    config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 922337203685477580}
+)
 
 login.session_protection = "strong"
