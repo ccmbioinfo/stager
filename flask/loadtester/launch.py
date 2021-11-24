@@ -19,7 +19,7 @@ def load_env_vars():
             env[key] = val
 
     for key in env:
-        os.environ.setdefault(key, env[key])
+        os.environ[key] = env[key]
 
 def WorkerCount(arg) -> int:
     try:

@@ -1,10 +1,22 @@
 import os
 from typing import Tuple, Union
-from locust import FastHttpUser, task
+from locust import FastHttpUser, task, events
 from locust.user.wait_time import between
+from locust.runners import MasterRunner
 
-LOGIN_CREDENTIALS = {"username": os.environ.get('USERNAME', 'admin'), "password": os.environ.get('PASSWORD', 'eternity')}
+LOGIN_CREDENTIALS = {
+    "username": os.environ.get("USERNAME", "admin"),
+    "password": os.environ.get("PASSWORD", "eternity"),
+}
 ABORT_ON_FAILURE = False
+
+
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    if isinstance(environment.runner, MasterRunner):
+        print(
+            f"\nFollowing credentials will be used for load testing\n{LOGIN_CREDENTIALS}\n\n"
+        )
 
 
 class TestUser(FastHttpUser):
