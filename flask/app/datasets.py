@@ -378,10 +378,7 @@ def update_dataset(id: int):
 def delete_dataset(id: int):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
-        .options(
-            joinedload(models.Dataset.analyses),
-            joinedload(models.Dataset.groups),
-        )
+        .options(joinedload(models.Dataset.analyses))
         .first_or_404()
     )
 
@@ -390,6 +387,7 @@ def delete_dataset(id: int):
     family = participant.family
 
     if not dataset.analyses:
+        dataset = update_dataset_linked_files(dataset, [])
         try:
             db.session.delete(dataset)
 
@@ -401,7 +399,7 @@ def delete_dataset(id: int):
             if len(participant.tissue_samples) == 0:
                 db.session.delete(participant)
 
-                # only delete family if it has no other participants.
+                # Only delete family if it has no other participants.
                 if len(family.participants) == 0:
                     db.session.delete(family)
             db.session.commit()
