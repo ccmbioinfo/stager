@@ -1,8 +1,9 @@
+import os
 from typing import Tuple, Union
 from locust import FastHttpUser, task
 from locust.user.wait_time import between
 
-LOGIN_CREDENTIALS = {"username": "load.tester", "password": "loadtester"}
+LOGIN_CREDENTIALS = {"username": os.environ.get('USERNAME', 'admin'), "password": os.environ.get('PASSWORD', 'eternity')}
 ABORT_ON_FAILURE = False
 
 

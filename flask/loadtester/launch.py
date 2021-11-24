@@ -4,10 +4,22 @@ import os
 import subprocess
 from typing import List, Union
 
-
 active_processes: List["subprocess.Popen[bytes]"] = []
 DIR_PATH = os.path.realpath(__file__).rstrip(f'{os.path.sep}launch.py')
 SOLO_LAUNCH_CMD = f"locust -f {os.path.join(DIR_PATH, 'locustfile.py')}"
+
+# would have to replace with a package with env gets bigger
+def load_env_vars():
+    env = {}
+    with open(os.path.join(DIR_PATH, '.env')) as env_file:
+        for line in env_file:
+            line = line.rstrip('\n').split('=')
+            key = line[0].strip()
+            val = line[1].strip()
+            env[key] = val
+
+    for key in env:
+        os.environ.setdefault(key, env[key])
 
 def WorkerCount(arg) -> int:
     try:
@@ -62,6 +74,7 @@ def main(worker_count: Union[int, None] = None):
 
 
 if __name__ == "__main__":
+    load_env_vars()
     argparser = argparse.ArgumentParser(
         description="Launch locust load tester in distributed mode"
     )
