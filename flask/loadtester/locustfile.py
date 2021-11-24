@@ -2,7 +2,7 @@ from typing import Tuple, Union
 from locust import FastHttpUser, task
 from locust.user.wait_time import between
 
-LOGIN_CREDENTIALS = {"username": "admin", "password": "eternity"}
+LOGIN_CREDENTIALS = {"username": "load.tester", "password": "loadtester"}
 ABORT_ON_FAILURE = False
 
 

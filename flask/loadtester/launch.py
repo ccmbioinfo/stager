@@ -1,11 +1,13 @@
 import argparse
 import multiprocessing
+import os
 import subprocess
 from typing import List, Union
 
-SOLO_LAUNCH_CMD = "locust -f locustfile.py"
-active_processes: List["subprocess.Popen[bytes]"] = []
 
+active_processes: List["subprocess.Popen[bytes]"] = []
+DIR_PATH = os.path.realpath(__file__).rstrip(f'{os.path.sep}launch.py')
+SOLO_LAUNCH_CMD = f"locust -f {os.path.join(DIR_PATH, 'locustfile.py')}"
 
 def WorkerCount(arg) -> int:
     try:
@@ -18,29 +20,31 @@ def WorkerCount(arg) -> int:
 
     return v
 
-
 def get_launch_cmd(is_master=False):
-    return f"locust -f locustfile.py --{'master' if is_master else 'worker'}"
-
+    return f"locust -f {os.path.join(DIR_PATH, 'locustfile.py')} --{'master' if is_master else 'worker'}"
 
 def run_master_node(is_distributed=True):
-    master_node = subprocess.Popen(
-        get_launch_cmd(is_master=True) if is_distributed else SOLO_LAUNCH_CMD
-    )
+    try:
+        master_node = subprocess.Popen(
+            get_launch_cmd(is_master=True).split(' ') if is_distributed else SOLO_LAUNCH_CMD.split(' ')
+        )
+    except Exception as e:
+        print(e)
+        exit()
     print(f"Master node running with pid = {master_node.pid}")
     active_processes.append(master_node)
 
 
 def run_worker_nodes(worker_count):
     for _ in range(worker_count):
-        worker = subprocess.Popen(get_launch_cmd())
+        worker = subprocess.Popen(get_launch_cmd().split(' '))
         print(f"Worker node running with pid = {worker.pid}")
         active_processes.append(worker)
 
 
 def main(worker_count: Union[int, None] = None):
     active_processes.clear()
-    run_master_node()
+    run_master_node(is_distributed=worker_count is None or worker_count > 0)
     # leave one thread to avoid system freezes | 1 already used by master node
     max_workers = multiprocessing.cpu_count() - 2
     usable_workers = (
