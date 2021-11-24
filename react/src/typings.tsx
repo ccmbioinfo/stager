@@ -119,18 +119,15 @@ interface RNASeqDataset extends DNADataset {
 
 export type Dataset = RNASeqDataset | DNADataset;
 
-// dataset typeguard
-export const isRNASeqDataset = (dataset: RNASeqDataset | Dataset): dataset is RNASeqDataset =>
-    dataset.discriminator === "rnaseq_dataset";
-
-// Result from /api/datasets/:id
-export interface DatasetDetails {
+export type DatasetDetailed = Dataset & {
     tissue_sample: Sample;
     institution: string;
     analyses: Analysis[];
-}
+};
 
-export type DatasetDetailed = Dataset & DatasetDetails;
+// dataset typeguard
+export const isRNASeqDataset = (dataset: Dataset): dataset is RNASeqDataset =>
+    dataset.discriminator === "rnaseq_dataset";
 
 export interface Analysis {
     analysis_id: string;
@@ -154,7 +151,7 @@ export interface Analysis {
 }
 
 export interface AnalysisDetails {
-    datasets: (Dataset & { participant_notes: string })[];
+    datasets: (DatasetDetailed & { participant_notes: string })[];
 }
 
 export type AnalysisDetailed = Analysis & AnalysisDetails;

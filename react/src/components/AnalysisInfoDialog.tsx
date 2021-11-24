@@ -74,6 +74,7 @@ interface AlertInfoDialogProp {
     open: boolean;
     analysis: Analysis;
     onClose: () => void;
+    refreshTable?: () => void;
 }
 
 export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
@@ -117,6 +118,9 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                                     enqueueSnackbar(
                                         `Re-analysis of analysis ${props.analysis.analysis_id} requested.`
                                     );
+                                    if (props.refreshTable) {
+                                        props.refreshTable();
+                                    }
                                 },
                                 onError: async response => {
                                     enqueueErrorSnackbar(
