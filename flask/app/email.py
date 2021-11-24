@@ -20,14 +20,16 @@ sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
 tz = timezone("EST")
 
 
-def send_email(from_email: str, to_emails: str, dynamic_template_object: Dict[str, Any]) -> None:
+def send_email(
+    from_email: str, to_emails: str, dynamic_template_object: Dict[str, Any]
+) -> None:
     """Sends a transanctional email
-        :param dynamic_template_object: Data for a transactional template.
-        :type dynamic_template_object: A JSON-serializable structure
-        :param from: Sender of the email. The sender's email domain needs to have been authenticated and added to SendGrid Dashboard. 
-        :type from:  string
-        :param from: Email of the recipient
-        :type from:  string
+    :param dynamic_template_object: Data for a transactional template.
+    :type dynamic_template_object: A JSON-serializable structure
+    :param from: Sender of the email. The sender's email domain needs to have been authenticated and added to SendGrid Dashboard.
+    :type from:  string
+    :param from: Email of the recipient
+    :type from:  string
     """
 
     emails_stats = get_daily_stats()
