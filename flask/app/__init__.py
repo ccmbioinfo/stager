@@ -1,26 +1,29 @@
 import atexit
 import logging
-from flask import Flask, logging as flask_logging
-from .extensions import db, login, migrate, oauth, cache
-from .tasks import send_email_notification
-from .utils import DateTimeEncoder
-from apscheduler.schedulers.background import BackgroundScheduler
 
 from app import (
-    buckets,
-    genes,
-    routes,
-    families,
-    datasets,
-    participants,
-    tissue_samples,
     analyses,
-    variants,
-    groups,
-    users,
-    manage,
+    buckets,
+    datasets,
     error_handler,
+    families,
+    genes,
+    groups,
+    manage,
+    participants,
+    routes,
+    tissue_samples,
+    users,
+    variants,
 )
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from flask import Flask
+from flask import logging as flask_logging
+
+from .extensions import cache, db, login, migrate, oauth
+from .tasks import send_email_notification
+from .utils import DateTimeEncoder
 
 
 def create_app(config):
@@ -49,9 +52,11 @@ def register_schedulers(app):
 
     scheduler.start()
 
-    # Shut down the scheduler when exiting the app
+    # When app restarts or shuts down, check cache and send emails
+    atexit.register(send_email_notification(app))
 
-    atexit.register(lambda: scheduler.shutdown())
+    # Shut down the scheduler when exiting the app
+    atexit.register(scheduler.shutdown())
 
 
 def register_blueprints(app):

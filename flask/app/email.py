@@ -8,9 +8,10 @@ from datetime import datetime, timedelta
 from pytz import timezone
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import From, Mail, ReplyTo, SendAt, To
-from .extensions import cache
 
 from flask import current_app as app
+
+from .extensions import cache
 
 sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
 
@@ -32,16 +33,18 @@ def send_email(from_email, to_emails, dynamic_template_object):
     message.dynamic_template_data = dynamic_template_object
     message.template_id = os.getenv("SENDGRID_EMAIL_TEMPLATE_ID")
 
+    app.logger.info(os.getenv("SENDGRID_API_KEY"))
+    app.logger.debug(from_email)
+    app.logger.debug(to_emails)
     try:
         sg.send(message)
-        app.logger.info(
-            f"Email successfully sent from {from_email} to {to_emails} at {datetime.fromtimestamp(scheduled_time, tz)}"
+        app.logger.debug(
+            f"Email successfully sent from {from_email} to {to_emails}", message
         )
-        app.logger.debug(message)
 
         cache.set("analyses_emails", None)
     except Exception as e:
-        app.logger.error(f"Failed to send email {id}...")
+        app.logger.error("Failed to send email...")
         app.logger.error(e)
 
 
