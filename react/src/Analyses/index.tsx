@@ -186,8 +186,8 @@ export default function Analyses() {
         "analysisTableSortOrder"
     );
 
-    function changeAnalysisState(newState: PipelineStatus) {
-        return _changeStateForSelectedRows(activeRows, analysisUpdateMutation, newState);
+    function changeAnalysisState(newState: PipelineStatus, rows = activeRows) {
+        return _changeStateForSelectedRows(rows, analysisUpdateMutation, newState);
     }
 
     const exportCsv = () => {
@@ -352,6 +352,7 @@ export default function Analyses() {
                                         } cancelled successfully`,
                                         { variant: "success" }
                                     );
+                                tableRef.current.onQueryChange();
                                 if (skipped > 0)
                                     enqueueSnackbar(
                                         `${skipped} ${
@@ -439,6 +440,7 @@ export default function Analyses() {
                                 `${count} analyses successfully assigned to user '${username}'`,
                                 { variant: "success" }
                             );
+                            tableRef.current.onQueryChange();
                         }
                         if (failed > 0) {
                             enqueueSnackbar(
@@ -517,33 +519,34 @@ export default function Analyses() {
                             tooltip: "Run analysis",
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(PipelineStatus.RUNNING).then(
-                                    ({ changed, skipped, failed }) => {
-                                        if (changed > 0)
-                                            enqueueSnackbar(
-                                                `${changed} ${
-                                                    changed !== 1 ? "analyses" : "analysis"
-                                                } started successfully`,
-                                                { variant: "success" }
-                                            );
-                                        if (skipped > 0)
-                                            enqueueSnackbar(
-                                                `${skipped} ${
-                                                    skipped !== 1 ? "analyses were" : "analysis was"
-                                                } already queued or cancelled, and ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } skipped`
-                                            );
-                                        if (failed > 0)
-                                            enqueueSnackbar(
-                                                `Failed to start ${failed} ${
-                                                    failed !== 1 ? "analyses" : "analysis"
-                                                }`,
-                                                { variant: "error" }
-                                            );
-                                    }
-                                );
+                                changeAnalysisState(
+                                    PipelineStatus.RUNNING,
+                                    rowData as Analysis[]
+                                ).then(({ changed, skipped, failed }) => {
+                                    if (changed > 0)
+                                        enqueueSnackbar(
+                                            `${changed} ${
+                                                changed !== 1 ? "analyses" : "analysis"
+                                            } started successfully`,
+                                            { variant: "success" }
+                                        );
+                                    tableRef.current.onQueryChange();
+                                    if (skipped > 0)
+                                        enqueueSnackbar(
+                                            `${skipped} ${
+                                                skipped !== 1 ? "analyses were" : "analysis was"
+                                            } already queued or cancelled, and ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } skipped`
+                                        );
+                                    if (failed > 0)
+                                        enqueueSnackbar(
+                                            `Failed to start ${failed} ${
+                                                failed !== 1 ? "analyses" : "analysis"
+                                            }`,
+                                            { variant: "error" }
+                                        );
+                                });
                             },
                         },
                         {
@@ -551,35 +554,34 @@ export default function Analyses() {
                             tooltip: "Complete analysis",
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(PipelineStatus.COMPLETED).then(
-                                    ({ changed, skipped, failed }) => {
-                                        if (changed > 0)
-                                            enqueueSnackbar(
-                                                `${changed} ${
-                                                    changed !== 1 ? "analyses" : "analysis"
-                                                } completed successfully`,
-                                                { variant: "success" }
-                                            );
-                                        if (skipped > 0)
-                                            enqueueSnackbar(
-                                                `${skipped} ${
-                                                    skipped !== 1 ? "analyses" : "analysis"
-                                                } ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } not running, and ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } skipped`
-                                            );
-                                        if (failed > 0)
-                                            enqueueSnackbar(
-                                                `Failed to complete ${failed} ${
-                                                    failed !== 1 ? "analyses" : "analysis"
-                                                }`,
-                                                { variant: "error" }
-                                            );
-                                    }
-                                );
+                                changeAnalysisState(
+                                    PipelineStatus.COMPLETED,
+                                    rowData as Analysis[]
+                                ).then(({ changed, skipped, failed }) => {
+                                    if (changed > 0)
+                                        enqueueSnackbar(
+                                            `${changed} ${
+                                                changed !== 1 ? "analyses" : "analysis"
+                                            } completed successfully`,
+                                            { variant: "success" }
+                                        );
+                                    tableRef.current.onQueryChange();
+                                    if (skipped > 0)
+                                        enqueueSnackbar(
+                                            `${skipped} ${
+                                                skipped !== 1 ? "analyses" : "analysis"
+                                            } ${skipped !== 1 ? "were" : "was"} not running, and ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } skipped`
+                                        );
+                                    if (failed > 0)
+                                        enqueueSnackbar(
+                                            `Failed to complete ${failed} ${
+                                                failed !== 1 ? "analyses" : "analysis"
+                                            }`,
+                                            { variant: "error" }
+                                        );
+                                });
                             },
                         },
                         {
@@ -587,35 +589,36 @@ export default function Analyses() {
                             tooltip: "Error analysis",
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(PipelineStatus.ERROR).then(
-                                    ({ changed, skipped, failed }) => {
-                                        if (changed > 0)
-                                            enqueueSnackbar(
-                                                `${changed} ${
-                                                    changed !== 1 ? "analyses" : "analysis"
-                                                } errored successfully`,
-                                                { variant: "success" }
-                                            );
-                                        if (skipped > 0)
-                                            enqueueSnackbar(
-                                                `${skipped} ${
-                                                    skipped !== 1 ? "analyses" : "analysis"
-                                                } ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } not running or queued, and ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } skipped`
-                                            );
-                                        if (failed > 0)
-                                            enqueueSnackbar(
-                                                `Failed to error ${failed} ${
-                                                    failed !== 1 ? "analyses" : "analysis"
-                                                }`,
-                                                { variant: "error" }
-                                            );
-                                    }
-                                );
+                                changeAnalysisState(
+                                    PipelineStatus.ERROR,
+                                    rowData as Analysis[]
+                                ).then(({ changed, skipped, failed }) => {
+                                    if (changed > 0)
+                                        enqueueSnackbar(
+                                            `${changed} ${
+                                                changed !== 1 ? "analyses" : "analysis"
+                                            } errored successfully`,
+                                            { variant: "success" }
+                                        );
+                                    tableRef.current.onQueryChange();
+                                    if (skipped > 0)
+                                        enqueueSnackbar(
+                                            `${skipped} ${
+                                                skipped !== 1 ? "analyses" : "analysis"
+                                            } ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } not running or queued, and ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } skipped`
+                                        );
+                                    if (failed > 0)
+                                        enqueueSnackbar(
+                                            `Failed to error ${failed} ${
+                                                failed !== 1 ? "analyses" : "analysis"
+                                            }`,
+                                            { variant: "error" }
+                                        );
+                                });
                             },
                         },
                         {
