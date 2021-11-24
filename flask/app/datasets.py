@@ -387,8 +387,8 @@ def delete_dataset(id: int):
     family = participant.family
 
     if not dataset.analyses:
-        dataset = update_dataset_linked_files(dataset, [])
         try:
+            dataset = update_dataset_linked_files(dataset, [])
             db.session.delete(dataset)
 
             # Only delete tissue sample if it doesn't have any associated datasets left.
