@@ -1,5 +1,6 @@
 import atexit
 import logging
+import os
 
 from app import (
     analyses,
@@ -53,10 +54,11 @@ def register_schedulers(app):
     scheduler.start()
 
     # When app restarts or shuts down, check cache and send emails
-    atexit.register(send_email_notification(app))
+    if os.getenv("SENDGRID_API_KEY") is not None:
+        atexit.register(send_email_notification, app)
 
     # Shut down the scheduler when exiting the app
-    atexit.register(scheduler.shutdown())
+    atexit.register(scheduler.shutdown)
 
 
 def register_blueprints(app):
