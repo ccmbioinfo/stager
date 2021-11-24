@@ -1,7 +1,10 @@
+import atexit
 import logging
 from flask import Flask, logging as flask_logging
 from .extensions import db, login, migrate, oauth, cache
+from .tasks import send_email_notification
 from .utils import DateTimeEncoder
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from app import (
     buckets,
@@ -33,8 +36,22 @@ def create_app(config):
     register_extensions(app)
     manage.register_commands(app)
     register_blueprints(app)
+    register_schedulers(app)
 
     return app
+
+
+def register_schedulers(app):
+    scheduler = BackgroundScheduler(timezone="America/Toronto")
+    scheduler.add_job(
+        send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
+    )
+
+    scheduler.start()
+
+    # Shut down the scheduler when exiting the app
+
+    atexit.register(lambda: scheduler.shutdown())
 
 
 def register_blueprints(app):
