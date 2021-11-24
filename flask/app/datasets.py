@@ -389,9 +389,6 @@ def delete_dataset(id: int):
     participant = tissue_sample.participant
     family = participant.family
 
-    # Remove permission groups with the corresponding dataset ID in groups_datasets table
-    dataset.groups = []
-
     if not dataset.analyses:
         try:
             db.session.delete(dataset)
@@ -400,15 +397,11 @@ def delete_dataset(id: int):
             if len(tissue_sample.datasets) == 0:
                 db.session.delete(tissue_sample)
 
-            # Only delete participant if it has no other datasets.
-            participant_datasets = []
-            for tissue_sample in participant.tissue_samples:
-                for d in tissue_sample.datasets:
-                    participant_datasets.append(d)
-            if len(participant_datasets) == 0:
+            # Only delete participant if it has no other tissue samples.
+            if len(participant.tissue_samples) == 0:
                 db.session.delete(participant)
 
-                # only delete family if it has no other participants
+                # only delete family if it has no other participants.
                 if len(family.participants) == 0:
                     db.session.delete(family)
             db.session.commit()
