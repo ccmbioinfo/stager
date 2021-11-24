@@ -10,7 +10,7 @@ scheduler = BackgroundScheduler(timezone="America/Toronto")
 #     tasks.send_email_notification, "cron", day_of_week="mon-fri", hour="17", minute="58"
 # )
 
-scheduler.add_job(tasks.print_date_time, "interval", seconds=3)
+scheduler.add_job(tasks.print_date_time, "interval", [app], seconds=3)
 scheduler.start()
 
 # Shut down the scheduler when exiting the app

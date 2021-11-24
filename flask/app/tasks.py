@@ -1,9 +1,11 @@
 from .email import send_email
 from . import cache
 import time
+from flask import current_app
 
 
-def print_date_time():
+def print_date_time(app):
+    app.logger.info(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
     print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
 
 
