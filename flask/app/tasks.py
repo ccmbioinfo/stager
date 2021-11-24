@@ -1,5 +1,10 @@
 from .email import send_email
 from . import cache
+import time
+
+
+def print_date_time():
+    print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
 
 
 def send_email_notification():
