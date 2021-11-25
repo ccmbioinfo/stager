@@ -8,14 +8,15 @@ import {
     DialogContentText,
     DialogTitle,
     FormControlLabel,
-    TextField,
     makeStyles,
+    TextField,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
 
+import { useAPIInfoContext } from "../../contexts";
+import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
 import { NewUser } from "../../typings";
 import GroupSelect from "./GroupSelect";
-import { useGroupsQuery, useUsersCreateMutation } from "../../hooks";
 
 const initState = {
     username: "",
@@ -94,6 +95,7 @@ function ErrorText(props: ErrorTextProps) {
 
 export default function CreateUserModal(props: CreateUserModalProps) {
     const classes = useStyles();
+    const apiInfo = useAPIInfoContext();
     const [state, dispatch] = useReducer(reducer, initState);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
@@ -206,6 +208,28 @@ export default function CreateUserModal(props: CreateUserModalProps) {
                     error={passwordsDiffer}
                     helperText={passwordErrorText}
                 />
+                {apiInfo?.oauth && (
+                    <>
+                        <TextField
+                            autoComplete="off"
+                            fullWidth
+                            margin="dense"
+                            variant="filled"
+                            label="Issuer (OAuth Provider URL)"
+                            value={state.issuer}
+                            onChange={e => dispatch({ type: "set", issuer: e.target.value })}
+                        />
+                        <TextField
+                            autoComplete="off"
+                            fullWidth
+                            margin="dense"
+                            variant="filled"
+                            label="Subject (OAuth User ID)"
+                            value={state.subject}
+                            onChange={e => dispatch({ type: "set", subject: e.target.value })}
+                        />
+                    </>
+                )}
                 <GroupSelect
                     groups={groups}
                     selected={state.groups}

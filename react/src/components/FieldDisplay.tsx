@@ -1,21 +1,18 @@
 import React from "react";
 import { Typography } from "@material-ui/core";
-import { FieldDisplayValueType } from "../typings";
-import { formatFieldValue } from "../functions";
+// import { formatFieldValue } from "../functions";
+import { formatDisplayValue } from "../functions";
+import { Field } from "../typings";
 
 export interface FieldDisplayProps {
-    title: string;
-    value?: FieldDisplayValueType;
-    className?: string;
-    bool?: boolean;
+    field: Field;
 }
 
 /* Simple Typography component to display "title: value" */
-export default function FieldDisplay(props: FieldDisplayProps) {
+export default function FieldDisplay({ field }: FieldDisplayProps) {
     return (
         <Typography variant="body1" gutterBottom>
-            <b>{props.title}:</b>{" "}
-            <span className={props.className}>{formatFieldValue(props.value, props.bool)}</span>
+            <b>{field.title}:</b> <span>{formatDisplayValue(field)}</span>
         </Typography>
     );
 }

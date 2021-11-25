@@ -1,8 +1,10 @@
-import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import React from "react";
-import { formatFieldValue } from "../functions";
-import { Field, PseudoBooleanReadableMap } from "../typings";
+import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
+import { formatDisplayValue } from "../functions";
+import { useUnlinkedFilesQuery } from "../hooks";
+import { Field, LinkedFile, PseudoBooleanReadableMap, UnlinkedFile } from "../typings";
 import FieldDisplay from "./FieldDisplay";
+import FileLinkingComponent from "./FileLinkingComponent";
 
 // Alias for really long type
 type TextFieldEvent = React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>;
@@ -10,8 +12,6 @@ type TextFieldEvent = React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>;
 const multilineFields = ["notes"];
 const enumFields = ["sex", "participant_type", "condition", "read_type", "dataset_type"];
 const nonNullableFields = ["dataset_type", "condition"]; //does not include uneditable fields
-const booleanFields = ["affected", "solved"];
-const dateFields = ["library_prep_date"];
 
 /**
  * Given a fieldName of a Field object, return the corresponding field in enums
@@ -36,7 +36,6 @@ function getFieldInEnums(fieldName: string): string {
 const useTextStyles = makeStyles(theme => ({
     textField: {
         margin: theme.spacing(0.2),
-        width: "50%",
     },
 }));
 
@@ -50,8 +49,11 @@ function EnhancedTextField({
 }: {
     field: Field;
     enums?: Record<string, string[]>;
-    onEdit: (fieldName: string | undefined, value: boolean | string | null) => void;
+    onEdit: (fieldName: string, value: boolean | string | null | UnlinkedFile[]) => void;
 }) {
+    const filesQuery = useUnlinkedFilesQuery();
+    const files = filesQuery.data || [];
+
     const classes = useTextStyles();
     const nullOption = (
         <MenuItem value="" key="">
@@ -64,73 +66,104 @@ function EnhancedTextField({
 
     // Props common to all variants
     const textFieldProps: TextFieldProps = {
+        error: field.entryError,
+        id: "standard-error",
+        helperText:
+            field.entryError && field.fieldName === "month_of_birth"
+                ? "YYYY-MM"
+                : field.entryError
+                ? "Incorrect entry"
+                : " ",
         className: classes.textField,
+        fullWidth: true,
         margin: "dense",
         label: field.title,
-        value: formatFieldValue(field.value),
+        value: field.editable ? field.value : formatDisplayValue(field),
         required: nonNullableFields.includes(field.fieldName),
-        disabled: field.disableEdit,
+        disabled: !field.editable,
         onChange: (e: TextFieldEvent) => onEdit(field.fieldName, e.target.value), // default
+        inputProps: { maxLength: field.maxLength },
     };
 
-    // Props specific to each variant
-    if (enumFields.includes(field.fieldName)) {
-        // Value is chosen from a list
-        textFieldProps.select = true;
-        textFieldProps.onChange = (e: TextFieldEvent) => {
-            onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
-        };
-        children = [
-            ...enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
-                <MenuItem key={option} value={option}>
-                    {option}
-                </MenuItem>
-            )),
-            !nonNullableFields.includes(field.fieldName) && nullOption,
-        ];
-    } else if (booleanFields.includes(field.fieldName)) {
-        // Value is a boolean or null
-        textFieldProps.select = true;
-        textFieldProps.onChange = (e: TextFieldEvent) => {
-            let val;
-            switch (e.target.value) {
-                case "No":
-                    val = false;
-                    break;
-                case "Yes":
-                    val = true;
-                    break;
-                default:
-                    val = null;
-                    break;
-            }
-            onEdit(field.fieldName, val);
-        };
-        textFieldProps.value = formatFieldValue(field.value, true);
+    /* if field is editable, configure input control, otherwise use text field to render display value only */
+    if (field.editable) {
+        // Props specific to each variant
+        if (enumFields.includes(field.fieldName)) {
+            // Value is chosen from a list
+            textFieldProps.select = true;
+            textFieldProps.onChange = (e: TextFieldEvent) => {
+                onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
+            };
+            children = [
+                ...enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
+                    <MenuItem key={option} value={option}>
+                        {option}
+                    </MenuItem>
+                )),
+                !nonNullableFields.includes(field.fieldName) && nullOption,
+            ];
+        } else if (field.type === "boolean") {
+            // Value is a boolean or null
+            textFieldProps.select = true;
+            textFieldProps.onChange = (e: TextFieldEvent) => {
+                let val;
+                switch (e.target.value) {
+                    case "No":
+                        val = false;
+                        break;
+                    case "Yes":
+                        val = true;
+                        break;
+                    default:
+                        val = null;
+                        break;
+                }
+                onEdit(field.fieldName, val);
+            };
 
-        const options = Object.values(PseudoBooleanReadableMap);
-        children = [
-            ...options.map((option: string) => (
-                <MenuItem key={option} value={option}>
-                    {option}
-                </MenuItem>
-            )),
-        ];
-    } else if (multilineFields.includes(field.fieldName)) {
-        // Value is typed in, and can be really long (notes)
-        textFieldProps.multiline = true;
-        textFieldProps.rowsMax = 2;
-    } else if (dateFields.includes(field.fieldName)) {
-        // Value is a date string
-        textFieldProps.InputLabelProps = { shrink: true };
-        textFieldProps.type = "date";
+            textFieldProps.value =
+                field.value === true ? "Yes" : field.value === false ? "No" : null;
+
+            const options = Object.values(PseudoBooleanReadableMap);
+            children = [
+                ...options.map((option: string) => (
+                    <MenuItem key={option} value={option}>
+                        {option}
+                    </MenuItem>
+                )),
+            ];
+        } else if (multilineFields.includes(field.fieldName)) {
+            // Value is typed in, and can be really long (notes)
+            textFieldProps.multiline = true;
+            textFieldProps.maxRows = 2;
+        } else if (field.fieldName === "month_of_birth") {
+            textFieldProps.InputLabelProps = { shrink: true };
+            textFieldProps.type = "month";
+        } else if (field.type === "date") {
+            textFieldProps.InputLabelProps = { shrink: true };
+            textFieldProps.type = "date";
+        } else {
+            // Value is a string (default)
+            textFieldProps.onChange = (e: TextFieldEvent) =>
+                onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
+        }
+
+        if (field.type === "linked_files") {
+            return (
+                <FileLinkingComponent
+                    values={textFieldProps.value as LinkedFile[]}
+                    options={files}
+                    onEdit={files => {
+                        onEdit(field.fieldName, files);
+                    }}
+                />
+            );
+        } else {
+            return <TextField {...textFieldProps}>{children}</TextField>;
+        }
     } else {
-        // Value is a string (default)
-        textFieldProps.onChange = (e: TextFieldEvent) =>
-            onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
+        return <TextField {...textFieldProps}>{children}</TextField>;
     }
-
-    return <TextField {...textFieldProps}>{children}</TextField>;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -142,32 +175,26 @@ const useStyles = makeStyles(theme => ({
 export default function FieldDisplayEditable(props: {
     field: Field;
     editMode: boolean;
-    onEdit: (fieldName: string | undefined, value: any) => void;
+    onEdit: (fieldName: string, value: any) => void;
     enums?: Record<string, string[]>;
 }) {
     const classes = useStyles();
-
     return (
         <>
             <Fade in={props.editMode}>
                 <Box hidden={!props.editMode}>
-                    <EnhancedTextField
-                        field={props.field}
-                        enums={props.enums}
-                        onEdit={props.onEdit}
-                    />
+                    {props.editMode && (
+                        <EnhancedTextField
+                            field={props.field}
+                            enums={props.enums}
+                            onEdit={props.onEdit}
+                        />
+                    )}
                 </Box>
             </Fade>
             <Fade in={!props.editMode}>
                 <Box className={classes.box} hidden={props.editMode}>
-                    <FieldDisplay
-                        title={props.field.title}
-                        value={props.field.value}
-                        bool={
-                            !!props.field.fieldName &&
-                            !!booleanFields.includes(props.field.fieldName)
-                        }
-                    />
+                    {!props.editMode && <FieldDisplay field={props.field} />}
                 </Box>
             </Fade>
         </>

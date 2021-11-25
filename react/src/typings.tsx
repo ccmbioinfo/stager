@@ -1,7 +1,15 @@
+import { Query } from "@material-table/core";
 /*****   TYPES   *****/
 export type Counts = { [key: string]: number };
 export type KeyValue = { [key: string]: string };
-export type FieldDisplayValueType = string[] | string | number | boolean | null | undefined;
+export type FieldDisplayValueType =
+    | string[]
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | LinkedFile[];
 
 /*****   ENUMS   *****/
 export enum PipelineStatus {
@@ -10,6 +18,11 @@ export enum PipelineStatus {
     COMPLETED = "Done",
     ERROR = "Error",
     CANCELLED = "Cancelled",
+}
+
+export enum AnalysisPriority {
+    CLINICAL = "Clinical",
+    RESEARCH = "Research",
 }
 
 /*****   INTERFACES   *****/
@@ -26,12 +39,12 @@ export interface Family {
 export interface Participant {
     participant_id: string;
     participant_codename: string;
-    family_id: string;
-    family_codename: string;
+    participant_aliases: string;
     participant_type: string;
     affected: PseudoBoolean;
     solved: PseudoBoolean;
     sex: string;
+    month_of_birth: string;
     notes: string;
     dataset_types: string[];
     created: string;
@@ -40,6 +53,9 @@ export interface Participant {
     updated_by: number;
     tissue_samples: Sample[];
     institution: string;
+    family_id: string;
+    family_codename: string;
+    family_aliases: string;
 }
 export interface Sample {
     tissue_sample_id: string;
@@ -53,14 +69,25 @@ export interface Sample {
     updated: string;
     updated_by: number;
 }
-export interface Dataset {
+
+export interface UnlinkedFile {
+    path: string;
+    multiplexed?: boolean;
+}
+export interface LinkedFile extends UnlinkedFile {
+    file_id: number;
+}
+
+export interface DNADataset {
     dataset_id: string;
     participant_codename: string;
+    participant_aliases: string;
     family_codename: string;
+    family_aliases: string;
     tissue_sample_type: string;
     tissue_sample_id: string;
     dataset_type: string;
-    linked_files: string[]; // paths to files
+    linked_files: LinkedFile[];
     notes: string;
     condition: string;
     extraction_protocol: string;
@@ -77,37 +104,54 @@ export interface Dataset {
     updated: string;
     updated_by: number;
     discriminator: string;
+    group_code: string[];
 }
 
-// Result from /api/datasets/:id
-export interface DatasetDetails {
+interface RNASeqDataset extends DNADataset {
+    candidate_genes: string;
+    RIN: number;
+    DV200: number;
+    concentration: number;
+    sequencer: string;
+    spike_in: string;
+    vcf_available: string;
+}
+
+export type Dataset = RNASeqDataset | DNADataset;
+
+export type DatasetDetailed = Dataset & {
     tissue_sample: Sample;
     institution: string;
     analyses: Analysis[];
-}
+};
 
-export type DatasetDetailed = Dataset & DatasetDetails;
+// dataset typeguard
+export const isRNASeqDataset = (dataset: Dataset): dataset is RNASeqDataset =>
+    dataset.discriminator === "rnaseq_dataset";
 
 export interface Analysis {
     analysis_id: string;
-    pipeline_id: string;
-    result_path: string;
-    assignee: string;
-    requester: string;
     analysis_state: PipelineStatus;
-    updated: string;
-    notes: string;
+    assignee: string;
     dataset_id: string;
+    family_codenames: string[];
+    finished: string;
+    notes: string;
+    participant_codenames: string[];
+    pipeline: Pipeline;
+    pipeline_id: string;
+    priority: AnalysisPriority;
     qsubID: string;
     requested: string;
+    requester: string;
+    result_path: string;
     started: string;
-    finished: string;
+    updated: string;
     updated_by: number;
-    pipeline: Pipeline;
 }
 
 export interface AnalysisDetails {
-    datasets: Dataset[];
+    datasets: (DatasetDetailed & { participant_notes: string })[];
 }
 
 export type AnalysisDetailed = Analysis & AnalysisDetails;
@@ -118,6 +162,7 @@ export type AnalysisChange = Pick<Analysis, "analysis_id"> &
         Pick<
             Analysis,
             | "analysis_state"
+            | "priority"
             | "pipeline_id"
             | "qsubID"
             | "result_path"
@@ -127,6 +172,10 @@ export type AnalysisChange = Pick<Analysis, "analysis_id"> &
         >
     >;
 
+export interface BlobResponse {
+    filename: string;
+    blob: Blob;
+}
 export interface Pipeline {
     pipeline_id: number;
     pipeline_name: string;
@@ -142,7 +191,9 @@ export interface Info {
 }
 
 // Define these as classes so that we can create an array of keys later
-export class DataEntryRowBase {
+
+//note that these are in display order and should not alphabetized
+export class DataEntryRowSharedRequired {
     family_codename!: string;
     participant_codename!: string;
     participant_type!: string;
@@ -152,40 +203,56 @@ export class DataEntryRowBase {
     sequencing_date!: string;
 }
 
-export class DataEntryRowOptional {
-    sex?: string;
-    affected?: boolean;
-    solved?: boolean;
-    linked_files?: string[];
-    notes?: string;
-    extraction_protocol?: string;
-    capture_kit?: string;
-    library_prep_method?: string;
-    read_length?: number;
-    read_type?: string;
-    sequencing_id?: string;
-    sequencing_centre?: string;
-    batch_id?: string;
-    institution?: string;
+export class DataEntryRowSharedOptional {
+    notes!: string;
+    linked_files!: LinkedFile[];
 }
 
-// Cannot enforce "RNASeq => these values are set" with types
-export class DataEntryRowRNASeq {
-    RIN?: string;
-    DV200?: string;
-    concentration?: string;
-    sequencer?: string;
-    spike_in?: string;
+export class DataEntryRowDNAOptional {
+    sex!: string;
+    affected!: boolean;
+    solved!: boolean;
+    extraction_protocol!: string;
+    capture_kit!: string;
+    library_prep_method!: string;
+    read_length!: number;
+    read_type!: string;
+    sequencing_id!: string;
+    sequencing_centre!: string;
+    batch_id!: string;
+    institution!: string;
 }
 
-export interface DataEntryRow extends DataEntryRowBase, DataEntryRowOptional, DataEntryRowRNASeq {
-    participantColDisabled?: boolean;
+export class DataEntryRowDNARequired {}
+export class DataEntryRowRNARequired {}
+
+export class DataEntryRowRNAOptional {
+    vcf_available!: boolean;
+    candidate_genes!: string;
 }
 
-export interface DataEntryHeader {
-    title: string;
-    field: keyof DataEntryRow;
+export interface DataEntryFields
+    extends DataEntryRowSharedRequired,
+        DataEntryRowSharedOptional,
+        DataEntryRowRNARequired,
+        DataEntryRowRNAOptional,
+        DataEntryRowDNARequired,
+        DataEntryRowDNAOptional {}
+
+export interface DataEntryRow {
+    meta: {
+        participantColumnsDisabled?: boolean;
+    };
+    fields: DataEntryFields;
+}
+
+export type DataEntryField = keyof DataEntryFields;
+
+export interface DataEntryColumnConfig {
+    field: DataEntryField;
     hidden?: boolean;
+    required?: boolean;
+    title: string;
 }
 
 export interface NewUser {
@@ -195,6 +262,8 @@ export interface NewUser {
     password: string;
     confirmPassword?: string;
     groups: string[]; // Group.group_code
+    issuer?: string;
+    subject?: string;
 }
 
 export interface User {
@@ -209,6 +278,8 @@ export interface User {
     confirmPassword?: string;
     minio_access_key?: string;
     minio_secret_key?: string;
+    issuer?: string;
+    subject?: string;
 }
 
 // A logged-in user
@@ -220,11 +291,16 @@ export interface Group {
     users?: string[]; // User.username
 }
 
+// todo: add display type here [bool, date, file, etc]
 export interface Field {
     title: string;
     value: FieldDisplayValueType;
-    fieldName?: string;
-    disableEdit?: boolean;
+    fieldName: string;
+    editable: boolean;
+    type?: "date" | "timestamp" | "boolean" | "linked_files";
+    fullWidth?: boolean;
+    maxLength?: number;
+    entryError?: boolean;
 }
 
 export type PseudoBoolean = "true" | "false" | "null";
@@ -250,3 +326,33 @@ export interface Option {
     disabled?: boolean;
     selected?: boolean;
 }
+
+export interface SearchType {
+    column: string;
+    exact: boolean;
+}
+
+export interface QueryWithSearchOptions<RowData extends object> extends Query<RowData> {
+    searchType?: SearchType[];
+}
+
+export interface GeneAlias {
+    ensembl_id: number;
+    name: string;
+    kind?: string;
+}
+
+interface APIInfoBase {
+    sha: string;
+}
+
+interface APIInfoOAuth {
+    oauth: true;
+    oauth_provider: string;
+}
+
+interface APIInfoNoOauth {
+    oauth: false;
+}
+
+export type APIInfo = APIInfoBase & (APIInfoOAuth | APIInfoNoOauth);

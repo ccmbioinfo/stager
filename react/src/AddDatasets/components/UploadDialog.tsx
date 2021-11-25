@@ -1,37 +1,29 @@
 import React from "react";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
     Button,
     ButtonGroup,
+    Dialog,
+    DialogContent,
+    DialogTitle,
     Grid,
     makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
+import { useErrorSnackbar } from "../../hooks";
 import { InputFileUpload } from "./UploadCSV";
 
 interface UploadDialogProps {
     open: boolean;
     onClose: () => void;
+    groups: string[];
 }
 
 const useStyles = makeStyles(theme => ({
-    root: {},
     dialog: {
         paddingBottom: theme.spacing(2),
         paddingTop: theme.spacing(0),
         paddingLeft: theme.spacing(0),
         paddingRight: theme.spacing(0),
-    },
-    margin: {
-        margin: theme.spacing(1),
-    },
-    padding: {
-        paddingTop: theme.spacing(4),
-    },
-    tabs: {
-        paddingTop: theme.spacing(0),
     },
     tabPanel: {
         padding: theme.spacing(1),
@@ -39,21 +31,18 @@ const useStyles = makeStyles(theme => ({
     gridItem: {
         padding: theme.spacing(1),
     },
-    buttonGroup: {
-        paddingRight: theme.spacing(1),
-    },
 }));
 
-export default function UploadDialog({ open, onClose }: UploadDialogProps) {
+export default function UploadDialog({ open, onClose, groups }: UploadDialogProps) {
     const classes = useStyles();
     const [file, setFile] = React.useState<File | null>(null);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     // File reference gets set here
     function onFileAdd(files: FileList | null) {
         if (files && files[0]) {
             setFile(files[0]);
-            console.log(files[0].name);
         } else {
             setFile(null);
         }
@@ -62,7 +51,8 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
     async function sendFile(file: File | null) {
         if (file !== null) {
             // Upload
-            const response = await fetch("/api/_bulk", {
+            const groupsParam = new URLSearchParams({ groups: groups.join(",") });
+            const response = await fetch("/api/_bulk?" + groupsParam.toString(), {
                 method: "POST",
                 body: file,
                 headers: new Headers({
@@ -77,10 +67,7 @@ export default function UploadDialog({ open, onClose }: UploadDialogProps) {
                 console.error(
                     `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
                 );
-                enqueueSnackbar(
-                    `Failed to upload file ${file.name}. Error: ${response.status} - ${response.statusText}`,
-                    { variant: "error" }
-                );
+                enqueueErrorSnackbar(response, `Failed to upload file ${file.name}.`);
             }
         }
     }

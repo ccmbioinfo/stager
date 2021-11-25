@@ -8,8 +8,8 @@ dayjs.extend(LocalizedFormat);
 
 export default function DateTimeText(props: { datetime: string }) {
     const dateObj = dayjs.utc(props.datetime);
-    const displayText = dateObj.local().format("YYYY-MM-DD");
-    const titleText = dateObj.local().format("LLLL");
+    const displayText = dateObj.isValid() ? dateObj.local().format("YYYY-MM-DD") : null;
+    const titleText = dateObj.isValid() ? dateObj.local().format("LLLL") : "";
 
     return <span title={titleText}>{displayText}</span>;
 }

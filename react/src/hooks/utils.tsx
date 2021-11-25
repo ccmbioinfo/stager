@@ -1,22 +1,18 @@
 // Function patterns that commonly occur in this set of hooks.
 
-import { Query, QueryResult } from "material-table";
-import { stringToBoolean } from "../functions";
+import { Query as MTQuery, QueryResult } from "@material-table/core";
 import {
+    InvalidateOptions,
+    InvalidateQueryFilters,
     MutationKey,
     QueryClient,
     useQueries,
     UseQueryOptions,
     UseQueryResult,
-    InvalidateOptions,
-    InvalidateQueryFilters,
 } from "react-query";
-import { SetDataOptions } from "react-query/types/core/query";
-
-interface FetchOptions {
-    onSuccess?: (res: Response) => any;
-    onError?: (res: Response) => any;
-}
+import { Query, SetDataOptions } from "react-query";
+import { stringToBoolean } from "../functions";
+import { QueryWithSearchOptions as MTQueryWithSearchOptions } from "../typings";
 
 /**
  * Fetch the provided url. Return the JSON response if successful.
@@ -24,13 +20,45 @@ interface FetchOptions {
  */
 export async function basicFetch(
     url: string,
-    params: Record<string, string> = {},
-    options?: FetchOptions
+    params: Record<string, any> = {},
+    options: RequestInit | undefined = undefined
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await fetch(`${url}${paramString}`);
+    const response = await fetch(`${url}${paramString}`, options);
     if (response.ok) {
-        return response.json();
+        if (response.headers.get("Content-Type") === "text/csv") {
+            return response.text();
+        } else return response.json();
+    } else {
+        throw response;
+    }
+}
+
+/**
+ * Fetch csv from provided url. Return blob and filename if successful (both are needed for cached response).
+ * Throw the response if unsuccessful.
+ */
+export async function fetchCsv(
+    url: string,
+    params: Record<string, string> = {},
+    options: RequestInit = {}
+) {
+    let headers = { Accept: "text/csv" };
+    if (options.headers) {
+        headers = { ...options.headers, ...headers };
+    }
+
+    const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
+
+    const response = await fetch(`${url}${paramString}`, { ...options, headers });
+
+    if (response.ok) {
+        return {
+            blob: await response.blob(),
+            filename: (
+                response.headers.get("content-disposition") || "filename=report.csv"
+            ).replace(/.+=/, ""),
+        };
     } else {
         throw response;
     }
@@ -44,31 +72,10 @@ export async function basicFetch(
  * @param url The API url to request from (/api/example)
  */
 export async function queryTableData<RowData extends object>(
-    query: Query<RowData>,
+    query: MTQueryWithSearchOptions<RowData>,
     url: string
 ): Promise<QueryResult<RowData>> {
-    const searchParams = new URLSearchParams();
-    // add filters
-    for (let filter of query.filters) {
-        const isBoolean = ["affected", "solved"].includes("" + filter.column.field);
-        let value = filter.value;
-        // booleans use "eq" as operator
-        if (isBoolean) {
-            value = stringToBoolean(filter.value);
-        }
-        if (filter.column.field && (filter.value || isBoolean)) {
-            searchParams.append(`${filter.column.field}`, `${value}`);
-        }
-    }
-    // order by
-    if (query.orderBy && query.orderDirection) {
-        searchParams.append("order_by", `${query.orderBy.field}`);
-        searchParams.append("order_dir", `${query.orderDirection}`);
-    }
-    // page information
-    searchParams.append("page", `${query.page}`);
-    searchParams.append("limit", `${query.pageSize}`);
-
+    const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
     const response = await fetch(url + "?" + searchParams.toString());
     if (response.ok) {
         const result = await response.json();
@@ -81,6 +88,70 @@ export async function queryTableData<RowData extends object>(
         throw response;
     }
 }
+
+/**
+ * Transform an m-table query object into a set of query string params that the backend understands
+ *
+ */
+
+export const getSearchParamsFromMaterialTableQuery = <RowData extends object>(
+    query: MTQueryWithSearchOptions<RowData>
+) => {
+    const searchParams: Record<string, string> = {};
+    const { filters, orderBy, orderDirection, page, pageSize, search, searchType } = query;
+
+    // add exact string search option
+    const exactSearchColumns = ["participant_codename", "family_codename"];
+    if (searchType) {
+        for (let searchOption of searchType) {
+            if (exactSearchColumns.includes(searchOption.column)) {
+                searchParams[`${searchOption.column}_exact_match`] = searchOption.exact.toString();
+            }
+        }
+    }
+    // add filters
+    if (filters) {
+        for (let filter of filters) {
+            const isBoolean = ["affected", "solved"].includes("" + filter.column.field);
+            let value = filter.value;
+            // booleans use "eq" as operator
+            if (isBoolean) {
+                value = stringToBoolean(filter.value);
+            }
+            if (
+                filter.column.field &&
+                (!Array.isArray(filter.value) || filter.value.length > 0) &&
+                (filter.value || isBoolean)
+            ) {
+                searchParams[`${filter.column.field}`] = `${value}`;
+            }
+        }
+    }
+    // order by
+    if (orderBy && orderDirection) {
+        searchParams.order_by = `${orderBy.field}`;
+        searchParams.order_dir = `${orderDirection}`;
+    }
+    // ignore normally invalid sizes that designate retrieving all rows
+    if (pageSize > 0 && pageSize < Number.MAX_SAFE_INTEGER) {
+        // paging information
+        searchParams.page = `${page}`;
+        searchParams.limit = `${pageSize}`;
+    }
+
+    if (search) {
+        searchParams.search = search;
+    }
+    return searchParams;
+};
+
+export const transformMTQueryToCsvDownloadParams = <RowData extends object>(
+    query: MTQuery<RowData>
+) => {
+    const params = getSearchParamsFromMaterialTableQuery(query);
+    const { page, limit, ...rest } = params;
+    return rest;
+};
 
 /**
  * Fetch the provided url with the given method and body (optional).
@@ -239,3 +310,11 @@ export function clearQueryCache(queryClient: QueryClient, preserve: string[] = [
             }
         });
 }
+
+/**
+ * Predicate for invalidating Analysis queries after a mutation.
+ */
+export const invalidateAnalysisPredicate = (query: Query) =>
+    query.queryKey.length === 2 &&
+    query.queryKey[0] === "analyses" &&
+    typeof query.queryKey[1] === "object";

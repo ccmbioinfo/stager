@@ -7,15 +7,17 @@ import {
     FormControlLabel,
     Grid,
     makeStyles,
+    TextField,
     Toolbar,
+    Typography,
 } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { User, ConfirmPasswordAction } from "../../typings";
-import { NewPasswordForm, ConfirmModal, MinioResetButton, MinioKeyDisplay } from "../../components";
-import GroupSelect from "./GroupSelect";
+import { ConfirmModal, MinioKeyDisplay, MinioResetButton, NewPasswordForm } from "../../components";
+import { useAPIInfoContext, useUserContext } from "../../contexts";
 import { useGroupsQuery, useUserQuery } from "../../hooks";
-import { useUserContext } from "../../contexts";
+import { ConfirmPasswordAction, User } from "../../typings";
+import GroupSelect from "./GroupSelect";
 
 const useDetailStyles = makeStyles(theme => ({
     root: {
@@ -72,6 +74,7 @@ export default function UserDetails(props: {
     const classes = useDetailStyles();
     const groupsResult = useGroupsQuery();
     const { user: currentUser } = useUserContext();
+    const apiInfo = useAPIInfoContext();
     const groups = groupsResult.data;
     const userResult = useUserQuery(props.user.username);
     const user = userResult.data;
@@ -127,8 +130,8 @@ export default function UserDetails(props: {
                 Are you sure you want to delete user {oldState.username}?
             </ConfirmModal>
             <Box className={classes.root}>
-                <Grid container spacing={1}>
-                    <Grid container item md={12} lg={6} spacing={1}>
+                <Grid container spacing={1} alignItems="flex-start">
+                    <Grid container item md={6} lg={12} spacing={1}>
                         <Grid item xs={6}>
                             <FormControlLabel
                                 label={<b>Deactivated</b>}
@@ -169,13 +172,46 @@ export default function UserDetails(props: {
                                 }
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item sm={6} xs={12}>
                             <MinioKeyDisplay
                                 loading={loading}
                                 minio_access_key={user?.minio_access_key}
                                 minio_secret_key={user?.minio_secret_key}
                             />
                         </Grid>
+                        {apiInfo?.oauth && (
+                            <Grid item sm={6} xs={12}>
+                                <Typography>
+                                    <b>OAuth Fields</b>
+                                </Typography>
+                                <TextField
+                                    variant="filled"
+                                    fullWidth
+                                    margin="dense"
+                                    label="Issuer (OAuth Provider URL)"
+                                    value={newState.issuer}
+                                    onChange={e =>
+                                        dispatch({
+                                            type: "set",
+                                            payload: { ...newState, issuer: e.target.value },
+                                        })
+                                    }
+                                />
+                                <TextField
+                                    variant="filled"
+                                    fullWidth
+                                    margin="dense"
+                                    label="Subject (OAuth User ID)"
+                                    value={newState.subject}
+                                    onChange={e =>
+                                        dispatch({
+                                            type: "set",
+                                            payload: { ...newState, subject: e.target.value },
+                                        })
+                                    }
+                                />
+                            </Grid>
+                        )}
                         <Grid item xs={12}>
                             <NewPasswordForm
                                 passwords={{

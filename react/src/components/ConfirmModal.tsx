@@ -2,12 +2,14 @@ import React from "react";
 import {
     Button,
     ButtonProps,
+    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
 } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 
 export interface ConfirmModalProps {
     id: string;
@@ -17,9 +19,19 @@ export interface ConfirmModalProps {
     onClose: () => void;
     onConfirm: () => void;
     colors?: { confirm?: ButtonProps["color"]; cancel?: ButtonProps["color"] };
+    loading?: boolean;
 }
 
+const useStyles = makeStyles({
+    loadingContainer: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+});
+
 export default function ConfirmModal(props: ConfirmModalProps) {
+    const classes = useStyles();
     return (
         <Dialog
             open={props.open}
@@ -32,6 +44,9 @@ export default function ConfirmModal(props: ConfirmModalProps) {
                 <DialogContentText id={`${props.id}-description`}>
                     {props.children}
                 </DialogContentText>
+            </DialogContent>
+            <DialogContent className={classes.loadingContainer}>
+                {props.loading && <CircularProgress />}
             </DialogContent>
             <DialogActions>
                 <Button

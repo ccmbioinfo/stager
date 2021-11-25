@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useSnackbar } from "notistack";
 import {
-    makeStyles,
     Button,
     Container,
     Divider,
     Grid,
+    Link,
+    makeStyles,
     Paper,
     TextField,
     Typography,
-    Link,
 } from "@material-ui/core";
-import { MinioKeyDisplay, MinioResetButton, ChipGroup } from "../components";
-import { useUserQuery, useUsersUpdateMutation } from "../hooks";
+import { useSnackbar } from "notistack";
+import { ChipGroup, MinioKeyDisplay, MinioResetButton } from "../components";
 import { useUserContext } from "../contexts";
+import { useErrorSnackbar, useUserQuery, useUsersUpdateMutation } from "../hooks";
+import Instructions from "./components/Instructions";
 
 const useStyles = makeStyles(theme => ({
-    root: {
-        display: "fill",
-    },
     appBarSpacer: theme.mixins.toolbar,
     content: {
         flexGrow: 1,
@@ -74,6 +72,7 @@ export default function Settings() {
     const [groups, setGroups] = useState<string[]>([]);
     const [updating, setUpdating] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     async function changePassword(e: React.MouseEvent) {
         e.preventDefault();
@@ -81,15 +80,13 @@ export default function Settings() {
         passwordMutation.mutate(
             { username: currentUser.username, current: currentPassword, password: newPassword },
             {
-                onSuccess: newUser => {
+                onSuccess: () => {
                     setCurrentPassword("");
                     setNewPassword("");
                     setConfirmPassword("");
                     enqueueSnackbar("Password changed successfully.", { variant: "success" });
                 },
-                onError: async response => {
-                    enqueueSnackbar(await response.text(), { variant: "error" });
-                },
+                onError: (response: Response) => enqueueErrorSnackbar(response),
                 onSettled: () => {
                     setUpdating(false);
                 },
@@ -193,6 +190,7 @@ export default function Settings() {
                         <Link
                             href={process.env.REACT_APP_MINIO_URL}
                             target="_blank"
+                            rel="noreferrer"
                             className={classes.link}
                         >
                             <Button variant="contained" color="primary">
@@ -202,6 +200,7 @@ export default function Settings() {
                         <MinioResetButton username={currentUser.username} />
                     </div>
                 </Paper>
+                <Instructions />
             </Container>
         </main>
     );

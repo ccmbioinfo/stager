@@ -1,51 +1,54 @@
 from dataclasses import asdict
-from datetime import datetime
 from enum import Enum
 import inspect
 from io import StringIO
+from typing import Any, Dict
 
-from flask import Blueprint, abort, current_app as app, jsonify, request
+from flask import Blueprint, abort, current_app as app, jsonify, request, Request
+from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
-
+from werkzeug.exceptions import BadRequest  # 400
 from . import models
-from .extensions import db
-from .utils import enum_validate, transaction_or_abort, validate_json
+from .extensions import db, oauth
+from .utils import (
+    validate_enums,
+    get_current_user,
+    transaction_or_abort,
+    validate_json,
+    update_last_login,
+    find,
+)
+
+import numpy as np
 
 routes = Blueprint("routes", __name__)
 
 
-@routes.route("/api")
+@routes.route("/api", strict_slashes=False)
 def version():
-    return jsonify({"sha": app.config.get("GIT_SHA")})
+    api_info = {
+        "sha": app.config.get("GIT_SHA"),
+        "oauth": app.config.get("ENABLE_OIDC"),
+    }
+    if app.config.get("ENABLE_OIDC"):
+        api_info["oauth_provider"] = app.config.get("OIDC_PROVIDER")
+    return jsonify(api_info)
 
 
 @routes.route("/api/login", methods=["POST"])
 def login():
-    last_login = None
     app.logger.info("Checking whether user is authenticated")
     if current_user.is_authenticated:
         # get/update last login
         app.logger.info("User is authenticated, updating last login..")
-        try:
-            last_login = current_user.last_login
-            current_user.last_login = datetime.now()
-            db.session.commit()
-            app.logger.info("Last login for '%s' updated..", current_user.username)
-        except:
-            app.logger.warning(
-                "Failed to updated last_login for '%s'", current_user.username
-            )
+        return update_last_login()
 
-        return jsonify(
-            {
-                "username": current_user.username,
-                "last_login": last_login,
-                "is_admin": current_user.is_admin,
-                "groups": [group.group_code for group in current_user.groups],
-            }
-        )
+    if app.config.get("ENABLE_OIDC"):
+        # Current user has to authenticate through /login -> /api/authorize flow
+        abort(401, description="Unauthorized")
+
     app.logger.debug("Checking request body")
     body = request.json
     if not body or "username" not in body or "password" not in body:
@@ -58,34 +61,114 @@ def login():
         app.logger.error("Unauthorized user")
         abort(401, description="Unauthorized")
 
-    # get/update last login
-    try:
-        last_login = user.last_login
-        user.last_login = datetime.now()
-        db.session.commit()
-    except:
-        app.logger.warning("Failed to update last_login for '%s'", user.username)
-
+    user_details = update_last_login(user)
     login_user(user)
+
     app.logger.info(
         "User '%s' has successfully logged in, returning JSON.", user.username
     )
-    return jsonify(
-        {
-            "username": user.username,
-            "last_login": last_login,
-            "is_admin": current_user.is_admin,
-            "groups": [group.group_code for group in current_user.groups],
-        }
+    return user_details
+
+
+@routes.route("/api/login", methods=["GET"])
+def oidc_login():
+    """
+    Return a curated login URL for the frontend to use.
+    """
+    if not app.config.get("ENABLE_OIDC"):
+        abort(405)
+    provider = app.config.get("OIDC_PROVIDER")
+    app.logger.debug(f"Creating client with {provider}...")
+    client = oauth.create_client(provider)
+    app.logger.debug("Building redirect url...")
+    # It's safe to take redirect_uris from the client since
+    # the OAuth provider maintains a list of valid redirect_uris
+    redirect_uri = request.args.get(
+        "redirect_uri", url_for("routes.authorize", _external=True)
     )
+    app.logger.debug(f"Redirect url built: {redirect_uri}")
+    app.logger.debug("Getting authorize url...")
+    return client.authorize_redirect(redirect_uri)
+
+
+@routes.route("/api/authorize")
+def authorize():
+    """
+    Make a token request using the following request args:
+    code: The Authorization Code from the Authorization Endpoint
+    state: Used for CSRF mitigation, returned by Auth. Endpoint
+    session_state: Used for CSRF mitigation, returned by Auth. Endpoint
+    """
+    if not app.config.get("ENABLE_OIDC"):
+        abort(404)
+    client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+    # Exchange authorization code for token
+    token = client.authorize_access_token()
+    userinfo = client.parse_id_token(token)
+
+    issuer = userinfo["iss"]
+    subject = userinfo["sub"]
+
+    # Use issuer, subject to uniquely identify End-User
+    user = models.User.query.filter_by(subject=subject, issuer=issuer).first()
+    if user is None:
+        # Do not login if the user is not tracked in Stager
+        app.logger.error(
+            f"OIDC user with subject ID {subject} and issuer {issuer} is not tracked by Stager."
+        )
+        abort(404, description="User not found")
+    elif user.deactivated:
+        app.logger.error("Unauthorized OIDC user")
+        abort(401, "Unauthorized")
+    else:
+        app.logger.info(f"OIDC user {user.username} logged in successfully.")
+        login_user(user)
+        app.logger.debug(f"current_user: {current_user}")
+
+    return update_last_login(user)
 
 
 @routes.route("/api/logout", methods=["POST"])
-@login_required
 @validate_json
 def logout():
-    logout_user()
-    return "", 204
+    redirect_uri = request.json.get("redirect_uri")
+
+    if redirect_uri is not None:
+        if not isinstance(redirect_uri, str):
+            abort(400, description="Invalid redirect_uri")
+    username = None
+
+    app.logger.debug("Destroying Stager session..")
+    if current_user.is_authenticated:
+        username = current_user.username
+        logout_user()
+
+    url = ""
+
+    if app.config.get("ENABLE_OIDC"):
+        # Log out of OAuth session as well as Stager session
+        provider = app.config.get("OIDC_PROVIDER")
+        client = oauth.create_client(provider)
+        client_id = app.config.get("OIDC_CLIENT_ID")
+        metadata = client.load_server_metadata()  # .well-known/openid-configuration
+        if username:
+            app.logger.debug(f"Trying to provide logout url for user '{username}'..")
+        else:
+            app.logger.debug(f"Trying to provide logout url for non-Stager user..")
+
+        if provider == "auth0":
+            # Construct URL
+            url = metadata["issuer"] + f"v2/logout?client_id={client_id}"
+            app.logger.debug(f"Auth0 logout endpoint: '{url}'")
+        elif provider == "keycloak" and redirect_uri is not None:
+            try:
+                url = metadata["end_session_endpoint"] + f"?redirect_uri={redirect_uri}"
+
+                app.logger.debug(f"Keycloak logout endpoint: '{url}'")
+            except KeyError as err:
+                app.logger.error(err.args[0])
+
+    return ("", 204) if url == "" else (jsonify({"redirect_uri": url}), 200)
 
 
 def validate_user(request_user: dict):
@@ -164,7 +247,7 @@ def get_enums():
 @routes.route("/api/_bulk", methods=["POST"])
 @login_required
 def bulk_update():
-    app.logger.info("Starting bulk upload..")
+    app.logger.info("Starting bulk upload...")
     dataset_ids = []
 
     editable_dict = {
@@ -206,8 +289,10 @@ def bulk_update():
         try:
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(StringIO(request.data.decode("utf-8")))
-            dat = dat.where(pd.notnull(dat), None)
+            dat = dat.dropna(how="all")  # remove empty rows
+            dat = dat.replace({np.nan: None})
             dat = dat.to_dict(orient="records")
+
         except Exception as err:
             app.logger.error(
                 "CSV failed to be read in. Please verify the file is a properly formatted csv."
@@ -249,12 +334,7 @@ def bulk_update():
         updated_by_id = 1
         created_by_id = 1
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user", models.User.user_id)
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
+    user = get_current_user()
 
     # get user's group(s)
     app.logger.info("Retrieving supplied user groups..")
@@ -263,24 +343,35 @@ def bulk_update():
     if requested_groups:
         requested_groups = requested_groups.split(",")
         app.logger.debug("User's groups are '%s'", requested_groups)
-        groups = (
-            models.Group.query.join(models.Group.users)
-            .filter(
-                models.User.user_id == user_id,
+        if user.is_admin:
+            groups = models.Group.query.filter(
                 models.Group.group_code.in_(requested_groups),
+            ).all()
+        else:
+            groups = (
+                models.Group.query.join(models.Group.users)
+                .filter(
+                    models.User.user_id == user.user_id,
+                    models.Group.group_code.in_(requested_groups),
+                )
+                .all()
             )
-            .all()
-        )
-        if len(requested_groups) != len(groups):
-            app.logger.error(
-                "User supplied groups and permission groups do not match up."
+
+        if len(requested_groups) != len(groups) and not user.is_admin:
+            app.logger.error("User supplied groups they don't belong to.")
+            abort(
+                401,
+                description="User does not belong to one or more of the provided groups",
             )
+
+        if not groups:
+            app.logger.error("User passed in a nonexistant group.")
             abort(404, description="Invalid group code provided")
     else:
         app.logger.debug("User did not provide groups, checking permissions..")
         groups = (
             models.Group.query.join(models.Group.users)
-            .filter(models.User.user_id == user_id)
+            .filter(models.User.user_id == user.user_id)
             .all()
         )
         app.logger.debug("User is part of '%s'", [x.group_name for x in groups])
@@ -343,15 +434,23 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for participants..")
-        enum_error = enum_validate(
-            models.Participant, row, editable_dict["participant"]
-        )
-        if enum_error:
-            app.logger.error("\tEnum invalid: " + enum_error)
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
-        else:
+
+        try:
+            validate_enums(models.Participant, row, editable_dict["participant"])
             app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + 1)
+                ),
+            )
 
         # get institution id
         app.logger.debug("\tRetrieving institution")
@@ -372,7 +471,7 @@ def bulk_update():
                 )
                 institution_obj = models.Institution(institution=institution)
                 db.session.add(institution_obj)
-                transaction_or_abort(db.session.commit)
+                transaction_or_abort(db.session.flush)
                 institution_id = institution_obj.institution_id
         else:
             app.logger.debug("\tNo institution supplied")
@@ -397,7 +496,6 @@ def bulk_update():
                 family_id=family_id,
                 participant_codename=row.get("participant_codename"),
                 sex=row.get("sex"),
-                notes=row.get("notes"),
                 affected=row.get("affected"),
                 solved=row.get("solved"),
                 participant_type=row.get("participant_type"),
@@ -417,14 +515,47 @@ def bulk_update():
 
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for tissue samples..")
-        enum_error = enum_validate(
-            models.TissueSample, row, editable_dict["tissue_sample"]
-        )
-        if enum_error:
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)}: " + enum_error)
-        else:
+
+        try:
+            validate_enums(models.TissueSample, row, editable_dict["tissue_sample"])
             app.logger.debug("\tAll enums supplied are valid.")
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + 1)
+                ),
+            )
+
+        app.logger.debug("\tChecking duplicate dataset..")
+        db_datasets_number = (
+            db.session.query(models.Dataset)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .filter(
+                models.Dataset.dataset_type == row.get("dataset_type"),
+                models.Participant.family_id == family_id,
+                models.Participant.participant_id == participant_id,
+                models.Dataset.sequencing_date == sequencing_date,
+                models.TissueSample.tissue_sample_type == row.get("tissue_sample_type"),
+            )
+            .count()
+        )
+
+        if db_datasets_number > 0:
+            app.logger.error("\tThe dataset is a duplicate of an existing dataset.")
+            db.session.rollback()
+            abort(
+                400,
+                "One of the added datasets is a duplicate of an existing or added dataset.",
+            )
 
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
@@ -441,49 +572,63 @@ def bulk_update():
         app.logger.debug("\tDone")
         # Fail if we have any invalid values
         app.logger.debug("\tValidating enums for datasets..")
-        enum_error = enum_validate(models.Dataset, row, editable_dict["dataset"])
-        if enum_error:
-            app.logger.error("\tEnum invalid: " + enum_error)
-            db.session.rollback()
-            abort(400, description=f"Error on line {str(i + 1)} - " + enum_error)
-        else:
+        try:
+            validate_enums(models.Dataset, row, editable_dict["dataset"])
             app.logger.debug("\tAll enums supplied are valid.")
-
+        except BadRequest as e:
+            app.logger.error(
+                "\tRolling back session because of invalid enum: {}".format(
+                    e.description
+                )
+            )
+            db.session.rollback()
+            abort(
+                400,
+                "Rolling back session because of invalid enum: {} on line {}".format(
+                    e.description, str(i + 1)
+                ),
+            )
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
-        dataset = models.Dataset(
-            tissue_sample_id=tissue_sample.tissue_sample_id,
-            dataset_type=row.get("dataset_type"),
-            created_by_id=created_by_id,
-            updated_by_id=updated_by_id,
-            condition=row.get("condition"),
-            extraction_protocol=row.get("extraction_protocol"),
-            capture_kit=row.get("capture_kit"),
-            library_prep_method=row.get("library_prep_method"),
-            read_length=row.get("read_length"),
-            read_type=row.get("read_type"),
-            sequencing_centre=row.get("sequencing_centre"),
-            sequencing_date=row.get("sequencing_date"),
-            batch_id=row.get("batch_id"),
+
+        base_fields = {
+            "batch_id": row.get("batch_id"),
+            "capture_kit": row.get("capture_kit"),
+            "condition": row.get("condition"),
+            "created_by_id": created_by_id,
+            "dataset_type": row.get("dataset_type"),
+            "extraction_protocol": row.get("extraction_protocol"),
+            "library_prep_method": row.get("library_prep_method"),
+            "notes": row.get("notes"),
+            "read_length": row.get("read_length"),
+            "read_type": row.get("read_type"),
+            "sequencing_centre": row.get("sequencing_centre"),
+            "sequencing_date": row.get("sequencing_date"),
+            "sequencing_id": row.get("sequencing_id"),
+            "tissue_sample_id": tissue_sample.tissue_sample_id,
+            "updated_by_id": updated_by_id,
+        }
+
+        rna_seq_fields = {
+            **base_fields,
+            "candidate_genes": row.get("candidate_genes"),
+            "vcf_available": row.get("vcf_available"),
+        }
+
+        dataset = (
+            models.RNASeqDataset(**rna_seq_fields)
+            if row.get("dataset_type") == "RRS"
+            else models.Dataset(**base_fields)
         )
+
         app.logger.debug("\tLinking files to dataset..")
-        if request.content_type == "text/csv":
-            app.logger.debug(
-                "\tContent type is `text/csv` and linked files are expected to be | separated: '%s'",
-                row.get("linked_files", "").split("|"),
-            )
-            files = row.get("linked_files", "").split("|")
-        else:
-            app.logger.debug(
-                "\tContent type is NOT `test/csv` and linked files are expected to be in a list: '%s'",
-                row.get("linked_files", []),
-            )
-            files = row.get("linked_files", [])
-        dataset.files += [models.DatasetFile(path=path) for path in files if path]
+
+        dataset = link_files_to_dataset(request, dataset, row)
 
         app.logger.debug("\tAdding users groups to the dataset")
         dataset.groups += groups
         app.logger.debug("\tCreating dataset entry in the database..")
+        app.logger.debug(dataset.__dict__)
         db.session.add(dataset)
         transaction_or_abort(db.session.flush)
         app.logger.debug("\tDone")
@@ -523,3 +668,60 @@ def bulk_update():
     ]
     app.logger.info("Done, returning JSON..")
     return jsonify(datasets)
+
+
+def link_files_to_dataset(
+    req: Request, dataset: models.Dataset, row: Dict[str, Any]
+) -> models.Dataset:
+    """validate filepaths and link to a dataset"""
+    if req.content_type == "text/csv":
+        linked_files = (row.get("linked_files") or "").split("|")
+        app.logger.debug(
+            "\tContent type is `text/csv` and linked files are expected to be | separated: '%s'",
+            linked_files,
+        )
+        files = []
+        for path in linked_files:
+            if path:
+                is_multiplex = path[0] == "*"
+                files.append(
+                    {
+                        "path": path if not is_multiplex else path[1:],
+                        "multiplexed": is_multiplex,
+                    }
+                )
+
+    else:
+        app.logger.debug(
+            "\tContent type is NOT `test/csv` and linked files are expected to be in a list: '%s'",
+            row.get("linked_files", []),
+        )
+        files = row.get("linked_files", [])
+
+    extant_files = models.File.query.filter(
+        models.File.path.in_([f["path"] for f in files])
+    ).all()
+
+    dataset.linked_files = []
+
+    for file in files:
+        extant = find(
+            extant_files,
+            lambda extant, path=file["path"]: extant.path == path,
+        )
+        if extant and (not extant.multiplexed or not file["multiplexed"]):
+            path = file.get("path")
+            abort(
+                400,
+                description=f'File {path} is already linked! If they are multiplexed, please mark with "*"!',
+            )
+        elif extant:
+            dataset.linked_files.append(extant)
+        else:
+            dataset.linked_files.append(
+                models.File(
+                    path=file["path"],
+                    multiplexed=file.get("multiplexed"),
+                )
+            )
+    return dataset

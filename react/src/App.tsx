@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { IconButton, createMuiTheme, ThemeProvider } from "@material-ui/core";
+import React, { useEffect, useMemo, useState } from "react";
+import { createTheme, IconButton, ThemeProvider } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
 import { SnackbarKey, SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
-import LoginForm from "./Login";
-import Navigation from "./Navigation";
-import { CurrentUser } from "./typings";
-import { UserContext, emptyUser, UserClient } from "./contexts";
+import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
 import { clearQueryCache } from "./hooks/utils";
+import LoginPage from "./Login";
+import Navigation from "./Navigation";
+import { APIInfo, CurrentUser } from "./typings";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -19,12 +20,14 @@ const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             staleTime: 1000 * 60, // 1 minute
+            refetchOnWindowFocus: false,
         },
     },
 });
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+    const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
 
     // React Context needs the provider value to be a complete package in a state var
     // or else extra re-renders will happen apparently
@@ -39,69 +42,99 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         },
     });
 
-    function setCurrentUser(user: CurrentUser) {
+    const setCurrentUser = (user: CurrentUser) => {
         setUserClient(oldClient => ({
             updateUser: oldClient.updateUser,
             user: user,
         }));
-    }
+    };
 
     async function signout() {
+        let body = {};
+        if (apiInfo?.oauth) {
+            body = { redirect_uri: window.location.origin };
+        }
         const result = await fetch("/api/logout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
+            body: JSON.stringify(body),
         });
         if (result.ok) {
-            setAuthenticated(false);
             clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
+            if (result.status !== 204) {
+                const redirectUrl = (await result.json())?.["redirect_uri"];
+                if (redirectUrl) {
+                    console.log(redirectUrl);
+                    window.location.replace(redirectUrl);
+                    return;
+                }
+            }
+            setAuthenticated(false);
         }
     }
     // Check if already signed in
+    // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const result = await fetch("/api/login", { method: "POST" });
-            if (result.ok) {
-                const loginInfo = await result.json();
+            const loginResult = await fetch("/api/login", { method: "POST" });
+            if (loginResult.ok) {
+                const loginInfo = await loginResult.json();
                 setCurrentUser(loginInfo);
             }
-            setAuthenticated(result.ok);
+            setAuthenticated(loginResult.ok);
+
+            const apiInfoResult = await fetch("/api");
+            if (apiInfoResult.ok) {
+                const apiInfo = await apiInfoResult.json();
+                setApiInfo(apiInfo as APIInfo);
+            }
         })();
     }, []);
-    if (authenticated === null) {
-        return <></>;
-    } else if (authenticated) {
+    if (authenticated && apiInfo) {
         return (
             <UserContext.Provider value={userClient}>
-                <QueryClientProvider client={queryClient}>
-                    <SnackbarProvider
-                        ref={notistackRef}
-                        action={key => (
-                            <IconButton
-                                aria-label="close"
-                                color="inherit"
-                                onClick={onClickDismiss(key)}
-                            >
-                                <Close fontSize="small" />
-                            </IconButton>
-                        )}
-                        autoHideDuration={6000}
-                        anchorOrigin={{
-                            horizontal: "center",
-                            vertical: "bottom",
-                        }}
-                    >
-                        <Navigation
-                            signout={signout}
-                            darkMode={props.darkMode}
-                            toggleDarkMode={props.toggleDarkMode}
-                        />
-                    </SnackbarProvider>
-                </QueryClientProvider>
+                <APIInfoContext.Provider value={apiInfo}>
+                    <QueryClientProvider client={queryClient}>
+                        <SnackbarProvider
+                            ref={notistackRef}
+                            action={key => (
+                                <IconButton
+                                    aria-label="close"
+                                    color="inherit"
+                                    onClick={onClickDismiss(key)}
+                                >
+                                    <Close fontSize="small" />
+                                </IconButton>
+                            )}
+                            autoHideDuration={6000}
+                            anchorOrigin={{
+                                horizontal: "center",
+                                vertical: "bottom",
+                            }}
+                            hideIconVariant={true}
+                        >
+                            <Navigation
+                                signout={signout}
+                                darkMode={props.darkMode}
+                                toggleDarkMode={props.toggleDarkMode}
+                            />
+                            <ReactQueryDevtools initialIsOpen={false} />
+                        </SnackbarProvider>
+                    </QueryClientProvider>
+                </APIInfoContext.Provider>
             </UserContext.Provider>
         );
+    } else if (apiInfo) {
+        return (
+            <LoginPage
+                signout={signout}
+                setAuthenticated={setAuthenticated}
+                setCurrentUser={setCurrentUser}
+                oauth={apiInfo.oauth}
+            />
+        );
     } else {
-        return <LoginForm setAuthenticated={setAuthenticated} setCurrentUser={setCurrentUser} />;
+        return <></>;
     }
 }
 
@@ -121,7 +154,7 @@ export default function App() {
 
     const globalTheme = useMemo(
         () =>
-            createMuiTheme({
+            createTheme({
                 typography: {
                     fontSize: 12,
                 },

@@ -22,23 +22,28 @@ export default function SecretDisplay(props: {
             <Typography>
                 <b>{props.title}</b>
                 <Tooltip title={`${open ? "Hide" : "Show"} key`}>
-                    <IconButton onClick={() => isOpen(!open)} disabled={!props.secret}>
-                        {open ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
+                    {/* Tooltip needs to listen to the child element's events to display the title, not a disabled button. Adding an empty wrapper fixes this.*/}
+                    <>
+                        <IconButton onClick={() => isOpen(!open)} disabled={!props.secret}>
+                            {open ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                    </>
                 </Tooltip>
                 <Tooltip title="Copy to clipboard">
-                    <IconButton
-                        disabled={!props.secret}
-                        onClick={() => {
-                            if (props.secret !== undefined) {
-                                navigator.clipboard.writeText(props.secret).then(() => {
-                                    enqueueSnackbar(`${props.title} copied to clipboard.`);
-                                });
-                            }
-                        }}
-                    >
-                        <FileCopy />
-                    </IconButton>
+                    <>
+                        <IconButton
+                            disabled={!props.secret}
+                            onClick={() => {
+                                if (props.secret !== undefined) {
+                                    navigator.clipboard.writeText(props.secret).then(() => {
+                                        enqueueSnackbar(`${props.title} copied to clipboard.`);
+                                    });
+                                }
+                            }}
+                        >
+                            <FileCopy />
+                        </IconButton>
+                    </>
                 </Tooltip>
             </Typography>
             {props.loading ? (

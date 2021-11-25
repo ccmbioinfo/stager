@@ -12,9 +12,14 @@ import {
 } from "@material-ui/core";
 import { PersonAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import UserRow from "./UserRow";
+import {
+    useErrorSnackbar,
+    useUsersDeleteMutation,
+    useUsersQuery,
+    useUsersUpdateMutation,
+} from "../../hooks";
 import CreateUserModal from "./CreateUserModal";
-import { useUsersQuery, useUsersUpdateMutation, useUsersDeleteMutation } from "../../hooks/";
+import UserRow from "./UserRow";
 
 const useStyles = makeStyles(theme => ({
     toolbar: {
@@ -32,6 +37,7 @@ export default function UserList() {
     const userDeleteMutation = useUsersDeleteMutation();
     const [openNewUser, setOpenNewUser] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     useEffect(() => {
         document.title = `Admin | ${process.env.REACT_APP_NAME}`;
@@ -72,10 +78,9 @@ export default function UserList() {
                                             );
                                         },
                                         onError: async response => {
-                                            const message = await response.text();
-                                            enqueueSnackbar(
-                                                `User ${newUser.username} update failed - ${response.status} ${message}`,
-                                                { variant: "error" }
+                                            enqueueErrorSnackbar(
+                                                response,
+                                                `User ${newUser.username} update failed.`
                                             );
                                         },
                                     });
@@ -89,10 +94,9 @@ export default function UserList() {
                                             );
                                         },
                                         onError: async response => {
-                                            const message = await response.text();
-                                            enqueueSnackbar(
-                                                `User ${newUser.username} deletion failed - ${response.status} ${message}`,
-                                                { variant: "error" }
+                                            enqueueErrorSnackbar(
+                                                response,
+                                                `User ${newUser.username} deletion failed.`
                                             );
                                         },
                                     });

@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 def test_no_families(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/families?user=5")
+    response = client.get("/api/families?user=4")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 
@@ -34,7 +34,7 @@ def test_list_families_user(test_database, client, login_as):
     assert len(response.get_json()[0]["participants"]) == 2
 
     # Check if it is the correct family
-    assert response.get_json()[0]["family_codename"] == "A"
+    assert response.get_json()[0]["family_codename"] == "Aa"
 
 
 def test_list_families_user_from_admin(test_database, client, login_as):
@@ -49,7 +49,7 @@ def test_list_families_user_from_admin(test_database, client, login_as):
     assert len(response.get_json()[0]["participants"]) == 2
 
     # Check if it is the correct family
-    assert response.get_json()[0]["family_codename"] == "A"
+    assert response.get_json()[0]["family_codename"] == "Aa"
 
 
 # GET /api/families/:id
@@ -73,15 +73,6 @@ def test_get_family(test_database, client, login_as):
     assert (
         len(response.get_json()[0]["participants"][0]["tissue_samples"]) == 1
         and len(response.get_json()[0]["participants"][1]["tissue_samples"]) == 1
-    )
-    # Check number of datasets in response
-    assert (
-        len(response.get_json()[0]["participants"][0]["tissue_samples"][0]["datasets"])
-        == 1
-        and len(
-            response.get_json()[0]["participants"][1]["tissue_samples"][0]["datasets"]
-        )
-        == 1
     )
 
 
@@ -112,6 +103,8 @@ def test_delete_family(test_database, client, login_as):
             .joinedload(models.Participant.tissue_samples)
             .joinedload(models.TissueSample.datasets)
             .joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
         )
         .one_or_none()
     )
@@ -119,13 +112,18 @@ def test_delete_family(test_database, client, login_as):
         for sample in participant.tissue_samples:
             for dataset in sample.datasets:
                 for analysis in dataset.analyses:
+                    # first, delete all genotypes and variants associated with an analysis before deleting the analysis
+                    for genotype in analysis.genotype:
+                        db.session.delete(genotype)
+                    db.session.commit()
+                    for variant in analysis.variants:
+                        db.session.delete(variant)
                     db.session.delete(analysis)
                 db.session.delete(dataset)
             db.session.delete(sample)
         db.session.delete(participant)
 
     db.session.commit()
-
     login_as("admin")
     assert client.delete("/api/families/1").status_code == 204
     # Make sure it's gone
@@ -190,7 +188,7 @@ def test_create_family(test_database, client, login_as):
     assert (
         client.post(
             "/api/families",
-            json={"family_codename": "A"},
+            json={"family_codename": "Aa"},
         ).status_code
         == 422
     )

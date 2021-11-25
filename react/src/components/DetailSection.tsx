@@ -1,62 +1,45 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     Collapse,
-    Grid,
-    Typography,
-    makeStyles,
-    IconButton,
     FormControlLabel,
+    Grid,
+    makeStyles,
     Switch,
+    Typography,
 } from "@material-ui/core";
-import { Check } from "@material-ui/icons";
-import { useSnackbar } from "notistack";
+
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
 import { Field } from "../typings";
-import GridFieldsDisplay from "./GridFieldsDisplay";
+import GridFieldsDisplay, { Width } from "./GridFieldsDisplay";
+
+dayjs.extend(customParseFormat);
 
 const gridSpacing = 2;
 const titleWidth = 12;
 
 const useStyles = makeStyles(theme => ({
-    fieldDisplay: {
-        textDecoration: "underline dotted",
-    },
-    fab: {
-        display: "block",
-        width: "40%",
-        left: "30%",
-        right: "30%",
-        padding: theme.spacing(1),
-        margin: 0,
-    },
     switch: {
         display: "block",
         padding: theme.spacing(1),
         margin: 0,
-    },
-    actionButtons: {
-        position: "absolute",
-        right: theme.spacing(1),
     },
     button: {
         marginRight: theme.spacing(1),
     },
 }));
 
-interface DataInfo {
-    type: "participant" | "dataset";
-    ID: string;
-    identifier: string; // participant codename for participant, dataset ID for dataset
-    onUpdate?: (participant_id: string, newParticipant: { [key: string]: any }) => void;
-}
-
 interface DetailSectionProps {
     fields: Field[];
     enums?: Record<string, string[]>;
+    editable?: boolean;
+    columnWidth?: Width;
     collapsibleFields?: Field[];
     title?: string;
-    dataInfo?: DataInfo; // dataInfo indicates data is editable
     linkPath?: string;
+    update?: (fields: Field[]) => void;
 }
 
 export default function DetailSection(props: DetailSectionProps) {
@@ -64,15 +47,13 @@ export default function DetailSection(props: DetailSectionProps) {
     const [moreDetails, setMoreDetails] = useState(false);
     const [editMode, setEditMode] = useState<boolean>(false);
 
-    // These keep track of state when editing
-    // When edit is finalized, send to backend to update props
+    // internal form state
     const [primaryFields, setPrimaryFields] = useState<Field[]>([]);
     const [secondaryFields, setSecondaryFields] = useState<Field[]>(
         props.collapsibleFields ? props.collapsibleFields : []
     );
-    const { enqueueSnackbar } = useSnackbar();
 
-    // Props are the main source of truth about the state of the fields
+    // keep fields in sync with parents in case of update/refresh
     useEffect(() => {
         setPrimaryFields(props.fields);
     }, [props.fields]);
@@ -95,6 +76,17 @@ export default function DetailSection(props: DetailSectionProps) {
 
             const field = fieldsOnEdit.find(element => element.fieldName === fieldName);
             if (!field) return;
+
+            field.entryError = false;
+            if (field.fieldName === "read_length" && value && value.match(/^[0-9]+$/) === null) {
+                field.entryError = true;
+            } else if (
+                field.fieldName === "month_of_birth" &&
+                value &&
+                value.match(/^\d{4}-(0[1-9]|1[012])$/) === null
+            ) {
+                field.entryError = true;
+            }
             const newField = {
                 ...field,
                 value: value,
@@ -105,55 +97,9 @@ export default function DetailSection(props: DetailSectionProps) {
         }
     }
 
-    async function updateData() {
-        // TODO: Revisit after /api/partipants part of #283
-        let url;
-        if (props.dataInfo?.type === "participant") {
-            url = `/api/participants/${props.dataInfo?.ID}`;
-        } else {
-            url = `/api/datasets/${props.dataInfo?.ID}`;
-        }
-        const newData: { [key: string]: any } = {};
-        primaryFields.concat(secondaryFields).forEach(field => {
-            if (field.fieldName && !field.disableEdit) {
-                newData[field.fieldName] = field.value;
-            }
-        });
-        const response = await fetch(url, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newData),
-        });
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data);
-            if (props.dataInfo?.onUpdate) props.dataInfo!.onUpdate(props.dataInfo.ID, data);
-            enqueueSnackbar(
-                `${props.dataInfo?.type.replace(/$(\w)/g, "$&".toUpperCase())} ${
-                    props.dataInfo?.identifier
-                } updated successfully`,
-                {
-                    variant: "success",
-                }
-            );
-        } else {
-            setPrimaryFields(props.fields);
-            if (props.collapsibleFields) {
-                setSecondaryFields(props.collapsibleFields);
-            }
-            console.error(
-                `PATCH /api/${props.dataInfo?.type}s/${props.dataInfo?.ID} failed with ${response.status}: ${response.statusText}`
-            );
-            enqueueSnackbar(
-                `Failed to edit ${props.dataInfo?.type} ${props.dataInfo?.identifier} - ${response.status} ${response.statusText}`,
-                { variant: "error" }
-            );
-        }
-    }
-
     return (
         <>
-            <Grid container spacing={gridSpacing} justify="space-between">
+            <Grid container spacing={gridSpacing} justifyContent="space-between">
                 {props.title && (
                     <Grid item xs={titleWidth}>
                         <Typography variant="h6">{props.title}</Typography>
@@ -163,17 +109,18 @@ export default function DetailSection(props: DetailSectionProps) {
                     container
                     spacing={gridSpacing}
                     item
-                    xs={props.dataInfo ? 10 : 12}
-                    justify="space-evenly"
+                    xs={props.editable ? 10 : 12}
+                    justifyContent="space-evenly"
                 >
                     <GridFieldsDisplay
                         fields={primaryFields}
                         editMode={editMode}
                         onEdit={OnEditData}
                         enums={props.enums}
+                        columnWidth={props.columnWidth}
                     />
                 </Grid>
-                {props.dataInfo && (
+                {props.editable && (
                     <Grid item xs={2}>
                         <FormControlLabel
                             control={<Switch color="primary" checked={editMode} size="small" />}
@@ -191,27 +138,16 @@ export default function DetailSection(props: DetailSectionProps) {
                                 setEditMode(!editMode);
                             }}
                         />
-                        {editMode && (
-                            <IconButton
-                                className={classes.fab}
-                                color="secondary"
-                                onClick={() => {
-                                    setEditMode(false);
-                                    updateData();
-                                }}
-                            >
-                                <Check fontSize="large" />
-                            </IconButton>
-                        )}
                     </Grid>
                 )}
             </Grid>
             {props.collapsibleFields && (
                 <>
                     <Collapse in={moreDetails}>
-                        <Grid container spacing={gridSpacing} justify="space-evenly">
+                        <Grid container spacing={gridSpacing} justifyContent="space-evenly">
                             <GridFieldsDisplay
                                 fields={secondaryFields}
+                                columnWidth={props.columnWidth}
                                 editMode={editMode}
                                 onEdit={OnEditData}
                                 enums={props.enums}
@@ -229,6 +165,21 @@ export default function DetailSection(props: DetailSectionProps) {
                         {moreDetails ? "Hide" : "Show"} more details
                     </Button>
                 </>
+            )}
+            {editMode && (
+                <Button
+                    variant="contained"
+                    size="small"
+                    color="secondary"
+                    onClick={() => {
+                        setEditMode(false);
+                        if (props.update) {
+                            props.update(primaryFields.concat(secondaryFields));
+                        }
+                    }}
+                >
+                    Save changes
+                </Button>
             )}
         </>
     );

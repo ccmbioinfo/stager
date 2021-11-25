@@ -1,15 +1,18 @@
 from dataclasses import asdict
 
-from flask import abort, jsonify, request, Response, Blueprint, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
-from .extensions import db, login
+from flask import abort, jsonify, request, Blueprint, current_app as app
+from flask_login import current_user, login_required
+from .extensions import db
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
 from .utils import (
     check_admin,
+    filter_datasets_by_user_groups,
+    get_current_user,
     transaction_or_abort,
-    mixin,
-    enum_validate,
+    validate_enums,
+    validate_enums_and_set_fields,
+    validate_enum,
     validate_json,
 )
 
@@ -32,15 +35,20 @@ editable_columns = [
 @login_required
 def get_tissue_sample(id: int):
 
-    app.logger.debug("Retrieving user id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
+    user = get_current_user()
 
-    if user_id:
+    if user.is_admin:
+        app.logger.debug("Processing query - unrestricted based on user id.")
+        tissue_sample = (
+            models.TissueSample.query.filter_by(tissue_sample_id=id)
+            .options(
+                joinedload(models.TissueSample.datasets),
+                joinedload(models.TissueSample.created_by),
+                joinedload(models.TissueSample.updated_by),
+            )
+            .one_or_none()
+        )
+    else:
         app.logger.debug("Processing query - restricted based on user id.")
         tissue_sample = (
             models.TissueSample.query.filter_by(tissue_sample_id=id)
@@ -60,18 +68,7 @@ def get_tissue_sample(id: int):
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
-        )
-    else:
-        app.logger.debug("Processing query - unrestricted based on user id.")
-        tissue_sample = (
-            models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(
-                joinedload(models.TissueSample.datasets),
-                joinedload(models.TissueSample.created_by),
-                joinedload(models.TissueSample.updated_by),
-            )
+            .filter(models.users_groups_table.columns.user_id == user.user_id)
             .one_or_none()
         )
 
@@ -127,7 +124,7 @@ def delete_tissue_sample(id: int):
         abort(422, description="Tissue has dataset(s), cannot delete")
 
 
-@tissue_blueprint.route("/api/tissue_samples", methods=["POST"])
+@tissue_blueprint.route("/api/tissue_samples", methods=["POST"], strict_slashes=False)
 @login_required
 @check_admin
 @validate_json
@@ -151,13 +148,9 @@ def create_tissue_sample():
     models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
     app.logger.debug("Participant ID exists")
     app.logger.debug("Validating enums")
-    enum_error = enum_validate(models.TissueSample, request.json, editable_columns)
+    validate_enums(models.TissueSample, request.json, editable_columns)
 
-    if enum_error:
-        app.logger.error("Enum invalid: " + enum_error)
-        abort(400, description=enum_error)
-    else:
-        app.logger.debug("All enums supplied are valid.")
+    app.logger.debug("All enums supplied are valid.")
 
     try:
         app.logger.debug(
@@ -214,65 +207,26 @@ def create_tissue_sample():
 @validate_json
 def update_tissue_sample(id: int):
 
-    app.logger.debug("Retrieving user id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
+    user = get_current_user()
 
-    if user_id:
-        app.logger.debug("Processing query - restricted based on user id.")
-        tissue_sample = (
-            models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(
-                contains_eager(models.TissueSample.datasets),
-                # contains_eager(models.TissueSample.created_by),
-                # contains_eager(models.TissueSample.updated_by),
-            )
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
-        )
-    else:
-        app.logger.debug("Processing query - unrestricted based on user id.")
-        tissue_sample = (
-            models.TissueSample.query.filter_by(tissue_sample_id=id)
-            .options(
-                joinedload(models.TissueSample.datasets),
-                joinedload(models.TissueSample.created_by),
-                joinedload(models.TissueSample.updated_by),
-            )
-            .one_or_none()
+    query = models.TissueSample.query.filter_by(tissue_sample_id=id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.TissueSample.datasets), user
         )
 
-    if not tissue_sample:
-        app.logger.error("No tissue samples found for tissue sample ID: '%s'", id)
-        abort(404)
+    tissue_sample = query.first_or_404()
 
     app.logger.debug("Validating enums..")
-    enum_error = mixin(tissue_sample, request.json, editable_columns)
 
-    if enum_error:
-        app.logger.error("Enum invalid: " + enum_error)
-        abort(400, description=enum_error)
-    else:
-        app.logger.debug("All enums supplied are valid.")
+    validate_enums_and_set_fields(tissue_sample, request.json, editable_columns)
 
-    if user_id:
-        app.logger.debug("Updating updated by ID to '%s'", user_id)
-        tissue_sample.updated_by_id = user_id
+    app.logger.debug("All enums supplied are valid.")
+
+    if user:
+        app.logger.debug("Updating updated by ID to '%s'", user.user_id)
+        tissue_sample.updated_by_id = user.user_id
 
     app.logger.debug("Commiting edit to tissue sample in the database..")
     transaction_or_abort(db.session.commit)

@@ -1,11 +1,23 @@
 from dataclasses import asdict
 
-from flask import abort, jsonify, request, Response, Blueprint, current_app as app
-from flask_login import login_user, logout_user, current_user, login_required
-from .extensions import db, login
+from flask import abort, jsonify, request, Blueprint, current_app as app
+from flask_login import current_user, login_required
+from sqlalchemy.orm import joinedload
+from .extensions import db
 from . import models
-from sqlalchemy.orm import contains_eager, joinedload
-from .utils import check_admin, validate_json, transaction_or_abort
+from .utils import (
+    check_admin,
+    filter_datasets_by_user_groups,
+    get_current_user,
+    validate_enums_and_set_fields,
+    validate_json,
+    transaction_or_abort,
+)
+
+editable_columns = [
+    "family_codename",
+    "family_aliases",
+]
 
 family_blueprint = Blueprint(
     "families",
@@ -13,7 +25,7 @@ family_blueprint = Blueprint(
 )
 
 
-@family_blueprint.route("/api/families", methods=["GET"])
+@family_blueprint.route("/api/families", methods=["GET"], strict_slashes=False)
 @login_required
 def list_families():
 
@@ -50,47 +62,24 @@ def list_families():
 
     app.logger.debug("Query parameters successfully parsed.")
 
-    app.logger.debug("Retrieving user id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
-    if user_id:
-        app.logger.debug("Processing query - restricted based on user id.")
-        families = (
-            models.Family.query.options(contains_eager(models.Family.participants))
-            .filter(models.Family.family_codename.like(starts_with))
-            .join(models.Participant)
-            .join(models.TissueSample)
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .order_by(column)
-            .limit(max_rows)
+    user = get_current_user()
+
+    query = models.Family.query.options(
+        joinedload(models.Family.participants),
+        joinedload(models.Family.created_by),
+        joinedload(models.Family.updated_by),
+    ).filter(models.Family.family_codename.like(starts_with))
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Family.participants)
+            .join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets),
+            user,
         )
-    else:
-        app.logger.debug("Processing query - unrestricted based on user id.")
-        families = (
-            models.Family.query.options(
-                joinedload(models.Family.participants),
-                joinedload(models.Family.created_by),
-                joinedload(models.Family.updated_by),
-            )
-            .filter(models.Family.family_codename.like(starts_with))
-            .order_by(column)
-            .limit(max_rows)
-        )
+
+    families = query.order_by(column).limit(max_rows).all()
+
     app.logger.debug("Query successful, returning JSON...")
     return jsonify(
         [
@@ -116,56 +105,26 @@ def list_families():
 @family_blueprint.route("/api/families/<int:id>", methods=["GET"])
 @login_required
 def get_family(id: int):
-    app.logger.debug("Retrieving user id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
 
-    if user_id:
-        app.logger.debug("Processing query - restricted based on user id.")
-        family = (
-            models.Family.query.filter_by(family_id=id)
-            .options(
-                contains_eager(models.Family.participants)
-                .contains_eager(models.Participant.tissue_samples)
-                .contains_eager(models.TissueSample.datasets)
-            )
-            .join(models.Participant)
-            .join(models.TissueSample)
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .one_or_none()
-        )
-    else:
-        app.logger.debug("Processing query - unrestricted based on user id.")
-        family = (
-            models.Family.query.filter_by(family_id=id)
-            .options(
-                joinedload(models.Family.participants)
-                .joinedload(models.Participant.tissue_samples)
-                .joinedload(models.TissueSample.datasets),
-                joinedload(models.Family.created_by),
-                joinedload(models.Family.updated_by),
-            )
-            .one_or_none()
+    user = get_current_user()
+
+    query = models.Family.query.filter_by(family_id=id).options(
+        joinedload(models.Family.participants).joinedload(
+            models.Participant.tissue_samples
+        ),
+        joinedload(models.Family.created_by),
+        joinedload(models.Family.updated_by),
+    )
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Family.participants)
+            .join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets),
+            user,
         )
 
-    if not family:
-        app.logger.debug("Query did not return any records.")
-        abort(404)
+    family = query.first_or_404()
 
     app.logger.debug("Query successful, returning JSON...")
     return jsonify(
@@ -185,7 +144,6 @@ def get_family(id: int):
                         "tissue_samples": [
                             {
                                 **asdict(tissue_sample),
-                                "datasets": tissue_sample.datasets,
                                 "updated_by": tissue_sample.updated_by.username,
                                 "created_by": tissue_sample.created_by.username,
                             }
@@ -241,67 +199,40 @@ def update_family(id: int):
         abort(400, description="No family codename provided")
     app.logger.debug("Family codename is in request body and is '%s'", fam_codename)
 
-    app.logger.debug("Retrieving user id..")
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-        app.logger.debug("User is admin with ID '%s'", user_id)
-    else:
-        user_id = current_user.user_id
-        app.logger.debug("User is regular with ID '%s'", user_id)
+    user = get_current_user()
 
-    if user_id:
-        app.logger.debug("Processing query - restricted based on user id.")
-        family = (
-            models.Family.query.filter_by(family_id=id)
-            .join(models.Participant)
-            .join(models.TissueSample)
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+    query = models.Family.query.filter_by(family_id=id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Family.participants)
+            .join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets),
+            user,
         )
-    else:
-        app.logger.debug("Processing query - unrestricted based on user id.")
-        family = models.Family.query.filter_by(family_id=id).first_or_404()
 
-    app.logger.debug(
-        "Family codename is being changed from '%s' to '%s'",
-        family.family_codename,
-        fam_codename,
-    )
-    family.family_codename = fam_codename
+    family = query.first_or_404()
 
-    app.logger.debug("Family code update is peformed by user: '%s'", user_id)
-    if user_id:
-        family.updated_by_id = user_id
+    validate_enums_and_set_fields(family, request.json, editable_columns)
 
-    try:
+    app.logger.debug("Family code update is peformed by user: '%s'", user.user_id)
+    if user:
+        family.updated_by_id = user.user_id
 
-        db.session.commit()
-        app.logger.debug("Update successful, returning JSON...")
-        return jsonify(
+    transaction_or_abort(db.session.commit)
+
+    return jsonify(
+        [
             {
                 **asdict(family),
                 "updated_by": family.updated_by.username,
                 "created_by": family.created_by.username,
             }
-        )
-    except:
-        app.logger.error("Update unsuccessful")  # under what cases would this fail
-        db.session.rollback()
-        abort(500)
+        ]
+    )
 
 
-@family_blueprint.route("/api/families", methods=["POST"])
+@family_blueprint.route("/api/families", methods=["POST"], strict_slashes=False)
 @login_required
 @check_admin
 @validate_json

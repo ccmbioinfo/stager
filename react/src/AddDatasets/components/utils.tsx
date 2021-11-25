@@ -1,16 +1,17 @@
-import { DataEntryHeader, DataEntryRow, Family, Option, Participant } from "../../typings";
-import { getDataEntryHeaders, snakeCaseToTitle, strIsEmpty } from "../../functions";
+import {
+    DataEntryColumnConfig,
+    DataEntryField,
+    DataEntryRow,
+    Family,
+    Option,
+    UnlinkedFile,
+} from "../../typings";
 
-export const booleanColumns: Array<keyof DataEntryRow> = ["affected", "solved"];
-export const dateColumns: Array<keyof DataEntryRow> = ["sequencing_date"];
-export const participantColumns: ("participant_type" | "sex" | "affected" | "solved")[] = [
-    "participant_type",
-    "sex",
-    "affected",
-    "solved",
-];
+export const booleanColumns: DataEntryField[] = ["affected", "solved", "vcf_available"];
+export const dateColumns: DataEntryField[] = ["sequencing_date"];
+export const participantColumns = ["participant_type", "sex", "affected", "solved"];
 // Columns whose values are predefined
-export const enumerableColumns: Array<keyof DataEntryRow> = [
+export const enumerableColumns: DataEntryField[] = [
     "linked_files",
     "condition",
     "dataset_type",
@@ -20,34 +21,16 @@ export const enumerableColumns: Array<keyof DataEntryRow> = [
     "institution",
 ];
 
-// Convert a field string (snake_case) into a displayable title (Snake Case)
-function formatFieldToTitle(field: string): string {
-    return snakeCaseToTitle(field) // convert to title case
-        .replace(/([iI][dD])/g, txt => txt.toUpperCase()); // capitalize any occurrance of "ID"
-}
-
-// Given a DataEntryRow field, return a new DataEntryHeader obj
-function toColumn(field: keyof DataEntryRow, hidden?: boolean, title?: string): DataEntryHeader {
-    return {
-        field: field,
-        title: title ? title : formatFieldToTitle(field),
-        hidden: hidden,
-    };
-}
-
-// Return the specified category of DataEntryHeaders for use in the table
-export function getColumns(category: "required" | "optional" | "RNASeq"): DataEntryHeader[] {
-    return (getDataEntryHeaders()[category] as Array<keyof DataEntryRow>).map(field =>
-        toColumn(field, category !== "required")
-    );
-}
-
 // Convert the provided value into an Option
 export function toOption(
-    str: string | boolean | number | undefined | Option,
+    str: string | boolean | number | undefined | Option | null,
     origin?: string,
     disabled?: boolean
 ): Option {
+    if (str === null) {
+        //typof null === 'object
+        str = undefined;
+    }
     let inputValue = str;
 
     switch (typeof str) {
@@ -81,18 +64,24 @@ export function toOption(
  */
 export function getOptions(
     rows: DataEntryRow[],
-    col: DataEntryHeader,
+    col: DataEntryColumnConfig,
     rowIndex: number,
     families: Family[],
     enums: Record<string, string[]> | undefined,
-    files: string[],
+    files: UnlinkedFile[],
     institutions: string[]
-): Option[] {
+) {
     const row = rows[rowIndex];
     const rowOptions = rows
-        .filter((val, index) => index !== rowIndex) // not this row
-        .map(val =>
-            toOption(col.field === "linked_files" ? undefined : val[col.field], "Previous rows")
+        .filter((_, index) => index !== rowIndex) // not this row
+        .map(row =>
+            toOption(
+                //type discrimination, these fields manage their own options
+                col.field === "linked_files" || col.field === "candidate_genes"
+                    ? undefined
+                    : row.fields[col.field],
+                "Previous rows"
+            )
         );
 
     const familyCodenames: string[] = families.map(value => value.family_codename);
@@ -106,7 +95,7 @@ export function getOptions(
             return familyOptions.concat(rowOptions);
 
         case "participant_codename":
-            const thisFamily = row.family_codename;
+            const thisFamily = row.fields.family_codename;
             if (familyCodenames.findIndex(family => family === thisFamily) !== -1) {
                 const existingParts = families
                     .filter(family => family.family_codename === thisFamily)
@@ -165,7 +154,7 @@ export function getOptions(
             return booleans.map(b => toOption(b, "Is Solved"));
 
         case "linked_files":
-            return files.map(f => toOption(f, "Unlinked files"));
+            return files;
 
         case "condition":
             if (enums) {
@@ -184,43 +173,37 @@ export function getOptions(
 }
 
 /**
- * Checks if a pre-existing participant has valid values, and should be disabled.
- * Return true if valid, false otherwise.
- * @param participant The pre-existing participant in question.
- * @param enums The result from /api/enums
+ * Convert an array of objects to a CSV string.
+ *
+ * Precondition: all objects in the array have the same keys.
+ *
+ * @param rows An array of DataEntryFields.
+ * @param headers Array of column headers aka. keys of the provided rows to return.
+ * @param onlyHeaders If true, only returns the header row.
  */
-export function checkParticipant(
-    participant: Participant,
-    enums?: Record<string, string[]>
-): boolean {
-    const required: string[] = getDataEntryHeaders().required;
+export function objArrayToCSV(
+    rows: DataEntryRow[],
+    headers: DataEntryField[],
+    onlyHeaders: boolean = false
+): string {
+    if (rows.length === 0 || headers.length === 0) return "";
 
-    return participantColumns.every(column => {
-        if (required.includes(column)) {
-            // required columns should be checked to be valid
+    let csv = headers.join(",") + "\n";
 
-            const index = snakeToTitle(column);
-            // must be defined
-            if (!participant[column]) return false;
+    if (onlyHeaders) return csv;
 
-            if (enumerableColumns.includes(column)) {
-                // if enumerable, must be valid value
-                return enums?.[index].includes(participant[column]);
-            } else if (booleanColumns.includes(column)) {
-                return ["true", "false"].includes(participant[column]);
-            } else {
-                return !strIsEmpty(participant[column]);
-            }
-        } else {
-            // optional columns are fine
-            return true;
+    for (const row of rows) {
+        let values: string[] = [];
+        for (const header of headers) {
+            let value = row.fields[header];
+            if (Array.isArray(value)) value = value.join("|");
+            else if (!value) value = "";
+            else if (typeof value !== "string") value = "" + value;
+            value.replaceAll(/"/g, '""');
+            values.push(`"${value}"`);
         }
-    });
-}
+        csv += values.join(",") + "\n";
+    }
 
-function snakeToTitle(str: string): string {
-    return str
-        .split("_")
-        .map(word => word.substring(0, 1).toUpperCase() + word.substring(1))
-        .join("");
+    return csv;
 }

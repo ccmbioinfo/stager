@@ -1,24 +1,35 @@
 from dataclasses import asdict
 
-from flask import Blueprint, Response, abort, current_app as app, jsonify, request
+from flask import Blueprint, Response, abort, jsonify, request
+from flask import current_app as app
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm.exc import NoResultFound
 
 from . import models
 from .extensions import db
 from .utils import (
     check_admin,
-    enum_validate,
+    csv_response,
+    expects_csv,
+    expects_json,
+    filter_datasets_by_user_groups,
     filter_in_enum_or_abort,
     filter_nullable_bool_or_abort,
-    mixin,
+    filter_updated_or_abort,
+    get_current_user,
     paged,
+    paginated_response,
     transaction_or_abort,
+    str_to_bool,
+    validate_enums_and_set_fields,
+    validate_enums,
     validate_json,
 )
 
 editable_columns = [
+    "participant_aliases",
     "participant_codename",
     "sex",
     "participant_type",
@@ -35,12 +46,16 @@ participants_blueprint = Blueprint(
 )
 
 
-@participants_blueprint.route("/api/participants", methods=["GET"])
+@participants_blueprint.route(
+    "/api/participants", methods=["GET"], strict_slashes=False
+)
 @login_required
 @paged
 def list_participants(page: int, limit: int) -> Response:
+
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
+        "participant_id",
         "family_codename",
         "participant_codename",
         "notes",
@@ -48,6 +63,7 @@ def list_participants(page: int, limit: int) -> Response:
         "sex",
         "affected",
         "solved",
+        "updated",
     ]
     if order_by is None:
         order = None  # system default, likely participant_id
@@ -60,24 +76,45 @@ def list_participants(page: int, limit: int) -> Response:
     else:
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
+    order_dir = request.args.get("order_dir", type=str)
+
+    if order_dir and order_dir not in ["desc", "asc"]:
+        abort(400, description="order_dir must be either 'asc' or 'desc'")
+
     if order:
-        order_dir = request.args.get("order_dir", type=str)
         if order_dir == "desc":
             order = order.desc()
-        elif order_dir == "asc":
-            order = order.asc()
-        else:
-            abort(400, description="order_dir must be either 'asc' or 'desc'")
 
     filters = []
     family_codename = request.args.get("family_codename", type=str)
+    family_codename_exact_match = request.args.get(
+        "family_codename_exact_match", type=str_to_bool, default=False
+    )
+
     if family_codename:
-        filters.append(func.instr(models.Family.family_codename, family_codename))
+        if family_codename_exact_match:
+            filters.append(models.Family.family_codename == family_codename)
+        else:
+            filters.append(func.instr(models.Family.family_codename, family_codename))
+
     participant_codename = request.args.get("participant_codename", type=str)
+    participant_codename_exact_match = request.args.get(
+        "participant_codename_exact_match",
+        type=str_to_bool,
+        default=False,
+    )
     if participant_codename:
-        filters.append(
-            func.instr(models.Participant.participant_codename, participant_codename)
-        )
+        if participant_codename_exact_match:
+            filters.append(
+                models.Participant.participant_codename == participant_codename
+            )
+        else:
+            filters.append(
+                func.instr(
+                    models.Participant.participant_codename, participant_codename
+                )
+            )
+
     notes = request.args.get("notes", type=str)
     if notes:
         filters.append(func.instr(models.Participant.notes, notes))
@@ -101,23 +138,37 @@ def list_participants(page: int, limit: int) -> Response:
     solved = request.args.get("solved", type=str)
     if solved:
         filters.append(filter_nullable_bool_or_abort(models.Participant.solved, solved))
+    updated = request.args.get("updated", type=str)
+    if updated:
+        filters.append(filter_updated_or_abort(models.Participant.updated, updated))
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-    if user_id:  # Regular user or assumed identity, return only permitted participants
+    user = get_current_user()
+
+    if user.is_admin:
         query = (
             models.Participant.query.options(
                 joinedload(models.Participant.institution),
                 contains_eager(models.Participant.family),
-                contains_eager(models.Participant.tissue_samples).contains_eager(
-                    models.TissueSample.datasets
-                ),
+                joinedload(models.Participant.tissue_samples)
+                .joinedload(models.TissueSample.datasets)
+                .joinedload(models.Dataset.linked_files),
+            )
+            .join(models.Participant.family)
+            .filter(*filters)
+        )
+    else:
+        query = (
+            models.Participant.query.options(
+                joinedload(models.Participant.institution),
+                contains_eager(models.Participant.family),
+                contains_eager(models.Participant.tissue_samples)
+                .contains_eager(models.TissueSample.datasets)
+                .contains_eager(models.Dataset.linked_files),
             )
             .join(models.Participant.family)
             .outerjoin(models.Participant.tissue_samples)
             .outerjoin(models.TissueSample.datasets)
+            .outerjoin(models.Dataset.linked_files)
             .join(
                 models.groups_datasets_table,
                 models.Dataset.dataset_id
@@ -128,20 +179,20 @@ def list_participants(page: int, limit: int) -> Response:
                 models.groups_datasets_table.columns.group_id
                 == models.users_groups_table.columns.group_id,
             )
-            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
+            .filter(models.users_groups_table.columns.user_id == user.user_id, *filters)
         )
-    else:  # Admin or LOGIN_DISABLED, authorized to query all participants
-        query = (
-            models.Participant.query.options(
-                joinedload(models.Participant.institution),
-                contains_eager(models.Participant.family),
-                joinedload(models.Participant.tissue_samples).joinedload(
-                    models.TissueSample.datasets
-                ),
-            )
-            .join(models.Participant.family)
-            .filter(*filters)
+
+    dataset_type = request.args.get("dataset_type", type=str)
+    if dataset_type:
+        subquery = (
+            models.Participant.query.join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets)
+            .filter(models.Dataset.dataset_type.in_(dataset_type.split(",")))
+            .with_entities(models.Participant.participant_id)
+            .subquery()
         )
+        query = query.filter(models.Participant.participant_id.in_(subquery))
+
     # .count() returns the number of rows in the SQL response. When we join across a one-to-many
     # relationship, each parent row is multiplied by the number of children it has. This causes
     # .count() to disagree with len() as SQLAlchemy reroutes the duplicated rows back into their
@@ -152,27 +203,110 @@ def list_participants(page: int, limit: int) -> Response:
         func.count(distinct(models.Participant.participant_id))
     ).scalar()
     participants = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
+    results = [
+        {
+            **asdict(participant),
+            "family_codename": participant.family.family_codename,
+            "family_aliases": participant.family.family_aliases,
+            "family_id": participant.family.family_id,
+            "institution": participant.institution.institution
+            if participant.institution
+            else None,
+            "updated_by": participant.updated_by.username,
+            "created_by": participant.created_by.username,
+            "tissue_samples": [
+                {
+                    **asdict(tissue_sample),
+                    "datasets": [
+                        {**asdict(d), "linked_files": d.linked_files}
+                        for d in tissue_sample.datasets
+                    ],
+                }
+                for tissue_sample in participant.tissue_samples
+            ],
+        }
+        for participant in participants
+    ]
+
+    if expects_json(request):
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+        return csv_response(
+            results,
+            "participants_report.csv",
+            [
+                "participant_codename",
+                "family_codename",
+                "participant_type",
+                "affected",
+                "solved",
+                "sex",
+                "notes",
+                "updated_by",
+                "created_by",
+            ],
+        )
+
+    abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
+
+
+@participants_blueprint.route("/api/participants/<int:id>", methods=["GET"])
+@login_required
+def get_participant(id: int):
+
+    user = get_current_user()
+
+    query = models.Participant.query.filter(
+        models.Participant.participant_id == id
+    ).options(
+        joinedload(models.Participant.family),
+        joinedload(models.Participant.institution),
+    )
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Participant.tissue_samples)
+            .join(models.TissueSample.datasets)
+            .options(
+                contains_eager(models.Participant.tissue_samples).contains_eager(
+                    models.TissueSample.datasets
+                ),
+            ),
+            user,
+        )
+
+    participant = query.one_or_none()
+
+    if not participant:
+        abort(404)
 
     return jsonify(
         {
-            "data": [
+            **asdict(participant),
+            "family_codename": participant.family.family_codename,
+            "family_aliases": participant.family.family_aliases,
+            "institution": participant.institution.institution
+            if participant.institution
+            else None,
+            "updated_by": participant.updated_by.username,
+            "created_by": participant.created_by.username,
+            "tissue_samples": [
                 {
-                    **asdict(participant),
-                    "family_codename": participant.family.family_codename,
-                    "institution": participant.institution.institution
-                    if participant.institution
-                    else None,
-                    "updated_by": participant.updated_by.username,
-                    "created_by": participant.created_by.username,
-                    "tissue_samples": [
-                        {**asdict(tissue_sample), "datasets": tissue_sample.datasets}
-                        for tissue_sample in participant.tissue_samples
+                    **asdict(tissue_sample),
+                    "created_by": tissue_sample.created_by.username,
+                    "updated_by": tissue_sample.updated_by.username,
+                    "datasets": [
+                        {
+                            **asdict(d),
+                            "linked_files": d.linked_files,
+                            "created_by": d.created_by.username,
+                            "updated_by": d.updated_by.username,
+                        }
+                        for d in tissue_sample.datasets
                     ],
                 }
-                for participant in participants
+                for tissue_sample in participant.tissue_samples
             ],
-            "page": page if limit else 0,
-            "total_count": total_count,
         }
     )
 
@@ -203,41 +337,24 @@ def delete_participant(id: int):
 @validate_json
 def update_participant(id: int):
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
+    user = get_current_user()
 
-    if user_id:
-        participant = (
-            models.Participant.query.filter(models.Participant.participant_id == id)
-            .join(models.TissueSample)
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+    query = models.Participant.query.filter(models.Participant.participant_id == id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Participant.tissue_samples).join(
+                models.TissueSample.datasets
+            ),
+            user,
         )
-    else:
-        participant = models.Participant.query.filter(
-            models.Participant.participant_id == id
-        ).first_or_404()
 
-    enum_error = mixin(participant, request.json, editable_columns)
+    participant = query.first_or_404()
 
-    if enum_error:
-        abort(400, description="enum_error")
+    validate_enums_and_set_fields(participant, request.json, editable_columns)
 
-    if user_id:
-        participant.updated_by_id = user_id
+    if user:
+        participant.updated_by_id = user.user_id
 
     transaction_or_abort(db.session.commit)
 
@@ -255,7 +372,9 @@ def update_participant(id: int):
     )
 
 
-@participants_blueprint.route("/api/participants", methods=["POST"])
+@participants_blueprint.route(
+    "/api/participants", methods=["POST"], strict_slashes=False
+)
 @login_required
 @check_admin
 @validate_json
@@ -285,10 +404,7 @@ def create_participant():
     ).first_or_404()
 
     # validate enums
-    enum_error = enum_validate(models.Participant, request.json, editable_columns)
-
-    if enum_error:
-        abort(400, description=enum_error)
+    validate_enums(models.Participant, request.json, editable_columns)
 
     # get institution id
     institution = request.json.get("institution")

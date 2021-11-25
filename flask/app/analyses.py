@@ -1,21 +1,28 @@
 from dataclasses import asdict
 from datetime import datetime
-from typing import Container
 
-from flask_login import current_user, login_required
-from sqlalchemy import distinct, func
-from sqlalchemy.orm import aliased, contains_eager
+from flask_login import login_required
+from sqlalchemy import distinct, func, or_
+from sqlalchemy.orm import aliased, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
-
+from sqlalchemy.sql.expression import cast
 from . import models
 from .extensions import db
 from .utils import (
     check_admin,
+    clone_entity,
+    csv_response,
+    expects_csv,
+    expects_json,
+    filter_datasets_by_user_groups,
     filter_in_enum_or_abort,
     filter_updated_or_abort,
-    mixin,
+    get_current_user,
+    validate_enums_and_set_fields,
+    validate_enums,
     paged,
+    paginated_response,
     transaction_or_abort,
     validate_json,
 )
@@ -30,6 +37,9 @@ analyses_blueprint = Blueprint(
 @login_required
 @paged
 def list_analyses(page: int, limit: int) -> Response:
+
+    app.logger.debug("Parsing query parameters..")
+
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
         "updated",
@@ -39,9 +49,13 @@ def list_analyses(page: int, limit: int) -> Response:
         "pipeline_id",
         "assignee",
         "requester",
+        "priority",
+        "requested",
+        "analysis_id",
     ]
-    assignee_user = aliased(models.User)
-    requester_user = aliased(models.User)
+    assignee_user = aliased(models.Analysis.assignee)
+    requester_user = aliased(models.Analysis.requester)
+    app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
     elif order_by == "assignee":
@@ -56,32 +70,63 @@ def list_analyses(page: int, limit: int) -> Response:
         abort(400, description=f"order_by must be one of {allowed_columns}")
 
     if order:
+        app.logger.debug("Validating 'order_dir' parameter..")
         order_dir = request.args.get("order_dir", type=str)
+        # need to cast here because the cast value doesn't have a boolean representation
+        order = cast(order, db.CHAR) if order_by == "analysis_state" else order
         if order_dir == "desc":
             order = order.desc()
         elif order_dir == "asc":
             order = order.asc()
         else:
             abort(400, description="order_dir must be either 'asc' or 'desc'")
+        app.logger.debug("Ordering by '%s' in '%s' direction", order_by, order_dir)
+
+    app.logger.debug("Validating filter parameters..")
 
     filters = []
     assignee = request.args.get("assignee", type=str)
     if assignee:
+        app.logger.debug("Filter by assignee: '%s'", assignee)
         filters.append(func.instr(assignee_user.username, assignee))
     requester = request.args.get("requester", type=str)
     if requester:
+        app.logger.debug("Filter by requester: '%s'", requester)
         filters.append(func.instr(requester_user.username, requester))
     notes = request.args.get("notes", type=str)
     if notes:
+        app.logger.debug("Filter by notes: '%s'", notes)
         filters.append(func.instr(models.Analysis.notes, notes))
+    # this edges into the [GET] /:id endpoint, but the index/show payloads diverge, causing issues for the FE, and this is technically still a filter
+    analysis_id = request.args.get("analysis_id", type=str)
+    if analysis_id:
+        app.logger.debug("Filter by analysis_id: '%s'", analysis_id)
+        filters.append(func.instr(models.Analysis.analysis_id, analysis_id))
+    priority = request.args.get("priority", type=str)
+    if priority:
+        app.logger.debug("Filter by priority: '%s'", priority)
+        filters.append(
+            filter_in_enum_or_abort(
+                models.Analysis.priority,
+                models.PriorityType,
+                priority,
+            )
+        )
     result_path = request.args.get("result_path", type=str)
     if result_path:
+        app.logger.debug("Filter by result_path: '%s'", result_path)
         filters.append(func.instr(models.Analysis.result_path, result_path))
     updated = request.args.get("updated", type=str)
     if updated:
+        app.logger.debug("Filter by updated: '%s'", updated)
         filters.append(filter_updated_or_abort(models.Analysis.updated, updated))
+    requested = request.args.get("requested", type=str)
+    if requested:
+        app.logger.debug("Filter by requested: '%s'", requested)
+        filters.append(filter_updated_or_abort(models.Analysis.requested, requested))
     analysis_state = request.args.get("analysis_state", type=str)
     if analysis_state:
+        app.logger.debug("Filter by analysis_state: '%s'", analysis_state)
         filters.append(
             filter_in_enum_or_abort(
                 models.Analysis.analysis_state,
@@ -99,99 +144,192 @@ def list_analyses(page: int, limit: int) -> Response:
             )
         except ValueError as err:
             abort(400, description=err)
+        app.logger.debug("Filter by pipeline_id: '%s'", pipeline_id)
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-    query = models.Analysis.query
+    user = get_current_user()
+
+    app.logger.debug("Querying and applying filters..")
+
+    query = models.Analysis.query.options(
+        selectinload(models.Analysis.datasets).options(
+            selectinload(models.Dataset.tissue_sample).options(
+                selectinload(models.TissueSample.participant).options(
+                    selectinload(models.Participant.family)
+                )
+            )
+        )
+    ).filter(*filters)
+
     if assignee:
         query = query.join(assignee_user, models.Analysis.assignee)
     if requester:
         query = query.join(requester_user, models.Analysis.requester)
-    if user_id:  # Regular user or assumed identity, return only permitted analyses
-        query = (
-            query.join(models.datasets_analyses_table)
-            .join(
-                models.groups_datasets_table,
-                models.datasets_analyses_table.columns.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id, *filters)
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Analysis.datasets), user
         )
-    else:  # Admin or LOGIN_DISABLED, authorized to query all analyses
-        query = query.filter(*filters)
+
+    participant_codename = request.args.get("participant_codename", type=str)
+    if participant_codename:
+        app.logger.debug(
+            "Filtering by participant_codename: '%s' (subquery)", participant_codename
+        )
+        # use a subquery on one-to-many-related fields instead of eager/filter so that the related fields themselves aren't excluded
+        # (we want all analyses that have at least 1 particpant that matches the search, along with *all* related participants)
+        subquery = (
+            models.Analysis.query.join(models.Analysis.datasets)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .filter(
+                func.instr(
+                    models.Participant.participant_codename, participant_codename
+                )
+            )
+            .with_entities(models.Analysis.analysis_id)
+            .subquery()
+        )
+        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+
+    family_codename = request.args.get("family_codename", type=str)
+    if family_codename:
+        app.logger.debug(
+            "Filtering by family_codename: '%s' (subquery)", family_codename
+        )
+        subquery = (
+            models.Analysis.query.join(models.Analysis.datasets)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .filter(func.instr(models.Family.family_codename, family_codename))
+            .with_entities(models.Analysis.analysis_id)
+            .subquery()
+        )
+        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+
+    if request.args.get("search"):  # multifield search
+        app.logger.debug(
+            "Searching across multiple fields by '%s'", request.args.get("search")
+        )
+        subquery = (
+            models.Analysis.query.join(models.Analysis.datasets)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .filter(
+                or_(
+                    func.instr(
+                        models.Family.family_codename, request.args.get("search")
+                    ),
+                    func.instr(
+                        models.Family.family_aliases, request.args.get("search")
+                    ),
+                    func.instr(
+                        models.Participant.participant_codename,
+                        request.args.get("search"),
+                    ),
+                    func.instr(
+                        models.Participant.participant_aliases,
+                        request.args.get("search"),
+                    ),
+                )
+            )
+            .with_entities(models.Analysis.analysis_id)
+            .subquery()
+        )
+        query = query.filter(models.Analysis.analysis_id.in_(subquery))
 
     total_count = query.with_entities(
         func.count(distinct(models.Analysis.analysis_id))
     ).scalar()
+
+    # this is needed to for sorting to work on assignee/requester
+    query = (
+        query.join(assignee_user, models.Analysis.assignee, isouter=True)
+        if order_by == "assignee"
+        else query
+    )
+    query = (
+        query.join(requester_user, models.Analysis.requester)
+        if order_by == "requester"
+        else query
+    )
+
     analyses = query.order_by(order).limit(limit).offset(page * (limit or 0)).all()
 
-    return jsonify(
+    app.logger.info("Query successful")
+
+    results = [
         {
-            "data": [
-                {
-                    **asdict(analysis),
-                    "requester": analysis.requester.username,
-                    "updated_by": analysis.updated_by.username,
-                    "assignee": analysis.assignee_id and analysis.assignee.username,
-                    "pipeline": analysis.pipeline,
-                }
-                for analysis in analyses
+            **asdict(analysis),
+            "sequencing_id": [d.sequencing_id for d in analysis.datasets],
+            "participant_codenames": [
+                d.tissue_sample.participant.participant_codename
+                for d in analysis.datasets
             ],
-            "page": page if limit else 0,
-            "total_count": total_count,
+            "family_codenames": [
+                d.tissue_sample.participant.family.family_codename
+                for d in analysis.datasets
+            ],
+            "requester": analysis.requester.username,
+            "updated_by": analysis.updated_by.username,
+            "assignee": analysis.assignee_id and analysis.assignee.username,
+            "pipeline": analysis.pipeline,
         }
-    )
+        for analysis in analyses
+    ]
+
+    if expects_json(request):
+        app.logger.debug("Returning paginated response..")
+        return paginated_response(results, page, total_count, limit)
+    elif expects_csv(request):
+        app.logger.debug("Returning paginated response..")
+
+        results = [
+            {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
+            for result in results
+        ]
+
+        return csv_response(
+            results,
+            filename="analyses_report.csv",
+            colnames=[
+                "pipeline",
+                "analysis_state",
+                "participant_codenames",
+                "family_codenames",
+                "priority",
+                "requester",
+                "assignee",
+                "updated",
+                "result_path",
+                "notes",
+                "analysis_id",
+                "sequencing_id",
+            ],
+        )
+
+    abort(406, "Only 'text/csv' and 'application/json' HTTP accept headers supported")
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["GET"])
 @login_required
 def get_analysis(id: int):
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
 
-    if user_id:
-        analysis = (
-            models.Analysis.query.filter(models.Analysis.analysis_id == id)
-            .options(contains_eager(models.Analysis.datasets))
-            .join(
-                models.datasets_analyses_table,
-                models.Analysis.analysis_id
-                == models.datasets_analyses_table.columns.analysis_id,
-            )
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .join(models.Pipeline)
-            .one_or_none()
+    user = get_current_user()
+
+    query = models.Analysis.query.filter(models.Analysis.analysis_id == id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Analysis.datasets), user
         )
-    else:
-        analysis = (
-            models.Analysis.query.filter(models.Analysis.analysis_id == id)
-            .outerjoin(models.Analysis.datasets)
-            .join(models.Pipeline)
-            .one_or_none()
-        )
+
+    analysis = query.one_or_none()
 
     if not analysis:
         return abort(404)
+
+    app.logger.debug("Query successful returning JSON..")
 
     return jsonify(
         {
@@ -203,9 +341,13 @@ def get_analysis(id: int):
             "datasets": [
                 {
                     **asdict(dataset),
+                    "linked_files": dataset.linked_files,
+                    "group_code": [group.group_code for group in dataset.groups],
                     "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                     "participant_codename": dataset.tissue_sample.participant.participant_codename,
                     "participant_type": dataset.tissue_sample.participant.participant_type,
+                    "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
+                    "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
                     "institution": dataset.tissue_sample.participant.institution.institution
                     if dataset.tissue_sample.participant.institution
                     else None,
@@ -213,6 +355,7 @@ def get_analysis(id: int):
                     "family_codename": dataset.tissue_sample.participant.family.family_codename,
                     "updated_by": dataset.tissue_sample.updated_by.username,
                     "created_by": dataset.tissue_sample.created_by.username,
+                    "participant_notes": dataset.tissue_sample.participant.notes,
                 }
                 for dataset in analysis.datasets
             ],
@@ -225,49 +368,49 @@ def get_analysis(id: int):
 @validate_json
 def create_analysis():
 
+    app.logger.debug("Validating pipeline_id parameter..")
     pipeline_id = request.json.get("pipeline_id")
     if not isinstance(pipeline_id, int):
         abort(400, description="Missing pipeline_id field or invalid type")
 
+    app.logger.debug("Validating datasets parameter..")
     datasets = request.json.get("datasets")
     if not (isinstance(datasets, list) and len(datasets)):
         abort(400, description="Missing datasets field or invalid type")
 
+    app.logger.debug("Validating notes parameter..")
+    notes = request.json.get("notes")
+    if notes and not isinstance(notes, str):
+        abort(400, description="Invalid notes type")
+
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
 
-    if app.config.get("LOGIN_DISABLED"):
-        user_id = request.args.get("user")
-        requester_id = updated_by_id = user_id or 1
-    elif current_user.is_admin:
-        user_id = request.args.get("user")
-        requester_id = updated_by_id = user_id or current_user.user_id
-    else:
-        requester_id = updated_by_id = user_id = current_user.user_id
+    app.logger.debug("Validating priority parameter..")
 
-    if user_id:
-        found_datasets_query = (
-            models.Dataset.query.join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-        )
-    else:
-        found_datasets_query = models.Dataset.query
+    validate_enums(models.Analysis, request.json, ["priority"])
 
-    found_datasets = found_datasets_query.filter(
+    user = get_current_user()
+
+    requester_id = updated_by_id = user.user_id
+
+    found_datasets_query = models.Dataset.query.filter(
         models.Dataset.dataset_id.in_(datasets)
-    ).all()
+    )
+
+    if not user.is_admin:
+        found_datasets_query = filter_datasets_by_user_groups(
+            found_datasets_query, user
+        )
+
+    found_datasets = found_datasets_query.all()
 
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
+
+    app.logger.debug(
+        "Verifying that requested datasets are compatible with requested pipeline.."
+    )
 
     compatible_datasets_pipelines_query = (
         db.session.query(
@@ -293,18 +436,25 @@ def create_analysis():
     if len(compatible_datasets_pipelines_query) != len(datasets):
         abort(404, description="Requested pipelines are incompatible with datasets")
 
+    app.logger.debug("Creating analysis..")
+
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
         pipeline_id=pipeline_id,
+        priority=request.json.get("priority"),
         requester_id=requester_id,
         requested=now,
         updated=now,
         updated_by_id=updated_by_id,
         datasets=found_datasets,
+        notes=notes,
     )
+
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Analysis created successfully, returning JSON..")
 
     return (
         jsonify(
@@ -337,10 +487,96 @@ def create_analysis():
     )
 
 
+@analyses_blueprint.route("/api/analyses/<int:id>", methods=["POST"])
+@login_required
+def create_reanalysis(id: int):
+    app.logger.info(f"Checking if analysis {id} exists...")
+    analysis = models.Analysis.query.filter(
+        models.Analysis.analysis_id == id
+    ).first_or_404()
+
+    datasets = [dataset.dataset_id for dataset in analysis.datasets]
+
+    user = get_current_user()
+
+    if app.config.get("LOGIN_DISABLED"):
+        requester_id = updated_by_id = user.user_id
+    else:
+        requester_id = updated_by_id = user.user_id
+
+    found_datasets_query = models.Dataset.query.filter(
+        models.Dataset.dataset_id.in_(datasets)
+    )
+
+    if not user.is_admin:
+        found_datasets_query = filter_datasets_by_user_groups(
+            found_datasets_query, user
+        )
+
+    found_datasets = found_datasets_query.all()
+
+    if len(found_datasets) != len(datasets):
+        abort(404, description="Some datasets were not found")
+
+    # TODO: Do we need to check for compatibility if the previous analysis already exists?
+
+    app.logger.info("Cloning previous analysis...")
+    # Clone attributes from existing analysis, overwrite some
+    now = datetime.now()
+    new_analysis = clone_entity(
+        analysis,
+        analysis_state="Requested",
+        requested=now,
+        updated=now,
+        requester_id=requester_id,
+        updated_by_id=updated_by_id,
+        notes=f"Reanalysis of analysis ID {id}",
+        datasets=found_datasets,
+    )
+
+    db.session.add(new_analysis)
+    transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Analysis creation successful, returning JSON..")
+
+    return (
+        jsonify(
+            {
+                **asdict(new_analysis),
+                "requester": new_analysis.requester_id
+                and new_analysis.requester.username,
+                "updated_by": new_analysis.updated_by_id
+                and new_analysis.updated_by.username,
+                "assignee": new_analysis.assignee_id and new_analysis.assignee.username,
+                "pipeline": new_analysis.pipeline,
+                "datasets": [
+                    {
+                        **asdict(dataset),
+                        "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                        "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                        "participant_type": dataset.tissue_sample.participant.participant_type,
+                        "institution": dataset.tissue_sample.participant.institution.institution
+                        if dataset.tissue_sample.participant.institution
+                        else None,
+                        "sex": dataset.tissue_sample.participant.sex,
+                        "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                        "updated_by": dataset.tissue_sample.updated_by.username,
+                        "created_by": dataset.tissue_sample.created_by.username,
+                    }
+                    for dataset in new_analysis.datasets
+                ],
+            }
+        ),
+        201,
+        {"location": f"/api/analyses/{new_analysis.analysis_id}"},
+    )
+
+
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["DELETE"])
 @login_required
 @check_admin
 def delete_analysis(id: int):
+    app.logger.debug(f"Checking if analysis {id} exists..")
     analysis = models.Analysis.query.filter(
         models.Analysis.analysis_id == id
     ).first_or_404()
@@ -348,6 +584,7 @@ def delete_analysis(id: int):
     try:
         db.session.delete(analysis)
         db.session.commit()
+        app.logger.debug("Deletion successful")
         return "Updated", 204
     except:
         db.session.rollback()
@@ -359,45 +596,27 @@ def delete_analysis(id: int):
 @validate_json
 def update_analysis(id: int):
 
-    if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
-        user_id = request.args.get("user")
-    else:
-        user_id = current_user.user_id
-        if request.json.get("analysis_state") not in [
-            "Cancelled",
-            None,  # account for default
-        ]:
-            abort(
-                403,
-                description="Analysis state changes are restricted to administrators",
-            )
+    app.logger.debug("Getting user_id..")
 
-    if user_id:
-        analysis = (
-            models.Analysis.query.filter(models.Analysis.analysis_id == id)
-            .join(
-                models.datasets_analyses_table,
-                models.Analysis.analysis_id
-                == models.datasets_analyses_table.columns.analysis_id,
-            )
-            .join(models.Dataset)
-            .join(
-                models.groups_datasets_table,
-                models.Dataset.dataset_id
-                == models.groups_datasets_table.columns.dataset_id,
-            )
-            .join(
-                models.users_groups_table,
-                models.groups_datasets_table.columns.group_id
-                == models.users_groups_table.columns.group_id,
-            )
-            .filter(models.users_groups_table.columns.user_id == user_id)
-            .first_or_404()
+    user = get_current_user()
+
+    if not user.is_admin and request.json.get("analysis_state") not in [
+        "Cancelled",
+        None,  # account for default
+    ]:
+        abort(
+            403,
+            description="Analysis state changes are restricted to administrators",
         )
-    else:
-        analysis = models.Analysis.query.filter(
-            models.Analysis.analysis_id == id
-        ).first_or_404()
+
+    query = models.Analysis.query.filter(models.Analysis.analysis_id == id)
+
+    if not user.is_admin:
+        query = filter_datasets_by_user_groups(
+            query.join(models.Analysis.datasets), user
+        )
+
+    analysis = query.first_or_404()
 
     editable_columns = [
         "analysis_state",
@@ -408,7 +627,10 @@ def update_analysis(id: int):
         "started",
         "finished",
         "notes",
+        "priority",
     ]
+
+    app.logger.debug("Validating assignee parameter..")
 
     if "assignee" in request.json:
         if not request.json["assignee"]:
@@ -418,14 +640,15 @@ def update_analysis(id: int):
                 models.User.username == request.json["assignee"]
             ).first()
             if assignee:
-                analysis.assignee = assignee.user_id
+                analysis.assignee = assignee
             else:
                 abort(400, description="Assignee not found")
 
-    enum_error = mixin(analysis, request.json, editable_columns)
+    validate_enums_and_set_fields(analysis, request.json, editable_columns)
 
-    if enum_error:
-        abort(400, description=enum_error)  # check if this works
+    app.logger.debug("Validating other fields..")
+
+    analysis.updated_by_id = user.user_id
 
     if request.json.get("analysis_state") == "Running":
         analysis.started = datetime.now()
@@ -433,10 +656,9 @@ def update_analysis(id: int):
         analysis.finished = datetime.now()
     # Error and Cancelled defaults to time set in 'updated'
 
-    if user_id:
-        analysis.updated_by_id = user_id
-
     transaction_or_abort(db.session.commit)
+
+    app.logger.debug("Update successful, returning JSON..")
 
     return jsonify(
         {

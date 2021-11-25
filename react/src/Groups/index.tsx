@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { makeStyles, Theme, Grid, Fab, Box, Container } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+import { Box, Container, Fab, Grid, makeStyles, Theme } from "@material-ui/core";
 import { GroupAdd } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { Group as GroupCard } from "./components/Group";
+import {
+    useErrorSnackbar,
+    useGroupDeleteMutation,
+    useGroupsQuery,
+    useGroupUpdateMutation,
+} from "../hooks";
 import CreateGroupModal from "./components/CreateGroupModal";
-import { useGroupsQuery, useGroupUpdateMutation, useGroupDeleteMutation } from "../hooks";
+import { Group as GroupCard } from "./components/Group";
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -12,12 +17,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         overflow: "auto",
     },
     appBarSpacer: theme.mixins.toolbar,
-    grow: {
-        flexGrow: 1,
-    },
-    toolbar: {
-        marginBottom: theme.spacing(1),
-    },
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
@@ -36,6 +35,7 @@ export default function Groups() {
     const groupDelete = useGroupDeleteMutation();
     const [openNewGroup, setOpenNewGroup] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     useEffect(() => {
         document.title = `Groups | ${process.env.REACT_APP_NAME}`;
@@ -63,9 +63,9 @@ export default function Groups() {
                                                 );
                                             },
                                             onError: response => {
-                                                enqueueSnackbar(
-                                                    `Failed to edit group ${group.group_name}. Error: ${response.status} - ${response.statusText}`,
-                                                    { variant: "error" }
+                                                enqueueErrorSnackbar(
+                                                    response,
+                                                    `Failed to edit group ${group.group_name}.`
                                                 );
                                             },
                                         }
@@ -80,9 +80,9 @@ export default function Groups() {
                                             );
                                         },
                                         onError: response => {
-                                            enqueueSnackbar(
-                                                `Group ${group.group_name} deletion failed. Error: ${response.status} - ${response.statusText}`,
-                                                { variant: "error" }
+                                            enqueueErrorSnackbar(
+                                                response,
+                                                `Group ${group.group_name} deletion failed.`
                                             );
                                         },
                                     });

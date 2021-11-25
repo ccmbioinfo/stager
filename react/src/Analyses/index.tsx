@@ -1,27 +1,55 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useHistory, useParams } from "react-router";
-import { makeStyles } from "@material-ui/core/styles";
-import { Chip, IconButton, TextField, Container } from "@material-ui/core";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Column } from "@material-table/core";
+import { Container, MenuItem, Select, TextField, useTheme } from "@material-ui/core";
+import { makeStyles, Theme } from "@material-ui/core/styles";
 import {
-    Cancel,
     Add,
-    Visibility,
-    PlayArrow,
-    PersonPin,
     AssignmentTurnedIn,
+    Cancel,
     Error,
+    Info,
+    PersonPin,
+    PlayArrow,
+    Refresh,
+    Visibility,
 } from "@material-ui/icons";
-import MaterialTable, { MTableToolbar } from "material-table";
 import { useSnackbar } from "notistack";
 import { UseMutationResult } from "react-query";
-import { isRowSelected, exportCSV, updateTableFilter, toTitleCase } from "../functions";
-import { Analysis, PipelineStatus } from "../typings";
-import { AnalysisInfoDialog, Note, DateTimeText, DateFilterComponent } from "../components";
-import { AnalysisOptions, useAnalysesPage, useAnalysisUpdateMutation } from "../hooks";
-import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
+import { useHistory, useParams } from "react-router";
+import {
+    AnalysisInfoDialog,
+    ChipGroup,
+    DateFilterComponent,
+    DateTimeText,
+    MaterialTablePrimary,
+    Note,
+} from "../components";
+import {
+    checkPipelineStatusChange,
+    isRowSelected,
+    resetAllTableFilters,
+    toKeyValue,
+} from "../functions";
+import {
+    AnalysisOptions,
+    GET_ANALYSES_URL,
+    useAnalysesPage,
+    useAnalysisUpdateMutation,
+    useColumnOrderCache,
+    useDownloadCsv,
+    useEnumsQuery,
+    useErrorSnackbar,
+    useHiddenColumnCache,
+    useSortOrderCache,
+} from "../hooks";
+import { transformMTQueryToCsvDownloadParams } from "../hooks/utils";
+import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
-import SetAssigneeDialog from "./components/SetAssigneeDialog";
+import AnalysisNotes from "./components/AnalysisNotes";
+import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
 import PipelineFilter from "./components/PipelineFilter";
+import SelectPipelineStatus from "./components/SelectPipelineStatus";
+import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
 const useStyles = makeStyles(theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -33,11 +61,6 @@ const useStyles = makeStyles(theme => ({
     container: {
         paddingTop: theme.spacing(3),
         paddingBottom: theme.spacing(3),
-    },
-    chip: {
-        color: "primary",
-        marginRight: "10px",
-        colorPrimary: theme.palette.primary,
     },
 }));
 
@@ -66,52 +89,15 @@ function rowsToString(rows: Analysis[], delim?: string) {
 }
 
 /**
- * Returns whether this row can be completed.
- */
-function completeFilter(row: Analysis) {
-    return row.analysis_state === PipelineStatus.RUNNING;
-}
-
-/**
- * Returns whether it's possible for this row to error.
- */
-function errorFilter(row: Analysis) {
-    return (
-        row.analysis_state === PipelineStatus.RUNNING ||
-        row.analysis_state === PipelineStatus.PENDING
-    );
-}
-
-/**
- * Returns whether this analysis is allowed to be cancelled.
- */
-function cancelFilter(row: Analysis) {
-    return (
-        row.analysis_state === PipelineStatus.RUNNING ||
-        row.analysis_state === PipelineStatus.PENDING
-    );
-}
-
-/**
- * Returns whether this analysis is allowed to be run.
- */
-function runFilter(row: Analysis) {
-    return row.analysis_state === PipelineStatus.PENDING;
-}
-
-/**
  * Updates the state of all selected rows.
  * Returns a new list of Analyses, as well as the number of rows that changed, were skipped, or failed to change.
- * TODO: Revisit after overfetch #283
  *
  * @param selectedRows
- * @param filter A function which returns true for a row that is allowed to be changed to newState, false otherwise.
  * @param mutation The mutation object to use to update the analyses.
  * @param newState The new state to apply to rows which pass the filter.
  */
 async function _changeStateForSelectedRows(
     selectedRows: Analysis[],
-    filter: (row: Analysis) => boolean,
     mutation: UseMutationResult<Analysis, Response, AnalysisOptions>,
     newState: PipelineStatus
 ) {
@@ -120,7 +106,7 @@ async function _changeStateForSelectedRows(
     let failed = 0;
     for (let i = 0; i < selectedRows.length; i++) {
         let row = selectedRows[i];
-        if (filter(row)) {
+        if (checkPipelineStatusChange(row.analysis_state, newState)) {
             try {
                 await mutation.mutateAsync({
                     analysis_id: row.analysis_id,
@@ -139,33 +125,211 @@ async function _changeStateForSelectedRows(
     return { changed, skipped, failed };
 }
 
+const getHighlightColor = (theme: Theme, priority: AnalysisPriority, status: PipelineStatus) => {
+    const statusRelevant = [PipelineStatus.PENDING, PipelineStatus.RUNNING].includes(status);
+
+    if (statusRelevant && priority === "Research") {
+        return { backgroundColor: theme.palette.warning.light };
+    }
+    if (statusRelevant && priority === "Clinical") {
+        return { backgroundColor: theme.palette.error.light };
+    }
+    return {};
+};
+
 export default function Analyses() {
     const classes = useStyles();
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
     const [assignment, setAssignment] = useState(false); // for set assignee dialog
+    const [comments, setComments] = useState(false); // for comments/ notes from associated participants and datasets
+
+    const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null); // anchor element for notes popover
 
     const dataFetch = useAnalysesPage();
 
+    const downloadCsv = useDownloadCsv(GET_ANALYSES_URL);
+
     const analysisUpdateMutation = useAnalysisUpdateMutation();
+
+    const enumsQuery = useEnumsQuery();
+    const enums = enumsQuery.data;
+
+    const theme = useTheme();
+
+    const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
+    const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
 
     const history = useHistory();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
     const { id: paramID } = useParams<{ id: string }>();
 
     const tableRef = useRef<any>();
-
-    function changeAnalysisState(filter: (row: Analysis) => boolean, newState: PipelineStatus) {
-        return _changeStateForSelectedRows(activeRows, filter, analysisUpdateMutation, newState);
-    }
-
     useEffect(() => {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
     }, []);
+
+    const cacheDeps = [enumsQuery.isFetched];
+
+    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
+
+    const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
+        "analysisTableDefaultHidden"
+    );
+    const { handleOrderChange, setInitialSorting } = useSortOrderCache<Analysis>(
+        tableRef,
+        "analysisTableSortOrder"
+    );
+
+    function changeAnalysisState(newState: PipelineStatus, rows = activeRows) {
+        return _changeStateForSelectedRows(rows, analysisUpdateMutation, newState);
+    }
+
+    const exportCsv = () => {
+        downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
+    };
+
+    const columns = useMemo(() => {
+        const columns: Column<Analysis>[] = [
+            {
+                title: "Pipeline",
+                field: "pipeline_id",
+                type: "string",
+                editable: "never",
+                render: row => pipeName(row),
+                filterComponent: PipelineFilter,
+            },
+            {
+                title: "Status",
+                field: "analysis_state",
+                type: "string",
+                lookup: pipelineStatusLookup,
+                editComponent: SelectPipelineStatus,
+            },
+            {
+                title: "Priority",
+                field: "priority",
+                type: "string",
+                lookup: priorityLookup,
+                editComponent: ({ onChange, value }) => {
+                    return (
+                        <Select
+                            value={value || "None"}
+                            onChange={event =>
+                                onChange(event.target.value === "None" ? null : event.target.value)
+                            }
+                            fullWidth
+                        >
+                            {enums?.PriorityType.map(p => (
+                                <MenuItem key={p} value={p}>
+                                    {p}
+                                </MenuItem>
+                            ))}
+                            <MenuItem value="None">None</MenuItem>
+                        </Select>
+                    );
+                },
+            },
+            {
+                title: "Requester",
+                field: "requester",
+                type: "string",
+                editable: "never",
+            },
+            {
+                title: "Assignee",
+                field: "assignee",
+                type: "string",
+                editable: "always",
+            },
+            {
+                title: "Requested",
+                field: "requested",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.requested} />,
+                filterComponent: DateFilterComponent,
+                defaultSort: "desc",
+            },
+            {
+                title: "Family Codename(s)",
+                field: "family_codename",
+                render: rowData => (
+                    <ChipGroup
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="flex-start"
+                        names={rowData.family_codenames?.filter((c, i, a) => a.indexOf(c) === i)}
+                    />
+                ),
+                sorting: false,
+            },
+            {
+                title: "Participant Codename(s)",
+                field: "participant_codename",
+                render: rowData => (
+                    <ChipGroup
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="flex-start"
+                        names={rowData.participant_codenames}
+                    />
+                ),
+                sorting: false,
+            },
+            {
+                title: "Updated",
+                field: "updated",
+                type: "string",
+                editable: "never",
+                render: rowData => <DateTimeText datetime={rowData.updated} />,
+                filterComponent: DateFilterComponent,
+            },
+            {
+                title: "Path Prefix",
+                field: "result_path",
+                type: "string",
+                render: rowData => <Note>{rowData.result_path}</Note>,
+            },
+            {
+                title: "Notes",
+                field: "notes",
+                type: "string",
+                render: rowData => <Note>{rowData.notes}</Note>,
+                editComponent: props => (
+                    <TextField
+                        multiline
+                        value={props.value}
+                        onChange={event => props.onChange(event.target.value)}
+                        rows={4}
+                        fullWidth
+                    />
+                ),
+            },
+            {
+                title: "ID",
+                field: "analysis_id",
+                type: "string",
+                editable: "never",
+                defaultFilter: paramID,
+            },
+        ];
+        setHiddenColumns(columns);
+        setInitialSorting(columns);
+        return columns;
+    }, [
+        enums?.PriorityType,
+        paramID,
+        pipelineStatusLookup,
+        priorityLookup,
+        setHiddenColumns,
+        setInitialSorting,
+    ]);
 
     return (
         <main className={classes.content}>
@@ -179,9 +343,8 @@ export default function Analyses() {
                         setCancel(false);
                     }}
                     onAccept={() => {
-                        changeAnalysisState(cancelFilter, PipelineStatus.CANCELLED).then(
+                        changeAnalysisState(PipelineStatus.CANCELLED).then(
                             ({ changed, skipped, failed }) => {
-                                setCancel(false);
                                 if (changed > 0)
                                     enqueueSnackbar(
                                         `${changed} ${
@@ -189,6 +352,7 @@ export default function Analyses() {
                                         } cancelled successfully`,
                                         { variant: "success" }
                                     );
+                                tableRef.current.onQueryChange();
                                 if (skipped > 0)
                                     enqueueSnackbar(
                                         `${skipped} ${
@@ -204,10 +368,11 @@ export default function Analyses() {
                                         }`,
                                         { variant: "error" }
                                     );
+                                setCancel(false);
+                                tableRef.current.onQueryChange();
                             }
                         );
                     }}
-                    cancelFilter={cancelFilter}
                     labeledByPrefix={`${rowsToString(activeRows, "-")}`}
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />
@@ -220,6 +385,19 @@ export default function Analyses() {
                     onClose={() => {
                         setDetail(false);
                     }}
+                    refreshTable={tableRef.current.onQueryChange}
+                />
+            )}
+
+            {activeRows.length > 0 && (
+                <AnalysisNotes
+                    open={comments}
+                    anchorEl={anchorEl}
+                    onClose={() => {
+                        setAnchorEl(null);
+                        setComments(false);
+                    }}
+                    analysis={activeRows[0]}
                 />
             )}
 
@@ -262,6 +440,7 @@ export default function Analyses() {
                                 `${count} analyses successfully assigned to user '${username}'`,
                                 { variant: "success" }
                             );
+                            tableRef.current.onQueryChange();
                         }
                         if (failed > 0) {
                             enqueueSnackbar(
@@ -274,89 +453,35 @@ export default function Analyses() {
             )}
 
             <Container maxWidth={false} className={classes.container}>
-                <MaterialTable
+                <MaterialTablePrimary
+                    title="Analyses"
                     tableRef={tableRef}
-                    columns={[
-                        {
-                            title: "Analysis ID",
-                            field: "analysis_id",
-                            type: "string",
-                            editable: "never",
-                            width: "8%",
-                            defaultFilter: paramID,
-                        },
-                        {
-                            title: "Pipeline",
-                            field: "pipeline_id",
-                            type: "string",
-                            width: "8%",
-                            editable: "never",
-                            render: (row, type) => pipeName(row),
-                            filterComponent: props => <PipelineFilter {...props} />,
-                        },
-                        {
-                            title: "Assignee",
-                            field: "assignee",
-                            type: "string",
-                            editable: "never",
-                            width: "8%",
-                        },
-                        {
-                            title: "Requester",
-                            field: "requester",
-                            type: "string",
-                            editable: "never",
-                            width: "8%",
-                        },
-                        {
-                            title: "Updated",
-                            field: "updated",
-                            type: "string",
-                            editable: "never",
-                            render: rowData => <DateTimeText datetime={rowData.updated} />,
-                            filterComponent: props => <DateFilterComponent {...props} />,
-                        },
-                        {
-                            title: "Path Prefix",
-                            field: "result_path",
-                            type: "string",
-                        },
-                        {
-                            title: "Status",
-                            field: "analysis_state",
-                            type: "string",
-                            editable: "never",
-                        },
-                        {
-                            title: "Notes",
-                            field: "notes",
-                            type: "string",
-                            render: rowData => <Note>{rowData.notes}</Note>,
-                            editComponent: props => (
-                                <TextField
-                                    multiline
-                                    value={props.value}
-                                    onChange={event => props.onChange(event.target.value)}
-                                    rows={4}
-                                    fullWidth
-                                />
-                            ),
-                        },
-                    ]}
+                    columns={columns}
                     isLoading={analysisUpdateMutation.isLoading}
                     data={dataFetch}
-                    title="Analyses"
                     options={{
-                        pageSize: 10,
-                        filtering: true,
-                        search: false,
-                        padding: "dense",
+                        rowStyle: data =>
+                            getHighlightColor(theme, data.priority, data.analysis_state),
                         selection: true,
-                        exportAllData: true,
-                        exportButton: { csv: true, pdf: false },
-                        exportCsv: (columns, data) => exportCSV(columns, data, "Analyses"),
+                        exportMenu: [
+                            {
+                                label: "Export as CSV",
+                                exportFunc: exportCsv,
+                            },
+                        ],
+                        search: true,
                     }}
                     actions={[
+                        {
+                            icon: Info,
+                            tooltip: "View Comments",
+                            position: "row",
+                            onClick: (event, rowData) => {
+                                setActiveRows([rowData as Analysis]);
+                                setComments(true);
+                                setAnchorEl(event.currentTarget);
+                            },
+                        },
                         {
                             icon: Visibility,
                             tooltip: "View analysis details",
@@ -368,6 +493,19 @@ export default function Analyses() {
                             },
                         },
                         {
+                            icon: Add,
+                            tooltip: "Add New Analysis",
+                            position: "toolbar",
+                            isFreeAction: true,
+                            onClick: () => setDirect(true),
+                        },
+                        {
+                            tooltip: "Clear All Filters",
+                            icon: Refresh,
+                            position: "toolbar",
+                            onClick: () => resetAllTableFilters(tableRef),
+                        },
+                        {
                             icon: Cancel,
                             tooltip: "Cancel analysis",
                             position: "toolbarOnSelect",
@@ -377,44 +515,38 @@ export default function Analyses() {
                             },
                         },
                         {
-                            icon: Add,
-                            tooltip: "Add New Analysis",
-                            position: "toolbar",
-                            isFreeAction: true,
-                            onClick: () => setDirect(true),
-                        },
-                        {
                             icon: PlayArrow,
                             tooltip: "Run analysis",
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(runFilter, PipelineStatus.RUNNING).then(
-                                    ({ changed, skipped, failed }) => {
-                                        if (changed > 0)
-                                            enqueueSnackbar(
-                                                `${changed} ${
-                                                    changed !== 1 ? "analyses" : "analysis"
-                                                } started successfully`,
-                                                { variant: "success" }
-                                            );
-                                        if (skipped > 0)
-                                            enqueueSnackbar(
-                                                `${skipped} ${
-                                                    skipped !== 1 ? "analyses were" : "analysis was"
-                                                } already queued or cancelled, and ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } skipped`
-                                            );
-                                        if (failed > 0)
-                                            enqueueSnackbar(
-                                                `Failed to start ${failed} ${
-                                                    failed !== 1 ? "analyses" : "analysis"
-                                                }`,
-                                                { variant: "error" }
-                                            );
-                                    }
-                                );
+                                changeAnalysisState(
+                                    PipelineStatus.RUNNING,
+                                    rowData as Analysis[]
+                                ).then(({ changed, skipped, failed }) => {
+                                    if (changed > 0)
+                                        enqueueSnackbar(
+                                            `${changed} ${
+                                                changed !== 1 ? "analyses" : "analysis"
+                                            } started successfully`,
+                                            { variant: "success" }
+                                        );
+                                    tableRef.current.onQueryChange();
+                                    if (skipped > 0)
+                                        enqueueSnackbar(
+                                            `${skipped} ${
+                                                skipped !== 1 ? "analyses were" : "analysis was"
+                                            } already queued or cancelled, and ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } skipped`
+                                        );
+                                    if (failed > 0)
+                                        enqueueSnackbar(
+                                            `Failed to start ${failed} ${
+                                                failed !== 1 ? "analyses" : "analysis"
+                                            }`,
+                                            { variant: "error" }
+                                        );
+                                });
                             },
                         },
                         {
@@ -422,35 +554,34 @@ export default function Analyses() {
                             tooltip: "Complete analysis",
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(completeFilter, PipelineStatus.COMPLETED).then(
-                                    ({ changed, skipped, failed }) => {
-                                        if (changed > 0)
-                                            enqueueSnackbar(
-                                                `${changed} ${
-                                                    changed !== 1 ? "analyses" : "analysis"
-                                                } completed successfully`,
-                                                { variant: "success" }
-                                            );
-                                        if (skipped > 0)
-                                            enqueueSnackbar(
-                                                `${skipped} ${
-                                                    skipped !== 1 ? "analyses" : "analysis"
-                                                } ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } not running, and ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } skipped`
-                                            );
-                                        if (failed > 0)
-                                            enqueueSnackbar(
-                                                `Failed to complete ${failed} ${
-                                                    failed !== 1 ? "analyses" : "analysis"
-                                                }`,
-                                                { variant: "error" }
-                                            );
-                                    }
-                                );
+                                changeAnalysisState(
+                                    PipelineStatus.COMPLETED,
+                                    rowData as Analysis[]
+                                ).then(({ changed, skipped, failed }) => {
+                                    if (changed > 0)
+                                        enqueueSnackbar(
+                                            `${changed} ${
+                                                changed !== 1 ? "analyses" : "analysis"
+                                            } completed successfully`,
+                                            { variant: "success" }
+                                        );
+                                    tableRef.current.onQueryChange();
+                                    if (skipped > 0)
+                                        enqueueSnackbar(
+                                            `${skipped} ${
+                                                skipped !== 1 ? "analyses" : "analysis"
+                                            } ${skipped !== 1 ? "were" : "was"} not running, and ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } skipped`
+                                        );
+                                    if (failed > 0)
+                                        enqueueSnackbar(
+                                            `Failed to complete ${failed} ${
+                                                failed !== 1 ? "analyses" : "analysis"
+                                            }`,
+                                            { variant: "error" }
+                                        );
+                                });
                             },
                         },
                         {
@@ -458,35 +589,36 @@ export default function Analyses() {
                             tooltip: "Error analysis",
                             position: "toolbarOnSelect",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                changeAnalysisState(errorFilter, PipelineStatus.ERROR).then(
-                                    ({ changed, skipped, failed }) => {
-                                        if (changed > 0)
-                                            enqueueSnackbar(
-                                                `${changed} ${
-                                                    changed !== 1 ? "analyses" : "analysis"
-                                                } errored successfully`,
-                                                { variant: "success" }
-                                            );
-                                        if (skipped > 0)
-                                            enqueueSnackbar(
-                                                `${skipped} ${
-                                                    skipped !== 1 ? "analyses" : "analysis"
-                                                } ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } not running or queued, and ${
-                                                    skipped !== 1 ? "were" : "was"
-                                                } skipped`
-                                            );
-                                        if (failed > 0)
-                                            enqueueSnackbar(
-                                                `Failed to error ${failed} ${
-                                                    failed !== 1 ? "analyses" : "analysis"
-                                                }`,
-                                                { variant: "error" }
-                                            );
-                                    }
-                                );
+                                changeAnalysisState(
+                                    PipelineStatus.ERROR,
+                                    rowData as Analysis[]
+                                ).then(({ changed, skipped, failed }) => {
+                                    if (changed > 0)
+                                        enqueueSnackbar(
+                                            `${changed} ${
+                                                changed !== 1 ? "analyses" : "analysis"
+                                            } errored successfully`,
+                                            { variant: "success" }
+                                        );
+                                    tableRef.current.onQueryChange();
+                                    if (skipped > 0)
+                                        enqueueSnackbar(
+                                            `${skipped} ${
+                                                skipped !== 1 ? "analyses" : "analysis"
+                                            } ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } not running or queued, and ${
+                                                skipped !== 1 ? "were" : "was"
+                                            } skipped`
+                                        );
+                                    if (failed > 0)
+                                        enqueueSnackbar(
+                                            `Failed to error ${failed} ${
+                                                failed !== 1 ? "analyses" : "analysis"
+                                            }`,
+                                            { variant: "error" }
+                                        );
+                                });
                             },
                         },
                         {
@@ -504,16 +636,18 @@ export default function Analyses() {
                             analysisUpdateMutation.mutate(
                                 { ...newData, source: "row-edit" },
                                 {
-                                    onSuccess: newRow => {
+                                    onSuccess: () => {
                                         enqueueSnackbar(
                                             `Analysis ID ${oldData?.analysis_id} edited successfully`,
                                             { variant: "success" }
                                         );
+                                        //refresh data
+                                        tableRef.current.onQueryChange();
                                     },
                                     onError: response => {
-                                        enqueueSnackbar(
-                                            `Failed to edit Analysis ID ${oldData?.analysis_id} - ${response.status} ${response.statusText}`,
-                                            { variant: "error" }
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Analysis ID ${oldData?.analysis_id}`
                                         );
                                         console.error(response);
                                     },
@@ -521,38 +655,9 @@ export default function Analyses() {
                             );
                         },
                     }}
-                    components={{
-                        Toolbar: props => (
-                            <div>
-                                <MTableToolbar {...props} />
-                                <div style={{ marginLeft: "24px" }}>
-                                    {Object.entries(PipelineStatus).map(([k, v]) => (
-                                        <Chip
-                                            key={k}
-                                            label={toTitleCase(k)}
-                                            clickable
-                                            className={classes.chip}
-                                            onClick={() =>
-                                                updateTableFilter(tableRef, "analysis_state", v)
-                                            }
-                                        />
-                                    ))}
-                                    <IconButton
-                                        onClick={() =>
-                                            updateTableFilter(tableRef, "analysis_state", "")
-                                        }
-                                    >
-                                        <Cancel />
-                                    </IconButton>
-                                </div>
-                            </div>
-                        ),
-                    }}
-                    localization={{
-                        header: {
-                            actions: "", //remove action buttons' header
-                        },
-                    }}
+                    onColumnDragged={handleColumnDrag}
+                    onChangeColumnHidden={handleChangeColumnHidden}
+                    onOrderChange={handleOrderChange}
                 />
             </Container>
         </main>

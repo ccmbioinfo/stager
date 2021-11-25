@@ -1,17 +1,23 @@
-import React, { useMemo } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { useMemo } from "react";
 import { Dialog, DialogContent, Divider } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 import { ShowChart } from "@material-ui/icons";
-import { DialogHeader, DetailSection, InfoList } from "../../components";
-import { Dataset, Sample } from "../../typings";
+import { useSnackbar } from "notistack";
+
+import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from "../../components";
 import {
-    formatDateString,
+    formatSubmitValue,
     getAnalysisInfoList,
     getDatasetFields,
     getSecDatasetFields,
-    createFieldObj,
 } from "../../functions";
-import { useEnumsQuery, useDatasetQuery } from "../../hooks";
+import {
+    useDatasetQuery,
+    useDatasetUpdateMutation,
+    useEnumsQuery,
+    useErrorSnackbar,
+} from "../../hooks";
+import { Dataset, Field, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     datasetInfo: {
@@ -23,58 +29,127 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getSamplesFields(sample: Sample) {
+function getSamplesFields(sample: Sample): Field[] {
     return [
-        createFieldObj("Sample ID", sample.tissue_sample_id),
-        createFieldObj("Sample Type", sample.tissue_sample_type),
-        createFieldObj("Extraction Date", formatDateString(sample.extraction_date)),
-        createFieldObj("Tissue Processing Protocol", sample.tissue_processing),
-        createFieldObj("Notes", sample.notes),
-        createFieldObj("Created", formatDateString(sample.created)),
-        createFieldObj("Created By", sample.created_by),
-        createFieldObj("Updated", formatDateString(sample.updated)),
-        createFieldObj("Updated By", sample.updated_by),
+        {
+            title: "Sample Type",
+            fieldName: "tissue_sample_type",
+            value: sample.tissue_sample_type,
+            editable: false,
+        },
+        {
+            title: "Extraction Date",
+            value: sample.extraction_date,
+            fieldName: "extraction_date",
+            type: "timestamp",
+            editable: false,
+        },
+        {
+            title: "Tissue Processing Protocol",
+            value: sample.tissue_processing,
+            fieldName: "tissue_processing",
+            editable: false,
+        },
+        { title: "Notes", value: sample.notes, fieldName: "notes", editable: false },
+        {
+            title: "Created",
+            value: sample.created,
+            fieldName: "created",
+            type: "timestamp",
+            editable: false,
+        },
+        {
+            title: "Created By",
+            value: sample.created_by,
+            fieldName: "created_by",
+            editable: false,
+        },
+        {
+            title: "Updated",
+            value: sample.updated,
+            fieldName: "updated",
+            type: "timestamp",
+            editable: false,
+        },
+        {
+            title: "Updated By",
+            value: sample.updated_by,
+            fieldName: "updated_by",
+            editable: false,
+        },
     ];
 }
 
 interface DialogProp {
     open: boolean;
-    dataset: Dataset;
+    dataset_id: string;
     onClose: () => void;
 }
 
-export default function DatasetInfoDialog(props: DialogProp) {
+export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogProp) {
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
-    const { data: dataset } = useDatasetQuery(props.dataset.dataset_id);
+    const { data: dataset, isLoading: loadingOpen } = useDatasetQuery(dataset_id);
+    const { data: enums } = useEnumsQuery();
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
-    const { data: enums } = useEnumsQuery();
+    const { mutate: datasetUpdateMutate, isLoading: loadingUpdate } = useDatasetUpdateMutation();
+
+    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
+
+    const updateDataset = async (fields: Field[]) => {
+        const newData = fields
+            .map(field => {
+                if (field.fieldName && field.editable) {
+                    return {
+                        [field.fieldName]: formatSubmitValue(field),
+                    };
+                } else return false;
+            })
+            .filter(Boolean)
+            .reduce((acc, curr) => ({ ...acc, ...curr }), {} as Dataset);
+
+        datasetUpdateMutate(
+            {
+                ...newData,
+                dataset_id,
+            },
+            {
+                onSuccess: receiveDataset => {
+                    enqueueSnackbar(
+                        `Dataset ID ${receiveDataset.dataset_id} updated successfully`,
+                        {
+                            variant: "success",
+                        }
+                    );
+                },
+                onError: response => {
+                    console.error(
+                        `PATCH /api/datasets/${dataset_id} failed with ${response.status}: ${response.statusText}`
+                    );
+                    enqueueErrorSnackbar(response, `Failed to edit Dataset ID ${dataset_id}`);
+                },
+            }
+        );
+    };
 
     return (
-        <Dialog
-            onClose={props.onClose}
-            aria-labelledby={labeledBy}
-            open={props.open}
-            maxWidth="lg"
-            fullWidth
-        >
-            <DialogHeader id={labeledBy} onClose={props.onClose}>
-                Details of Dataset ID {props.dataset.dataset_id}
+        <Dialog onClose={onClose} aria-labelledby={labeledBy} open={open} maxWidth="lg" fullWidth>
+            <DialogHeader id={labeledBy} onClose={onClose}>
+                Details of Dataset ID {dataset_id}
             </DialogHeader>
             <DialogContent className={classes.datasetInfo} dividers>
                 <div className={classes.infoSection}>
-                    {props.dataset && (
+                    {dataset && (
                         <DetailSection
-                            fields={getDatasetFields(props.dataset)}
+                            fields={getDatasetFields(dataset)}
                             enums={enums}
-                            collapsibleFields={getSecDatasetFields(props.dataset)}
-                            dataInfo={{
-                                type: "dataset",
-                                ID: props.dataset.dataset_id,
-                                identifier: props.dataset.dataset_id,
-                            }}
+                            editable={true}
+                            columnWidth={4}
+                            collapsibleFields={getSecDatasetFields(dataset)}
+                            update={updateDataset}
                         />
                     )}
                 </div>
@@ -82,6 +157,9 @@ export default function DatasetInfoDialog(props: DialogProp) {
                 <div className={classes.infoSection}>
                     {sample && (
                         <DetailSection
+                            columnWidth={4}
+                            editable={false}
+                            update={updateDataset}
                             fields={getSamplesFields(sample)}
                             enums={enums}
                             title="Associated Tissue Sample"
@@ -101,6 +179,7 @@ export default function DatasetInfoDialog(props: DialogProp) {
                     )}
                 </div>
             </DialogContent>
+            <LoadingIndicator open={loadingOpen || loadingUpdate} />
         </Dialog>
     );
 }

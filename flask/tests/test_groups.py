@@ -19,6 +19,7 @@ def minio_admin():
     madmin.group_add("ach", "user")
     madmin.add_policy("ach", stager_buckets_policy("ach"))
     madmin.set_policy("ach", group="ach")
+    madmin.set_policy("readwrite", user="admin")
     yield madmin
     # Teardown
     try:
@@ -47,7 +48,7 @@ def minio_admin():
 def test_no_groups(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/groups?user=5")
+    response = client.get("/api/groups?user=4")
     assert response.status_code == 200
     assert len(response.get_json()) == 0
 
@@ -85,7 +86,7 @@ def test_list_groups_user_from_admin(test_database, client, login_as):
 def test_get_group(test_database, client, login_as):
     # Test invalid group_code
     login_as("admin")
-    assert client.get("/api/groups/hahah").status_code == 403
+    assert client.get("/api/groups/hahah").status_code == 404
 
     group_2 = models.Group(group_code="alas", group_name="...")
     db.session.add(group_2)
@@ -93,10 +94,9 @@ def test_get_group(test_database, client, login_as):
 
     # Test wrong permissions
     login_as("user")
-    assert client.get("/api/groups/alas").status_code == 403
+    assert client.get("/api/groups/alas").status_code == 404
 
     # Test and validate success based on user's permissions
-    login_as("user")
     response = client.get("/api/groups/ach")
     assert response.status_code == 200
     assert response.get_json()["group_name"] == "Alberta"
@@ -106,6 +106,7 @@ def test_get_group(test_database, client, login_as):
 
 
 def test_delete_group(test_database, client, login_as, minio_admin):
+    prev_minio_groups = len(minio_admin.list_groups())
 
     # Test without permission
     login_as("user")
@@ -135,7 +136,7 @@ def test_delete_group(test_database, client, login_as, minio_admin):
     # Make sure it's gone
     group = models.Group.query.filter_by(group_code="ach").one_or_none()
     assert group == None
-    assert len(minio_admin.list_groups()) == 0
+    assert len(minio_admin.list_groups()) == prev_minio_groups - 1
 
 
 # PATCH /api/groups/:id
@@ -143,6 +144,10 @@ def test_delete_group(test_database, client, login_as, minio_admin):
 
 def test_update_group(test_database, client, login_as, minio_admin):
     login_as("admin")
+    # Test bad payloads
+    assert client.patch("/api/groups/code").status_code == 415
+    assert client.patch("/api/groups/code", json="").status_code == 400
+    assert client.patch("/api/groups/code", json="5").status_code == 400
     # Test existence
     assert (
         client.patch("/api/groups/code", json={"group_name": "yes"}).status_code == 404
@@ -179,6 +184,10 @@ def test_create_group(test_database, client, login_as, minio_admin):
     assert client.post("/api/groups").status_code == 401
 
     login_as("admin")
+    # Test bad payloads
+    assert client.post("/api/groups").status_code == 415
+    assert client.post("/api/groups", json="").status_code == 400
+    assert client.post("/api/groups", json="5").status_code == 400
     # Test no group_code given
     assert (
         client.post(
@@ -204,6 +213,8 @@ def test_create_group(test_database, client, login_as, minio_admin):
         == 422
     )
 
+    num_prev_policies = len(minio_admin.list_policies())
+
     # Test success with no users and check db and minio
     assert (
         client.post(
@@ -215,7 +226,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
     group = models.Group.query.filter(models.Group.group_code == "code").one_or_none()
     assert group is not None
     assert len(group.users) == 0
-    assert len(minio_admin.list_policies()) == 7
+    assert len(minio_admin.list_policies()) == num_prev_policies + 1
     minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
         access_key=TestConfig.MINIO_ACCESS_KEY,
@@ -223,6 +234,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
         secure=False,
     )
     # Clean up
+    minio_client.remove_bucket("results-code")
     minio_client.remove_bucket("code")
     minio_admin.remove_policy("code")
 
@@ -244,7 +256,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
     group = models.Group.query.filter(models.Group.group_code == "code2").one_or_none()
     assert group is not None
     assert len(group.users) == 1
-    assert len(minio_admin.list_policies()) == 7
+    assert len(minio_admin.list_policies()) == num_prev_policies + 1
     assert len(minio_admin.get_group("code2")["members"]) == 1
     minio_client = Minio(
         TestConfig.MINIO_ENDPOINT,
@@ -253,6 +265,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
         secure=False,
     )
     # Clean up
+    minio_client.remove_bucket("results-code2")
     minio_client.remove_bucket("code2")
     minio_admin.remove_policy("code2")
     minio_admin.remove_user("user")

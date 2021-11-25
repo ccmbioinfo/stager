@@ -2,6 +2,7 @@ from flask import jsonify, Blueprint, current_app as app
 from flask_login import current_user, login_required
 from minio import Minio
 from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
 
 from . import models
 
@@ -25,10 +26,11 @@ def get_unlinked_files():
             secure=False,
         )
 
-    # Get all minio bucket names
+    app.logger.debug("Getting all minio bucket names..")
     all_bucket_names = [bucket.name for bucket in minioClient.list_buckets()]
 
     # Remove buckets the current user does not have access to assuming group_code.lower() == bucket name
+    app.logger.debug("Getting all buckets that user has access to..")
     user = (
         models.User.query.filter_by(user_id=current_user.user_id)
         .options(joinedload(models.User.groups))
@@ -41,20 +43,35 @@ def get_unlinked_files():
         if code in all_bucket_names:
             valid_bucket_names.append(code)
 
-    # Get all files in valid minio buckets
+    app.logger.debug("Getting all files in valid minio buckets..")
     all_files = []
     for bucket in valid_bucket_names:
-        objs = minioClient.list_objects(bucket)
+        objs = minioClient.list_objects(bucket, recursive=True)
         for obj in objs:
             all_files.append(bucket + "/" + obj.object_name)
 
-    # Get all linked files
-    linked_files = {f.path: ":)" for f in models.DatasetFile.query.all()}
+    app.logger.debug("Getting all linked files..")
 
-    # Put all unlinked files in new list
-    unlinked_files = []
+    files = []
+
+    linked_files = {
+        f.path: True
+        for f in models.File.query.filter(
+            or_(models.File.multiplexed == None, models.File.multiplexed == False)
+        ).all()
+    }
+
+    linkable_files = {
+        f.path: True
+        for f in models.File.query.filter(models.File.multiplexed == True).all()
+    }
+
     for file_name in all_files:
-        if file_name not in linked_files:
-            unlinked_files.append(file_name)
+        if linkable_files.get(file_name):
+            files.append({"path": file_name, "multiplexed": True})
+        elif not linked_files.get(file_name):
+            files.append({"path": file_name, "multiplexed": False})
 
-    return jsonify(sorted(unlinked_files))
+    app.logger.debug("Returning JSON array..")
+
+    return jsonify(sorted(files, key=lambda f: f["path"]))

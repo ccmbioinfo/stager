@@ -7,9 +7,11 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
-      interval: weekly
+      interval: monthly
+      time: "07:00"
+      timezone: America/Toronto
   - package-ecosystem: npm
     directory: /react
     commit-message:
@@ -17,9 +19,11 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
-      interval: weekly
+      interval: monthly
+      time: "07:00"
+      timezone: America/Toronto
   - package-ecosystem: docker
     directory: /
     commit-message:
@@ -27,9 +31,11 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
-      interval: weekly
+      interval: monthly
+      time: "07:00"
+      timezone: America/Toronto
   - package-ecosystem: github-actions
     directory: /
     commit-message:
@@ -37,6 +43,8 @@ updates:
     labels:
       - dependencies
     assignees:
-      - kevinlul
+      - cklamann
     schedule:
-      interval: weekly
+      interval: monthly
+      time: "07:00"
+      timezone: America/Toronto

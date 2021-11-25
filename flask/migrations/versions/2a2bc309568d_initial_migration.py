@@ -93,6 +93,11 @@ def upgrade():
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("updated", sa.DateTime(), nullable=False),
         sa.Column("updated_by_id", sa.Integer(), nullable=False),
+        sa.Column(
+            "priority",
+            sa.Enum("Clinical", "Research", name="prioritytype"),
+            nullable=True,
+        ),
         sa.ForeignKeyConstraint(["assignee_id"], ["user.user_id"], onupdate="cascade"),
         sa.ForeignKeyConstraint(
             ["pipeline_id"],

@@ -1,4 +1,4 @@
-# Stager
+# ![Stager](/react/src/assets/brand.png)
 
 For more developer documentation, see [`docs/`](https://github.com/ccmbioinfo/stager/tree/master/docs/)
 

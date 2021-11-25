@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 def test_get_tissue_sample(test_database, client, login_as):
     # Test invalid sample id
     login_as("admin")
-    assert client.get("/api/tissue_samples/4").status_code == 404
+    assert client.get("/api/tissue_samples/999").status_code == 404
     # Test wrong permissions
     login_as("user")
     assert client.get("/api/tissue_samples/3").status_code == 404
@@ -33,7 +33,7 @@ def test_delete_tissue_sample(test_database, client, login_as):
 
     # Test with wrong id
     login_as("admin")
-    response = client.delete("/api/tissue_samples/4")
+    response = client.delete("/api/tissue_samples/999")
     assert response.status_code == 404
 
     # Test with dataset in it
@@ -45,12 +45,20 @@ def test_delete_tissue_sample(test_database, client, login_as):
     sample = (
         models.TissueSample.query.filter(models.TissueSample.tissue_sample_id == 1)
         .options(
-            joinedload(models.TissueSample.datasets).joinedload(models.Dataset.analyses)
+            joinedload(models.TissueSample.datasets)
+            .joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
         )
         .one_or_none()
     )
     for dataset in sample.datasets:
         for analysis in dataset.analyses:
+            for genotype in analysis.genotype:
+                db.session.delete(genotype)
+            db.session.commit()
+            for variant in analysis.variants:
+                db.session.delete(variant)
             db.session.delete(analysis)
         db.session.delete(dataset)
 
@@ -153,7 +161,7 @@ def test_update_tissue_sample_admin(client, test_database, login_as):
     )
     # Assume user identity that does not have permission
     assert (
-        client.patch("/api/tissue_samples/2?user=1", json={"foo": "bar"}).status_code
+        client.patch("/api/tissue_samples/2?user=4", json={"foo": "bar"}).status_code
         == 404
     )
 

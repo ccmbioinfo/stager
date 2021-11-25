@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Button, ButtonProps } from "@material-ui/core";
+import { useUserMinioMutation } from "../hooks";
 import { User } from "../typings";
 import ConfirmModal from "./ConfirmModal";
-import { useUserMinioMutation } from "../hooks";
 
 export type MinioKeys = Partial<Pick<User, "minio_access_key" | "minio_secret_key">>;
 

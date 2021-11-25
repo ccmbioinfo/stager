@@ -1,10 +1,8 @@
-import React from "react";
+import MaterialTable, { MTableCell } from "@material-table/core";
 import { makeStyles } from "@material-ui/core";
 import { Dns } from "@material-ui/icons";
-import MaterialTable, { MTableCell } from "material-table";
-import { formatDateString, createFieldObj } from "../../functions";
-import { Dataset, Sample, Info } from "../../typings";
 import { DateTimeText, InfoList } from "../../components";
+import { Dataset, Field, Info, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
     datasetList: {
@@ -16,23 +14,86 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getFields(dataset: Dataset) {
+function getFields(dataset: Dataset): Field[] {
     return [
-        createFieldObj("Linked Files", dataset.linked_files),
-        createFieldObj("Condition", dataset.condition),
-        createFieldObj("Extraction Protocol", dataset.extraction_protocol),
-        createFieldObj("Capture Kit", dataset.capture_kit),
-        createFieldObj("Library Prep Method", dataset.library_prep_method),
-        createFieldObj("Library Prep Date", formatDateString(dataset.library_prep_date)),
-        createFieldObj("Read Length", dataset.read_length),
-        createFieldObj("Read Type", dataset.read_type),
-        createFieldObj("Sequencing ID", dataset.sequencing_id),
-        createFieldObj("Sequencing Centre", dataset.sequencing_centre),
-        createFieldObj("Creation Time", formatDateString(dataset.created)),
-        createFieldObj("Created By", dataset.created_by),
-        createFieldObj("Last Updated", formatDateString(dataset.updated)),
-        createFieldObj("Updated By", dataset.updated_by),
-        createFieldObj("Discriminator", dataset.discriminator),
+        {
+            title: "Linked Files",
+            fieldName: "linked_files",
+            editable: true,
+            type: "linked_files",
+            value: dataset.linked_files,
+        },
+        { title: "Condition", fieldName: "condition", editable: true, value: dataset.condition },
+        {
+            title: "Extraction Protocol",
+            fieldName: "extraction_protocol",
+            editable: true,
+            value: dataset.extraction_protocol,
+        },
+        {
+            title: "Capture Kit",
+            fieldName: "capture_kit",
+            editable: true,
+            value: dataset.capture_kit,
+        },
+        {
+            title: "Library Prep Method",
+            fieldName: "library_prep_method",
+            editable: true,
+            value: dataset.library_prep_method,
+        },
+        {
+            title: "Library Prep Date",
+            fieldName: "library_prep_date",
+            editable: true,
+            type: "date",
+            value: dataset.library_prep_date,
+        },
+        {
+            title: "Read Length",
+            fieldName: "read_length",
+            editable: true,
+            value: dataset.read_length,
+        },
+        { title: "Read Type", fieldName: "read_type", editable: true, value: dataset.read_type },
+        {
+            title: "Sequencing ID",
+            fieldName: "sequencing_id",
+            editable: true,
+            value: dataset.sequencing_id,
+        },
+        {
+            title: "Sequencing Centre",
+            fieldName: "sequencing_centre",
+            editable: true,
+            value: dataset.sequencing_centre,
+        },
+        {
+            title: "Creation Time",
+            type: "timestamp",
+            fieldName: "created",
+            editable: false,
+            value: dataset.created,
+        },
+        {
+            title: "Created By",
+            fieldName: "created_by",
+            editable: false,
+            value: dataset.created_by,
+        },
+        {
+            title: "Last Updated",
+            type: "timestamp",
+            fieldName: "updated",
+            editable: false,
+            value: dataset.updated,
+        },
+        {
+            title: "Updated By",
+            fieldName: "updated_by",
+            editable: false,
+            value: dataset.updated_by,
+        },
     ];
 }
 
@@ -45,7 +106,6 @@ export default function SampleTable(props: {
     return (
         <MaterialTable
             columns={[
-                { title: "Sample ID", field: "tissue_sample_id" },
                 {
                     title: "Extraction Date",
                     field: "extraction_date",
@@ -59,7 +119,7 @@ export default function SampleTable(props: {
                     field: "created",
                     render: rowData => <DateTimeText datetime={rowData.created} />,
                 },
-                { title: "Create By", field: "created_by" },
+                { title: "Created By", field: "created_by" },
                 {
                     title: "Update Time",
                     field: "updated",
@@ -69,11 +129,13 @@ export default function SampleTable(props: {
             ]}
             data={props.samples}
             title="Tissue Samples"
-            detailPanel={rowData => {
+            detailPanel={({ rowData }) => {
                 const infoList: Info[] = rowData.datasets.map(dataset => {
                     return {
-                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                         fields: getFields(dataset),
+                        identifier: dataset.dataset_id,
+                        linkPath: "datasets",
+                        primaryListTitle: `Dataset ID ${dataset.dataset_id}`,
                     };
                 });
                 return (

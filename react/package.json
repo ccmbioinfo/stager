@@ -3,32 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^4.11.3-deprecations.0",
+    "@material-table/core": "^4.3.5",
+    "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.9.1",
-    "@material-ui/lab": "^4.0.0-alpha.56",
-    "@testing-library/jest-dom": "^5.11.10",
-    "@testing-library/react": "^11.2.6",
-    "@testing-library/user-event": "^13.1.1",
-    "@types/jest": "^26.0.22",
-    "@types/node": "^14.14.37",
-    "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.3",
-    "@types/react-router": "^5.1.13",
-    "@types/react-router-dom": "^5.1.7",
-    "@types/react-table": "^7.0.29",
+    "@material-ui/lab": "^4.0.0-alpha.60",
+    "@types/node": "^16.10.3",
+    "@types/react": "^17.0.24",
+    "@types/react-dom": "^17.0.9",
+    "@types/react-router": "^5.1.17",
+    "@types/react-router-dom": "^5.3.2",
     "clsx": "^1.1.1",
-    "dayjs": "^1.10.4",
-    "material-table": "^1.69.1",
-    "notistack": "^1.0.5",
-    "prettier": "^2.1.2",
+    "dayjs": "^1.10.7",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-mui-unused-classes": "^1.0.3",
+    "notistack": "^1.0.10",
+    "prettier": "2.4.1",
     "re-resizable": "^6.9.0",
     "react": "^17.0.2",
-    "react-dom": "^17.0.1",
+    "react-dom": "^17.0.2",
     "react-file-drop": "^3.0.7",
-    "react-query": "^3.13.0",
-    "react-router-dom": "^5.1.2",
+    "react-query": "^3.31.0",
+    "react-router-dom": "^5.3.0",
     "react-scripts": "4.0.3",
-    "typescript": "~4.2.3"
+    "typescript": "~4.4.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -41,11 +38,56 @@
     "format": "prettier --write src"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "plugins": [
+      "import",
+      "mui-unused-classes"
+    ],
+    "rules": {
+      "import/no-useless-path-segments": "warn",
+      "import/no-cycle": "warn",
+      "import/order": [
+        "warn",
+        {
+          "groups": [
+            "builtin",
+            "external",
+            [
+              "parent",
+              "sibling",
+              "index"
+            ]
+          ],
+          "pathGroups": [
+            {
+              "pattern": "react",
+              "group": "external",
+              "position": "before"
+            }
+          ],
+          "pathGroupsExcludedImportTypes": [
+            "react"
+          ],
+          "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+          }
+        }
+      ],
+      "mui-unused-classes/unused-classes": "warn",
+      "react/jsx-curly-brace-presence": "warn",
+      "react/jsx-key": "warn",
+      "sort-imports": [
+        "warn",
+        {
+          "ignoreDeclarationSort": true,
+          "ignoreCase": true
+        }
+      ]
+    }
   },
   "prettier": {
     "printWidth": 100,
-    "tabWidth": 4,
     "semi": true,
     "arrowParens": "avoid"
   },

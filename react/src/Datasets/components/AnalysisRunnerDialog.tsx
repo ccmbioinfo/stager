@@ -8,6 +8,8 @@ import {
     FormControl,
     FormControlLabel,
     FormLabel,
+    Grid,
+    makeStyles,
     Paper,
     Radio,
     RadioGroup,
@@ -17,12 +19,17 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TextField,
     Typography,
-    makeStyles,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { Dataset } from "../../typings";
-import { usePipelinesQuery, useAnalysisCreateMutation } from "../../hooks";
+import {
+    useAnalysisCreateMutation,
+    useEnumsQuery,
+    useErrorSnackbar,
+    usePipelinesQuery,
+} from "../../hooks";
+import { AnalysisPriority, Dataset } from "../../typings";
 
 interface AnalysisRunnerDialogProps {
     datasets: Dataset[];
@@ -47,9 +54,13 @@ export default function AnalysisRunnerDialog({
     const pipelineQuery = usePipelinesQuery();
     const pipelines = pipelineQuery.data || [];
     const [pipeline, setPipeline] = useState(NaN);
+    const [analysisPriority, setAnalysisPriority] = useState<AnalysisPriority | "None" | "">("");
+    const [notes, setNotes] = useState("");
     const mutation = useAnalysisCreateMutation();
+    const { data: enums } = useEnumsQuery();
 
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     return (
         <Dialog
@@ -67,27 +78,75 @@ export default function AnalysisRunnerDialog({
                     Run a pipeline using the selected datasets. A full analysis can take a day to
                     several days depending on the number of datasets and the requested pipeline.
                 </Typography>
-                <FormControl component="fieldset">
-                    <FormLabel component="legend" className={classes.text}>
-                        Pipelines:
-                    </FormLabel>
-                    <RadioGroup
-                        row
-                        aria-label="Pipelines"
-                        name="pipelines"
-                        value={pipeline}
-                        onChange={event => setPipeline(parseInt(event.target.value))}
-                    >
-                        {pipelines.map(({ pipeline_id, pipeline_name, pipeline_version }) => (
-                            <FormControlLabel
-                                key={pipeline_id}
-                                label={`${pipeline_name} ${pipeline_version}`}
-                                value={pipeline_id}
-                                control={<Radio color="primary" />}
+                <Grid container direction="column">
+                    <Grid item>
+                        <FormControl component="fieldset">
+                            <FormLabel component="legend" className={classes.text}>
+                                Pipelines:
+                            </FormLabel>
+                            <RadioGroup
+                                row
+                                aria-label="Pipelines"
+                                name="pipelines"
+                                value={pipeline}
+                                onChange={event => setPipeline(parseInt(event.target.value))}
+                            >
+                                {pipelines.map(
+                                    ({ pipeline_id, pipeline_name, pipeline_version }) => (
+                                        <FormControlLabel
+                                            key={pipeline_id}
+                                            label={`${pipeline_name} ${pipeline_version}`}
+                                            value={pipeline_id}
+                                            control={<Radio color="primary" />}
+                                        />
+                                    )
+                                )}
+                            </RadioGroup>
+                        </FormControl>
+                    </Grid>
+                    <Grid item>
+                        <FormControl component="fieldset">
+                            <FormLabel component="legend" className={classes.text}>
+                                Priority:
+                            </FormLabel>
+                            <RadioGroup
+                                row
+                                aria-label="Priorities"
+                                name="priorities"
+                                value={analysisPriority}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                    setAnalysisPriority(event.target.value as AnalysisPriority)
+                                }
+                            >
+                                {enums?.PriorityType.concat("None").map(priorityName => (
+                                    <FormControlLabel
+                                        key={priorityName}
+                                        label={priorityName}
+                                        value={priorityName}
+                                        control={<Radio color="primary" />}
+                                    />
+                                ))}
+                            </RadioGroup>
+                        </FormControl>
+                    </Grid>
+                    <Grid item>
+                        <FormControl component="fieldset" fullWidth>
+                            <FormLabel component="legend" className={classes.text}>
+                                Notes:
+                            </FormLabel>
+                            <TextField
+                                aria-label="Notes"
+                                name="notes"
+                                variant="filled"
+                                multiline
+                                fullWidth
+                                margin="normal"
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
                             />
-                        ))}
-                    </RadioGroup>
-                </FormControl>
+                        </FormControl>
+                    </Grid>
+                </Grid>
                 <Typography variant="subtitle1" className={classes.text}>
                     Datasets:
                 </Typography>
@@ -112,7 +171,7 @@ export default function AnalysisRunnerDialog({
                                     <TableCell>{dataset.dataset_type}</TableCell>
                                     <TableCell>{dataset.condition}</TableCell>
                                     <TableCell align="right">
-                                        {dataset.linked_files.join(", ")}
+                                        {dataset.linked_files.map(f => f.path).join(", ")}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -125,13 +184,21 @@ export default function AnalysisRunnerDialog({
                     Cancel
                 </Button>
                 <Button
+                    disabled={!pipeline}
                     variant="contained"
                     onClick={async () => {
                         onClose();
+                        const priority =
+                            !analysisPriority || analysisPriority === "None"
+                                ? {}
+                                : { priority: analysisPriority };
                         mutation.mutate(
                             {
+                                type: "new",
                                 datasets: datasets.map(d => d.dataset_id),
                                 pipeline_id: pipeline,
+                                ...priority,
+                                notes: notes,
                             },
                             {
                                 onSuccess: analysis => {
@@ -144,10 +211,9 @@ export default function AnalysisRunnerDialog({
                                     );
                                 },
                                 onError: async response => {
-                                    const errorText = await response.text();
-                                    enqueueSnackbar(
-                                        `Analysis could not be requested. Error: ${response.status} - ${errorText}`,
-                                        { variant: "error" }
+                                    enqueueErrorSnackbar(
+                                        response,
+                                        `Analysis could not be requested.`
                                     );
                                 },
                             }

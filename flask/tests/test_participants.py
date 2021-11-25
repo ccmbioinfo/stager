@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 def test_no_participants(test_database, client, login_as):
     login_as("admin")
 
-    response = client.get("/api/participants?user=5")
+    response = client.get("/api/participants?user=4")
     assert response.status_code == 200
     assert len(response.get_json()["data"]) == 0
     assert response.get_json()["total_count"] == 0
@@ -23,6 +23,39 @@ def test_list_participants_admin(test_database, client, login_as):
     assert response.status_code == 200
     assert len(response.get_json()["data"]) == 3
     assert response.get_json()["total_count"] == 3
+
+
+def test_get_participants_exact_match(test_database, client, login_as):
+    login_as("admin")
+    # the number of participants returned by the endpoint, matching the specifications
+    ground_truth_d = {
+        "participant": {
+            "exact_match": {"00": 0, "001": 1, "002": 1, "003": 1},
+            "partial_match": {"00": 3},
+        },
+        "family": {
+            "exact_match": {"A": 0, "Aa": 2},
+            "partial_match": {"A": 2},
+        },
+    }
+    for codename_type in ground_truth_d:
+        for test_type in ground_truth_d[codename_type]:
+            if test_type == "exact_match":
+                exact_match = "True"
+            else:
+                exact_match = "False"
+
+            for ptp_query in ground_truth_d[codename_type][test_type]:
+                response = client.get(
+                    "/api/participants?{}_codename={}&{}_codename_exact_match={}".format(
+                        codename_type, ptp_query, codename_type, exact_match
+                    )
+                )
+                assert response.status_code == 200
+                assert (
+                    len(response.get_json()["data"])
+                    == ground_truth_d[codename_type][test_type][ptp_query]
+                )
 
 
 def test_list_participants_user(test_database, client, login_as):
@@ -78,6 +111,47 @@ def test_list_participants_user_from_admin(test_database, client, login_as):
     )
 
 
+# GET /api/participants/:id
+
+
+def test_get_participants_admin(test_database, client, login_as):
+    login_as("admin")
+
+    response = client.get("/api/participants/3")
+
+    assert response.status_code == 200
+
+    participant = response.get_json()
+    assert participant["participant_id"] == 3
+    assert len(participant["tissue_samples"]) == 2
+    assert len(participant["tissue_samples"][0]["datasets"]) == 1
+    assert len(participant["tissue_samples"][1]["datasets"]) == 2
+    assert client.get(f"/api/participants/1?user=1").status_code == 200
+    assert client.get(f"/api/participants/2?user=1").status_code == 200
+
+    assert client.get(f"/api/participants/1?user=2").status_code == 200
+    assert client.get(f"/api/participants/1?user=4").status_code == 404
+
+
+def test_get_participants_user(test_database, client, login_as):
+    login_as("user_c")
+
+    # Test if the user can only see datasets that belong to the same group the user belongs to.
+    response = client.get("/api/participants/3")
+    assert response.status_code == 200
+
+    participant = response.get_json()
+    assert participant["participant_id"] == 3
+    assert len(participant["tissue_samples"]) == 1
+    assert participant["tissue_samples"][0]["tissue_sample_id"] == 4
+    assert len(participant["tissue_samples"][0]["datasets"]) == 1
+    assert participant["tissue_samples"][0]["datasets"][0]["dataset_id"] == 6
+
+    # Test participant the user doesn't have access to.
+    assert client.get("/api/participants/1?user=5").status_code == 404
+    assert client.get("/api/participants/1?user=1").status_code == 404
+
+
 # DELETE /api/participants/:id
 
 
@@ -104,6 +178,8 @@ def test_delete_participant(test_database, client, login_as):
             joinedload(models.Participant.tissue_samples)
             .joinedload(models.TissueSample.datasets)
             .joinedload(models.Dataset.analyses)
+            .joinedload(models.Analysis.genotype)
+            .joinedload(models.Genotype.variant)
         )
         .one_or_none()
     )
@@ -111,6 +187,11 @@ def test_delete_participant(test_database, client, login_as):
     for sample in participant.tissue_samples:
         for dataset in sample.datasets:
             for analysis in dataset.analyses:
+                for genotype in analysis.genotype:
+                    db.session.delete(genotype)
+                db.session.commit()
+                for variant in analysis.variants:
+                    db.session.delete(variant)
                 db.session.delete(analysis)
             db.session.delete(dataset)
         db.session.delete(sample)

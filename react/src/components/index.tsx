@@ -4,6 +4,7 @@
  * Generated with VSCode extension: https://marketplace.visualstudio.com/items?itemName=BrunoLM.export-index
  */
 export { default as AnalysisInfoDialog } from "./AnalysisInfoDialog";
+export { default as AutocompleteMultiselect } from "./AutocompleteMultiselect";
 export { default as BooleanDisplay } from "./BooleanDisplay";
 export { default as BooleanEditComponent } from "./BooleanEditComponent";
 export { default as BooleanFilter } from "./BooleanFilter";
@@ -16,6 +17,8 @@ export { default as DateFilterComponent } from "./DateFilterComponent";
 export { default as DateTimeText } from "./DateTimeText";
 export { default as DetailSection } from "./DetailSection";
 export { default as DialogHeader } from "./DialogHeader";
+export { default as EditNotes } from "./EditNotes";
+export { default as ExactMatchFilterToggle } from "./ExactMatchFilterToggle";
 export { default as FieldDisplay } from "./FieldDisplay";
 export { default as FieldDisplayEditable } from "./FieldDisplayEditable";
 export { default as GridFieldsDisplay } from "./GridFieldsDisplay";
@@ -24,6 +27,9 @@ export { default as FileLinkingComponent } from "./FileLinkingComponent";
 export { default as InfoList } from "./InfoList";
 export { default as LastLoginDisplay } from "./LastLoginDisplay";
 export { default as ListItemRouterLink } from "./ListItemRouterLink";
+export { default as LoadingIndicator } from "./LoadingIndicator";
+export { default as MaterialTablePrimary } from "./MaterialTablePrimary";
+export { default as MaterialTablePaginationOverride } from "./MaterialTablePaginationOverride";
 export { default as MinioKeyDisplay } from "./MinioKeyDisplay";
 export { default as MinioResetButton } from "./MinioResetButton";
 export type { MinioKeys } from "./MinioResetButton";

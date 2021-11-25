@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Analysis, AnalysisChange, AnalysisDetailed } from "../../typings";
-import { changeFetch, updateInCachedList } from "../utils";
+import { Analysis, AnalysisChange } from "../../typings";
+import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface UpdateSource {
     source?: "selection" | "row-edit";
@@ -15,7 +15,10 @@ async function patchAnalysis(newAnalysis: AnalysisOptions) {
         // We only allow updating these fields via the MTable row edit feature
         updates = {
             notes: analysis.notes,
+            priority: analysis.priority,
             result_path: analysis.result_path,
+            assignee: analysis.assignee,
+            analysis_state: analysis.analysis_state,
         };
     }
     const data = await changeFetch("/api/analyses/" + newAnalysis.analysis_id, "PATCH", updates);
@@ -33,26 +36,10 @@ async function patchAnalysis(newAnalysis: AnalysisOptions) {
 export function useAnalysisUpdateMutation() {
     const queryClient = useQueryClient();
     const mutation = useMutation<Analysis, Response, AnalysisOptions>(patchAnalysis, {
-        onSuccess: (newAnalysis, changes) => {
-            let oldAnalysis: AnalysisOptions | Partial<AnalysisDetailed> | undefined;
-            oldAnalysis = queryClient.getQueryData<AnalysisDetailed>([
-                "analyses",
-                newAnalysis.analysis_id,
-            ]);
-            if (!oldAnalysis) {
-                // we may not have fetched for analysis details yet, so we account for that here
-                const oldAnalyses = queryClient.getQueryData<Analysis[]>("analyses");
-                if (oldAnalyses)
-                    oldAnalysis = oldAnalyses.find(a => a.analysis_id === newAnalysis.analysis_id);
-                else {
-                    const { source, ...rest } = changes;
-                    oldAnalysis = rest;
-                }
-            }
-            const updatedAnalysis = { ...oldAnalysis, ...newAnalysis };
-            queryClient.setQueryData(["analyses", newAnalysis.analysis_id], updatedAnalysis);
-            // TODO: Replace below with invalidate queries after overfetch #283
-            updateInCachedList<Analysis>("analyses", queryClient, updatedAnalysis, "analysis_id");
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                predicate: invalidateAnalysisPredicate,
+            });
         },
     });
     return mutation;

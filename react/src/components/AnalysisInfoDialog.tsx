@@ -1,13 +1,17 @@
 import React, { useMemo } from "react";
-import { Dialog, Divider, DialogContent } from "@material-ui/core";
+import { Button, Dialog, DialogContent, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { Dns } from "@material-ui/icons";
-import { formatDateString, getDatasetInfoList, createFieldObj } from "../functions";
-import { Analysis, Pipeline } from "../typings";
-import DialogHeader from "./DialogHeader";
-import DetailSection from "./DetailSection";
-import InfoList from "./InfoList";
-import { useEnumsQuery, useAnalysisQuery } from "../hooks";
+import { Dns, Replay } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
+import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from ".";
+import { getDatasetInfoList } from "../functions";
+import {
+    useAnalysisCreateMutation,
+    useAnalysisQuery,
+    useEnumsQuery,
+    useErrorSnackbar,
+} from "../hooks";
+import { Analysis, Field, Pipeline } from "../typings";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -17,21 +21,52 @@ const useStyles = makeStyles(theme => ({
     infoSection: {
         margin: theme.spacing(3),
     },
-    datasetInfo: {
-        padding: theme.spacing(2),
+    headerButton: {
+        marginLeft: theme.spacing(2),
     },
 }));
 
-function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined) {
+function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined): Field[] {
     return [
-        createFieldObj("Assigned to", analysis.assignee),
-        createFieldObj("Requested by", analysis.requester),
-        createFieldObj("Status", analysis.analysis_state),
-        createFieldObj("Last Updated", formatDateString(analysis.updated)),
-        createFieldObj("Notes", analysis.notes),
-        createFieldObj("Pipeline", `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`),
-        createFieldObj("Pipeline ID", analysis.pipeline_id),
-        createFieldObj("Supported Types", pipeline?.supported_types),
+        { title: "Assigned to", editable: false, value: analysis.assignee, fieldName: "assignee" },
+        {
+            title: "Requested by",
+            editable: false,
+            value: analysis.requester,
+            fieldName: "requester",
+        },
+        {
+            title: "Status",
+            editable: false,
+            value: analysis.analysis_state,
+            fieldName: "analysis_state",
+        },
+        {
+            title: "Path Prefix",
+            editable: false,
+            value: analysis.result_path,
+            fieldName: "result_path",
+        },
+        {
+            title: "Last Updated",
+            editable: false,
+            type: "timestamp",
+            value: analysis.updated,
+            fieldName: "updated",
+        },
+        { title: "Notes", editable: false, value: analysis.notes, fieldName: "notes" },
+        {
+            title: "Pipeline",
+            editable: false,
+            value: `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`,
+            fieldName: "pipeline",
+        },
+        {
+            title: "Supported Types",
+            editable: false,
+            value: pipeline?.supported_types,
+            fieldName: "supported_types",
+        },
     ];
 }
 
@@ -39,11 +74,13 @@ interface AlertInfoDialogProp {
     open: boolean;
     analysis: Analysis;
     onClose: () => void;
+    refreshTable?: () => void;
 }
 
 export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     const classes = useStyles();
     const analysisQuery = useAnalysisQuery(props.analysis.analysis_id);
+    const loadingOpen = analysisQuery.isLoading;
     const datasets = useMemo(
         () => (analysisQuery.isSuccess ? analysisQuery.data.datasets || [] : []),
         [analysisQuery]
@@ -52,8 +89,11 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
         () => (analysisQuery.isSuccess ? analysisQuery.data.pipeline : undefined),
         [analysisQuery]
     );
+    const { mutate: analysisUpdateMutate, isLoading: loadingUpdate } = useAnalysisCreateMutation();
     const labeledBy = "analysis-info-dialog-slide-title";
     const { data: enums } = useEnumsQuery();
+    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     return (
         <Dialog
@@ -65,6 +105,35 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
         >
             <DialogHeader id={labeledBy} onClose={props.onClose}>
                 Details of Analysis ID {props.analysis.analysis_id}
+                <Button
+                    className={classes.headerButton}
+                    variant="contained"
+                    size="small"
+                    endIcon={<Replay />}
+                    onClick={() => {
+                        analysisUpdateMutate(
+                            { type: "reanalysis", analysis_id: props.analysis.analysis_id },
+                            {
+                                onSuccess: () => {
+                                    enqueueSnackbar(
+                                        `Re-analysis of analysis ${props.analysis.analysis_id} requested.`
+                                    );
+                                    if (props.refreshTable) {
+                                        props.refreshTable();
+                                    }
+                                },
+                                onError: async response => {
+                                    enqueueErrorSnackbar(
+                                        response,
+                                        `Failed to request re-analysis of ${props.analysis.analysis_id}`
+                                    );
+                                },
+                            }
+                        );
+                    }}
+                >
+                    Request Re-analysis
+                </Button>
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
@@ -86,6 +155,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                     )}
                 </div>
             </DialogContent>
+            <LoadingIndicator open={loadingOpen || loadingUpdate} />
         </Dialog>
     );
 }

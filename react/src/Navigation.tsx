@@ -1,45 +1,48 @@
-import React, { useState, useMemo } from "react";
-import clsx from "clsx";
-import { BrowserRouter, Switch, Route, RouteProps, Redirect } from "react-router-dom";
+import React, { useMemo, useState } from "react";
 import {
-    makeStyles,
-    CssBaseline,
-    Drawer,
     AppBar,
-    Toolbar,
-    List,
-    Typography,
+    CssBaseline,
     Divider,
+    Drawer,
     IconButton,
-    Tooltip,
+    List,
+    makeStyles,
     Switch as MuiSwitch,
+    Toolbar,
+    Tooltip,
+    Typography,
 } from "@material-ui/core";
 import {
-    Menu as MenuIcon,
-    ChevronLeft as ChevronLeftIcon,
-    Dns as DnsIcon,
-    People as PeopleIcon,
-    Settings as SettingsIcon,
-    ShowChart as ShowChartIcon,
-    MeetingRoom as MeetingRoomIcon,
-    VerifiedUser as VerifiedUserIcon,
     AccountCircle as AccountCircleIcon,
+    AddBox as AddBoxIcon,
     Brightness3,
     Brightness5,
-    AddBox as AddBoxIcon,
+    ChevronLeft as ChevronLeftIcon,
+    Dns as DnsIcon,
+    MeetingRoom as MeetingRoomIcon,
+    Menu as MenuIcon,
+    People as PeopleIcon,
+    Search as SearchIcon,
+    Settings as SettingsIcon,
+    ShowChart as ShowChartIcon,
     SupervisedUserCircle,
+    VerifiedUser as VerifiedUserIcon,
 } from "@material-ui/icons";
+import clsx from "clsx";
+import { BrowserRouter, Redirect, Route, RouteProps, Switch } from "react-router-dom";
 
-import Participants from "./Participants";
-import Analyses from "./Analyses";
-import Datasets from "./Datasets";
 import AddDatasets from "./AddDatasets";
-import Settings from "./Settings";
-import Groups from "./Groups";
 import Admin from "./Admin";
-import { ListItemRouterLink, NotificationPopover } from "./components";
+import Analyses from "./Analyses";
 import logo from "./assets/logo.png";
+import { ListItemRouterLink, NotificationPopover } from "./components";
 import { useUserContext } from "./contexts";
+import Datasets from "./Datasets";
+import Groups from "./Groups";
+import NotFoundPage from "./NotFound";
+import Participants from "./Participants";
+import SearchVariants from "./SearchVariants";
+import Settings from "./Settings";
 
 const drawerWidth = 200;
 
@@ -109,9 +112,6 @@ const useStyles = (darkMode: boolean) =>
                     width: theme.spacing(7),
                     backgroundColor: darkMode ? "#383838" : "inherit",
                 },
-                bottomItems: {
-                    marginTop: "auto",
-                },
                 logo: {
                     height: "2.5em",
                     width: "auto",
@@ -128,7 +128,7 @@ const useStyles = (darkMode: boolean) =>
 interface RouteItem extends RouteProps {
     pageName: string; // Displays in AppBar
     linkTo?: string; // Used as path for links
-    main: (props: any) => JSX.Element; // The page itself
+    main: React.ComponentType; // The page itself
     icon?: React.ReactElement; // Icon for menu links
     requiresAdmin?: boolean; // If the route requires admin
 }
@@ -168,6 +168,12 @@ const routes: RouteItem[] = [
         linkTo: "/analysis",
         main: Analyses,
         icon: <ShowChartIcon />,
+    },
+    {
+        pageName: "Variants",
+        path: "/variants",
+        main: SearchVariants,
+        icon: <SearchIcon />,
     },
     {
         pageName: "Settings",
@@ -233,19 +239,21 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                             <MenuIcon />
                         </IconButton>
                         <Switch>
-                            {routes.map((route, index) => (
-                                <Route key={index} path={route.path} exact={route.exact}>
-                                    <Typography
-                                        component="h1"
-                                        variant="h6"
-                                        color="inherit"
-                                        noWrap
-                                        className={classes.title}
-                                    >
-                                        {route.pageName}
-                                    </Typography>
-                                </Route>
-                            ))}
+                            {routes
+                                .concat({ pageName: "Not Found", path: "*", main: NotFoundPage })
+                                .map((route, index) => (
+                                    <Route key={index} path={route.path} exact={route.exact}>
+                                        <Typography
+                                            component="h1"
+                                            variant="h6"
+                                            color="inherit"
+                                            noWrap
+                                            className={classes.title}
+                                        >
+                                            {route.pageName}
+                                        </Typography>
+                                    </Route>
+                                ))}
                         </Switch>
                         <Tooltip title={darkMode ? "Disable dark mode" : "Enable dark mode"} arrow>
                             <MuiSwitch
@@ -307,9 +315,11 @@ export default function Navigation({ signout, darkMode, toggleDarkMode }: Naviga
                                 render={() => <route.main />}
                             />
                         ) : (
-                            <Redirect key={index} to={`/participants`} />
+                            <Redirect key={index} to="/participants" />
                         )
                     )}
+                    <Route path="/oidc_callback*" render={() => <Redirect to="/" />} />
+                    <Route path="*" render={() => <NotFoundPage />} />
                 </Switch>
             </BrowserRouter>
         </div>

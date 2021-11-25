@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
-import { Column } from "material-table";
-import { Analysis, Pipeline } from "../../typings";
-import { Checkbox, ListItemText, MenuItem, Select } from "@material-ui/core";
+import React, { useEffect, useMemo, useState } from "react";
+import { Column } from "@material-table/core";
+import { Checkbox, FormControl, ListItemText, MenuItem, Select } from "@material-ui/core";
 import { usePipelinesQuery } from "../../hooks";
+import { Analysis, Pipeline } from "../../typings";
 
 type FilterProps = Parameters<Required<Column<Analysis>>["filterComponent"]>[0];
 
@@ -16,6 +16,29 @@ function pipelineName(p: Pipeline) {
  * Copies parameters from material-table filterComponent
  */
 export default function PipelineFilter(props: FilterProps) {
+    // we can't treat this as a real lookup field b/c dataManager will only run the appropriate checks if the `lookup` \
+    // prop is set: https://github.com/material-table-core/core/blob/master/src/utils/data-manager.js#L665
+    // so we need to treat it like a string filter as far as MT is concerned
+
+    const stringValToArray = (filterVal: string) =>
+        filterVal.split(",").map(Number).filter(Boolean);
+
+    const filterValue = useMemo(
+        () => ((props.columnDef as any).tableData.filterValue as string) || "",
+        // [ props.columnDef ] will not trigger the rerender.
+        // https://github.com/material-table-core/core/blob/master/src/components/MTableFilterRow/LookupFilter.js#L31
+        /* eslint-disable react-hooks/exhaustive-deps */
+        [(props.columnDef as any).tableData.filterValue as string]
+    );
+
+    const [selected, setSelected] = useState(stringValToArray(filterValue));
+
+    //use derived state to sync with table state since we don't have access to dataManager
+    //https://github.com/material-table-core/core/blob/master/src/components/MTableFilterRow/LookupFilter.js#L27
+    useEffect(() => {
+        setSelected(stringValToArray(filterValue));
+    }, [filterValue]);
+
     const pipelinesQuery = usePipelinesQuery();
     const pipelinesObj = useMemo(() => {
         if (pipelinesQuery.isSuccess) {
@@ -28,12 +51,10 @@ export default function PipelineFilter(props: FilterProps) {
         return undefined;
     }, [pipelinesQuery]);
 
-    const pipelineList = useMemo(() => (pipelinesQuery.isSuccess ? pipelinesQuery.data : []), [
-        pipelinesQuery,
-    ]);
-
-    // Selected pipeline_ids
-    const [selected, setSelected] = useState<number[]>([]);
+    const pipelineList = useMemo(
+        () => (pipelinesQuery.isSuccess ? pipelinesQuery.data : []),
+        [pipelinesQuery]
+    );
 
     function onFilterChange(event: React.ChangeEvent<{ value: unknown }>) {
         setSelected(event.target.value as number[]);
@@ -41,19 +62,20 @@ export default function PipelineFilter(props: FilterProps) {
 
     function onClose() {
         const rowId = (props.columnDef as any).tableData.id;
-        props.onFilterChanged(rowId, selected.join(","));
+        // there seem to be internal timing issues with these filters, especially w/ rapid changes. setTimeout seems to help, but it's not perfect
+        setTimeout(() => props.onFilterChanged(rowId, selected.join(",")));
     }
 
     return (
-        <>
+        <FormControl style={{ width: "100%" }}>
             {pipelinesObj && pipelineList && (
                 <Select
                     multiple
                     value={selected}
                     onChange={onFilterChange}
                     onClose={onClose}
-                    renderValue={selected =>
-                        (selected as number[]).map(id => pipelineName(pipelinesObj[id])).join(", ")
+                    renderValue={items =>
+                        (items as number[]).map(id => pipelineName(pipelinesObj[id])).join(", ")
                     }
                 >
                     {pipelineList.map(p => (
@@ -64,6 +86,6 @@ export default function PipelineFilter(props: FilterProps) {
                     ))}
                 </Select>
             )}
-        </>
+        </FormControl>
     );
 }

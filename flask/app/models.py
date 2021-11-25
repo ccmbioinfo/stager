@@ -2,12 +2,15 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
 from typing import List
+from requests import get
 
 from flask_login import UserMixin
+from flask import current_app as app, Request
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.exceptions import Unauthorized
 
-from .extensions import db, login
+from .extensions import db, login, oauth
 
 users_groups_table = db.Table(
     "users_groups",
@@ -27,6 +30,9 @@ class User(UserMixin, db.Model):
     deactivated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     minio_access_key = db.Column(db.String(150))
     minio_secret_key = db.Column(db.String(150))
+    # OIDC columns; if either is null then we consider them non-oidc users
+    issuer = db.Column(db.String(150))
+    subject = db.Column(db.String(255))
 
     groups = db.relationship("Group", secondary=users_groups_table, backref="users")
 
@@ -41,10 +47,50 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return self.user_id
 
+    def set_oidc_fields(self, issuer: str, subject: str):
+        self.issuer = issuer
+        self.subject = subject
+
 
 @login.user_loader
 def load_user(uid: int):
     return User.query.get(uid)
+
+
+@login.request_loader
+def load_user_from_request(request: Request):
+    """if user session can't be found, this function will be called to look for it elsewhere"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not app.config.get("ENABLE_OIDC"):
+        return None
+    token = auth_header[7:]
+    try:
+        user_info = fetch_userinfo(token)
+    except Unauthorized:
+        app.logger.info("Invalid Token!")
+        return None
+    return get_user_identity_from_userinfo(user_info)
+
+
+def fetch_userinfo(token: str):
+    """get roles and other information from the userinfo endpoint"""
+    provider = app.config.get("OIDC_PROVIDER")
+    client = oauth.create_client(provider)
+    userinfo_endpoint = client.load_server_metadata().get("userinfo_endpoint")
+    userinfo_response = get(
+        userinfo_endpoint, headers={"Authorization": f"Bearer {token}"}
+    )
+
+    if userinfo_response.status_code == 401:
+        raise Unauthorized
+
+    return userinfo_response.json()
+
+
+def get_user_identity_from_userinfo(user_info: dict):
+    """find token user based on subject identifier"""
+    sub = user_info["sub"]
+    return User.query.filter(User.subject == sub).first()
 
 
 @dataclass
@@ -235,11 +281,27 @@ groups_datasets_table = db.Table(
 datasets_analyses_table = db.Table(
     "datasets_analyses",
     db.Model.metadata,
-    db.Column("dataset_id", db.Integer, db.ForeignKey("dataset.dataset_id")),
+    db.Column(
+        "dataset_id",
+        db.Integer,
+        db.ForeignKey("dataset.dataset_id"),
+    ),
     db.Column("analysis_id", db.Integer, db.ForeignKey("analysis.analysis_id")),
     db.PrimaryKeyConstraint(
         "dataset_id", "analysis_id"
     ),  # for our composite FK on genotype
+)
+
+datasets_files_table = db.Table(
+    "datasets_files",
+    db.Model.metadata,
+    db.Column("file_id", db.Integer, db.ForeignKey("file.file_id"), nullable=False),
+    db.Column(
+        "dataset_id",
+        db.Integer,
+        db.ForeignKey("dataset.dataset_id", ondelete="cascade"),
+        nullable=False,
+    ),
 )
 
 
@@ -276,10 +338,11 @@ class Dataset(db.Model):
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
 
-    discriminator = db.Column(db.Enum("dataset", "rnaseq_dataset"))
+    discriminator: str = db.Column(db.Enum("dataset", "rnaseq_dataset"))
     __mapper_args__ = {
         "polymorphic_identity": "dataset",
         "polymorphic_on": discriminator,
+        "with_polymorphic": "*",
     }
 
     analyses = db.relationship(
@@ -290,19 +353,12 @@ class Dataset(db.Model):
     )
     updated_by = db.relationship("User", foreign_keys=[updated_by_id], lazy="joined")
     created_by = db.relationship("User", foreign_keys=[created_by_id], lazy="joined")
-
-    files = db.relationship(
-        "DatasetFile",
-        backref="dataset",
-        cascade="all, delete",
+    linked_files = db.relationship(
+        "File",
+        secondary=datasets_files_table,
+        backref="datasets",
         passive_deletes=True,
-        lazy="joined",
     )
-    linked_files: List[str]
-
-    @property
-    def linked_files(self) -> List[str]:
-        return [x.path for x in self.files]
 
 
 @dataclass
@@ -313,24 +369,24 @@ class RNASeqDataset(Dataset):
         db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
         primary_key=True,
     )
+    candidate_genes: str = db.Column(db.String(255))
     RIN: float = db.Column(db.Float)
     DV200: int = db.Column(db.Integer)
     concentration: float = db.Column(db.Float)
     sequencer: str = db.Column(db.String(50))
     spike_in: str = db.Column(db.String(50))
+    vcf_available: str = db.Column(db.Boolean)
 
-    __mapper_args__ = {"polymorphic_identity": "rnaseq_dataset"}
+    __mapper_args__ = {
+        "polymorphic_identity": "rnaseq_dataset",
+    }
 
 
 @dataclass
-class DatasetFile(db.Model):
+class File(db.Model):
     file_id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(
-        db.Integer,
-        db.ForeignKey("dataset.dataset_id", onupdate="cascade", ondelete="cascade"),
-        nullable=False,
-    )
     path: str = db.Column(db.String(500), nullable=False, unique=True)
+    multiplexed: bool = db.Column(db.Boolean)
 
 
 class AnalysisState(str, Enum):
@@ -339,6 +395,11 @@ class AnalysisState(str, Enum):
     Done = "Done"
     Error = "Error"
     Cancelled = "Cancelled"
+
+
+class PriorityType(str, Enum):
+    Clinical = "Clinical"
+    Research = "Research"
 
 
 @dataclass
@@ -373,6 +434,7 @@ class Analysis(db.Model):
     assignee = db.relationship("User", foreign_keys=[assignee_id], lazy="joined")
     requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
     variants = db.relationship("Variant", backref="analysis")
+    priority: PriorityType = db.Column(db.Enum(PriorityType))
 
 
 @dataclass
@@ -406,35 +468,96 @@ class PipelineDatasets(db.Model):
 
 @dataclass
 class Gene(db.Model):
-    gene_id: int = db.Column(db.Integer, primary_key=True)
-    hgnc_gene_id: int = db.Column(db.Integer, unique=True)
-    ensembl_id: int = db.Column(db.Integer, unique=True)
-    gene: str = db.Column(db.String(50))
-    hgnc_gene_name: str = db.Column(db.String(50))
-    variants = db.relationship("Variant", backref="gene")
+    # these are indeed unique in the gtf
+    ensembl_id: int = db.Column(db.Integer, primary_key=True)
+    # hgnc_id: int = db.Column(db.Integer, unique=True)
+    # ncbi_id: int = db.Column(db.Integer, unique=True)
+    chromosome: str = db.Column(db.String(2), nullable=False)
+    # indicates whether the feature is from havana, ensembl or both
+    source: str = db.Column(db.String(20))
+    # GRCh37 coordinates, incompatible with others
+    start: int = db.Column(db.Integer, nullable=False)
+    end: int = db.Column(db.Integer, nullable=False)
+    aliases = db.relationship("GeneAlias", backref="gene")
+
+
+@dataclass
+class GeneAlias(db.Model):
+    # Autoincrement surrogate key
+    alias_id = db.Column(db.Integer, primary_key=True)
+    ensembl_id: int = db.Column(
+        db.Integer,
+        db.ForeignKey("gene.ensembl_id", onupdate="cascade", ondelete="cascade"),
+    )
+    # Not unique in case one name corresponds to multiple ENSGs across releases
+    name: str = db.Column(db.String(50), nullable=False)
+    # Optional flexible type label, e.g., current hgnc gene symbol, previous gene symbol, synonyms
+    kind: str = db.Column(db.String(50))
+    # No point in allowing dupes for the same identifier though
+    __table_args__ = (
+        db.UniqueConstraint("ensembl_id", "name"),
+        db.Index("gene_alias_ensembl_id_IDX", "ensembl_id"),
+    )
 
 
 @dataclass
 class Variant(db.Model):
+    # table contains both variant-annotation (external, versioned annotation information) and variant-analysis (vcf) information.
+    # in the future, the variant-analysis information could be stored in the database and
+    # variant-annotations would be performed on the fly potentially through click commands or additional tables
     variant_id: int = db.Column(db.Integer, primary_key=True)
     analysis_id: int = db.Column(
         db.Integer, db.ForeignKey("analysis.analysis_id"), nullable=False
     )
-    position: str = db.Column(db.String(20), nullable=False)
-    reference_allele: str = db.Column(db.String(150), nullable=False)
-    alt_allele: str = db.Column(db.String(150), nullable=False)
+    chromosome: str = db.Column(db.String(2), nullable=False)
+    # GRCh37 coordinates, incompatible with others
+    position: int = db.Column(db.Integer, nullable=False, index=True)
+    reference_allele: str = db.Column(db.String(300), nullable=False)
+    alt_allele: str = db.Column(db.String(300), nullable=False)
     variation: str = db.Column(db.String(50), nullable=False)
-    refseq_change = db.Column(db.String(250), nullable=True)
+    refseq_change = db.Column(db.String(500), nullable=True)
     depth: int = db.Column(db.Integer, nullable=False)
-    gene_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("gene.gene_id", onupdate="cascade", ondelete="restrict"),
-    )
     conserved_in_20_mammals: int = db.Column(db.Float, nullable=True)
     sift_score: int = db.Column(db.Float, nullable=True)
     polyphen_score: int = db.Column(db.Float, nullable=True)
     cadd_score: int = db.Column(db.Float, nullable=True)
     gnomad_af: int = db.Column(db.Float, nullable=True)
+
+    ucsc_link: str = db.Column(db.String(300), nullable=True)
+    gnomad_link: str = db.Column(db.String(500), nullable=True)
+    # can be hgnc, ensembl or null depending on age of report. reports from 2020-08 onwards are guaranteed to have either hgnc or ensembl id in this, exists to facilitate comparison
+    gene: str = db.Column(db.String(50), nullable=True)
+    info: str = db.Column(db.Text(15000), nullable=True)
+    quality: int = db.Column(db.Integer, nullable=True)
+    clinvar: str = db.Column(db.String(200), nullable=True)
+    gnomad_af_popmax: int = db.Column(db.Float, nullable=True)
+    gnomad_ac: int = db.Column(db.Integer, nullable=True)
+    gnomad_hom: int = db.Column(db.Integer, nullable=True)
+    # unfortunately, not always an ensembl gene id
+    report_ensembl_gene_id: str = db.Column(db.String(50), nullable=True)
+    # unfortunately, not always an ensembl transcript id
+    ensembl_transcript_id: str = db.Column(db.String(50), nullable=True)
+    aa_position: str = db.Column(db.String(50), nullable=True)
+    exon: str = db.Column(db.String(50), nullable=True)
+    protein_domains: str = db.Column(db.String(750), nullable=True)
+    rsids: str = db.Column(db.String(500), nullable=True)  # comma delimited
+    gnomad_oe_lof_score: int = db.Column(db.Float, nullable=True)
+    gnomad_oe_mis_score: int = db.Column(db.Float, nullable=True)
+    exac_pli_score: int = db.Column(db.Float, nullable=True)
+    exac_prec_score: int = db.Column(db.Float, nullable=True)
+    exac_pnull_score: int = db.Column(db.Float, nullable=True)
+    spliceai_impact: str = db.Column(db.String(1000), nullable=True)
+    spliceai_score: str = db.Column(db.Float, nullable=True)
+    vest3_score: int = db.Column(db.Float, nullable=True)
+    revel_score: int = db.Column(db.Float, nullable=True)
+    gerp_score: int = db.Column(db.Float, nullable=True)
+    imprinting_status: str = db.Column(db.String(50), nullable=True)
+    imprinting_expressed_allele: str = db.Column(db.String(50), nullable=True)
+    pseudoautosomal: str = db.Column(db.Boolean, nullable=True)  # 'Nan'/Yes/Na
+    number_of_callers: int = db.Column(db.Integer, nullable=True)
+    old_multiallelic: str = db.Column(db.String(500), nullable=True)
+    uce_100bp: bool = db.Column(db.Boolean, nullable=True)
+    uce_200bp: bool = db.Column(db.Boolean, nullable=True)
 
 
 @dataclass
@@ -472,6 +595,8 @@ class Genotype(db.Model):
     zygosity: str = db.Column(db.String(50))
     burden: int = db.Column(db.Integer)
     alt_depths: int = db.Column(db.Integer)
+    genotype: str = db.Column(db.String(2500), nullable=True)  # from gts
+    coverage: int = db.Column(db.Integer, nullable=True)  # from trio_coverage
 
     __table_args__ = (
         db.ForeignKeyConstraint(

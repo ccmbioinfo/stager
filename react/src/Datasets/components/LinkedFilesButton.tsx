@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { makeStyles, ButtonBase } from "@material-ui/core";
+import { ButtonBase, makeStyles } from "@material-ui/core";
 import LinkedFilesPopover from "./LinkedFilesPopover";
 
 const useStyles = makeStyles(theme => ({
