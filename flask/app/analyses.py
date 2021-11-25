@@ -486,11 +486,8 @@ def create_analysis():
     }
 
     # Add email to cache
-    current_cache = cache.get("analyses_emails")
-    if current_cache is not None:
-        cache.set("analyses_emails", [dynamic_object] + current_cache, 0)
-    else:
-        cache.set("analyses_emails", [dynamic_object], 0)
+    current_cache = cache.get("analyses_emails") or []
+    cache.set("analyses_emails", [dynamic_object] + current_cache, 0)
 
     app.logger.debug("Analysis created successfully, returning JSON..")
 
