@@ -53,8 +53,8 @@ def list_analyses(page: int, limit: int) -> Response:
         "requested",
         "analysis_id",
     ]
-    assignee_user = aliased(models.Analysis.assignee)
-    requester_user = aliased(models.Analysis.requester)
+    assignee_user = aliased(models.User)
+    requester_user = aliased(models.User)
     app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
@@ -277,6 +277,8 @@ def list_analyses(page: int, limit: int) -> Response:
         }
         for analysis in analyses
     ]
+
+    app.logger.info(results)
 
     if expects_json(request):
         app.logger.debug("Returning paginated response..")
