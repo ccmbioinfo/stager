@@ -1,5 +1,6 @@
 from flask import jsonify, Blueprint, current_app as app
 from flask_login import current_user, login_required
+from flask.app.utils import get_minio_client
 from minio import Minio
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
@@ -17,17 +18,10 @@ bucket_blueprint = Blueprint(
 @login_required
 def get_unlinked_files():
 
-    # temporary solution since Minio can't access the app without context
-    with app.app_context():
-        minioClient = Minio(
-            app.config.get("MINIO_ENDPOINT"),
-            access_key=app.config.get("MINIO_ACCESS_KEY"),
-            secret_key=app.config.get("MINIO_SECRET_KEY"),
-            secure=False,
-        )
+    minio_client = get_minio_client()
 
     app.logger.debug("Getting all minio bucket names..")
-    all_bucket_names = [bucket.name for bucket in minioClient.list_buckets()]
+    all_bucket_names = [bucket.name for bucket in minio_client.list_buckets()]
 
     # Remove buckets the current user does not have access to assuming group_code.lower() == bucket name
     app.logger.debug("Getting all buckets that user has access to..")
@@ -46,7 +40,7 @@ def get_unlinked_files():
     app.logger.debug("Getting all files in valid minio buckets..")
     all_files = []
     for bucket in valid_bucket_names:
-        objs = minioClient.list_objects(bucket, recursive=True)
+        objs = minio_client.list_objects(bucket, recursive=True)
         for obj in objs:
             all_files.append(bucket + "/" + obj.object_name)
 
