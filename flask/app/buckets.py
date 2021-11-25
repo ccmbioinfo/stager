@@ -1,11 +1,10 @@
 from flask import jsonify, Blueprint, current_app as app
 from flask_login import current_user, login_required
-from flask.app.utils import get_minio_client
-from minio import Minio
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 
 from . import models
+from .utils import get_minio_client
 
 
 bucket_blueprint = Blueprint(

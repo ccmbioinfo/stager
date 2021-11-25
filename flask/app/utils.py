@@ -237,9 +237,9 @@ def get_minio_admin() -> MinioAdmin:
 
 def get_minio_client() -> Minio:
     return Minio(
-        app.config.get("MINIO_ENDPOINT"),
-        access_key=app.config.get("MINIO_ACCESS_KEY"),
-        secret_key=app.config.get("MINIO_SECRET_KEY"),
+        app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
         secure=app.config["MINIO_TLS"],
     )
 
