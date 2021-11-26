@@ -10,13 +10,17 @@ interface DatasetSubmitParameters {
 async function submitDatasets(parameters: DatasetSubmitParameters) {
     const { data, asGroups } = parameters;
     const params = asGroups.length > 0 ? `?groups=${asGroups.join(",")}` : "";
-    const response = await basicFetch("/api/_bulk" + params, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-    });
+    const response = await basicFetch(
+        "/api/_bulk" + params,
+        {},
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        }
+    );
 
     return response as Dataset[];
 }

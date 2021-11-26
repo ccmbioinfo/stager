@@ -149,6 +149,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 signout={signout}
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
+                onEndpointSelected={fetchAPIInfo}
                 oauth={apiInfo ? apiInfo.oauth : false}
                 labs={availableEndpoints}
             />

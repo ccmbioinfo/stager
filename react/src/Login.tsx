@@ -23,6 +23,7 @@ interface LoginProps {
     signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
+    onEndpointSelected: () => void;
     oauth: boolean;
     labs: LabSelection[];
 }
@@ -196,6 +197,7 @@ function OIDCRedirectHandler(props: LoginProps) {
 function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
+    onEndpointSelected = () => {},
     labs = [] as LabSelection[],
 }) {
     const [username, setUsername] = useState("");
@@ -225,6 +227,9 @@ function LoginForm({
 
     const handleLabSelect = (lab: LabSelection) => {
         setShowForm(lab.endpoint !== "");
+        if (lab.endpoint !== "") {
+            onEndpointSelected();
+        }
     };
     const classes = useStyles();
     return (
