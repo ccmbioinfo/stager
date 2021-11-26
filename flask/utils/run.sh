@@ -8,13 +8,13 @@ LC_ALL=C.UTF-8
 LANG=C.UTF-8
 FLASK_APP=app/__init__.py
 if [[ "$1" == "pytest" ]]; then
-    $PYTHON -m "$@"
+    exec $PYTHON -m "$@"
 elif [[ "$1" == "black" ]]; then
-    "$@" *.py app migrations tests
+    exec "$@" *.py app migrations tests
 elif [[ "$1" == "prod" ]]; then
     shift
     $COMMAND db upgrade
-    gunicorn wsgi:app "$@"
+    exec gunicorn wsgi:app "$@"
 else
     if [ ! -d "migrations" ]; then
         $COMMAND db init
@@ -22,5 +22,5 @@ else
     fi
     $COMMAND db upgrade
     $COMMAND db-seed-dev
-    $COMMAND run "$@"
+    exec $COMMAND run "$@"
 fi
