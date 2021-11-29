@@ -40,7 +40,8 @@ def create_app(config):
     register_extensions(app)
     manage.register_commands(app)
     register_blueprints(app)
-    register_schedulers(app)
+    if os.getenv("SENDGRID_API_KEY"):
+        register_schedulers(app)
 
     return app
 
