@@ -14,6 +14,19 @@ import { Query, SetDataOptions } from "react-query";
 import { stringToBoolean } from "../functions";
 import { QueryWithSearchOptions as MTQueryWithSearchOptions } from "../typings";
 
+function getActiveEndpoint(): string {
+    const activeEndpoint = localStorage.getItem("endpoint");
+    return activeEndpoint === null ? "" : activeEndpoint;
+}
+
+/**
+ * Wrapper for fetch - injects currently selected endpoint url to the outgoing request
+ */
+export function apiFetch(url: string, init?: RequestInit | undefined): Promise<Response> {
+    const endpoint = getActiveEndpoint();
+    return fetch(`${endpoint}${url}`, init);
+}
+
 /**
  * Fetch the provided url. Return the JSON response if successful.
  * Throw the response if unsuccessful.
@@ -24,7 +37,7 @@ export async function basicFetch(
     options: RequestInit | undefined = undefined
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await fetch(`${url}${paramString}`, options);
+    const response = await apiFetch(`${url}${paramString}`, options);
     if (response.ok) {
         if (response.headers.get("Content-Type") === "text/csv") {
             return response.text();
@@ -49,8 +62,7 @@ export async function fetchCsv(
     }
 
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-
-    const response = await fetch(`${url}${paramString}`, { ...options, headers });
+    const response = await apiFetch(`${url}${paramString}`, { ...options, headers });
 
     if (response.ok) {
         return {
@@ -76,7 +88,7 @@ export async function queryTableData<RowData extends object>(
     url: string
 ): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
-    const response = await fetch(url + "?" + searchParams.toString());
+    const response = await apiFetch(url + "?" + searchParams.toString());
     if (response.ok) {
         const result = await response.json();
         return {
@@ -170,7 +182,7 @@ export async function changeFetch<
         onError?: (res: Response) => Promise<TError>;
     }
 ) {
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: method,
         credentials: "same-origin",
         headers: body ? { "Content-Type": "application/json" } : undefined,
