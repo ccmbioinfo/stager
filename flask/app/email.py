@@ -40,7 +40,6 @@ def send_email(
 
     message.to = To(to_emails)
     message.from_email = From(from_email, "Stager Team")
-    message.reply_to = ReplyTo("ccm.stager@sickkids.ca", "Stager Team Reply")
     message.send_at = SendAt(math.ceil(scheduled_time))
     message.dynamic_template_data = dynamic_template_object
     message.template_id = os.getenv("SENDGRID_EMAIL_TEMPLATE_ID")

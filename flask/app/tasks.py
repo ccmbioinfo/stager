@@ -1,9 +1,8 @@
 import os
 from datetime import datetime, timedelta
-from . import cache, models
+from . import models
 from .email import send_email
 from .extensions import db
-from sqlalchemy.orm import contains_eager, joinedload, selectinload
 from dataclasses import asdict
 
 
@@ -15,7 +14,6 @@ def send_email_notification(app):
         yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
         today = datetime.now().strftime("%Y-%m-%d")
 
-        # Query db
         analyses = db.session.query(models.Analysis).filter(
             models.Analysis.requested >= yesterday,
             models.Analysis.requested < today,
