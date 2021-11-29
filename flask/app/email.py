@@ -12,7 +12,6 @@ from sendgrid.helpers.mail import From, Mail, ReplyTo, SendAt, To
 
 from flask import current_app as app
 
-from .extensions import cache
 from typing import Any, Dict
 
 sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
@@ -52,8 +51,6 @@ def send_email(
         app.logger.debug(
             f"Email successfully sent from {from_email} to {to_emails}", message
         )
-
-        cache.set("analyses_emails", None)
     except Exception as e:
         app.logger.error("Failed to send email...")
         app.logger.error(e)
