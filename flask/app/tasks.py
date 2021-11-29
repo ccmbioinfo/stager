@@ -12,8 +12,8 @@ def send_email_notification(app):
 
         app.logger.info("Sending email notification...")
 
-        yesterday = (datetime.now() - timedelta(0)).strftime("%Y-%m-%d")
-        today = (datetime.now() + timedelta(1)).strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
+        today = datetime.now().strftime("%Y-%m-%d")
 
         # Query db
         analyses = db.session.query(models.Analysis).filter(
