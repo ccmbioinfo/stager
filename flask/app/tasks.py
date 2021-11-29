@@ -1,16 +1,57 @@
 import os
-
-from . import cache
+from datetime import datetime, timedelta
+from . import cache, models
 from .email import send_email
+from .extensions import db
+from sqlalchemy.orm import contains_eager, joinedload, selectinload
+from dataclasses import asdict
 
 
 def send_email_notification(app):
     with app.app_context():
-        email_cache = cache.get("analyses_emails")
-        app.logger.debug(email_cache)
-        if email_cache is not None and os.getenv("SENDGRID_API_KEY") is not None:
-            send_email(
-                to_emails=os.getenv("SENDGRID_TO_EMAIL"),
-                from_email=os.getenv("SENDGRID_FROM_EMAIL"),
-                dynamic_template_object={"analyses": email_cache},
+
+        app.logger.info("Sending email notification...")
+
+        yesterday = (datetime.now() - timedelta(0)).strftime("%Y-%m-%d")
+        today = (datetime.now() + timedelta(1)).strftime("%Y-%m-%d")
+
+        # Query db
+        analyses = db.session.query(models.Analysis).filter(
+            models.Analysis.requested >= yesterday,
+            models.Analysis.requested < today,
+        )
+
+        app.logger.debug(analyses)
+
+        dynamic_object = {"analyses": []}
+
+        for analysis in analyses:
+            mapped_dataset_ids_gen = (
+                db.session.query(models.datasets_analyses_table)
+                .filter(
+                    models.datasets_analyses_table.c.analysis_id == analysis.analysis_id
+                )
+                .values("dataset_id")
             )
+
+            mapped_dataset_ids = [x for x, in mapped_dataset_ids_gen]
+
+            datasets = (
+                db.session.query(models.Dataset)
+                .filter(models.Dataset.dataset_id.in_(mapped_dataset_ids))
+                .all()
+            )
+
+        dynamic_object["analyses"].append({**asdict(analysis), "datasets": datasets})
+
+        app.logger.debug("Dynamic object template...")
+        app.logger.debug(dynamic_object)
+
+        # email_cache = cache.get("analyses_emails")
+        # app.logger.debug(email_cache)
+        # if email_cache is not None and os.getenv("SENDGRID_API_KEY") is not None:
+        #     send_email(
+        #         to_emails=os.getenv("SENDGRID_TO_EMAIL"),
+        #         from_email=os.getenv("SENDGRID_FROM_EMAIL"),
+        #         dynamic_template_object={"analyses": email_cache},
+        #     )

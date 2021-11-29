@@ -47,15 +47,13 @@ def create_app(config):
 
 def register_schedulers(app):
     scheduler = BackgroundScheduler(timezone="America/Toronto")
-    scheduler.add_job(
-        send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
-    )
+    # scheduler.add_job(
+    #     send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
+    # )
+
+    scheduler.add_job(send_email_notification, "interval", [app], seconds=30)
 
     scheduler.start()
-
-    # When app restarts or shuts down, check cache and send emails
-    if os.getenv("SENDGRID_API_KEY") is not None:
-        atexit.register(send_email_notification, app)
 
     # Shut down the scheduler when exiting the app
     atexit.register(scheduler.shutdown)
