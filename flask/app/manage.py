@@ -17,6 +17,8 @@ from app import models  # duplicated - how to best account for this
 from .extensions import db
 from .madmin import MinioAdmin, stager_buckets_policy
 from .manage_keycloak import *
+from sqlalchemy.orm import contains_eager
+import json
 
 # for report mapping and insertion
 from .mapping_utils import (
@@ -39,12 +41,72 @@ def register_commands(app: Flask) -> None:
     app.cli.add_command(map_hiraki_datasets_analyses)
     app.cli.add_command(add_hiraki_reports)
     app.cli.add_command(migrate_minio_policies)
+    app.cli.add_command(post_dataset_analyses)
     if app.config.get("ENABLE_OIDC"):
         app.cli.add_command(update_user)
         if os.getenv("KEYCLOAK_HOST") is not None:
             app.cli.add_command(create_realm)
             app.cli.add_command(create_client)
             app.cli.add_command(add_user)
+
+
+@click.command("post-dataset-analyses")
+@click.argument("participant-codename")
+@with_appcontext
+def post_dataset_analyses(participant_codename: str):
+    """
+    Given a participant codename, fetch all dataset-analysis metadata and POST each one to Phenotips.
+    """
+
+    # fetch datasets and analyses for participant of interest, starting at the dataset level so we can iterate through
+    # their datasets and correspondingly, their analyses
+    query = (
+        Dataset.query.join(Dataset.linked_files)
+        .join(Dataset.tissue_sample)
+        .join(TissueSample.participant)
+        .join(Dataset.analyses)
+        .join(Participant.family)
+        .filter(Participant.participant_codename == participant_codename)
+    )
+
+    datasets = query.all()
+
+    if len(datasets) == 0:
+        exit("No datasets found")
+
+    # for querying PT API to retrieve internal ID
+    family_codename = set(
+        [
+            dataset.tissue_sample.participant.family.family_codename
+            for dataset in datasets
+        ]
+    )
+
+    if len(family_codename) > 1:
+        exit("Participant has multiple family codenames..")
+
+    for dataset in datasets:
+
+        dataset_payload = {
+            "dataset_type": dataset.dataset_type,
+            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+        }
+
+        for analysis in dataset.analyses:
+
+            analysis_dataset_payload = {
+                **dataset_payload,
+                "files": analysis.result_path,
+                "analysis_date": str(analysis.finished).split(" ")[0],
+            }
+
+            analysis_dataset_json = json.dumps(
+                analysis_dataset_payload, indent=4, default=str
+            )
+
+            click.echo(analysis_dataset_json)
+
+            # response = requests.post("......")
 
 
 @click.command("migrate-minio-policies")
