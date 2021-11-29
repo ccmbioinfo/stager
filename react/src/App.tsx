@@ -86,10 +86,10 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             setAuthenticated(loginResult.ok);
 
             let endpoints: LabSelection[] = [];
-            const availibleEndpoints = await fetch("/labs.json");
+            /* const availibleEndpoints = await fetch("/labs.json");
             if (availibleEndpoints.ok) {
                 endpoints = await availibleEndpoints.json();
-            }
+            } */
 
             if (endpoints.length > 0) {
                 setAvailableEndpoints(endpoints);
