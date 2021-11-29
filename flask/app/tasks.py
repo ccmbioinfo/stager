@@ -42,16 +42,44 @@ def send_email_notification(app):
                 .all()
             )
 
-        dynamic_object["analyses"].append({**asdict(analysis), "datasets": datasets})
+        dynamic_object["analyses"].append(
+            {
+                **asdict(analysis),
+                "requested": analysis.requested.strftime("%Y-%m-%d"),
+                "updated": analysis.updated.strftime("%Y-%m-%d"),
+                "datasets": [
+                    {
+                        "dataset_id": dataset.dataset_id,
+                        "notes": dataset.notes,
+                        "linked_files": ", ".join(dataset.linked_files),
+                        "group_code": ", ".join(
+                            [group.group_code for group in dataset.groups]
+                        ),
+                        "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
+                        "participant_codename": dataset.tissue_sample.participant.participant_codename,
+                        "participant_type": dataset.tissue_sample.participant.participant_type,
+                        "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
+                        "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
+                        "institution": dataset.tissue_sample.participant.institution.institution
+                        if dataset.tissue_sample.participant.institution
+                        else None,
+                        "sex": dataset.tissue_sample.participant.sex,
+                        "family_codename": dataset.tissue_sample.participant.family.family_codename,
+                        "updated_by": dataset.tissue_sample.updated_by.username,
+                        "created_by": dataset.tissue_sample.created_by.username,
+                        "participant_notes": dataset.tissue_sample.participant.notes,
+                    }
+                    for dataset in datasets
+                ],
+            }
+        )
 
         app.logger.debug("Dynamic object template...")
         app.logger.debug(dynamic_object)
 
-        # email_cache = cache.get("analyses_emails")
-        # app.logger.debug(email_cache)
-        # if email_cache is not None and os.getenv("SENDGRID_API_KEY") is not None:
-        #     send_email(
-        #         to_emails=os.getenv("SENDGRID_TO_EMAIL"),
-        #         from_email=os.getenv("SENDGRID_FROM_EMAIL"),
-        #         dynamic_template_object={"analyses": email_cache},
-        #     )
+        if os.getenv("SENDGRID_API_KEY"):
+            send_email(
+                to_emails=os.getenv("SENDGRID_TO_EMAIL"),
+                from_email=os.getenv("SENDGRID_FROM_EMAIL"),
+                dynamic_template_object=dynamic_object,
+            )
