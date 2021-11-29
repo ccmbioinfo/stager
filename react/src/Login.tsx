@@ -4,6 +4,7 @@ import {
     Button,
     CircularProgress,
     Container,
+    Fade,
     Grid,
     Link,
     makeStyles,
@@ -14,13 +15,17 @@ import {
 import { BrowserRouter, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
 import brand from "./assets/brand.png";
 import cover from "./assets/cover.png";
-import { CurrentUser } from "./typings";
+import LabDropdownSelect from "./components/LabDropdownSelect";
+import { apiFetch } from "./hooks/utils";
+import { CurrentUser, LabSelection } from "./typings";
 
 interface LoginProps {
     signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
+    onEndpointSelected: () => void;
     oauth: boolean;
+    labs: LabSelection[];
 }
 
 const useStyles = makeStyles(theme => ({
@@ -107,7 +112,7 @@ function OIDCRedirectHandler(props: LoginProps) {
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                const response = await fetch(`/api/authorize${location.search}`, {
+                const response = await apiFetch(`/api/authorize${location.search}`, {
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                     },
@@ -192,17 +197,20 @@ function OIDCRedirectHandler(props: LoginProps) {
 function LoginForm({
     setAuthenticated = (auth: boolean) => {},
     setCurrentUser = (user: CurrentUser) => {},
+    onEndpointSelected = () => {},
+    labs = [] as LabSelection[],
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showForm, setShowForm] = useState(false);
     function bind(set: typeof setUsername) {
         // @ts-ignore
         return e => set(e.target.value);
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        const result = await fetch("/api/login", {
+        const result = await apiFetch(`/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
@@ -216,6 +224,13 @@ function LoginForm({
         }
         setAuthenticated(result.ok);
     }
+
+    const handleLabSelect = (lab: LabSelection) => {
+        setShowForm(lab.endpoint !== "");
+        if (lab.endpoint !== "") {
+            onEndpointSelected();
+        }
+    };
     const classes = useStyles();
     return (
         <Grid
@@ -242,35 +257,46 @@ function LoginForm({
                     <Box fontWeight="fontWeightLight">Sample Tracking and Genomics Resources</Box>
                 </Typography>
                 <form>
-                    <TextField
-                        required
-                        variant="filled"
-                        fullWidth
-                        margin="normal"
-                        className={classes.textField}
-                        label="Username"
-                        onChange={bind(setUsername)}
-                    />
-                    <TextField
-                        required
-                        variant="filled"
-                        fullWidth
-                        margin="normal"
-                        className={classes.textField}
-                        type="password"
-                        label="Password"
-                        onChange={bind(setPassword)}
-                        autoComplete="current-password"
-                    />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        className={classes.button}
-                        type="submit"
-                        onClick={authenticate}
-                    >
-                        Sign in
-                    </Button>
+                    <Grid direction="column" alignItems="center" container>
+                        <LabDropdownSelect
+                            onSelect={handleLabSelect}
+                            setDisabled={() => setShowForm(true)}
+                            labs={labs}
+                        />
+                        <Fade in={showForm}>
+                            <div>
+                                <TextField
+                                    required
+                                    variant="filled"
+                                    fullWidth
+                                    margin="normal"
+                                    className={classes.textField}
+                                    label="Username"
+                                    onChange={bind(setUsername)}
+                                />
+                                <TextField
+                                    required
+                                    variant="filled"
+                                    fullWidth
+                                    margin="normal"
+                                    className={classes.textField}
+                                    type="password"
+                                    label="Password"
+                                    onChange={bind(setPassword)}
+                                    autoComplete="current-password"
+                                />
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    className={classes.button}
+                                    type="submit"
+                                    onClick={authenticate}
+                                >
+                                    Sign in
+                                </Button>
+                            </div>
+                        </Fade>
+                    </Grid>
                 </form>
             </Grid>
             <Grid item className={classes.graphics}>

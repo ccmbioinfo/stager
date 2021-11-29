@@ -11,6 +11,7 @@ from .utils import (
     check_admin,
     get_current_user,
     get_minio_admin,
+    get_minio_client,
     transaction_or_abort,
     validate_json,
 )
@@ -203,13 +204,7 @@ def create_group():
     ):
         abort(422, description="Group already exists")
 
-    minio_client = Minio(
-        app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-        secure=False,
-    )
-
+    minio_client = get_minio_client()
     minio_admin = get_minio_admin()
 
     def make_bucket_or_fail(name: str) -> None:

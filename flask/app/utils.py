@@ -6,6 +6,7 @@ from functools import wraps
 from io import BytesIO, StringIO
 from os import getenv
 from typing import Any, Callable, Dict, List, Union, Iterable, Mapping
+
 from flask import (
     abort,
     current_app as app,
@@ -19,6 +20,7 @@ from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
 from flask_sqlalchemy.model import DefaultMeta
+from minio import Minio
 from sqlalchemy import exc, inspect, select
 from sqlalchemy.orm.query import Query
 from sqlalchemy.sql.sqltypes import Enum as SqlAlchemyEnum
@@ -228,6 +230,16 @@ def get_minio_admin() -> MinioAdmin:
         endpoint=app.config["MINIO_ENDPOINT"],
         access_key=app.config["MINIO_ACCESS_KEY"],
         secret_key=app.config["MINIO_SECRET_KEY"],
+        secure=app.config["MINIO_TLS"],
+    )
+
+
+def get_minio_client() -> Minio:
+    return Minio(
+        app.config["MINIO_ENDPOINT"],
+        access_key=app.config["MINIO_ACCESS_KEY"],
+        secret_key=app.config["MINIO_SECRET_KEY"],
+        secure=app.config["MINIO_TLS"],
     )
 
 
