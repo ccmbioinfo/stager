@@ -22,7 +22,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 from flask import logging as flask_logging
 
-from .extensions import cache, db, login, migrate, oauth
+from .extensions import db, login, migrate, oauth
 from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 
@@ -84,7 +84,6 @@ def register_extensions(app):
     migrate.init_app(app, db)
     login.init_app(app)
     oauth.init_app(app)
-    cache.init_app(app)
     oauth.register(
         name=app.config["OIDC_PROVIDER"],
         client_id=app.config["OIDC_CLIENT_ID"],

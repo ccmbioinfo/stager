@@ -8,7 +8,7 @@ from sqlalchemy.orm import aliased, selectinload
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from sqlalchemy.sql.expression import cast
 from . import models
-from .extensions import db, cache
+from .extensions import db
 from .utils import (
     check_admin,
     clone_entity,
