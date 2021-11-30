@@ -345,9 +345,6 @@ def parse_requested_filter(search_type: str, param: str):
     abort(400, description="Invalid parameter")
 
 
-import pytest
-
-
 @variants_blueprint.route("/api/summary/<string:type>", methods=["GET"])
 @login_required
 def summary(type: str):
