@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { Column } from "@material-table/core";
 import { FileCopy, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
+import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import {
     BooleanDisplay,
@@ -14,31 +15,26 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
-import {
-    countArray,
-    resetAllTableFilters,
-    rowDiff,
-    stringToBoolean,
-    toKeyValue,
-} from "../../functions";
+import { countArray, resetAllTableFilters, rowDiff, toKeyValue } from "../../functions";
 import {
     GET_PARTICIPANTS_URL,
     useColumnOrderCache,
     useDownloadCsv,
     useEnumsQuery,
     useErrorSnackbar,
+    useFamilyUpdateMutation,
     useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useParticipantsPage,
+    useParticipantUpdateMutation,
     useSortOrderCache,
 } from "../../hooks";
-import { apiFetch, transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
-import { Participant } from "../../typings";
+import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
+import { Family, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
 
 export default function ParticipantTable() {
-    const [participants, setParticipants] = useState<Participant[]>([]);
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
     const enumsQuery = useEnumsQuery();
@@ -81,7 +77,7 @@ export default function ParticipantTable() {
             {
                 title: "Family Codename",
                 field: "family_codename",
-                editable: "never",
+                // editable: "never",
                 filterComponent: props => <ExactMatchFilterToggle MTRef={tableRef} {...props} />,
             },
             {
@@ -154,6 +150,10 @@ export default function ParticipantTable() {
 
     const dataFetch = useParticipantsPage();
 
+    const { mutate: familyUpdateMutate } = useFamilyUpdateMutation();
+
+    const { mutate: participantUpdateMutate } = useParticipantUpdateMutation();
+
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
 
@@ -205,38 +205,60 @@ export default function ParticipantTable() {
                             oldParticipant
                         );
 
-                        const response = await apiFetch(
-                            `/api/participants/${newParticipant.participant_id}`,
-                            {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
+                        const family_id = newParticipant.family_id;
+                        const newFamilyData = {
+                            family_codename: newParticipant.family_codename,
+                        } as Partial<Family>;
+                        let familyUpdateSuccess = true;
+
+                        if (newParticipant.family_codename !== oldParticipant?.family_codename) {
+                            familyUpdateMutate(
+                                {
+                                    ...newFamilyData,
+                                    family_id,
+                                },
+                                {
+                                    onSuccess: response => {
+                                        tableRef.current.onQueryChange();
+                                    },
+                                    onError: response => {
+                                        familyUpdateSuccess = false;
+                                        console.error(
+                                            `PATCH /api/families/${family_id} failed with ${response.status}: ${response.statusText}`
+                                        );
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Participant ${oldParticipant?.participant_codename}`
+                                        );
+                                    },
+                                }
+                            );
+                        }
+
+                        if (oldParticipant && familyUpdateSuccess) {
+                            participantUpdateMutate(
+                                {
                                     ...diffParticipant,
-                                    affected: stringToBoolean(newParticipant.affected),
-                                    solved: stringToBoolean(newParticipant.solved),
-                                }),
-                            }
-                        );
-                        if (response.ok) {
-                            const updatedParticipant = await response.json();
-                            setParticipants(
-                                participants.map(participant =>
-                                    participant.participant_id === newParticipant.participant_id
-                                        ? { ...participant, ...updatedParticipant }
-                                        : participant
-                                )
-                            );
-                            enqueueSnackbar(
-                                `Participant ${newParticipant.participant_codename} updated successfully`,
-                                { variant: "success" }
-                            );
-                        } else {
-                            console.error(
-                                `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
-                            );
-                            enqueueErrorSnackbar(
-                                response,
-                                `Failed to edit Participant ${oldParticipant?.participant_codename}`
+                                    participant_id: oldParticipant.participant_id,
+                                },
+                                {
+                                    onSuccess: receiveParticipant => {
+                                        enqueueSnackbar(
+                                            `Participant ${oldParticipant.participant_codename} updated successfully`,
+                                            { variant: "success" }
+                                        );
+                                        tableRef.current.onQueryChange();
+                                    },
+                                    onError: response => {
+                                        console.error(
+                                            `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
+                                        );
+                                        enqueueErrorSnackbar(
+                                            response,
+                                            `Failed to edit Participant ${oldParticipant?.participant_codename}`
+                                        );
+                                    },
+                                }
                             );
                         }
                     },
