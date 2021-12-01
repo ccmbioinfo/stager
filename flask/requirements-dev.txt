@@ -30,7 +30,7 @@ cryptography==3.4.7
     # via
     #   authlib
     #   pymysql
-debugpy==1.5.0
+debugpy==1.5.1
     # via -r requirements-dev.in
 flask==2.0.2
     # via
