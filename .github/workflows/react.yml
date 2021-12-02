@@ -7,7 +7,7 @@ name: Build, lint, and deploy frontend
 # to deploy into a MinIO bucket. This is a self-hosted solution equivalent to static sites
 # hosted out of Amazon S3. For this deploy job to start, a reviewer must further approve
 # the deployment for the workflow run under the Actions tab.
-# 
+#
 # Environments can be managed in the Settings tab (https://github.com/ccmbioinfo/stager/settings/environments)
 # To add a new environment or rotate secrets for an existing one:
 # - create a bucket to host the built static files
@@ -16,7 +16,7 @@ name: Build, lint, and deploy frontend
 # - create a machine user with a securely-generated password and apply the above policy
 # - set environment secret DEPLOY_MINIO_BUCKET to the name of the designated bucket
 # - set environment secret DEPLOY_MC_HOST to https://MACHINE_USER_ACCESS_KEY:GENERATED_SECRET_KEY@minio.domain
-# 
+#
 # The REACT_APP_EMAIL and REACT_APP_MINIO_URL may or may not vary by environment,
 # but they are just build parameters.
 on:
@@ -99,6 +99,9 @@ jobs:
     - run: yarn install # should never happen due to build job
       if: steps.restore.outputs.cache-hit != 'true'
     # End setup
+    - name: Write out endpoints JSON
+      if: ${{ secrets.REACT_APP_LABS_JSON }} != ''
+      run: echo "${{ secrets.REACT_APP_LABS_JSON }}" > public/labs.json
     - run: yarn build
       env:
         REACT_APP_NAME: Stager
