@@ -158,7 +158,7 @@ jobs:
         # Even though this is deploying to a remote Docker Engine,
         # Compose uses the registry credentials of the client
         env:
-          COMPOSE_FILE: docker-compose.cheo.yaml
+          COMPOSE_FILE: docker-compose.ccm.yaml
           ST_VERSION: latest
           ST_SECRET_KEY: ${{ secrets.HIRAKI_ST_SECRET_KEY }}
           MYSQL_CONNECTION_STRING: ${{ secrets.HIRAKI_MYSQL_CONNECTION_STRING }}
@@ -166,6 +166,7 @@ jobs:
           MINIO_ACCESS_KEY: ${{ secrets.HIRAKI_MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.HIRAKI_MINIO_SECRET_KEY }}
           MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
+          PROJECT_ROOT: /opt/stager
         run: |
           eval "${{ steps.configure.outputs.ssh-agent-eval }}"
           export GUNICORN_WORKERS=$( ssh ${{ secrets.DEPLOY_SSH_HOST }} 'echo $(( $(nproc) * 2 + 1 ))' )

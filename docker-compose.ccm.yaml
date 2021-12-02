@@ -44,8 +44,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/certs:/etc/nginx/certs
+      - "${PROJECT_ROOT:-.}/nginx/conf.d:/etc/nginx/conf.d"
+      - "${PROJECT_ROOT:-.}/nginx/certs:/etc/nginx/certs"
     depends_on:
       - app
     <<: *common
