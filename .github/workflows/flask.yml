@@ -135,7 +135,7 @@ jobs:
           docker context use deploy-target
       # The secret mapping to environment variables is different, but the script is the same
       - name: Deploy (CHEO-RI)
-        if: ${{ matrix.runner }} == 'cheo-ri'
+        if: matrix.runner == 'cheo-ri'
         # Even though this is deploying to a remote Docker Engine,
         # Compose uses the registry credentials of the client
         env:
@@ -153,7 +153,7 @@ jobs:
           docker-compose pull
           docker-compose up -d --remove-orphans
       - name: Deploy (CCM)
-        if: ${{ matrix.runner }} == 'ccm'
+        if: matrix.runner == 'ccm'
         # Even though this is deploying to a remote Docker Engine,
         # Compose uses the registry credentials of the client
         env:

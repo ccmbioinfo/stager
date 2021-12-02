@@ -46,6 +46,4 @@ services:
     volumes:
       - "${PROJECT_ROOT:-.}/nginx/conf.d:/etc/nginx/conf.d"
       - "${PROJECT_ROOT:-.}/nginx/certs:/etc/nginx/certs"
-    depends_on:
-      - app
     <<: *common
