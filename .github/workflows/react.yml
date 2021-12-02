@@ -100,8 +100,10 @@ jobs:
       if: steps.restore.outputs.cache-hit != 'true'
     # End setup
     - name: Write out endpoints JSON
-      if: ${{ secrets.REACT_APP_LABS_JSON }} != ''
-      run: echo "${{ secrets.REACT_APP_LABS_JSON }}" > public/labs.json
+      run: |
+        if [[ "${{ secrets.REACT_APP_LABS_JSON }}" != "" ]]; then
+          echo "${{ secrets.REACT_APP_LABS_JSON }}" > public/labs.json
+        fi
     - run: yarn build
       env:
         REACT_APP_NAME: Stager
