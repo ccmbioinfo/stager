@@ -103,9 +103,7 @@ jobs:
           #  environment: CHEO-RI_backend
           - runner: ccm
             environment: CCM_backend
-    runs-on:
-      - self-hosted
-      - ${{ matrix.runner }}
+    runs-on: [self-hosted, "${{ matrix.runner }}"]
     environment: ${{ matrix.environment }}
     concurrency: ${{ matrix.environment }}
     steps:

@@ -101,8 +101,8 @@ jobs:
     # End setup
     - name: Write out endpoints JSON
       run: |
-        if [[ "${{ secrets.REACT_APP_LABS_JSON }}" != "" ]]; then
-          echo "${{ secrets.REACT_APP_LABS_JSON }}" > public/labs.json
+        if [[ '${{ secrets.REACT_APP_LABS_JSON }}' ]]; then
+          echo '${{ secrets.REACT_APP_LABS_JSON }}' > public/labs.json
         fi
     - run: yarn build
       env:
