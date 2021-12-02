@@ -22,7 +22,7 @@ tz = timezone("EST")
 def send_email(
     from_email: str, to_emails: str, dynamic_template_object: Dict[str, Any]
 ) -> None:
-    """Sends a transanctional email
+    """Sends an email based on a template stored in SendGrid
     :param dynamic_template_object: Data for a transactional template.
     :type dynamic_template_object: A JSON-serializable structure
     :param from: Sender of the email. The sender's email domain needs to have been authenticated and added to SendGrid Dashboard.
@@ -43,9 +43,6 @@ def send_email(
     message.dynamic_template_data = dynamic_template_object
     message.template_id = os.getenv("SENDGRID_EMAIL_TEMPLATE_ID")
 
-    app.logger.info(os.getenv("SENDGRID_API_KEY"))
-    app.logger.debug(from_email)
-    app.logger.debug(to_emails)
     try:
         sg.send(message)
         app.logger.debug(

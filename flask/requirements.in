@@ -1,7 +1,6 @@
 apscheduler
 authlib
 flask
-flask_caching
 flask_sqlalchemy
 flask_login
 flask_migrate

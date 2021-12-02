@@ -41,12 +41,9 @@ debugpy==1.5.0
 flask==2.0.2
     # via
     #   -r requirements.in
-    #   flask-caching
     #   flask-login
     #   flask-migrate
     #   flask-sqlalchemy
-flask-caching==1.10.1
-    # via -r requirements.in
 flask-login==0.5.0
     # via -r requirements.in
 flask-migrate==3.1.0
