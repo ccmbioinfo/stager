@@ -73,12 +73,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    #if: github.event_name == 'push'
+    if: github.event_name == 'push'
     strategy:
       matrix:
         environment:
         - CCM-DEV
-        #- CHEO-RI
+        - CHEO-RI
     environment: ${{ matrix.environment }}
     concurrency: ${{ matrix.environment }}
     steps:
