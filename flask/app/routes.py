@@ -469,7 +469,7 @@ def bulk_update():
                 )
                 institution_obj = models.Institution(institution=institution)
                 db.session.add(institution_obj)
-                transaction_or_abort(db.session.commit)
+                transaction_or_abort(db.session.flush)
                 institution_id = institution_obj.institution_id
         else:
             app.logger.debug("\tNo institution supplied")
@@ -525,6 +525,31 @@ def bulk_update():
                     e.description, str(i + 1)
                 ),
             )
+
+        app.logger.debug("\tChecking duplicate dataset..")
+        db_datasets_number = (
+            db.session.query(models.Dataset)
+            .join(models.Dataset.tissue_sample)
+            .join(models.TissueSample.participant)
+            .join(models.Participant.family)
+            .filter(
+                models.Dataset.dataset_type == row.get("dataset_type"),
+                models.Participant.family_id == family_id,
+                models.Participant.participant_id == participant_id,
+                models.Dataset.sequencing_date == sequencing_date,
+                models.TissueSample.tissue_sample_type == row.get("tissue_sample_type"),
+            )
+            .count()
+        )
+
+        if db_datasets_number > 0:
+            app.logger.error("\tThe dataset is a duplicate of an existing dataset.")
+            db.session.rollback()
+            abort(
+                400,
+                "One of the added datasets is a duplicate of an existing or added dataset.",
+            )
+
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
         tissue_sample = models.TissueSample(

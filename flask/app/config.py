@@ -19,6 +19,7 @@ class Config(object):
     )
     DEFAULT_PASSWORD = os.getenv("ST_DEFAULT_PASSWORD", "eternity")
     MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+    MINIO_TLS = not not os.getenv("MINIO_TLS")
     MINIO_SECRET_KEY = os.getenv(
         "MINIO_SECRET_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     )

@@ -8,6 +8,17 @@ from app.datasets import update_dataset_linked_files
 # TODO: some tests do not precisely verify response structure
 
 
+def remove_analyses(dataset):
+    for analysis in dataset.analyses:
+        for genotype in analysis.genotype:
+            db.session.delete(genotype)
+        db.session.commit()
+        for variant in analysis.variants:
+            db.session.delete(variant)
+        db.session.delete(analysis)
+    db.session.commit()
+
+
 def test_list_datasets_admin(client, test_database, login_as):
     """
     GET /api/datasets as an administrator
@@ -277,15 +288,7 @@ def test_delete_dataset_admin(client, test_database, login_as):
         )
         .one_or_none()
     )
-
-    for analysis in dataset.analyses:
-        for genotype in analysis.genotype:
-            db.session.delete(genotype)
-        db.session.commit()
-        for variant in analysis.variants:
-            db.session.delete(variant)
-        db.session.delete(analysis)
-    db.session.commit()
+    remove_analyses(dataset)
 
     assert client.delete("/api/datasets/1").status_code == 204
     assert client.get("/api/datasets/1").status_code == 404
@@ -310,14 +313,51 @@ def test_delete_dataset_with_tissue_sample(client, test_database, login_as):
     ).one_or_none()
 
     assert client.delete("/api/datasets/5").status_code == 204
-    assert client.delete("/api/datasets/6").status_code == 204
     assert client.get("/api/datasets/5").status_code == 404
+    # Check tissue sample 4 is not deleted
+    assert (
+        client.get(f"/api/tissue_samples/{dataset_5.tissue_sample_id}").status_code
+        == 200
+    )
+    assert client.delete("/api/datasets/6").status_code == 204
 
     # Check if tissue sample 4 is properly deleted
     assert (
         client.get(f"/api/tissue_samples/{dataset_5.tissue_sample_id}").status_code
         == 404
     )
+
+
+def test_delete_dataset_with_participant_family(client, test_database, login_as):
+    """
+    DELETE /api/datasets/:id as an administrator
+    """
+    login_as("admin")
+
+    dataset_4 = models.Dataset.query.filter(
+        models.Dataset.dataset_id == 4
+    ).one_or_none()
+    remove_analyses(dataset_4)
+
+    dataset_5 = models.Dataset.query.filter(
+        models.Dataset.dataset_id == 5
+    ).one_or_none()
+
+    participant_3_id = dataset_5.tissue_sample.participant_id
+    family_b_id = dataset_5.tissue_sample.participant.family_id
+
+    assert client.delete("/api/datasets/5").status_code == 204
+    assert client.delete("/api/datasets/6").status_code == 204
+
+    # Participant 3 is not deleted
+    assert client.get(f"/api/participants/{participant_3_id}").status_code == 200
+
+    assert client.delete("/api/datasets/4").status_code == 204
+
+    # Check if participant 3 is properly deleted
+    assert client.get(f"/api/participants/{participant_3_id}").status_code == 404
+    # Check if family b is properly deleted
+    assert client.get(f"/api/families/{family_b_id}").status_code == 404
 
 
 def test_delete_dataset_user(client, test_database, login_as):

@@ -6,13 +6,13 @@
 #
 alembic==1.5.8
     # via flask-migrate
-astroid==2.8.0
+astroid==2.9.0
     # via pylint
 attrs==20.3.0
     # via pytest
 authlib==0.15.5
     # via -r requirements.in
-black==21.10b0
+black==21.11b1
     # via -r requirements-dev.in
 certifi==2020.12.5
     # via
@@ -30,9 +30,8 @@ cryptography==3.4.7
     # via
     #   authlib
     #   pymysql
-debugpy==1.5.0
-    # via
-    #   -r requirements-dev.in
+debugpy==1.5.1
+    # via -r requirements-dev.in
 flask==2.0.2
     # via
     #   -r requirements.in
@@ -91,7 +90,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.11.1
+pylint==2.12.1
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in

@@ -139,6 +139,7 @@ jobs:
           MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
         run: |
           eval "${{ steps.configure.outputs.ssh-agent-eval }}"
+          export GUNICORN_WORKERS=$( ssh ${{ secrets.DEPLOY_SSH_HOST }} 'echo $(( $(nproc) * 2 + 1 ))' )
           docker-compose pull
           docker-compose up -d --remove-orphans
       - name: Clean up

@@ -194,7 +194,7 @@ def test_post_bulk(test_database, client, login_as):
                 "participant_codename": "1411",
                 "tissue_sample": "Blood",
                 "tissue_sample_type": "Blood",
-                "dataset_type": "WGS",
+                "dataset_type": "WES",
                 "condition": "GermLine",
                 "sequencing_date": "2020-12-17",
             }
@@ -294,7 +294,12 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk",
-            json=[DEFAULT_PAYLOAD],
+            json=[
+                {
+                    **DEFAULT_PAYLOAD,
+                    "dataset_type": "WES",
+                }
+            ],
         ).status_code
         == 200
     )
@@ -321,7 +326,7 @@ def test_post_bulk_user(test_database, client, login_as):
     assert (
         client.post(
             "/api/_bulk?groups=ach",
-            json=[DEFAULT_PAYLOAD],
+            json=[{**DEFAULT_PAYLOAD, "tissue_sample_type": "Saliva"}],
         ).status_code
         == 200
     )
@@ -337,7 +342,7 @@ def test_bulk_multiple_csv(test_database, client, login_as):
             data="""
 family_codename,participant_codename,participant_type,tissue_sample_type,dataset_type,sex,condition,sequencing_date,linked_files,notes
 HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/foo|/path/bar||,
-HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-17,/path/yeet|/path/cross|/foo/bar,three
+HOOD,HERO,Proband,Saliva,WGS,Female,GermLine,2020-12-16,/path/yeet|/path/cross|/foo/bar,three
 HOOD,HERO,Proband,Saliva,RRS,Female,GermLine,2020-12-17,,three
 ,,,,,,,,,
 """,
@@ -400,6 +405,51 @@ def test_bulk_multiple_json(test_database, client, login_as):
     assert models.TissueSample.query.count() == 6
     assert models.Participant.query.count() == 4
     assert models.Family.query.count() == 3
+
+
+def test_duplicate_datasets(test_database, client, login_as):
+    login_as("admin")
+
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            json=[DEFAULT_PAYLOAD],
+        ).status_code
+        == 200
+    )
+    assert models.Dataset.query.count() == 7
+
+    # The uploaded dataset is a duplicate of an existing dataset.
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            json=[
+                {
+                    **DEFAULT_PAYLOAD,
+                    "sex": "Male",
+                },
+            ],
+        ).status_code
+        == 400
+    )
+
+    # No new dataset added.
+    assert models.Dataset.query.count() == 7
+
+    # The uploaded datsets are duplicate of each other.
+    assert (
+        client.post(
+            "/api/_bulk?groups=ach",
+            json=[
+                {**DEFAULT_PAYLOAD, "tissue_sample_type": "Saliva"},
+                {**DEFAULT_PAYLOAD, "tissue_sample_type": "Saliva"},
+            ],
+        ).status_code
+        == 400
+    )
+
+    # No new datasets added.
+    assert models.Dataset.query.count() == 7
 
 
 def test_fails_with_dupe_non_multiplex_fields(test_database):

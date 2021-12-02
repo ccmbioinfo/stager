@@ -6,10 +6,10 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
-import { clearQueryCache } from "./hooks/utils";
+import { apiFetch, clearQueryCache } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
-import { APIInfo, CurrentUser } from "./typings";
+import { APIInfo, CurrentUser, LabSelection } from "./typings";
 
 const notistackRef = React.createRef<SnackbarProvider>();
 const onClickDismiss = (key: SnackbarKey) => () => {
@@ -28,6 +28,7 @@ const queryClient = new QueryClient({
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
+    const [availableEndpoints, setAvailableEndpoints] = useState<LabSelection[]>([]);
 
     // React Context needs the provider value to be a complete package in a state var
     // or else extra re-renders will happen apparently
@@ -54,7 +55,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
-        const result = await fetch("/api/logout", {
+        const result = await apiFetch(`/api/logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
@@ -72,24 +73,42 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             setAuthenticated(false);
         }
     }
+
     // Check if already signed in
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const loginResult = await fetch("/api/login", { method: "POST" });
+            const loginResult = await apiFetch(`/api/login`, { method: "POST" });
             if (loginResult.ok) {
                 const loginInfo = await loginResult.json();
                 setCurrentUser(loginInfo);
             }
             setAuthenticated(loginResult.ok);
 
-            const apiInfoResult = await fetch("/api");
-            if (apiInfoResult.ok) {
-                const apiInfo = await apiInfoResult.json();
-                setApiInfo(apiInfo as APIInfo);
+            let endpoints: LabSelection[] = [];
+            const availibleEndpoints = await fetch("/labs.json");
+            if (availibleEndpoints.ok) {
+                endpoints = await availibleEndpoints.json();
             }
+
+            if (endpoints.length > 0) {
+                setAvailableEndpoints(endpoints);
+                return;
+            }
+            localStorage.removeItem("endpoint");
+
+            fetchAPIInfo();
         })();
     }, []);
+
+    const fetchAPIInfo = async () => {
+        const apiInfoResult = await apiFetch(`/api`);
+        if (apiInfoResult.ok) {
+            let apiInfo = { ...(await apiInfoResult.json()) };
+            setApiInfo(apiInfo as APIInfo);
+        }
+    };
+
     if (authenticated && apiInfo) {
         return (
             <UserContext.Provider value={userClient}>
@@ -124,13 +143,15 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 </APIInfoContext.Provider>
             </UserContext.Provider>
         );
-    } else if (apiInfo) {
+    } else if (apiInfo || availableEndpoints.length > 0) {
         return (
             <LoginPage
                 signout={signout}
                 setAuthenticated={setAuthenticated}
                 setCurrentUser={setCurrentUser}
-                oauth={apiInfo.oauth}
+                onEndpointSelected={fetchAPIInfo}
+                oauth={apiInfo ? apiInfo.oauth : false}
+                labs={availableEndpoints}
             />
         );
     } else {
