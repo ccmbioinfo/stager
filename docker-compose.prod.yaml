@@ -1,8 +1,6 @@
 version: "3.9"
 
 x-common: &common
-  labels:
-    com.centurylinklabs.watchtower.scope: ccmbioinfo/stager
   restart: unless-stopped
   logging:
     driver: journald
@@ -15,9 +13,7 @@ x-app: &app
   command: --preload --workers 2 --threads 2
   healthcheck:
     test: ["CMD", "./healthcheck.py"]
-  restart: unless-stopped
-  logging:
-    driver: journald
+  <<: *common
 
 x-env: &env
   MINIO_REGION_NAME: hpc4health
@@ -33,15 +29,15 @@ services:
       MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
-  app-hawkins:
-    <<: *app
-    environment:
-      <<: *env
-      ST_SECRET_KEY: "${HAWKINS_ST_SECRET_KEY}"
-      ST_DATABASE_URI: "mysql+pymysql://${HAWKINS_MYSQL_CONNECTION_STRING}"
-      MINIO_ENDPOINT: "${HAWKINS_MINIO_ENDPOINT}"
-      MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
-      MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
+  # app-hawkins:
+  #   <<: *app
+  #   environment:
+  #     <<: *env
+  #     ST_SECRET_KEY: "${HAWKINS_ST_SECRET_KEY}"
+  #     ST_DATABASE_URI: "mysql+pymysql://${HAWKINS_MYSQL_CONNECTION_STRING}"
+  #     MINIO_ENDPOINT: "${HAWKINS_MINIO_ENDPOINT}"
+  #     MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
+  #     MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
   nginx:
     image: nginx:alpine
     ports:
@@ -52,16 +48,4 @@ services:
       - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - app
-    <<: *common
-  watchtower:
-    image: containrrr/watchtower
-    environment:
-      WATCHTOWER_CLEANUP: 1
-      WATCHTOWER_POLL_INTERVAL: 60
-      WATCHTOWER_NOTIFICATIONS: msteams
-      WATCHTOWER_NOTIFICATION_MSTEAMS_HOOK_URL: "${MSTEAMS_WEBHOOK_URL}"
-      WATCHTOWER_NOTIFICATION_MSTEAMS_USE_LOG_DATA: "true"
-      WATCHTOWER_SCOPE: ccmbioinfo/stager
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     <<: *common
