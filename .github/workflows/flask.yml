@@ -94,11 +94,20 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
   deploy:
-    runs-on: [self-hosted, cheo-ri]
     needs: build
     if: github.event_name == 'push'
-    environment: CHEO-RI_backend
-    concurrency: CHEO-RI_backend
+    strategy:
+      matrix:
+        includes:
+          - runner: cheo-ri
+            environment: CHEO-RI_backend
+          - runner: ccm
+            environment: CCM_backend
+    runs-on:
+      - self-hosted
+      - ${{ matrix.runner }}
+    environment: ${{ matrix.environment }}
+    concurrency: ${{ matrix.environment }}
     steps:
       - uses: actions/checkout@v2
       - uses: docker/login-action@v1
@@ -125,7 +134,9 @@ jobs:
           chmod -R g-rwx,o-rwx ~/.ssh
           docker context create deploy-target --docker host=ssh://${{ secrets.DEPLOY_SSH_HOST }}
           docker context use deploy-target
-      - name: Deploy
+      # The secret mapping to environment variables is different, but the script is the same
+      - name: Deploy (CHEO-RI)
+        if: ${{ matrix.runner }} == 'cheo-ri'
         # Even though this is deploying to a remote Docker Engine,
         # Compose uses the registry credentials of the client
         env:
@@ -136,6 +147,24 @@ jobs:
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+          MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
+        run: |
+          eval "${{ steps.configure.outputs.ssh-agent-eval }}"
+          export GUNICORN_WORKERS=$( ssh ${{ secrets.DEPLOY_SSH_HOST }} 'echo $(( $(nproc) * 2 + 1 ))' )
+          docker-compose pull
+          docker-compose up -d --remove-orphans
+      - name: Deploy (CCM)
+        if: ${{ matrix.runner }} == 'ccm'
+        # Even though this is deploying to a remote Docker Engine,
+        # Compose uses the registry credentials of the client
+        env:
+          COMPOSE_FILE: docker-compose.cheo.yaml
+          ST_VERSION: latest
+          ST_SECRET_KEY: ${{ secrets.HIRAKI_ST_SECRET_KEY }}
+          MYSQL_CONNECTION_STRING: ${{ secrets.HIRAKI_MYSQL_CONNECTION_STRING }}
+          MINIO_ENDPOINT: ${{ secrets.HIRAKI_MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY: ${{ secrets.HIRAKI_MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.HIRAKI_MINIO_SECRET_KEY }}
           MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
         run: |
           eval "${{ steps.configure.outputs.ssh-agent-eval }}"
