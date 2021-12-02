@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, logging as flask_logging
-from .extensions import db, login, migrate, oauth
+from .extensions import db, login, ma, migrate, oauth
 from .utils import DateTimeEncoder
 
 from app import (
@@ -59,6 +59,7 @@ def register_blueprints(app):
 
 def register_extensions(app):
     db.init_app(app)
+    ma.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
     oauth.init_app(app)

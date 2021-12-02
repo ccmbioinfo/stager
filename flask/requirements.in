@@ -9,3 +9,5 @@ pandas
 pymysql[rsa]
 requests
 sqlalchemy
+flask-marshmallow
+marshmallow-sqlalchemy
