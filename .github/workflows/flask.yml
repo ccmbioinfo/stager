@@ -159,11 +159,11 @@ jobs:
         env:
           COMPOSE_FILE: docker-compose.ccm.yaml
           ST_VERSION: latest
-          ST_SECRET_KEY: ${{ secrets.HIRAKI_ST_SECRET_KEY }}
-          MYSQL_CONNECTION_STRING: ${{ secrets.HIRAKI_MYSQL_CONNECTION_STRING }}
-          MINIO_ENDPOINT: ${{ secrets.HIRAKI_MINIO_ENDPOINT }}
-          MINIO_ACCESS_KEY: ${{ secrets.HIRAKI_MINIO_ACCESS_KEY }}
-          MINIO_SECRET_KEY: ${{ secrets.HIRAKI_MINIO_SECRET_KEY }}
+          HIRAKI_ST_SECRET_KEY: ${{ secrets.HIRAKI_ST_SECRET_KEY }}
+          HIRAKI_MYSQL_CONNECTION_STRING: ${{ secrets.HIRAKI_MYSQL_CONNECTION_STRING }}
+          HIRAKI_MINIO_ENDPOINT: ${{ secrets.HIRAKI_MINIO_ENDPOINT }}
+          HIRAKI_MINIO_ACCESS_KEY: ${{ secrets.HIRAKI_MINIO_ACCESS_KEY }}
+          HIRAKI_MINIO_SECRET_KEY: ${{ secrets.HIRAKI_MINIO_SECRET_KEY }}
           MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
           PROJECT_ROOT: /opt/stager
         run: |
