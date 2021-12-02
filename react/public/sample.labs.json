@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Lab 0",
+    "endpoint": "http://lab0.endpoint.com"
+  },
+  {
+    "name": "Lab 1",
+    "endpoint": "http://lab1.endpoint.com"
+  }
+]

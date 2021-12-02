@@ -252,6 +252,7 @@ def list_datasets(page: int, limit: int) -> Response:
             "created_by": dataset.created_by.username,
             "updated_by": dataset.updated_by.username,
             "group_code": [group.group_code for group in dataset.groups],
+            "analyses": [{**asdict(analysis)} for analysis in dataset.analyses],
         }
         for dataset in datasets
     ]
@@ -377,31 +378,30 @@ def update_dataset(id: int):
 def delete_dataset(id: int):
     dataset = (
         models.Dataset.query.filter(models.Dataset.dataset_id == id)
-        .options(
-            joinedload(models.Dataset.analyses),
-            joinedload(models.Dataset.groups),
-            joinedload(models.Dataset.tissue_sample).joinedload(
-                models.TissueSample.datasets
-            ),
-        )
+        .options(joinedload(models.Dataset.analyses))
         .first_or_404()
     )
 
     tissue_sample = dataset.tissue_sample
-
-    # Remove permission groups with the corresponding dataset ID in groups_datasets table
-    dataset.groups = []
+    participant = tissue_sample.participant
+    family = participant.family
 
     if not dataset.analyses:
         try:
+            dataset = update_dataset_linked_files(dataset, [])
             db.session.delete(dataset)
 
             # Only delete tissue sample if it doesn't have any associated datasets left.
-            tissue_sample_datasets = [
-                d for d in tissue_sample.datasets if d.dataset_id != dataset.dataset_id
-            ]
-            if len(tissue_sample_datasets) == 0:
+            if len(tissue_sample.datasets) == 0:
                 db.session.delete(tissue_sample)
+
+            # Only delete participant if it has no other tissue samples.
+            if len(participant.tissue_samples) == 0:
+                db.session.delete(participant)
+
+                # Only delete family if it has no other participants.
+                if len(family.participants) == 0:
+                    db.session.delete(family)
             db.session.commit()
             return "Updated", 204
         except:
