@@ -95,12 +95,12 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
   deploy:
     needs: build
-    if: github.event_name == 'push'
+    #if: github.event_name == 'push'
     strategy:
       matrix:
         includes:
-          - runner: cheo-ri
-            environment: CHEO-RI_backend
+          #- runner: cheo-ri
+          #  environment: CHEO-RI_backend
           - runner: ccm
             environment: CCM_backend
     runs-on:
