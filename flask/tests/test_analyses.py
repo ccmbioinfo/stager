@@ -217,7 +217,7 @@ def test_create_analysis(test_database, client, login_as):
         == 400
     )
 
-    # Test invalid pipeline id given
+    # Test invalid pipeline id given,
     assert (
         client.post(
             "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
