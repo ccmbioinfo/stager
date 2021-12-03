@@ -6,6 +6,7 @@ flask_migrate
 gunicorn
 minio
 pandas
+prometheus-flask-exporter
 pymysql[rsa]
 requests
 sqlalchemy
