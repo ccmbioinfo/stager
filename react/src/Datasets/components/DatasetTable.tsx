@@ -57,22 +57,6 @@ const customFileFilterAndSearch = (filter: string, rowData: DatasetDetailed) => 
     );
 };
 
-const EditFilesComponent = (props: EditComponentProps<DatasetDetailed>) => {
-    const filesQuery = useUnlinkedFilesQuery();;
-    const files = filesQuery.data || [];
-    const [filePrefix, setFilePrefix] = useState<string>('');
-    return (
-        <FileLinkingComponent
-            inputValue={filePrefix}
-            onInputChange={setFilePrefix}
-            values={props.rowData.linked_files}
-            options={files}
-            onEdit={newValue => props.onChange(newValue)}
-            disableTooltip
-        />
-    );
-};
-
 const linkedFileSort = (a: { linked_files: LinkedFile[] }, b: { linked_files: LinkedFile[] }) =>
     a.linked_files.length - b.linked_files.length;
 
@@ -106,7 +90,8 @@ export default function DatasetTable() {
     const tissueSampleTypes = useMemo(() => enums && toKeyValue(enums.TissueSampleType), [enums]);
     const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
 
-    const filesQuery = useUnlinkedFilesQuery();;
+    const [filePrefix, setFilePrefix] = useState("");
+    const filesQuery = useUnlinkedFilesQuery("");
     const files = filesQuery.data || [];
 
     const [showInfo, setShowInfo] = useState(false);
@@ -183,7 +168,15 @@ export default function DatasetTable() {
                 customFilterAndSearch: customFileFilterAndSearch,
                 customSort: linkedFileSort,
                 render: RenderLinkedFilesButton,
-                editComponent: EditFilesComponent,
+                editComponent: (props: EditComponentProps<DatasetDetailed>) => (
+                    <FileLinkingComponent
+                        inputValue={filePrefix}
+                        onInputChange={setFilePrefix}
+                        values={props.rowData.linked_files}
+                        onEdit={newValue => props.onChange(newValue)}
+                        disableTooltip
+                    />
+                ),
                 sorting: false,
                 filtering: true,
             },
@@ -245,6 +238,7 @@ export default function DatasetTable() {
         conditions,
         currentUser,
         datasetTypes,
+        filePrefix,
         paramID,
         tissueSampleTypes,
         setInitialSorting,

@@ -59,10 +59,7 @@ export function DataEntryCell(props: {
 }) {
     const row = useMemo(() => props.data[props.rowIndex], [props.data, props.rowIndex]);
 
-    const [filePrefix, setFilePrefix] = useState<string>('');
-
-    console.log('this is filePrefix', filePrefix)
-
+    const [filePrefix, setFilePrefix] = useState<string>("");
     const fieldName = props.col.field;
 
     if (booleanColumns.includes(fieldName)) {
@@ -89,14 +86,6 @@ export function DataEntryCell(props: {
                     inputValue={filePrefix}
                     onInputChange={setFilePrefix}
                     values={(row.fields[fieldName] || []) as LinkedFile[]}
-                    options={props
-                        .getOptions<UnlinkedFile>(props.rowIndex, props.col)
-                        .filter(
-                            uf =>
-                                !props?.data
-                                    .flatMap(d => d.fields.linked_files)
-                                    .filter(f => f && !f.multiplexed && f.path === uf.path).length
-                        )}
                     onEdit={props.onEdit}
                     disabled={props.disabled}
                 />

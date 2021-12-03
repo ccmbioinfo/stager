@@ -14,7 +14,7 @@ import {
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
 import { AutocompleteMultiselect, Note } from "../components";
-import { useDebounce, useUnlinkedFilesQueryPrefix } from "../hooks";
+import { useDebounce, useUnlinkedFilesQuery } from "../hooks";
 import { LinkedFile, UnlinkedFile } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -48,22 +48,16 @@ const useAutocompleteStyles = makeStyles(() => ({
 /* A cell for linking files to a dataset. */
 const FileLinkingComponent: React.FC<{
     values: LinkedFile[];
-    options: UnlinkedFile[];
+    // options: UnlinkedFile[];
     onEdit: (newValue: UnlinkedFile[]) => void;
     disabled?: boolean;
     disableTooltip?: boolean;
     inputValue?: string;
     onInputChange?: (newInputvalue: string) => void;
-}> = ({ values, options, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
-
-    const debouncedSearchQuery = useDebounce(inputValue || 'c4r', 600);
-    const files = useUnlinkedFilesQueryPrefix(debouncedSearchQuery);
-    const [fileOptions, setFileOptions] = useState<UnlinkedFile[]>([]);
-
-    console.log('these are file options', fileOptions)
-
-    console.log('this is debounced value', inputValue)
-    console.log(files)
+}> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
+    const debouncedSearchQuery = useDebounce(inputValue || "", 600);
+    const files = useUnlinkedFilesQuery(debouncedSearchQuery);
+    const [options, setOptions] = useState<UnlinkedFile[]>([]);
 
     const autocompleteClasses = useAutocompleteStyles();
     const classes = useStyles();
@@ -79,8 +73,8 @@ const FileLinkingComponent: React.FC<{
     };
 
     useEffect(() => {
-        if (files.isSuccess) setFileOptions(files.data)
-    }, [files])
+        if (files.isSuccess) setOptions(files.data);
+    }, [files]);
 
     return (
         <>
