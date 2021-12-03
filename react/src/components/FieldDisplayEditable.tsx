@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { formatDisplayValue } from "../functions";
-import { useUnlinkedFilesQuery } from "../hooks";
+import { useUnlinkedFilesQuery } from '../hooks';
 import { Field, LinkedFile, PseudoBooleanReadableMap, UnlinkedFile } from "../typings";
 import FieldDisplay from "./FieldDisplay";
 import FileLinkingComponent from "./FileLinkingComponent";
@@ -51,8 +51,10 @@ function EnhancedTextField({
     enums?: Record<string, string[]>;
     onEdit: (fieldName: string, value: boolean | string | null | UnlinkedFile[]) => void;
 }) {
-    const filesQuery = useUnlinkedFilesQuery('c4r');;
+    const filesQuery = useUnlinkedFilesQuery();;
     const files = filesQuery.data || [];
+
+    const [filePrefix, setFilePrefix] = useState<string>('');
 
     const classes = useTextStyles();
     const nullOption = (
@@ -151,6 +153,8 @@ function EnhancedTextField({
         if (field.type === "linked_files") {
             return (
                 <FileLinkingComponent
+                    inputValue={filePrefix}
+                    onInputChange={setFilePrefix}
                     values={textFieldProps.value as LinkedFile[]}
                     options={files}
                     onEdit={files => {

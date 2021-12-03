@@ -59,6 +59,10 @@ export function DataEntryCell(props: {
 }) {
     const row = useMemo(() => props.data[props.rowIndex], [props.data, props.rowIndex]);
 
+    const [filePrefix, setFilePrefix] = useState<string>('');
+
+    console.log('this is filePrefix', filePrefix)
+
     const fieldName = props.col.field;
 
     if (booleanColumns.includes(fieldName)) {
@@ -82,6 +86,8 @@ export function DataEntryCell(props: {
         return (
             <TableCell padding="none" align="center">
                 <FileLinkingComponent
+                    inputValue={filePrefix}
+                    onInputChange={setFilePrefix}
                     values={(row.fields[fieldName] || []) as LinkedFile[]}
                     options={props
                         .getOptions<UnlinkedFile>(props.rowIndex, props.col)

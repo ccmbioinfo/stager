@@ -1,7 +1,7 @@
 export { useEnumsQuery } from "./useEnumsQuery";
 export { useInstitutionsQuery } from "./useInstitutionsQuery";
 export { useMetadatasetTypesQuery } from "./useMetadatasetTypesQuery";
-export { useUnlinkedFilesQuery } from "./unlinked/useUnlinkedFilesQuery";
+export { useUnlinkedFilesQuery, useUnlinkedFilesQueryPrefix } from "./unlinked/useUnlinkedFilesQuery";
 export { usePipelinesQuery } from "./usePipelinesQuery";
 
 export { useBulkCreateMutation } from "./bulk/useBulkCreateMutation";
@@ -13,6 +13,8 @@ export { useAnalysisCreateMutation } from "./analyses/useAnalysisCreateMutation"
 export { useAnalysisUpdateMutation } from "./analyses/useAnalysisUpdateMutation";
 export type { AnalysisOptions } from "./analyses/useAnalysisUpdateMutation";
 export { useAnalysisDeleteMutation } from "./analyses/useAnalysisDeleteMutation";
+
+export { useDebounce } from "./useDebounce";
 
 export { useFamiliesQuery } from "./family/useFamiliesQuery";
 export { useFamilyUpdateMutation } from "./family/useFamilyUpdateMutation";

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Button,
@@ -14,6 +14,7 @@ import {
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
 import { AutocompleteMultiselect, Note } from "../components";
+import { useDebounce, useUnlinkedFilesQueryPrefix } from "../hooks";
 import { LinkedFile, UnlinkedFile } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -51,7 +52,19 @@ const FileLinkingComponent: React.FC<{
     onEdit: (newValue: UnlinkedFile[]) => void;
     disabled?: boolean;
     disableTooltip?: boolean;
-}> = ({ values, options, onEdit, disabled, disableTooltip }) => {
+    inputValue?: string;
+    onInputChange?: (newInputvalue: string) => void;
+}> = ({ values, options, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
+
+    const debouncedSearchQuery = useDebounce(inputValue || 'c4r', 600);
+    const files = useUnlinkedFilesQueryPrefix(debouncedSearchQuery);
+    const [fileOptions, setFileOptions] = useState<UnlinkedFile[]>([]);
+
+    console.log('these are file options', fileOptions)
+
+    console.log('this is debounced value', inputValue)
+    console.log(files)
+
     const autocompleteClasses = useAutocompleteStyles();
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -64,6 +77,10 @@ const FileLinkingComponent: React.FC<{
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    useEffect(() => {
+        if (files.isSuccess) setFileOptions(files.data)
+    }, [files])
 
     return (
         <>
@@ -144,6 +161,7 @@ const FileLinkingComponent: React.FC<{
                                 <AutocompleteMultiselect
                                     classes={autocompleteClasses}
                                     inputLabel="Search Unlinked Files"
+                                    onInputChange={onInputChange}
                                     limit={25}
                                     onSelect={onEdit}
                                     options={options}

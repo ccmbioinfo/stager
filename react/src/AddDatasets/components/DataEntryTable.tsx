@@ -68,7 +68,7 @@ export default function DataEntryTable({
 
     const [files, setFiles] = useState<UnlinkedFile[]>([]);
 
-    const filesQuery = useUnlinkedFilesQuery('c4r');
+    const filesQuery = useUnlinkedFilesQuery();
     const { data: institutions } = useInstitutionsQuery();
     const { data: enums } = useEnumsQuery();
 

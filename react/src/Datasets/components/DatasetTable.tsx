@@ -58,10 +58,13 @@ const customFileFilterAndSearch = (filter: string, rowData: DatasetDetailed) => 
 };
 
 const EditFilesComponent = (props: EditComponentProps<DatasetDetailed>) => {
-    const filesQuery = useUnlinkedFilesQuery('c4r');;
+    const filesQuery = useUnlinkedFilesQuery();;
     const files = filesQuery.data || [];
+    const [filePrefix, setFilePrefix] = useState<string>('');
     return (
         <FileLinkingComponent
+            inputValue={filePrefix}
+            onInputChange={setFilePrefix}
             values={props.rowData.linked_files}
             options={files}
             onEdit={newValue => props.onChange(newValue)}
@@ -103,7 +106,7 @@ export default function DatasetTable() {
     const tissueSampleTypes = useMemo(() => enums && toKeyValue(enums.TissueSampleType), [enums]);
     const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
 
-    const filesQuery = useUnlinkedFilesQuery('c4r');;
+    const filesQuery = useUnlinkedFilesQuery();;
     const files = filesQuery.data || [];
 
     const [showInfo, setShowInfo] = useState(false);
