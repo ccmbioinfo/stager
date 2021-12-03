@@ -51,7 +51,7 @@ function EnhancedTextField({
     enums?: Record<string, string[]>;
     onEdit: (fieldName: string, value: boolean | string | null | UnlinkedFile[]) => void;
 }) {
-    const filesQuery = useUnlinkedFilesQuery();
+    const filesQuery = useUnlinkedFilesQuery('c4r');;
     const files = filesQuery.data || [];
 
     const classes = useTextStyles();

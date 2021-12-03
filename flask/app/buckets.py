@@ -13,9 +13,9 @@ bucket_blueprint = Blueprint(
 )
 
 
-@bucket_blueprint.route("/api/unlinked", methods=["GET"])
+@bucket_blueprint.route("/api/unlinked/<string:prefix>", methods=["GET"])
 @login_required
-def get_unlinked_files():
+def get_unlinked_files(prefix: str):
 
     minio_client = get_minio_client()
 
@@ -39,7 +39,7 @@ def get_unlinked_files():
     app.logger.debug("Getting all files in valid minio buckets..")
     all_files = []
     for bucket in valid_bucket_names:
-        objs = minio_client.list_objects(bucket, recursive=True)
+        objs = minio_client.list_objects(bucket, prefix=prefix, recursive=True)
         for obj in objs:
             all_files.append(bucket + "/" + obj.object_name)
 
@@ -50,7 +50,8 @@ def get_unlinked_files():
     linked_files = {
         f.path: True
         for f in models.File.query.filter(
-            or_(models.File.multiplexed == None, models.File.multiplexed == False)
+            or_(models.File.multiplexed == None,
+                models.File.multiplexed == False)
         ).all()
     }
 
