@@ -365,38 +365,25 @@ def get_analysis(id: int):
 
 
 analysis_schema = AnalysisSchema()
+
+
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 @validate_json
 def create_analysis():
 
-    result = analysis_schema.validate(request.json, session = db.session)
+    result = analysis_schema.validate(request.json, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))
-        abort(400, description = result)
+        abort(400, description=result)
 
-    # app.logger.debug("Validating pipeline_id parameter..")
     pipeline_id = request.json.get("pipeline_id")
-    # if not isinstance(pipeline_id, int):
-    #     abort(400, description="Missing pipeline_id field or invalid type")
-
-    # app.logger.debug("Validating datasets parameter..")
     datasets = request.json.get("datasets")
-    # if not (isinstance(datasets, list) and len(datasets)):
-    #     abort(400, description="Missing datasets field or invalid type")
-
-    # app.logger.debug("Validating notes parameter..")
     notes = request.json.get("notes")
-    # if notes and not isinstance(notes, str):
-    #     abort(400, description="Invalid notes type")
 
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
-
-    # app.logger.debug("Validating priority parameter..")
-
-    # validate_enums(models.Analysis, request.json, ["priority"])
 
     user = get_current_user()
 

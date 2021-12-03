@@ -429,8 +429,6 @@ def create_dataset():
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
 
-    # validate_enums(models.Dataset, request.json, EDITABLE_COLUMNS)
-
     try:
         created_by_id = updated_by_id = current_user.user_id
     except:  # LOGIN DISABLED
