@@ -3,7 +3,7 @@ import { UnlinkedFile } from "../../typings";
 import { basicFetch } from "../utils";
 
 async function fetchFiles(prefix: string) {
-    return await basicFetch(`api/unlinked${prefix ? "/" + prefix : ""}`);
+    return await basicFetch(`api/unlinked/${prefix}`);
 }
 
 /**

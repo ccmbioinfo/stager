@@ -55,7 +55,8 @@ def get_unlinked_files(prefix: str):
     linked_files = {
         f.path: True
         for f in models.File.query.filter(
-            or_(models.File.multiplexed == None, models.File.multiplexed == False)
+            or_(models.File.multiplexed == None,
+                models.File.multiplexed == False)
         ).all()
     }
 

@@ -24,6 +24,7 @@ import {
     useDatasetDeleteMutation,
     useDatasetsPage,
     useDatasetUpdateMutation,
+    useDebounce,
     useDownloadCsv,
     useEnumsQuery,
     useErrorSnackbar,
@@ -54,6 +55,20 @@ const customFileFilterAndSearch = (filter: string, rowData: DatasetDetailed) => 
     return (
         filter === "" + rowData.linked_files.length ||
         rowData.linked_files.some(f => f.path.includes(filter))
+    );
+};
+
+const EditFilesComponent = (props: EditComponentProps<DatasetDetailed>) => {
+    const [filePrefix, setFilePrefix] = useState<string>("");
+
+    return (
+        <FileLinkingComponent
+            values={props.rowData.linked_files}
+            inputValue={filePrefix}
+            onInputChange={setFilePrefix}
+            onEdit={newValue => props.onChange(newValue)}
+            disableTooltip
+        />
     );
 };
 
@@ -91,7 +106,9 @@ export default function DatasetTable() {
     const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
 
     const [filePrefix, setFilePrefix] = useState("");
-    const filesQuery = useUnlinkedFilesQuery("");
+
+    const debouncedSearchQuery = useDebounce(filePrefix || "data", 600);
+    const filesQuery = useUnlinkedFilesQuery(debouncedSearchQuery);
     const files = filesQuery.data || [];
 
     const [showInfo, setShowInfo] = useState(false);
@@ -168,15 +185,7 @@ export default function DatasetTable() {
                 customFilterAndSearch: customFileFilterAndSearch,
                 customSort: linkedFileSort,
                 render: RenderLinkedFilesButton,
-                editComponent: (props: EditComponentProps<DatasetDetailed>) => (
-                    <FileLinkingComponent
-                        inputValue={filePrefix}
-                        onInputChange={setFilePrefix}
-                        values={props.rowData.linked_files}
-                        onEdit={newValue => props.onChange(newValue)}
-                        disableTooltip
-                    />
-                ),
+                editComponent: EditFilesComponent, 
                 sorting: false,
                 filtering: true,
             },
@@ -238,7 +247,6 @@ export default function DatasetTable() {
         conditions,
         currentUser,
         datasetTypes,
-        filePrefix,
         paramID,
         tissueSampleTypes,
         setInitialSorting,
@@ -329,12 +337,16 @@ export default function DatasetTable() {
                                 },
                                 {
                                     onSuccess: receivedDataset => {
+                                        console.log(files)
+
                                         const removeUsed = files.filter(
                                             file =>
                                                 !receivedDataset.linked_files
                                                     .map(f => f.path)
                                                     .includes(file.path)
                                         );
+
+                                        console.log(removeUsed)
                                         //refresh data
                                         MTRef.current.onQueryChange();
 

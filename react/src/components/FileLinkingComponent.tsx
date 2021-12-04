@@ -55,7 +55,10 @@ const FileLinkingComponent: React.FC<{
     inputValue?: string;
     onInputChange?: (newInputvalue: string) => void;
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
-    const debouncedSearchQuery = useDebounce(inputValue || "", 600);
+
+    console.log('this is input value', inputValue)
+
+    const debouncedSearchQuery = useDebounce(inputValue || "data", 600);
     const files = useUnlinkedFilesQuery(debouncedSearchQuery);
     const [options, setOptions] = useState<UnlinkedFile[]>([]);
 
