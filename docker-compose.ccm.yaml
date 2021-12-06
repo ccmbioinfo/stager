@@ -1,0 +1,49 @@
+version: "3.9"
+
+x-common: &common
+  restart: unless-stopped
+  logging:
+    driver: journald
+
+x-app: &app
+  image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
+  user: www-data
+  # Not in Dockerfile yet because the base image is used on stager-dev
+  entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
+  command: --preload --workers ${GUNICORN_WORKERS:-1}
+  healthcheck:
+    test: ["CMD", "./healthcheck.py"]
+  <<: *common
+
+x-env: &env
+  MINIO_REGION_NAME: hpc4health
+  MSTEAMS_WEBHOOK_URL:
+
+services:
+  app-hiraki:
+    <<: *app
+    environment:
+      <<: *env
+      ST_SECRET_KEY: "${HIRAKI_ST_SECRET_KEY}"
+      ST_DATABASE_URI: "mysql+pymysql://${HIRAKI_MYSQL_CONNECTION_STRING}"
+      MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
+      MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
+  # app-hawkins:
+  #   <<: *app
+  #   environment:
+  #     <<: *env
+  #     ST_SECRET_KEY: "${HAWKINS_ST_SECRET_KEY}"
+  #     ST_DATABASE_URI: "mysql+pymysql://${HAWKINS_MYSQL_CONNECTION_STRING}"
+  #     MINIO_ENDPOINT: "${HAWKINS_MINIO_ENDPOINT}"
+  #     MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
+  #     MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "${PROJECT_ROOT:-.}/nginx/conf.d:/etc/nginx/conf.d"
+      - "${PROJECT_ROOT:-.}/nginx/certs:/etc/nginx/certs"
+    <<: *common

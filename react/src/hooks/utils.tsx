@@ -24,7 +24,7 @@ function getActiveEndpoint(): string {
  */
 export function apiFetch(url: string, init?: RequestInit | undefined): Promise<Response> {
     const endpoint = getActiveEndpoint();
-    return fetch(`${endpoint}${url}`, init);
+    return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
 }
 
 /**

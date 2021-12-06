@@ -1,3 +1,4 @@
+apscheduler
 authlib
 flask
 flask_sqlalchemy
@@ -11,3 +12,4 @@ requests
 sqlalchemy
 flask-marshmallow
 marshmallow-sqlalchemy
+sendgrid
