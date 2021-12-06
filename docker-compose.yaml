@@ -37,10 +37,6 @@ services:
       MINIO_ACCESS_KEY:
       MINIO_SECRET_KEY:
       MINIO_REGION_NAME:
-      SENDGRID_API_KEY:
-      SENDGRID_EMAIL_TEMPLATE_ID:
-      SENDGRID_TO_EMAIL:
-      SENDGRID_FROM_EMAIL:
     ports:
       - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
     depends_on:
