@@ -1,4 +1,4 @@
-import { DataEntryColumnConfig, DataEntryField, DataEntryRow, Family, Option, UnlinkedFile } from "../../typings";
+import { DataEntryColumnConfig, DataEntryField, DataEntryRow, Family, Option } from "../../typings";
 
 export const booleanColumns: DataEntryField[] = ["affected", "solved", "vcf_available"];
 export const dateColumns: DataEntryField[] = ["sequencing_date"];

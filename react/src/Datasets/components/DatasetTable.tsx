@@ -3,7 +3,6 @@ import { Column, EditComponentProps, MTableToolbar } from "@material-table/core"
 import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import {
     ChipGroup,
@@ -24,14 +23,12 @@ import {
     useDatasetDeleteMutation,
     useDatasetsPage,
     useDatasetUpdateMutation,
-    useDebounce,
     useDownloadCsv,
     useEnumsQuery,
     useErrorSnackbar,
     useHiddenColumnCache,
     useMetadatasetTypesQuery,
     useSortOrderCache,
-    useUnlinkedFilesQuery,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Dataset, DatasetDetailed, isRNASeqDataset, LinkedFile } from "../../typings";
@@ -86,7 +83,6 @@ const RenderNotes = (rowData: Dataset) => <Note>{rowData.notes}</Note>;
 export default function DatasetTable() {
     const classes = useStyles();
     const { user: currentUser } = useUserContext();
-    const queryClient = useQueryClient();
     const [showRunner, setRunner] = useState(false);
     const [showModalLoading, setModalLoading] = useState(false);
     const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
@@ -104,12 +100,6 @@ export default function DatasetTable() {
     );
     const tissueSampleTypes = useMemo(() => enums && toKeyValue(enums.TissueSampleType), [enums]);
     const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
-
-    const [filePrefix, setFilePrefix] = useState("");
-
-    const debouncedSearchQuery = useDebounce(filePrefix || "data", 600);
-    const filesQuery = useUnlinkedFilesQuery(debouncedSearchQuery);
-    const files = filesQuery.data || [];
 
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
@@ -129,7 +119,7 @@ export default function DatasetTable() {
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
 
-    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched, filesQuery.isFetched];
+    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
 
     const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
 
@@ -185,7 +175,7 @@ export default function DatasetTable() {
                 customFilterAndSearch: customFileFilterAndSearch,
                 customSort: linkedFileSort,
                 render: RenderLinkedFilesButton,
-                editComponent: EditFilesComponent, 
+                editComponent: EditFilesComponent,
                 sorting: false,
                 filtering: true,
             },
@@ -337,25 +327,6 @@ export default function DatasetTable() {
                                 },
                                 {
                                     onSuccess: receivedDataset => {
-                                        console.log(files)
-
-                                        const removeUsed = files.filter(
-                                            file =>
-                                                !receivedDataset.linked_files
-                                                    .map(f => f.path)
-                                                    .includes(file.path)
-                                        );
-
-                                        console.log(removeUsed)
-                                        //refresh data
-                                        MTRef.current.onQueryChange();
-
-                                        queryClient.setQueryData(
-                                            "unlinked",
-                                            oldDataset && oldDataset.linked_files.length > 0
-                                                ? [...oldDataset.linked_files, ...removeUsed].sort()
-                                                : removeUsed
-                                        );
                                         enqueueSnackbar(
                                             `Dataset ID ${newDataset.dataset_id} updated successfully`,
                                             { variant: "success" }

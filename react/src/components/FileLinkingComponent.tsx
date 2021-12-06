@@ -48,16 +48,13 @@ const useAutocompleteStyles = makeStyles(() => ({
 /* A cell for linking files to a dataset. */
 const FileLinkingComponent: React.FC<{
     values: LinkedFile[];
-    // options: UnlinkedFile[];
     onEdit: (newValue: UnlinkedFile[]) => void;
+    setFiles?: React.Dispatch<React.SetStateAction<UnlinkedFile[]>>;
     disabled?: boolean;
     disableTooltip?: boolean;
     inputValue?: string;
     onInputChange?: (newInputvalue: string) => void;
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
-
-    console.log('this is input value', inputValue)
-
     const debouncedSearchQuery = useDebounce(inputValue || "big", 600);
     const files = useUnlinkedFilesQuery(debouncedSearchQuery);
     const [options, setOptions] = useState<UnlinkedFile[]>([]);
@@ -76,7 +73,9 @@ const FileLinkingComponent: React.FC<{
     };
 
     useEffect(() => {
-        if (files.isSuccess) setOptions(files.data);
+        if (files.isSuccess) {
+            setOptions(files.data);
+        }
     }, [files]);
 
     return (
