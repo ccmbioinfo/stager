@@ -137,6 +137,10 @@ jobs:
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
           MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_EMAIL_TEMPLATE_ID: ${{ secrets.SENDGRID_EMAIL_TEMPLATE_ID }}
+          SENDGRID_TO_EMAIL: ${{ secrets.SENDGRID_TO_EMAIL }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
         run: |
           eval "${{ steps.configure.outputs.ssh-agent-eval }}"
           export GUNICORN_WORKERS=$( ssh ${{ secrets.DEPLOY_SSH_HOST }} 'echo $(( $(nproc) * 2 + 1 ))' )

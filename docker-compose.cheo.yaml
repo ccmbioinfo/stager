@@ -12,6 +12,10 @@ services:
       MINIO_SECRET_KEY:
       MINIO_REGION_NAME: hpc4health
       MSTEAMS_WEBHOOK_URL:
+      SENDGRID_API_KEY:
+      SENDGRID_EMAIL_TEMPLATE_ID:
+      SENDGRID_TO_EMAIL:
+      SENDGRID_FROM_EMAIL:
     ports:
       - "5000:5000"
     # Not in Dockerfile yet because the base image is used on stager-dev
