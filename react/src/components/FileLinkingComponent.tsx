@@ -28,9 +28,6 @@ const useStyles = makeStyles(theme => ({
         alignItems: "center",
         width: "100%",
     },
-    popoverTitle: {
-        width: "150px",
-    },
     fileName: {
         wordBreak: "break-all",
         padding: 0,
@@ -55,7 +52,8 @@ const FileLinkingComponent: React.FC<{
     inputValue?: string;
     onInputChange?: (newInputvalue: string) => void;
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
-    const debouncedSearchQuery = useDebounce(inputValue || "big", 600);
+    const debouncedSearchQuery = useDebounce(inputValue || "None", 600);
+    
     const files = useUnlinkedFilesQuery(debouncedSearchQuery);
     const [options, setOptions] = useState<UnlinkedFile[]>([]);
 
@@ -148,12 +146,7 @@ const FileLinkingComponent: React.FC<{
             >
                 <Box className={classes.popoverBox}>
                     <div className={classes.popoverBoxHeader}>
-                        {options.length === 0 && values.length === 0 ? (
-                            <Typography variant="h6" className={classes.popoverTitle}>
-                                No files available
-                            </Typography>
-                        ) : (
-                            <Grid container direction="column">
+                    <Grid container direction="column">
                                 <AutocompleteMultiselect
                                     classes={autocompleteClasses}
                                     inputLabel="Search Unlinked Files"
@@ -206,7 +199,6 @@ const FileLinkingComponent: React.FC<{
                                     uniqueLabelPath="path"
                                 />
                             </Grid>
-                        )}
                     </div>
                 </Box>
             </Popover>
