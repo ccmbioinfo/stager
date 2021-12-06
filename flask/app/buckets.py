@@ -42,10 +42,8 @@ def get_unlinked_files(prefix: str):
     app.logger.debug("Getting all files in valid minio buckets..")
     all_files = []
     for bucket in valid_bucket_names:
-        app.logger.debug("each bucket", bucket, prefix)
         objs = minio_client.list_objects(bucket, prefix=prefix, recursive=True)
         for obj in objs:
-            app.logger.debug("hello2")
             all_files.append(bucket + "/" + obj.object_name)
 
     app.logger.debug("Getting all linked files..")
@@ -72,6 +70,5 @@ def get_unlinked_files(prefix: str):
             files.append({"path": file_name, "multiplexed": False})
 
     app.logger.debug(f"Returning JSON array with prefix {prefix}..")
-    app.logger.debug(files)
 
     return jsonify(sorted(files, key=lambda f: f["path"]))

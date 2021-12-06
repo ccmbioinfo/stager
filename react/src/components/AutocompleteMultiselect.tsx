@@ -34,6 +34,9 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
     const [inputValue, setInputValue] = useState("");
     const [removedOptions, setRemovedOptions] = useState<T[]>([]);
 
+    console.log('input value in multiselect', inputValue)
+    console.log(onInputChange)
+
     return (
         <Autocomplete
             autoComplete
@@ -43,6 +46,8 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
                 if (reason === "input") {
                     setInputValue(value);
                 }
+
+                console.log(value, reason)
                 if (onInputChange) {
                     //if options are filtered dynamically
                     onInputChange(value);
