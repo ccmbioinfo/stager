@@ -4,14 +4,6 @@ from marshmallow.validate import Length, Range
 from .models import *
 
 
-class GroupUser(Schema):
-    """
-    POST /api/groups
-    """
-
-    users = fields.List(fields.String(), required=False)
-
-
 class FamilySchema(SQLAlchemyAutoSchema):
     """
     POST /api/families
@@ -90,16 +82,3 @@ class AnalysisSchema(SQLAlchemyAutoSchema):
         )
 
     datasets = fields.List(fields.Integer(), required=True, validate=Length(min=1))
-
-
-class ParticipantSchema(SQLAlchemyAutoSchema):
-    """
-    POST /api/participants
-    - nothing out of the ordinary here
-    """
-
-    class Meta:
-        model = Participant
-        include_fk = True
-        load_instance = False
-        exclude = ("created_by_id", "updated_by_id")
