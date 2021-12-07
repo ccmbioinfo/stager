@@ -110,8 +110,6 @@ python-dateutil==2.8.1
     #   pandas
 python-editor==1.0.4
     # via alembic
-python-http-client==3.3.3
-    # via sendgrid
 pytz==2021.1
     # via
     #   apscheduler
@@ -122,19 +120,19 @@ regex==2021.4.4
     # via black
 requests==2.26.0
     # via -r requirements.in
-sendgrid==6.9.0
+sendgrid==1.6.20
     # via -r requirements.in
 six==1.15.0
     # via
     #   apscheduler
     #   python-dateutil
+smtpapi==0.3.1
+    # via sendgrid
 sqlalchemy==1.3.24
     # via
     #   -r requirements.in
     #   alembic
     #   flask-sqlalchemy
-starkbank-ecdsa==1.1.1
-    # via sendgrid
 toml==0.10.2
     # via
     #   pylint
