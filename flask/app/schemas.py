@@ -1,7 +1,51 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from marshmallow import fields
-from marshmallow.validate import Range, Length
+from marshmallow import fields, Schema
+from marshmallow.validate import Length, Range
 from .models import *
+
+
+class GroupUser(Schema):
+    """
+    POST /api/groups
+    """
+
+    users = fields.List(fields.String(), required=False)
+
+
+class FamilySchema(SQLAlchemyAutoSchema):
+    """
+    POST /api/families
+    """
+
+    class Meta:
+        model = Family
+        include_fk = True
+        load_instance = False
+        exclude = ("created_by_id", "updated_by_id")
+
+
+class ParticipantSchema(SQLAlchemyAutoSchema):
+    """
+    POST /api/participants
+    """
+
+    class Meta:
+        model = Participant
+        include_fk = True
+        load_instance = False
+        exclude = ("created_by_id", "updated_by_id")
+
+
+class TissueSampleSchema(SQLAlchemyAutoSchema):
+    """
+    POST /api/tissue_samples
+    """
+
+    class Meta:
+        model = TissueSample
+        include_fk = True
+        load_instance = False
+        exclude = ("created_by_id", "updated_by_id")
 
 
 class DatasetSchema(SQLAlchemyAutoSchema):
@@ -46,3 +90,16 @@ class AnalysisSchema(SQLAlchemyAutoSchema):
         )
 
     datasets = fields.List(fields.Integer(), required=True, validate=Length(min=1))
+
+
+class ParticipantSchema(SQLAlchemyAutoSchema):
+    """
+    POST /api/participants
+    - nothing out of the ordinary here
+    """
+
+    class Meta:
+        model = Participant
+        include_fk = True
+        load_instance = False
+        exclude = ("created_by_id", "updated_by_id")

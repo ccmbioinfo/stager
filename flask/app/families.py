@@ -5,6 +5,7 @@ from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from .extensions import db
 from . import models
+from .schemas import FamilySchema
 from .utils import (
     check_admin,
     filter_datasets_by_user_groups,
@@ -23,6 +24,8 @@ family_blueprint = Blueprint(
     "families",
     __name__,
 )
+
+family_schema = FamilySchema()
 
 
 @family_blueprint.route("/api/families", methods=["GET"], strict_slashes=False)
@@ -251,14 +254,12 @@ def create_family():
         updated_by_id = 1
         created_by_id = 1
 
-    app.logger.debug("Checking family codename is supplied in body")
-    try:
-        fam_codename = request.json["family_codename"]
-    except KeyError:
-        app.logger.error("No family codename was provided in the request body")
-        abort(400, description="No family codename provided")
-    app.logger.debug("Family codename is in request body and is '%s'", fam_codename)
+    result = family_schema.validate(request.json, session=db.session)
 
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
+    fam_codename = request.json.get("family_codename")
     app.logger.debug(
         "Checking the requested family codenam, '%s', is not already in use.",
         fam_codename,

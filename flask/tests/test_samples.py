@@ -108,7 +108,7 @@ def test_create_tissue_sample(test_database, client, login_as):
                 "participant_id": "nope",
             },
         ).status_code
-        == 404
+        == 400
     )
     # Test enum error
     assert (
