@@ -284,8 +284,6 @@ def list_analyses(page: int, limit: int) -> Response:
         for analysis in analyses
     ]
 
-    app.logger.info(results)
-
     if expects_json(request):
         app.logger.debug("Returning paginated response..")
         return paginated_response(results, page, total_count, limit)
