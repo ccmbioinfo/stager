@@ -29,6 +29,7 @@ services:
       MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
+      MINIO_TLS: true
   # app-hawkins:
   #   <<: *app
   #   environment:
