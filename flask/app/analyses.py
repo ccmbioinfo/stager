@@ -21,7 +21,6 @@ from .utils import (
     filter_updated_or_abort,
     get_current_user,
     validate_enums_and_set_fields,
-    validate_enums,
     paged,
     paginated_response,
     transaction_or_abort,

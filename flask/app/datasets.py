@@ -31,7 +31,6 @@ from .utils import (
     transaction_or_abort,
     str_to_bool,
     validate_enums_and_set_fields,
-    validate_enums,
     validate_json,
 )
 

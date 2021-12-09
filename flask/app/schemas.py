@@ -1,5 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from marshmallow import fields, Schema
+from marshmallow import fields
 from marshmallow.validate import Length, Range
 from .models import *
 
