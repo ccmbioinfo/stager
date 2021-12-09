@@ -136,7 +136,7 @@ regex==2021.4.4
     # via black
 requests==2.26.0
     # via -r requirements.in
-sendgrid==6.9.0
+sendgrid==6.9.2
     # via -r requirements.in
 six==1.15.0
     # via
