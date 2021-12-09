@@ -182,7 +182,7 @@ def list_participants(page: int, limit: int) -> Response:
             .filter(models.users_groups_table.columns.user_id == user.user_id, *filters)
         )
 
-    dataset_type = request.args.get("dataset_type", type=str)
+    dataset_type = request.args.get("dataset_types", type=str)
     if dataset_type:
         subquery = (
             models.Participant.query.join(models.Participant.tissue_samples)
