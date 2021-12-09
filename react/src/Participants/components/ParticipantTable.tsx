@@ -168,6 +168,37 @@ export default function ParticipantTable() {
         downloadCsv(transformMTQueryToCsvDownloadParams(tableRef.current?.state.query || {}));
     };
 
+    const participantUpdate = (
+        diffParticipant: Partial<Participant>,
+        oldParticipant: Participant,
+        newParticipant: Participant
+    ) => {
+        participantUpdateMutate(
+            {
+                ...diffParticipant,
+                participant_id: oldParticipant.participant_id,
+            },
+            {
+                onSuccess: receiveParticipant => {
+                    enqueueSnackbar(
+                        `Participant ${oldParticipant.participant_codename} updated successfully`,
+                        { variant: "success" }
+                    );
+                    tableRef.current.onQueryChange();
+                },
+                onError: response => {
+                    console.error(
+                        `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
+                    );
+                    enqueueErrorSnackbar(
+                        response,
+                        `Failed to edit Participant ${oldParticipant?.participant_codename}`
+                    );
+                },
+            }
+        );
+    };
+
     return (
         <div>
             {activeRow && (
@@ -204,14 +235,14 @@ export default function ParticipantTable() {
                             newParticipant,
                             oldParticipant
                         );
-
                         const family_id = newParticipant.family_id;
                         const newFamilyData = {
                             family_codename: newParticipant.family_codename,
                         } as Partial<Family>;
-                        let familyUpdateSuccess = true;
-
-                        if (newParticipant.family_codename !== oldParticipant?.family_codename) {
+                        if (
+                            oldParticipant &&
+                            newParticipant.family_codename !== oldParticipant.family_codename
+                        ) {
                             familyUpdateMutate(
                                 {
                                     ...newFamilyData,
@@ -219,10 +250,13 @@ export default function ParticipantTable() {
                                 },
                                 {
                                     onSuccess: response => {
-                                        tableRef.current.onQueryChange();
+                                        participantUpdate(
+                                            diffParticipant,
+                                            oldParticipant,
+                                            newParticipant
+                                        );
                                     },
                                     onError: response => {
-                                        familyUpdateSuccess = false;
                                         console.error(
                                             `PATCH /api/families/${family_id} failed with ${response.status}: ${response.statusText}`
                                         );
@@ -233,33 +267,8 @@ export default function ParticipantTable() {
                                     },
                                 }
                             );
-                        }
-
-                        if (oldParticipant && familyUpdateSuccess) {
-                            participantUpdateMutate(
-                                {
-                                    ...diffParticipant,
-                                    participant_id: oldParticipant.participant_id,
-                                },
-                                {
-                                    onSuccess: receiveParticipant => {
-                                        enqueueSnackbar(
-                                            `Participant ${oldParticipant.participant_codename} updated successfully`,
-                                            { variant: "success" }
-                                        );
-                                        tableRef.current.onQueryChange();
-                                    },
-                                    onError: response => {
-                                        console.error(
-                                            `PATCH /api/participants/${newParticipant.participant_id} failed with ${response.status}: ${response.statusText}`
-                                        );
-                                        enqueueErrorSnackbar(
-                                            response,
-                                            `Failed to edit Participant ${oldParticipant?.participant_codename}`
-                                        );
-                                    },
-                                }
-                            );
+                        } else if (oldParticipant) {
+                            participantUpdate(diffParticipant, oldParticipant, newParticipant);
                         }
                     },
                 }}
