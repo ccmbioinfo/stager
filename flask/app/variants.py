@@ -385,7 +385,19 @@ def summary(type: str):
         search_type, request.args.get(search_type, type=str)
     )
 
-    query = models.Variant.query.filter(variant_filter)
+    query = (
+        db.session.query(models.Variant, models.Gene)
+        .join(
+            models.Variant,
+            and_(
+                models.Gene.chromosome == models.Variant.chromosome,
+                models.Gene.start <= models.Variant.position,
+                models.Variant.position <= models.Gene.end,
+            ),
+        )
+        .filter(variant_filter)
+    )
+
     num_matched = query.with_entities(
         func.count(distinct(models.Variant.variant_id))
     ).scalar()
@@ -402,7 +414,6 @@ def summary(type: str):
             models.GeneAlias.kind == "current_approved_symbol"
         ).subquery(),
     )
-
     # returns a tuple (Genes, Variants)
     query = (
         db.session.query(models.Gene, models.Variant)
