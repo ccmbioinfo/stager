@@ -10,7 +10,7 @@ from flask import (
     request,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
@@ -219,7 +219,9 @@ def list_datasets(page: int, limit: int) -> Response:
             .subquery()
         )
 
-        query = query.filter(models.Dataset.dataset_id.in_(subquery))
+        query = query.filter(
+            models.Dataset.dataset_id.in_(select(subquery.c.dataset_id))
+        )
 
     linked_files = request.args.get("linked_files", type=str)
     if linked_files:
@@ -229,7 +231,9 @@ def list_datasets(page: int, limit: int) -> Response:
             .with_entities(models.Dataset.dataset_id)
             .subquery()
         )
-        query = query.filter(models.Dataset.dataset_id.in_(subquery))
+        query = query.filter(
+            models.Dataset.dataset_id.in_(select(subquery.c.dataset_id))
+        )
 
     # total_count always refers to the number of unique datasets in the database
     total_count = query.with_entities(

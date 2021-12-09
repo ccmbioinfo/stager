@@ -3,7 +3,7 @@ from dataclasses import asdict
 from flask import Blueprint, Response, abort, jsonify, request
 from flask import current_app as app
 from flask_login import current_user, login_required
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -193,7 +193,9 @@ def list_participants(page: int, limit: int) -> Response:
             .with_entities(models.Participant.participant_id)
             .subquery()
         )
-        query = query.filter(models.Participant.participant_id.in_(subquery))
+        query = query.filter(
+            models.Participant.participant_id.in_(select(subquery.c.participant_id))
+        )
 
     # .count() returns the number of rows in the SQL response. When we join across a one-to-many
     # relationship, each parent row is multiplied by the number of children it has. This causes

@@ -2,7 +2,7 @@ from dataclasses import asdict
 from datetime import datetime
 
 from flask_login import login_required
-from sqlalchemy import distinct, func, or_
+from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
@@ -53,8 +53,8 @@ def list_analyses(page: int, limit: int) -> Response:
         "requested",
         "analysis_id",
     ]
-    assignee_user = aliased(models.Analysis.assignee)
-    requester_user = aliased(models.Analysis.requester)
+    assignee_user = aliased(models.User)
+    requester_user = aliased(models.User)
     app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
@@ -188,7 +188,9 @@ def list_analyses(page: int, limit: int) -> Response:
             .with_entities(models.Analysis.analysis_id)
             .subquery()
         )
-        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+        query = query.filter(
+            models.Analysis.analysis_id.in_(select(subquery.c.analysis_id))
+        )
 
     family_codename = request.args.get("family_codename", type=str)
     if family_codename:
@@ -204,7 +206,9 @@ def list_analyses(page: int, limit: int) -> Response:
             .with_entities(models.Analysis.analysis_id)
             .subquery()
         )
-        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+        query = query.filter(
+            models.Analysis.analysis_id.in_(select(subquery.c.analysis_id))
+        )
 
     if request.args.get("search"):  # multifield search
         app.logger.debug(
@@ -236,7 +240,9 @@ def list_analyses(page: int, limit: int) -> Response:
             .with_entities(models.Analysis.analysis_id)
             .subquery()
         )
-        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+        query = query.filter(
+            models.Analysis.analysis_id.in_(select(subquery.c.analysis_id))
+        )
 
     total_count = query.with_entities(
         func.count(distinct(models.Analysis.analysis_id))
