@@ -2,7 +2,6 @@ import React, { useMemo, useRef, useState } from "react";
 import { Column } from "@material-table/core";
 import { FileCopy, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
-import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import {
     BooleanDisplay,
