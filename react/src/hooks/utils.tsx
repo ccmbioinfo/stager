@@ -24,7 +24,7 @@ function getActiveEndpoint(): string {
  */
 export function apiFetch(url: string, init?: RequestInit | undefined): Promise<Response> {
     const endpoint = getActiveEndpoint();
-    return fetch(`${endpoint}${url}`, init);
+    return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
 }
 
 /**
@@ -184,7 +184,6 @@ export async function changeFetch<
 ) {
     const response = await apiFetch(url, {
         method: method,
-        credentials: "same-origin",
         headers: body ? { "Content-Type": "application/json" } : undefined,
         body: body ? JSON.stringify(body) : undefined,
     });

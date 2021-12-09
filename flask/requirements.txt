@@ -6,8 +6,14 @@
 #
 alembic==1.5.8
     # via flask-migrate
+apscheduler==3.8.1
+    # via -r requirements.in
 authlib==0.15.5
     # via -r requirements.in
+backports.zoneinfo==0.2.1
+    # via
+    #   pytz-deprecation-shim
+    #   tzlocal
 certifi==2020.12.5
     # via
     #   minio
@@ -71,17 +77,33 @@ python-dateutil==2.8.1
     #   pandas
 python-editor==1.0.4
     # via alembic
+python-http-client==3.3.3
+    # via sendgrid
+pytz-deprecation-shim==0.1.0.post0
+    # via tzlocal
 pytz==2021.1
-    # via pandas
+    # via
+    #   apscheduler
+    #   pandas
 requests==2.26.0
     # via -r requirements.in
+sendgrid==6.9.2
+    # via -r requirements.in
 six==1.15.0
-    # via python-dateutil
+    # via
+    #   apscheduler
+    #   python-dateutil
 sqlalchemy==1.3.24
     # via
     #   -r requirements.in
     #   alembic
     #   flask-sqlalchemy
+starkbank-ecdsa==2.0.2
+    # via sendgrid
+tzdata==2021.5
+    # via pytz-deprecation-shim
+tzlocal==4.1
+    # via apscheduler
 urllib3==1.26.5
     # via
     #   minio

@@ -1,30 +1,36 @@
+import atexit
 import logging
-from flask import Flask, logging as flask_logging
-from .extensions import db, login, migrate, metrics, oauth
-from .utils import DateTimeEncoder
+import os
 
 from app import (
-    buckets,
-    genes,
-    routes,
-    families,
-    datasets,
-    participants,
-    tissue_samples,
     analyses,
-    variants,
-    groups,
-    users,
-    manage,
+    buckets,
+    datasets,
     error_handler,
+    families,
+    genes,
+    groups,
+    manage,
+    participants,
+    routes,
+    tissue_samples,
+    users,
+    variants,
 )
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from flask import Flask
+from flask import logging as flask_logging
+
+from .extensions import db, login, metrics, migrate, oauth
+from .tasks import send_email_notification
+from .utils import DateTimeEncoder
 
 
 def create_app(config):
     """
     The application factory. Returns an instance of the app.
     """
-
     # Create the application object
     app = Flask(__name__)
     app.config.from_object(config)
@@ -34,8 +40,22 @@ def create_app(config):
     register_extensions(app)
     manage.register_commands(app)
     register_blueprints(app)
+    if os.getenv("SENDGRID_API_KEY"):
+        register_schedulers(app)
 
     return app
+
+
+def register_schedulers(app):
+    scheduler = BackgroundScheduler(timezone="America/Toronto")
+    scheduler.add_job(
+        send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
+    )
+
+    scheduler.start()
+
+    # Shut down the scheduler when exiting the app
+    atexit.register(scheduler.shutdown)
 
 
 def register_blueprints(app):
