@@ -90,6 +90,7 @@ def register_extensions(app):
         client_kwargs={"scope": "openid"},
     )
     metrics.init_app(app)
+    metrics.info("stager", "Stager process info", revision=app.config.get("GIT_SHA"))
 
 
 def config_logger(app):
