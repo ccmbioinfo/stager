@@ -13,8 +13,9 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
+import { useSnackbar } from "notistack";
 import { AutocompleteMultiselect, Note } from "../components";
-import { useDebounce, useUnlinkedFilesQuery } from "../hooks";
+import { useDebounce, useErrorSnackbar, useUnlinkedFilesQuery } from "../hooks";
 import { LinkedFile, UnlinkedFile } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -52,7 +53,9 @@ const FileLinkingComponent: React.FC<{
     inputValue?: string;
     onInputChange?: (newInputvalue: string) => void;
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
-    const debouncedSearchQuery = useDebounce(inputValue || "None", 600);
+    const enqueueErrorSnackbar = useErrorSnackbar();
+
+    const debouncedSearchQuery = useDebounce(inputValue || "None", 500);
 
     console.log("debounced search query", debouncedSearchQuery);
 
@@ -73,10 +76,13 @@ const FileLinkingComponent: React.FC<{
     };
 
     useEffect(() => {
+        console.log(files);
         if (files.isSuccess) {
             setOptions(files.data);
+        } else if (files.isError) {
+            enqueueErrorSnackbar(files.error, "Failed to get unlinked files.");
         }
-    }, [files]);
+    }, [files, enqueueErrorSnackbar]);
 
     return (
         <>
