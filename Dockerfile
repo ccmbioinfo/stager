@@ -17,5 +17,5 @@ COPY . .
 ENV FLASK_ENV production
 EXPOSE 5000
 # Prevent accidentally using this image for development by adding the prod server arguments in the entrypoint
-ENTRYPOINT ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--log-file", "-"]
-CMD ["--preload", "--workers", "2", "--threads", "2"]
+# Automatically run migrations on startup
+ENTRYPOINT ["./utils/run.sh", "prod", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--log-file", "-"]

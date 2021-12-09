@@ -8,8 +8,6 @@ x-common: &common
 x-app: &app
   image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
   user: www-data
-  # Not in Dockerfile yet because the base image is used on stager-dev
-  entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
   command: --preload --workers ${GUNICORN_WORKERS:-1}
   healthcheck:
     test: ["CMD", "./healthcheck.py"]
