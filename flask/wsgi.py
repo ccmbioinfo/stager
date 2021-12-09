@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-
-from app import create_app, config
+from app import config, create_app
 
 app = create_app(config.Config)
 

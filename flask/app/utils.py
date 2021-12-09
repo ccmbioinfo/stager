@@ -21,8 +21,7 @@ from flask_login import current_user
 from flask_sqlalchemy import Model
 from flask_sqlalchemy.model import DefaultMeta
 from minio import Minio
-from sqlalchemy import exc
-from sqlalchemy import inspect
+from sqlalchemy import exc, inspect, select
 from sqlalchemy.orm.query import Query
 from sqlalchemy.sql.sqltypes import Enum as SqlAlchemyEnum
 from werkzeug.exceptions import HTTPException
@@ -422,9 +421,9 @@ def filter_datasets_by_user_groups(query: Query, user: User):
 
     dataset_subquery = (
         Dataset.query.join(Dataset.groups)
-        .filter(Group.group_id.in_(user_group_subquery))
+        .filter(Group.group_id.in_(select(user_group_subquery.c.group_id)))
         .with_entities(Dataset.dataset_id)
         .subquery()
     )
 
-    return query.filter(Dataset.dataset_id.in_(dataset_subquery))
+    return query.filter(Dataset.dataset_id.in_(select(dataset_subquery.c.dataset_id)))

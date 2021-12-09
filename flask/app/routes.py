@@ -408,9 +408,11 @@ def bulk_update():
             "\tChecking whether family already exists through codename '%s'..",
             row.get("family_codename"),
         )
-        family_id = models.Family.query.filter(
-            models.Family.family_codename == row.get("family_codename")
-        ).value("family_id")
+        family_id = (
+            db.session.query(models.Family.family_id)
+            .filter(models.Family.family_codename == row.get("family_codename"))
+            .scalar()
+        )
         if not family_id:
             app.logger.debug(
                 "\tFamily '%s' does not yet exist.., creating",
@@ -479,10 +481,15 @@ def bulk_update():
             "\tChecking participant exists through codename '%s'",
             row.get("participant_codename"),
         )
-        participant_id = models.Participant.query.filter(
-            models.Participant.family_id == family_id,
-            models.Participant.participant_codename == row.get("participant_codename"),
-        ).value("participant_id")
+        participant_id = (
+            db.session.query(models.Participant.participant_id)
+            .filter(
+                models.Participant.family_id == family_id,
+                models.Participant.participant_codename
+                == row.get("participant_codename"),
+            )
+            .scalar()
+        )
         if not participant_id:
             app.logger.debug("\tParticipant does not exist, creating")
             participant = models.Participant(

@@ -264,9 +264,11 @@ def create_family():
         fam_codename,
     )
 
-    family_exists_id = models.Family.query.filter(
-        models.Family.family_codename == fam_codename
-    ).value("family_id")
+    family_exists_id = (
+        db.session.query(models.Family.family_id)
+        .filter(models.Family.family_codename == fam_codename)
+        .scalar()
+    )
 
     if family_exists_id:
         app.logger.error(
