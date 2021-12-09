@@ -2,10 +2,10 @@ import { useQuery } from "react-query";
 import { UnlinkedFile } from "../../typings";
 import { basicFetch } from "../utils";
 
-async function fetchFiles(prefix: string) {
-    return await basicFetch(`api/unlinked/${prefix}`);
+async function fetchFiles(params: Record<string, string> = {}) {
+    console.log("unlinked params", params);
+    return await basicFetch("/api/unlinked", params);
 }
-
 /**
  * Return result of GET /api/unlinked.
  *
@@ -13,9 +13,11 @@ async function fetchFiles(prefix: string) {
  * for all unlinked files in MinIO.
  */
 
-export function useUnlinkedFilesQuery(prefix: string) {
-    const result = useQuery<string, Response, UnlinkedFile[]>(["unlinked", prefix], () =>
-        fetchFiles(prefix)
+export function useUnlinkedFilesQuery(params: Record<string, string> = {}) {
+    console.log("useUnlinkedFilesQuery", params);
+    const result = useQuery<Record<string, string>, Response, UnlinkedFile[]>(
+        ["unlinked", params],
+        () => fetchFiles(params)
     );
     return result;
 }

@@ -54,7 +54,9 @@ const FileLinkingComponent: React.FC<{
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
     const debouncedSearchQuery = useDebounce(inputValue || "None", 600);
 
-    const files = useUnlinkedFilesQuery(debouncedSearchQuery);
+    console.log("debounced search query", debouncedSearchQuery);
+
+    const files = useUnlinkedFilesQuery({ path: debouncedSearchQuery });
     const [options, setOptions] = useState<UnlinkedFile[]>([]);
 
     const autocompleteClasses = useAutocompleteStyles();

@@ -34,6 +34,8 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
     const [inputValue, setInputValue] = useState("");
     const [removedOptions, setRemovedOptions] = useState<T[]>([]);
 
+    console.log("hello input", inputValue);
+
     return (
         <Autocomplete
             autoComplete
