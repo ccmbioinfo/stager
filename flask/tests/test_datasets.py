@@ -433,6 +433,7 @@ def test_create_dataset(client, test_database, login_as):
         json={
             "dataset_type": "WGS",
             "tissue_sample_id": 1,
+            "discriminator": "dataset",
             "condition": "Somatic",
             "sequencing_date": "2020-12-04",
         },
