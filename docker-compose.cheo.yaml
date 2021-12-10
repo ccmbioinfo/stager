@@ -18,6 +18,7 @@ services:
       SENDGRID_FROM_EMAIL:
     ports:
       - "5000:5000"
+      - "9121:8080"
     command: --preload --workers ${GUNICORN_WORKERS:-1}
     healthcheck:
       test: ["CMD", "./healthcheck.py"]
