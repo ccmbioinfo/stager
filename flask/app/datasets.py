@@ -15,6 +15,7 @@ from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
+from .schemas import DatasetSchema
 from .utils import (
     check_admin,
     csv_response,
@@ -30,7 +31,6 @@ from .utils import (
     transaction_or_abort,
     str_to_bool,
     validate_enums_and_set_fields,
-    validate_enums,
     validate_json,
 )
 
@@ -54,6 +54,8 @@ datasets_blueprint = Blueprint(
     "datasets",
     __name__,
 )
+
+dataset_schema = DatasetSchema()
 
 
 @datasets_blueprint.route("/api/datasets", methods=["GET"], strict_slashes=False)
@@ -420,23 +422,15 @@ def delete_dataset(id: int):
 @validate_json
 def create_dataset():
 
-    dataset_type = request.json.get("dataset_type")
-    if not dataset_type:
-        abort(400, description="A dataset type must be provided")
+    result = dataset_schema.validate(request.json, session=db.session)
 
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
     tissue_sample_id = request.json.get("tissue_sample_id")
-    if not tissue_sample_id:
-        abort(400, description="A tissue sample id must be provided")
-
-    sequencing_date = request.json.get("sequencing_date")
-    if not sequencing_date:
-        abort(400, description="A sequencing date must be provided")
-
     models.TissueSample.query.filter_by(
         tissue_sample_id=tissue_sample_id
     ).first_or_404()
-
-    validate_enums(models.Dataset, request.json, EDITABLE_COLUMNS)
 
     try:
         created_by_id = updated_by_id = current_user.user_id
@@ -446,7 +440,7 @@ def create_dataset():
     dataset = models.Dataset(
         **{
             "tissue_sample_id": tissue_sample_id,
-            "dataset_type": dataset_type,
+            "dataset_type": request.json.get("dataset_type"),
             "notes": request.json.get("notes"),
             "condition": request.json.get("condition"),
             "extraction_protocol": request.json.get("extraction_protocol"),

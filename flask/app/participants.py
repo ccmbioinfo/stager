@@ -9,6 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import models
 from .extensions import db
+from .schemas import ParticipantSchema
 from .utils import (
     check_admin,
     csv_response,
@@ -24,7 +25,6 @@ from .utils import (
     transaction_or_abort,
     str_to_bool,
     validate_enums_and_set_fields,
-    validate_enums,
     validate_json,
 )
 
@@ -44,6 +44,8 @@ participants_blueprint = Blueprint(
     "participants",
     __name__,
 )
+
+participant_schema = ParticipantSchema()
 
 
 @participants_blueprint.route(
@@ -382,6 +384,12 @@ def update_participant(id: int):
 @validate_json
 def create_participant():
 
+    result = participant_schema.validate(request.json, session=db.session)
+
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
+
     try:
         updated_by_id = current_user.user_id
         created_by_id = current_user.user_id
@@ -391,22 +399,19 @@ def create_participant():
 
     # check if the participant exists under a given family
 
+    family_id = request.json.get("family_id")
+    participant_codename = request.json.get("participant_codename")
+
     ptp_query = models.Participant.query.filter(
-        models.Participant.family_id == request.json.get("family_id"),
-        models.Participant.participant_codename
-        == request.json.get("participant_codename"),
+        models.Participant.family_id == family_id,
+        models.Participant.participant_codename == participant_codename,
     )
 
     if ptp_query.first() is not None:
         abort(422, description="Participant codename already exists under family")
 
     # check if family exists
-    models.Family.query.filter(
-        models.Family.family_id == request.json.get("family_id")
-    ).first_or_404()
-
-    # validate enums
-    validate_enums(models.Participant, request.json, editable_columns)
+    models.Family.query.filter(models.Family.family_id == family_id).first_or_404()
 
     # get institution id
     institution = request.json.get("institution")
@@ -423,8 +428,8 @@ def create_participant():
             institution_id = institution_obj.institution_id
 
     ptp_objs = models.Participant(
-        family_id=request.json.get("family_id"),
-        participant_codename=request.json.get("participant_codename"),
+        family_id=family_id,
+        participant_codename=participant_codename,
         sex=request.json.get("sex"),
         notes=request.json.get("notes"),
         affected=request.json.get("affected"),
