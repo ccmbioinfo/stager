@@ -29,8 +29,8 @@ def get_unlinked_files():
                 description="Please make sure your file path contains both folder and file name, such as c4r/folder1/folder2/filename",
             )
 
-        bucket = filepath[0]
-        prefix = filepath[1]
+        bucket = filepath[0].strip()
+        prefix = filepath[1].strip()
 
         minio_client = get_minio_client()
 
@@ -62,7 +62,8 @@ def get_unlinked_files():
         all_files = []
         objs = minio_client.list_objects(bucket, prefix=prefix, recursive=True)
         for obj in objs:
-            all_files.append(bucket + "/" + obj.object_name)
+            if obj.object_name == prefix:
+                all_files.append(bucket + "/" + obj.object_name)
 
         app.logger.debug("Getting all linked files..")
 
@@ -85,5 +86,11 @@ def get_unlinked_files():
                 files.append({"path": file_name, "multiplexed": False})
 
         app.logger.debug(f"Returning JSON array with prefix {prefix}..")
+
+        if len(files) == 0:
+            abort(
+                400,
+                "There is no matching unlinked file. Please make sure that your file exists.",
+            )
 
     return jsonify(sorted(files, key=lambda f: f["path"]))

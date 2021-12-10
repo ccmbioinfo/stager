@@ -18,6 +18,7 @@ interface AutocompleteMultiselectProps<T> {
     selectedValues: T[];
     classes?: StyledComponentProps<AutocompleteClassKey>["classes"];
     uniqueLabelPath: string;
+    noOptionsText?: string;
 }
 
 export default function AutocompleteMultiselect<T extends Record<string, any>>({
@@ -30,11 +31,10 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
     renderTags,
     selectedValues,
     uniqueLabelPath,
+    noOptionsText,
 }: AutocompleteMultiselectProps<T>) {
     const [inputValue, setInputValue] = useState("");
     const [removedOptions, setRemovedOptions] = useState<T[]>([]);
-
-    console.log("hello input", inputValue);
 
     return (
         <Autocomplete
@@ -82,7 +82,7 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
             renderInput={params => <TextField {...params} label={inputLabel} variant="outlined" />}
             multiple
             value={selectedValues}
-            noOptionsText="No options found. Please enter a search phrase."
+            noOptionsText={noOptionsText || "No options found. Please enter another search phrase."}
         />
     );
 }

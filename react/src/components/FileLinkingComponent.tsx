@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     Box,
     Button,
@@ -13,7 +13,6 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
-import { useSnackbar } from "notistack";
 import { AutocompleteMultiselect, Note } from "../components";
 import { useDebounce, useErrorSnackbar, useUnlinkedFilesQuery } from "../hooks";
 import { LinkedFile, UnlinkedFile } from "../typings";
@@ -54,13 +53,25 @@ const FileLinkingComponent: React.FC<{
     onInputChange?: (newInputvalue: string) => void;
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
     const enqueueErrorSnackbar = useErrorSnackbar();
+    const debouncedSearchQuery = useDebounce(inputValue || "None", 1000);
 
-    const debouncedSearchQuery = useDebounce(inputValue || "None", 500);
-
-    console.log("debounced search query", debouncedSearchQuery);
-
-    const files = useUnlinkedFilesQuery({ path: debouncedSearchQuery });
     const [options, setOptions] = useState<UnlinkedFile[]>([]);
+
+    const onError = (response: Response) => {
+        enqueueErrorSnackbar(response);
+    };
+
+    const onSuccess = (data: UnlinkedFile[]) => {
+        setOptions(data);
+    };
+
+    useUnlinkedFilesQuery(
+        { path: debouncedSearchQuery },
+        {
+            onError,
+            onSuccess,
+        }
+    );
 
     const autocompleteClasses = useAutocompleteStyles();
     const classes = useStyles();
@@ -74,15 +85,6 @@ const FileLinkingComponent: React.FC<{
     const handleClose = () => {
         setAnchorEl(null);
     };
-
-    useEffect(() => {
-        console.log(files);
-        if (files.isSuccess) {
-            setOptions(files.data);
-        } else if (files.isError) {
-            enqueueErrorSnackbar(files.error, "Failed to get unlinked files.");
-        }
-    }, [files, enqueueErrorSnackbar]);
 
     return (
         <>

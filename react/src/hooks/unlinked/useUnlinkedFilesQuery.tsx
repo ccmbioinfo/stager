@@ -1,9 +1,8 @@
-import { useQuery } from "react-query";
+import { useQuery, UseQueryOptions } from "react-query";
 import { UnlinkedFile } from "../../typings";
 import { basicFetch } from "../utils";
 
 async function fetchFiles(params: Record<string, string> = {}) {
-    console.log("unlinked params", params);
     return await basicFetch("/api/unlinked", params);
 }
 /**
@@ -13,11 +12,20 @@ async function fetchFiles(params: Record<string, string> = {}) {
  * for all unlinked files in MinIO.
  */
 
-export function useUnlinkedFilesQuery(params: Record<string, string> = {}) {
-    console.log("useUnlinkedFilesQuery", params);
-    const result = useQuery<Record<string, string>, Response, UnlinkedFile[]>(
+export function useUnlinkedFilesQuery(
+    params: Record<string, string> = {},
+    userOptions: UseQueryOptions<UnlinkedFile[], Response> = {}
+) {
+    const result = useQuery<UnlinkedFile[], Response>(
         ["unlinked", params],
-        () => fetchFiles(params)
+        () => fetchFiles(params),
+        {
+            staleTime: Infinity,
+            retry: false,
+            refetchInterval: false,
+            refetchOnMount: false,
+            ...userOptions,
+        }
     );
     return result;
 }
