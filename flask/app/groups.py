@@ -200,7 +200,7 @@ def create_group():
             (models.Group.group_code == group_code)
             | (models.Group.group_name == group_name)
         )
-        .first()
+        .scalar()
     ):
         abort(422, description="Group already exists")
 

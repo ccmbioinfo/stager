@@ -2,6 +2,7 @@ import atexit
 import logging
 import os
 
+
 from app import (
     analyses,
     buckets,
@@ -22,7 +23,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 from flask import logging as flask_logging
 
-from .extensions import db, login, metrics, migrate, oauth
+from .extensions import db, login, ma, metrics, migrate, oauth
 from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 
@@ -79,6 +80,7 @@ def register_blueprints(app):
 
 def register_extensions(app):
     db.init_app(app)
+    ma.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
     oauth.init_app(app)

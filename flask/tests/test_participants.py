@@ -246,7 +246,12 @@ def test_create_participant(test_database, client, login_as):
 
     login_as("admin")
     # Test family does not exist
-    assert client.post("/api/participants", json={"family_id": "3"}).status_code == 404
+    assert (
+        client.post(
+            "/api/participants", json={"family_id": "3", "participant_codename": "001"}
+        ).status_code
+        == 404
+    )
     # Test if participant in family already exists
     assert (
         client.post(

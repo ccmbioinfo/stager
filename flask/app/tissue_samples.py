@@ -5,14 +5,13 @@ from flask_login import current_user, login_required
 from .extensions import db
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
+from .schemas import TissueSampleSchema
 from .utils import (
     check_admin,
     filter_datasets_by_user_groups,
     get_current_user,
     transaction_or_abort,
-    validate_enums,
     validate_enums_and_set_fields,
-    validate_enum,
     validate_json,
 )
 
@@ -29,6 +28,8 @@ editable_columns = [
     "tissue_processing",
     "notes",
 ]
+
+tissue_sample_schema = TissueSampleSchema()
 
 
 @tissue_blueprint.route("/api/tissue_samples/<int:id>", methods=["GET"])
@@ -130,27 +131,11 @@ def delete_tissue_sample(id: int):
 @validate_json
 def create_tissue_sample():
 
-    app.logger.debug("Checking tissue sample is supplied in body")
-    tissue_sample_type = request.json.get("tissue_sample_type")
-    if not tissue_sample_type:
-        app.logger.error("No tissue sample type was provided in the request body")
-        abort(400, description="A tissue sample type must be provided")
-    app.logger.debug("Tissue sample is in request body and is '%s'", tissue_sample_type)
+    result = tissue_sample_schema.validate(request.json, session=db.session)
 
-    app.logger.debug("Checking participant ID is supplied in body")
-    participant_id = request.json.get("participant_id")
-    if not participant_id:
-        app.logger.error("No participant ID was provided in the request body")
-        abort(400, description="A participant id must be provided")
-    app.logger.debug("Participant ID is in request body and is '%s'", participant_id)
-
-    app.logger.debug("Validating participant ID exists..")
-    models.Participant.query.filter_by(participant_id=participant_id).first_or_404()
-    app.logger.debug("Participant ID exists")
-    app.logger.debug("Validating enums")
-    validate_enums(models.TissueSample, request.json, editable_columns)
-
-    app.logger.debug("All enums supplied are valid.")
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
 
     try:
         app.logger.debug(
@@ -166,9 +151,9 @@ def create_tissue_sample():
     app.logger.debug("Creating instance of tissue sample..")
     tissue_sample = models.TissueSample(
         **{
-            "participant_id": participant_id,
+            "participant_id": request.json.get("participant_id"),
             "extraction_date": request.json.get("extraction_date"),
-            "tissue_sample_type": tissue_sample_type,
+            "tissue_sample_type": request.json.get("tissue_sample_type"),
             "tissue_processing": request.json.get("tissue_processing"),
             "notes": request.json.get("notes"),
             "created_by_id": created_by_id,

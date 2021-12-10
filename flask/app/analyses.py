@@ -2,13 +2,14 @@ from dataclasses import asdict
 from datetime import datetime
 
 from flask_login import login_required
-from sqlalchemy import distinct, func, or_
+from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from sqlalchemy.sql.expression import cast
 from . import models
 from .extensions import db
+from .schemas import AnalysisSchema
 from .utils import (
     check_admin,
     clone_entity,
@@ -20,7 +21,6 @@ from .utils import (
     filter_updated_or_abort,
     get_current_user,
     validate_enums_and_set_fields,
-    validate_enums,
     paged,
     paginated_response,
     transaction_or_abort,
@@ -53,8 +53,8 @@ def list_analyses(page: int, limit: int) -> Response:
         "requested",
         "analysis_id",
     ]
-    assignee_user = aliased(models.Analysis.assignee)
-    requester_user = aliased(models.Analysis.requester)
+    assignee_user = aliased(models.User)
+    requester_user = aliased(models.User)
     app.logger.debug("Validating 'order_by' parameter..")
     if order_by is None:
         order = None  # system default, likely analysis_id
@@ -188,7 +188,9 @@ def list_analyses(page: int, limit: int) -> Response:
             .with_entities(models.Analysis.analysis_id)
             .subquery()
         )
-        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+        query = query.filter(
+            models.Analysis.analysis_id.in_(select(subquery.c.analysis_id))
+        )
 
     family_codename = request.args.get("family_codename", type=str)
     if family_codename:
@@ -204,7 +206,9 @@ def list_analyses(page: int, limit: int) -> Response:
             .with_entities(models.Analysis.analysis_id)
             .subquery()
         )
-        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+        query = query.filter(
+            models.Analysis.analysis_id.in_(select(subquery.c.analysis_id))
+        )
 
     if request.args.get("search"):  # multifield search
         app.logger.debug(
@@ -236,7 +240,9 @@ def list_analyses(page: int, limit: int) -> Response:
             .with_entities(models.Analysis.analysis_id)
             .subquery()
         )
-        query = query.filter(models.Analysis.analysis_id.in_(subquery))
+        query = query.filter(
+            models.Analysis.analysis_id.in_(select(subquery.c.analysis_id))
+        )
 
     total_count = query.with_entities(
         func.count(distinct(models.Analysis.analysis_id))
@@ -363,32 +369,26 @@ def get_analysis(id: int):
     )
 
 
+analysis_schema = AnalysisSchema()
+
+
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 @validate_json
 def create_analysis():
 
-    app.logger.debug("Validating pipeline_id parameter..")
+    result = analysis_schema.validate(request.json, session=db.session)
+
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
+
     pipeline_id = request.json.get("pipeline_id")
-    if not isinstance(pipeline_id, int):
-        abort(400, description="Missing pipeline_id field or invalid type")
-
-    app.logger.debug("Validating datasets parameter..")
     datasets = request.json.get("datasets")
-    if not (isinstance(datasets, list) and len(datasets)):
-        abort(400, description="Missing datasets field or invalid type")
-
-    app.logger.debug("Validating notes parameter..")
     notes = request.json.get("notes")
-    if notes and not isinstance(notes, str):
-        abort(400, description="Invalid notes type")
 
     if not models.Pipeline.query.get(pipeline_id):
         abort(404, description="Pipeline not found")
-
-    app.logger.debug("Validating priority parameter..")
-
-    validate_enums(models.Analysis, request.json, ["priority"])
 
     user = get_current_user()
 

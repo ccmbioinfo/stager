@@ -405,8 +405,9 @@ def test_create_dataset(client, test_database, login_as):
                 "tissue_sample_id": "foo",
             },
         ).status_code
-        == 404
+        == 400
     )
+    # missing condition
     assert (
         client.post(
             "/api/datasets",
@@ -416,7 +417,7 @@ def test_create_dataset(client, test_database, login_as):
                 "tissue_sample_id": 400,
             },
         ).status_code
-        == 404
+        == 400
     )
     # No sequencing date
     assert (
@@ -432,6 +433,7 @@ def test_create_dataset(client, test_database, login_as):
         json={
             "dataset_type": "WGS",
             "tissue_sample_id": 1,
+            "discriminator": "dataset",
             "condition": "Somatic",
             "sequencing_date": "2020-12-04",
         },
