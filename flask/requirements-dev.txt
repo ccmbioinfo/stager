@@ -14,10 +14,6 @@ attrs==20.3.0
     # via pytest
 authlib==0.15.5
     # via -r requirements.in
-backports.zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
 black==21.11b1
     # via -r requirements-dev.in
 certifi==2020.12.5
@@ -55,15 +51,12 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
     #   flask-migrate
+greenlet==1.1.2
+    # via sqlalchemy
 gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via requests
-importlib-metadata==4.8.2
-    # via
-    #   click
-    #   pluggy
-    #   pytest
 iniconfig==1.1.1
     # via pytest
 isort==5.8.0
@@ -88,7 +81,7 @@ marshmallow-sqlalchemy==0.26.1
     # via -r requirements.in
 mccabe==0.6.1
     # via pylint
-minio==7.1.1
+minio==7.1.2
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
@@ -140,8 +133,8 @@ sendgrid==6.9.2
     # via -r requirements.in
 six==1.15.0
     # via
-    #   flask-marshmallow
     #   apscheduler
+    #   flask-marshmallow
     #   python-dateutil
 sqlalchemy==1.4.27
     # via
@@ -157,16 +150,8 @@ toml==0.10.2
     #   pytest
 tomli==1.1.0
     # via black
-typed-ast==1.5.0
-    # via
-    #   astroid
-    #   black
 typing-extensions==3.10.0.2
-    # via
-    #   astroid
-    #   black
-    #   importlib-metadata
-    #   pylint
+    # via black
 tzdata==2021.5
     # via pytz-deprecation-shim
 tzlocal==4.1
@@ -179,8 +164,6 @@ werkzeug==2.0.1
     # via flask
 wrapt==1.12.1
     # via astroid
-zipp==3.6.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
