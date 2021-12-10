@@ -58,6 +58,7 @@ services:
       MINIO_REGION_NAME:
       FLASK_DEBUG: 1
       PYTHONDONTWRITEBYTECODE: 1
+      DEBUG_METRICS: 1
     ports:
       - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
       - "${DEBUG_HOST_PORT:-127.0.0.1:5678}:5678"
@@ -67,3 +68,26 @@ services:
     volumes:
       - ./flask:/usr/src/stager
     entrypoint: ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "flask", "run", "--host=0.0.0.0"]
+  # Simulated production gunicorn configuration
+  app_gunicorn:
+    build:
+      context: flask
+      dockerfile: ../Dockerfile
+      args:
+        GIT_SHA:
+    image: ghcr.io/ccmbioinfo/stager:latest
+    profiles:
+      - gunicorn
+    environment:
+      ST_SECRET_KEY:
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY:
+      MINIO_SECRET_KEY:
+      MINIO_REGION_NAME:
+    ports:
+      - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
+      - "${METRICS_HOST_PORT:-127.0.0.1:8080}:8080"
+    depends_on:
+      - mysql
+      - minio

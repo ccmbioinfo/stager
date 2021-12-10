@@ -18,8 +18,7 @@ services:
       SENDGRID_FROM_EMAIL:
     ports:
       - "5000:5000"
-    # Not in Dockerfile yet because the base image is used on stager-dev
-    entrypoint: ./utils/run.sh prod --bind 0.0.0.0:5000 --access-logfile - --log-file -
+      - "9121:8080"
     command: --preload --workers ${GUNICORN_WORKERS:-1}
     healthcheck:
       test: ["CMD", "./healthcheck.py"]

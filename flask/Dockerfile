@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.vendor Centre for Computational Medicine
 WORKDIR /usr/src/stager
 # Install PyPI packages first and then copy the MinIO client as the latter updates more frequently
 COPY requirements-dev.txt .
-RUN pip3 install -r requirements-dev.txt
+RUN pip3 install --no-cache-dir -r requirements-dev.txt
 COPY --from=mc /usr/bin/mc /usr/bin/mc
 ENV FLASK_ENV development
 # Prevent accidentally running this image in production.

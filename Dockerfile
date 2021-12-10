@@ -11,11 +11,12 @@ ENV GIT_SHA=${GIT_SHA}
 WORKDIR /usr/src/stager
 # Install PyPI prod-only packages first and then copy the MinIO client as the latter updates more frequently
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 COPY --from=mc /usr/bin/mc /usr/bin/mc
 COPY . .
 ENV FLASK_ENV production
-EXPOSE 5000
+ENV PROMETHEUS_MULTIPROC_DIR /tmp
+EXPOSE 5000 8080
 # Prevent accidentally using this image for development by adding the prod server arguments in the entrypoint
-ENTRYPOINT ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--log-file", "-"]
-CMD ["--preload", "--workers", "2", "--threads", "2"]
+# Automatically run migrations on startup
+ENTRYPOINT ["./utils/run.sh", "prod", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--log-file", "-"]

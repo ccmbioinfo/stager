@@ -23,7 +23,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 from flask import logging as flask_logging
 
-from .extensions import db, login, ma, migrate, oauth
+from .extensions import db, login, ma, metrics, migrate, oauth
 from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 
@@ -91,6 +91,8 @@ def register_extensions(app):
         server_metadata_url=app.config["OIDC_WELL_KNOWN"],
         client_kwargs={"scope": "openid"},
     )
+    metrics.init_app(app)
+    metrics.info("stager", "Stager process info", revision=app.config.get("GIT_SHA"))
 
 
 def config_logger(app):
