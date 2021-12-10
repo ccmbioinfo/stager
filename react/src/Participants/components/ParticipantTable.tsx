@@ -76,7 +76,6 @@ export default function ParticipantTable() {
             {
                 title: "Family Codename",
                 field: "family_codename",
-                // editable: "never",
                 filterComponent: props => <ExactMatchFilterToggle MTRef={tableRef} {...props} />,
             },
             {
