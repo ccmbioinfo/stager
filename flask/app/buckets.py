@@ -17,11 +17,11 @@ bucket_blueprint = Blueprint(
 @login_required
 def get_unlinked_files():
 
-    path = request.args.get("path", type=str)
+    path = request.args.get("path", default="", type=str)
 
     files = []
 
-    if path != "None":
+    if path != "":
         filepath = path.split("/", 1)
         if len(filepath) < 2:
             abort(
@@ -29,16 +29,18 @@ def get_unlinked_files():
                 description="Please make sure your file path contains both folder and file name, such as c4r/folder1/folder2/filename",
             )
 
-        bucket = filepath[0].strip()
-        prefix = filepath[1].strip()
+        bucket_name = filepath[0].strip()
+        file_name = filepath[1].strip()
 
         minio_client = get_minio_client()
 
         # Check if the bucket in file path exists
         app.logger.debug("Getting all minio bucket names..")
-        all_bucket_names = [bucket.name for bucket in minio_client.list_buckets()]
-        if bucket not in all_bucket_names:
-            abort(400, description=f"Bucket name must be one of {all_bucket_names}")
+        all_bucket_names = [
+            bucket.name for bucket in minio_client.list_buckets()]
+        if bucket_name not in all_bucket_names:
+            abort(
+                400, description=f"Bucket name must be one of {all_bucket_names}")
 
         app.logger.debug("Getting all buckets that user has access to..")
         user = (
@@ -54,23 +56,26 @@ def get_unlinked_files():
             if code in all_bucket_names:
                 valid_bucket_names.append(code)
 
-        if bucket not in valid_bucket_names:
-            abort(400, description=f"User does not have access to bucket {bucket}.")
+        if bucket_name not in valid_bucket_names:
+            abort(
+                400, description=f"User does not have access to bucket {bucket_name}.")
 
         # Get files with prefix in the bucket user specifies
         app.logger.debug("Getting all files in user minio buckets..")
         all_files = []
-        objs = minio_client.list_objects(bucket, prefix=prefix, recursive=True)
+        objs = minio_client.list_objects(
+            bucket_name, prefix=file_name, recursive=True)
         for obj in objs:
-            if obj.object_name == prefix:
-                all_files.append(bucket + "/" + obj.object_name)
+            if obj.object_name == file_name:
+                all_files.append(bucket_name + "/" + obj.object_name)
 
         app.logger.debug("Getting all linked files..")
 
         linked_files = {
             f.path: True
             for f in models.File.query.filter(
-                or_(models.File.multiplexed == None, models.File.multiplexed == False)
+                or_(models.File.multiplexed == None,
+                    models.File.multiplexed == False)
             ).all()
         }
 
@@ -85,7 +90,7 @@ def get_unlinked_files():
             elif not linked_files.get(file_name):
                 files.append({"path": file_name, "multiplexed": False})
 
-        app.logger.debug(f"Returning JSON array with prefix {prefix}..")
+        app.logger.debug(f"Returning JSON array with prefix {file_name}..")
 
         if len(files) == 0:
             abort(

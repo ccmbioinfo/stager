@@ -53,7 +53,7 @@ const FileLinkingComponent: React.FC<{
     onInputChange?: (newInputvalue: string) => void;
 }> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
     const enqueueErrorSnackbar = useErrorSnackbar();
-    const debouncedSearchQuery = useDebounce(inputValue || "None", 1000);
+    const debouncedSearchQuery = useDebounce(inputValue || "");
 
     const [options, setOptions] = useState<UnlinkedFile[]>([]);
 
