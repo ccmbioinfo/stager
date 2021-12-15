@@ -145,9 +145,6 @@ export function getOptions(
         case "solved":
             return booleans.map(b => toOption(b, "Is Solved"));
 
-        // case "linked_files":
-        //     return files;
-
         case "condition":
             if (enums) {
                 return (enums.DatasetCondition as string[]).map(value =>
