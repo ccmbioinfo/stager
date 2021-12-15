@@ -36,11 +36,9 @@ def get_unlinked_files():
 
         # Check if the bucket in file path exists
         app.logger.debug("Getting all minio bucket names..")
-        all_bucket_names = [
-            bucket.name for bucket in minio_client.list_buckets()]
+        all_bucket_names = [bucket.name for bucket in minio_client.list_buckets()]
         if bucket_name not in all_bucket_names:
-            abort(
-                400, description=f"Bucket name must be one of {all_bucket_names}")
+            abort(400, description=f"Bucket name must be one of {all_bucket_names}")
 
         app.logger.debug("Getting all buckets that user has access to..")
         user = (
@@ -64,8 +62,7 @@ def get_unlinked_files():
         # Get files with prefix in the bucket user specifies
         app.logger.debug("Getting all files in user minio buckets..")
         all_files = []
-        objs = minio_client.list_objects(
-            bucket_name, prefix=file_name, recursive=True)
+        objs = minio_client.list_objects(bucket_name, prefix=file_name, recursive=True)
         for obj in objs:
             if obj.object_name == file_name:
                 all_files.append(bucket_name + "/" + obj.object_name)
@@ -75,8 +72,7 @@ def get_unlinked_files():
         linked_files = {
             f.path: True
             for f in models.File.query.filter(
-                or_(models.File.multiplexed == None,
-                    models.File.multiplexed == False)
+                or_(models.File.multiplexed == None, models.File.multiplexed == False)
             ).all()
         }
 
