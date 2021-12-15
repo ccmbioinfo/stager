@@ -14,6 +14,8 @@ export { useAnalysisUpdateMutation } from "./analyses/useAnalysisUpdateMutation"
 export type { AnalysisOptions } from "./analyses/useAnalysisUpdateMutation";
 export { useAnalysisDeleteMutation } from "./analyses/useAnalysisDeleteMutation";
 
+export { useDebounce } from "./useDebounce";
+
 export { useFamiliesQuery } from "./family/useFamiliesQuery";
 export { useFamilyUpdateMutation } from "./family/useFamilyUpdateMutation";
 

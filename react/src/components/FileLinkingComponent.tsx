@@ -14,6 +14,7 @@ import {
 } from "@material-ui/core";
 import { Description } from "@material-ui/icons";
 import { AutocompleteMultiselect, Note } from "../components";
+import { useDebounce, useErrorSnackbar, useUnlinkedFilesQuery } from "../hooks";
 import { LinkedFile, UnlinkedFile } from "../typings";
 
 const useStyles = makeStyles(theme => ({
@@ -26,9 +27,6 @@ const useStyles = makeStyles(theme => ({
         display: "flex",
         alignItems: "center",
         width: "100%",
-    },
-    popoverTitle: {
-        width: "150px",
     },
     fileName: {
         wordBreak: "break-all",
@@ -47,11 +45,34 @@ const useAutocompleteStyles = makeStyles(() => ({
 /* A cell for linking files to a dataset. */
 const FileLinkingComponent: React.FC<{
     values: LinkedFile[];
-    options: UnlinkedFile[];
     onEdit: (newValue: UnlinkedFile[]) => void;
+    setFiles?: React.Dispatch<React.SetStateAction<UnlinkedFile[]>>;
     disabled?: boolean;
     disableTooltip?: boolean;
-}> = ({ values, options, onEdit, disabled, disableTooltip }) => {
+    inputValue?: string;
+    onInputChange?: (newInputvalue: string) => void;
+}> = ({ values, onEdit, disabled, disableTooltip, inputValue, onInputChange }) => {
+    const enqueueErrorSnackbar = useErrorSnackbar();
+    const debouncedSearchQuery = useDebounce(inputValue || "");
+
+    const [options, setOptions] = useState<UnlinkedFile[]>([]);
+
+    const onError = (response: Response) => {
+        enqueueErrorSnackbar(response);
+    };
+
+    const onSuccess = (data: UnlinkedFile[]) => {
+        setOptions(data);
+    };
+
+    useUnlinkedFilesQuery(
+        { path: debouncedSearchQuery },
+        {
+            onError,
+            onSuccess,
+        }
+    );
+
     const autocompleteClasses = useAutocompleteStyles();
     const classes = useStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -135,64 +156,59 @@ const FileLinkingComponent: React.FC<{
             >
                 <Box className={classes.popoverBox}>
                     <div className={classes.popoverBoxHeader}>
-                        {options.length === 0 && values.length === 0 ? (
-                            <Typography variant="h6" className={classes.popoverTitle}>
-                                No files available
-                            </Typography>
-                        ) : (
-                            <Grid container direction="column">
-                                <AutocompleteMultiselect
-                                    classes={autocompleteClasses}
-                                    inputLabel="Search Unlinked Files"
-                                    limit={25}
-                                    onSelect={onEdit}
-                                    options={options}
-                                    renderTags={(tags, getTagProps) => (
-                                        <>
-                                            {tags.map((tag, i) => {
-                                                const onChange = () => {
-                                                    onEdit(
-                                                        tags.map(t => ({
-                                                            ...t,
-                                                            multiplexed:
-                                                                t.path === tag.path
-                                                                    ? !t.multiplexed
-                                                                    : t.multiplexed,
-                                                        }))
-                                                    );
-                                                };
-                                                const Detail = (
-                                                    <Box margin={1}>
-                                                        <FormControlLabel
-                                                            label="Multiplexed?"
-                                                            control={
-                                                                <Checkbox
-                                                                    checked={tag.multiplexed}
-                                                                    onChange={onChange}
-                                                                />
-                                                            }
-                                                        />
-                                                    </Box>
+                        <Grid container direction="column">
+                            <AutocompleteMultiselect
+                                classes={autocompleteClasses}
+                                inputLabel="Search Unlinked Files"
+                                onInputChange={onInputChange}
+                                limit={25}
+                                onSelect={onEdit}
+                                options={options}
+                                renderTags={(tags, getTagProps) => (
+                                    <>
+                                        {tags.map((tag, i) => {
+                                            const onChange = () => {
+                                                onEdit(
+                                                    tags.map(t => ({
+                                                        ...t,
+                                                        multiplexed:
+                                                            t.path === tag.path
+                                                                ? !t.multiplexed
+                                                                : t.multiplexed,
+                                                    }))
                                                 );
-                                                return (
-                                                    <Chip
-                                                        key={tag.path}
-                                                        {...getTagProps({ index: i })}
-                                                        label={
-                                                            <Note detailElement={Detail}>
-                                                                {tag.path}
-                                                            </Note>
+                                            };
+                                            const Detail = (
+                                                <Box margin={1}>
+                                                    <FormControlLabel
+                                                        label="Multiplexed?"
+                                                        control={
+                                                            <Checkbox
+                                                                checked={tag.multiplexed}
+                                                                onChange={onChange}
+                                                            />
                                                         }
                                                     />
-                                                );
-                                            })}
-                                        </>
-                                    )}
-                                    selectedValues={values}
-                                    uniqueLabelPath="path"
-                                />
-                            </Grid>
-                        )}
+                                                </Box>
+                                            );
+                                            return (
+                                                <Chip
+                                                    key={tag.path}
+                                                    {...getTagProps({ index: i })}
+                                                    label={
+                                                        <Note detailElement={Detail}>
+                                                            {tag.path}
+                                                        </Note>
+                                                    }
+                                                />
+                                            );
+                                        })}
+                                    </>
+                                )}
+                                selectedValues={values}
+                                uniqueLabelPath="path"
+                            />
+                        </Grid>
                     </div>
                 </Box>
             </Popover>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
     Button,
     makeStyles,
@@ -13,7 +13,7 @@ import {
 import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
 import { ALL_OPTIONAL_FIELDS, createEmptyRow, makeFreshColumns } from "..";
-import { useEnumsQuery, useInstitutionsQuery, useUnlinkedFilesQuery } from "../../hooks";
+import { useEnumsQuery, useInstitutionsQuery } from "../../hooks";
 import {
     DataEntryColumnConfig,
     DataEntryField,
@@ -66,9 +66,6 @@ export default function DataEntryTable({
 }: DataEntryTableProps) {
     const classes = useTableStyles();
 
-    const [files, setFiles] = useState<UnlinkedFile[]>([]);
-
-    const filesQuery = useUnlinkedFilesQuery();
     const { data: institutions } = useInstitutionsQuery();
     const { data: enums } = useEnumsQuery();
 
@@ -96,13 +93,9 @@ export default function DataEntryTable({
             )
         );
 
-    useEffect(() => {
-        if (filesQuery.isSuccess) setFiles(filesQuery.data);
-    }, [filesQuery]);
-
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryColumnConfig, families: Family[]) {
-        return _getOptions(data, col, rowIndex, families, enums, files, institutions || []);
+        return _getOptions(data, col, rowIndex, families, enums, institutions || []);
     }
 
     function toggleHideColumn(field: DataEntryField) {

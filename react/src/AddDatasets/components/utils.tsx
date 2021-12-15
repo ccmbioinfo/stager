@@ -1,11 +1,4 @@
-import {
-    DataEntryColumnConfig,
-    DataEntryField,
-    DataEntryRow,
-    Family,
-    Option,
-    UnlinkedFile,
-} from "../../typings";
+import { DataEntryColumnConfig, DataEntryField, DataEntryRow, Family, Option } from "../../typings";
 
 export const booleanColumns: DataEntryField[] = ["affected", "solved", "vcf_available"];
 export const dateColumns: DataEntryField[] = ["sequencing_date"];
@@ -68,7 +61,6 @@ export function getOptions(
     rowIndex: number,
     families: Family[],
     enums: Record<string, string[]> | undefined,
-    files: UnlinkedFile[],
     institutions: string[]
 ) {
     const row = rows[rowIndex];
@@ -152,9 +144,6 @@ export function getOptions(
 
         case "solved":
             return booleans.map(b => toOption(b, "Is Solved"));
-
-        case "linked_files":
-            return files;
 
         case "condition":
             if (enums) {
