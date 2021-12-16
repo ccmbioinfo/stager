@@ -46,7 +46,10 @@ export default function LabDropdownSelect(props: {
     };
 
     useEffect(() => {
-        const labOptions = [{ name: "Select a lab", endpoint: "" }, ...props.labs];
+        const labOptions = [
+            { name: "Select a lab", endpoint: "", minio_endpoint: "" },
+            ...props.labs,
+        ];
         setOptionsList(labOptions);
         setDefaultLab(labOptions);
         labOptions.length <= 1 && props.setDisabled();
@@ -62,6 +65,7 @@ export default function LabDropdownSelect(props: {
                 }
                 setSelected(v.name);
                 localStorage.setItem("endpoint", v.endpoint);
+                localStorage.setItem("minio_endpoint", v.minio_endpoint);
                 props.onSelect(v);
             }
         });

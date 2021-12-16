@@ -14,6 +14,7 @@ import { useSnackbar } from "notistack";
 import { ChipGroup, MinioKeyDisplay, MinioResetButton } from "../components";
 import { useUserContext } from "../contexts";
 import { useErrorSnackbar, useUserQuery, useUsersUpdateMutation } from "../hooks";
+import { getActiveMinioEndpoint } from "../hooks/utils";
 import Instructions from "./components/Instructions";
 
 const useStyles = makeStyles(theme => ({
@@ -188,7 +189,7 @@ export default function Settings() {
                         </Button>
                         <div className={classes.grow} />
                         <Link
-                            href={process.env.REACT_APP_MINIO_URL}
+                            href={getActiveMinioEndpoint() || process.env.REACT_APP_MINIO_URL}
                             target="_blank"
                             rel="noreferrer"
                             className={classes.link}

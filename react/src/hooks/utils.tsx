@@ -19,6 +19,13 @@ function getActiveEndpoint(): string {
     return activeEndpoint === null ? "" : activeEndpoint;
 }
 
+export function getActiveMinioEndpoint(): string {
+    const activeMinioEndpoint = localStorage.getItem("minio_endpoint");
+    console.log("activeMInioEndpoint:", activeMinioEndpoint ? "" : activeMinioEndpoint);
+    console.log("active minio endpoint compare to null", activeMinioEndpoint === null);
+    return activeMinioEndpoint === null ? "" : activeMinioEndpoint;
+}
+
 /**
  * Wrapper for fetch - injects currently selected endpoint url to the outgoing request
  */
