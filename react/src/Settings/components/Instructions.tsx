@@ -1,6 +1,7 @@
 import React from "react";
 import { Divider, Link, makeStyles, Paper, Typography, TypographyProps } from "@material-ui/core";
 import { GetApp, Publish } from "@material-ui/icons";
+import { getActiveMinioEndpoint } from "../../hooks/utils";
 
 const useStyles = makeStyles(theme => ({
     instructions: {
@@ -79,7 +80,7 @@ export default function Instructions() {
                 the secret key will be hidden.
             </P>
             <P>
-                <code>.\mc config host add minio {process.env.REACT_APP_MINIO_URL}</code>
+                <code>.\mc config host add minio {getActiveMinioEndpoint() || process.env.REACT_APP_MINIO_URL}</code>
             </P>
             <P>
                 You can replace <code>minio</code> above with any other alias for this MinIO
