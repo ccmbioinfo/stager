@@ -1,10 +1,12 @@
 [
   {
     "name": "Lab 0",
-    "endpoint": "http://lab0.endpoint.com"
+    "endpoint": "http://lab0.example.ca",
+    "minio": "http://lab0-minio.example.ca"
   },
   {
     "name": "Lab 1",
-    "endpoint": "http://lab1.endpoint.com"
+    "endpoint": "http://lab1.example.ca",
+    "minio": "http://lab1-minio.example.ca"
   }
 ]

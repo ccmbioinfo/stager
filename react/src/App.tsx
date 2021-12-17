@@ -96,6 +96,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 return;
             }
             localStorage.removeItem("endpoint");
+            localStorage.removeItem("minio");
 
             fetchAPIInfo();
         })();

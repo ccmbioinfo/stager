@@ -19,6 +19,10 @@ function getActiveEndpoint(): string {
     return activeEndpoint === null ? "" : activeEndpoint;
 }
 
+export function getActiveMinioEndpoint(): string | undefined {
+    return localStorage.getItem("minio") || process.env.REACT_APP_MINIO_URL;
+}
+
 /**
  * Wrapper for fetch - injects currently selected endpoint url to the outgoing request
  */

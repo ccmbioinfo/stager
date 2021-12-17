@@ -360,4 +360,5 @@ export type APIInfo = APIInfoBase & (APIInfoOAuth | APIInfoNoOauth);
 export interface LabSelection {
     name: string;
     endpoint: string;
+    minio: string;
 }
