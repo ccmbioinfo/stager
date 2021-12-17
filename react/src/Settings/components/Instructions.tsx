@@ -80,10 +80,7 @@ export default function Instructions() {
                 the secret key will be hidden.
             </P>
             <P>
-                <code>
-                    .\mc config host add minio{" "}
-                    {getActiveMinioEndpoint() || process.env.REACT_APP_MINIO_URL}
-                </code>
+                <code>.\mc config host add minio {getActiveMinioEndpoint()}</code>
             </P>
             <P>
                 You can replace <code>minio</code> above with any other alias for this MinIO

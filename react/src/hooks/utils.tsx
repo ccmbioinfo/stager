@@ -19,11 +19,9 @@ function getActiveEndpoint(): string {
     return activeEndpoint === null ? "" : activeEndpoint;
 }
 
-export function getActiveMinioEndpoint(): string {
-    const activeMinioEndpoint = localStorage.getItem("minio_endpoint");
-    console.log("activeMInioEndpoint:", activeMinioEndpoint ? "" : activeMinioEndpoint);
-    console.log("active minio endpoint compare to null", activeMinioEndpoint === null);
-    return activeMinioEndpoint === null ? "" : activeMinioEndpoint;
+export function getActiveMinioEndpoint(): string | undefined {
+    const activeMinioEndpoint = localStorage.getItem("minio");
+    return activeMinioEndpoint === null ? process.env.REACT_APP_MINIO_URL : activeMinioEndpoint;
 }
 
 /**

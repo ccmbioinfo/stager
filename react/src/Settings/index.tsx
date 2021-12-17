@@ -189,7 +189,7 @@ export default function Settings() {
                         </Button>
                         <div className={classes.grow} />
                         <Link
-                            href={getActiveMinioEndpoint() || process.env.REACT_APP_MINIO_URL}
+                            href={getActiveMinioEndpoint()}
                             target="_blank"
                             rel="noreferrer"
                             className={classes.link}
