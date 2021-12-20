@@ -14,3 +14,4 @@ pymysql[rsa]
 requests
 sendgrid
 sqlalchemy
+slurm-rest
