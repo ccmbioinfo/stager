@@ -22,6 +22,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from flask import Flask
 from flask import logging as flask_logging
+from slurm_rest import Configuration
 
 from .extensions import db, login, ma, metrics, migrate, oauth
 from .tasks import send_email_notification
@@ -38,6 +39,15 @@ def create_app(config):
     app.json_encoder = DateTimeEncoder
 
     config_logger(app)
+
+    if app.config["SLURM_ENDPOINT"]:
+        app.logger.info("Configuring with Slurm REST API %s", app.config["SLURM_ENDPOINT"])
+        app.config["slurm"] = Configuration(host=app.config["SLURM_ENDPOINT"])
+        app.config["slurm"].api_key["user"] = app.config["SLURM_USER"]
+        app.config["slurm"].api_key["token"] = app.config["SLURM_JWT"]
+    else:
+        app.config["slurm"] = None
+
     register_extensions(app)
     manage.register_commands(app)
     register_blueprints(app)
