@@ -156,7 +156,13 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             />
         );
     } else {
-        return <></>;
+        return (
+            <LoginPage
+                signout={signout}
+                setAuthenticated={setAuthenticated}
+                setCurrentUser={setCurrentUser}
+            />
+        );
     }
 }
 

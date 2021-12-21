@@ -23,9 +23,9 @@ interface LoginProps {
     signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
-    onEndpointSelected: () => void;
-    oauth: boolean;
-    labs: LabSelection[];
+    onEndpointSelected?: () => void;
+    oauth?: boolean;
+    labs?: LabSelection[];
 }
 
 const useStyles = makeStyles(theme => ({
