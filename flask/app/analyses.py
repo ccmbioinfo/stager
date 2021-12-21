@@ -380,11 +380,11 @@ analysis_schema = AnalysisSchema()
 @validate_json
 def create_analysis():
 
-    # result = analysis_schema.validate(request.json, session=db.session)
+    result = analysis_schema.validate(request.json, session=db.session)
 
-    # if result:
-    #     app.logger.error(jsonify(result))
-    #     abort(400, description=result)
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
 
     pipeline_id = request.json.get("pipeline_id")
     datasets = request.json.get("datasets")
