@@ -41,7 +41,9 @@ def create_app(config):
     config_logger(app)
 
     if app.config["SLURM_ENDPOINT"]:
-        app.logger.info("Configuring with Slurm REST API %s", app.config["SLURM_ENDPOINT"])
+        app.logger.info(
+            "Configuring with Slurm REST API %s", app.config["SLURM_ENDPOINT"]
+        )
         app.config["slurm"] = Configuration(host=app.config["SLURM_ENDPOINT"])
         app.config["slurm"].api_key["user"] = app.config["SLURM_USER"]
         app.config["slurm"].api_key["token"] = app.config["SLURM_JWT"]

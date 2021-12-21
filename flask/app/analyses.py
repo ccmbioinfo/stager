@@ -462,10 +462,12 @@ def create_analysis():
         with ApiClient(app.config["slurm"]) as api_client:
             api_instance = SlurmApi(api_client)
             try:
-                flat_datasets = "\n".join([
-                    f"echo '{dataset.tissue_sample.participant.family.family_codename}/{dataset.tissue_sample.participant.participant_codename}/{dataset.dataset_type} ({dataset.dataset_id})'"
-                    for dataset in analysis.datasets
-                ])
+                flat_datasets = "\n".join(
+                    [
+                        f"echo '{dataset.tissue_sample.participant.family.family_codename}/{dataset.tissue_sample.participant.participant_codename}/{dataset.dataset_type} ({dataset.dataset_id})'"
+                        for dataset in analysis.datasets
+                    ]
+                )
                 submitted_job = api_instance.slurmctld_submit_job(
                     V0037JobSubmission(
                         script=f"""#!/bin/bash
@@ -475,8 +477,8 @@ echo Running Stager analysis {analysis.analysis_id}...
 """,
                         job=V0037JobProperties(
                             environment={},
-                            current_working_directory=f"/home/{app.config['slurm'].api_key['user']}"
-                        )
+                            current_working_directory=f"/home/{app.config['slurm'].api_key['user']}",
+                        ),
                     )
                 )
                 app.logger.info(submitted_job)
