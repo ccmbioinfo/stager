@@ -26,6 +26,7 @@ interface LoginProps {
     onEndpointSelected?: () => void;
     oauth?: boolean;
     labs?: LabSelection[];
+    disableSignIn: boolean;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -199,6 +200,7 @@ function LoginForm({
     setCurrentUser = (user: CurrentUser) => {},
     onEndpointSelected = () => {},
     labs = [] as LabSelection[],
+    disableSignIn = false
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -291,6 +293,7 @@ function LoginForm({
                                     className={classes.button}
                                     type="submit"
                                     onClick={authenticate}
+                                    disabled={disableSignIn}
                                 >
                                     Sign in
                                 </Button>

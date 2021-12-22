@@ -26,6 +26,7 @@ const queryClient = new QueryClient({
 });
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
+    const [disableSignIn, setDisableSignIn] = useState<boolean> (false);
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
     const [availableEndpoints, setAvailableEndpoints] = useState<LabSelection[]>([]);
@@ -74,31 +75,44 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         }
     }
 
+
     // Check if already signed in
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const loginResult = await apiFetch(`/api/login`, { method: "POST" });
-            if (loginResult.ok) {
-                const loginInfo = await loginResult.json();
-                setCurrentUser(loginInfo);
-            }
-            setAuthenticated(loginResult.ok);
-
             let endpoints: LabSelection[] = [];
             const availibleEndpoints = await fetch("/labs.json");
             if (availibleEndpoints.ok) {
                 endpoints = await availibleEndpoints.json();
             }
+            const endpoint="http://localhost:5000/api/login";
+            fetch(`${endpoint}`, { method: "POST" }).then(
+                async (response) => {
+                    console.log("apiFetch is successful");
+                    if (response.ok) {
+                        const loginInfo = await response.json();
+                        setCurrentUser(loginInfo);
+                    }
+                    setDisableSignIn(false);
+                    setAuthenticated(response.ok);
+                    if (endpoints.length > 0) {
+                        setAvailableEndpoints(endpoints);
+                        return;
+                    }
+                    localStorage.removeItem("endpoint");
+                    localStorage.removeItem("minio");
+                    fetchAPIInfo();
+                }).catch(()=>{
+                    console.log("catch clause is executed");
+                    if (endpoints.length > 0) {
+                        setAvailableEndpoints(endpoints);
+                        return;
+                    }
+                    setDisableSignIn(true);
+                    setAuthenticated(false);
 
-            if (endpoints.length > 0) {
-                setAvailableEndpoints(endpoints);
-                return;
-            }
-            localStorage.removeItem("endpoint");
-            localStorage.removeItem("minio");
+                });
 
-            fetchAPIInfo();
         })();
     }, []);
 
@@ -144,7 +158,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 </APIInfoContext.Provider>
             </UserContext.Provider>
         );
-    } else if (apiInfo || availableEndpoints.length > 0) {
+    } else if (apiInfo || availableEndpoints.length > 0 || disableSignIn) {
         return (
             <LoginPage
                 signout={signout}
@@ -153,15 +167,12 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 onEndpointSelected={fetchAPIInfo}
                 oauth={apiInfo ? apiInfo.oauth : false}
                 labs={availableEndpoints}
+                disableSignIn={disableSignIn}
             />
         );
     } else {
         return (
-            <LoginPage
-                signout={signout}
-                setAuthenticated={setAuthenticated}
-                setCurrentUser={setCurrentUser}
-            />
+                <></>
         );
     }
 }
