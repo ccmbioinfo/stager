@@ -49,6 +49,8 @@ Stager is deployed as a Docker container running Gunicorn per [docker-compose.ch
 Other needed services like MySQL and MinIO are separately already running in the tenancy. A reverse proxy for the entire
 tenancy serves the uploaded frontend and routes `/api` on the same domain to the backend container.
 
+More information on the deployments in this tenancy are at https://github.com/ccmbioinfo/cheo-ri-infrastructure.
+
 ## [CCM multitenant deployment](https://stager.ccm.sickkids.ca)
 
 This deployment serves our other collaborators at SickKids. This is a multitenant deployment to keep
