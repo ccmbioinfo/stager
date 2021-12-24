@@ -15,6 +15,7 @@ x-app: &app
 
 x-env: &env
   MINIO_REGION_NAME: hpc4health
+  MINIO_TLS: "true"
   MSTEAMS_WEBHOOK_URL:
 
 services:
@@ -27,7 +28,6 @@ services:
       MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
-      MINIO_TLS: "true"
   # app-hawkins:
   #   <<: *app
   #   environment:

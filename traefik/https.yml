@@ -1,0 +1,25 @@
+tls:
+  # certificates:
+  #   - certFile: /etc/traefik/certs/bundle.crt
+  #     keyFile: /etc/traefik/certs/star_ccm_sickkids_ca.key
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs/bundle.crt
+        keyFile: /etc/traefik/certs/star_ccm_sickkids_ca.key
+http:
+  routers:
+    redirect:
+      entryPoints:
+        - https
+      middlewares:
+        - redirect
+      rule: HostRegexp(`{host:.+}`)
+      service: noop@internal
+      tls: false
+      # priority: 100
+  middlewares:
+    redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
