@@ -14,10 +14,6 @@ attrs==20.3.0
     # via pytest
 authlib==0.15.5
     # via -r requirements.in
-backports.zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
 black==21.11b1
     # via -r requirements-dev.in
 certifi==2020.12.5
@@ -38,6 +34,14 @@ cryptography==3.4.7
     #   pymysql
 debugpy==1.5.1
     # via -r requirements-dev.in
+flask==2.0.2
+    # via
+    #   -r requirements.in
+    #   flask-login
+    #   flask-marshmallow
+    #   flask-migrate
+    #   flask-sqlalchemy
+    #   prometheus-flask-exporter
 flask-login==0.5.0
     # via -r requirements.in
 flask-marshmallow==0.14.0
@@ -48,14 +52,6 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
     #   flask-migrate
-flask==2.0.2
-    # via
-    #   -r requirements.in
-    #   flask-login
-    #   flask-marshmallow
-    #   flask-migrate
-    #   flask-sqlalchemy
-    #   prometheus-flask-exporter
 greenlet==1.1.2
     # via sqlalchemy
 gunicorn==20.1.0
@@ -78,12 +74,12 @@ markupsafe==2.0.1
     # via
     #   jinja2
     #   mako
-marshmallow-sqlalchemy==0.26.1
-    # via -r requirements.in
 marshmallow==3.14.1
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
+marshmallow-sqlalchemy==0.26.1
+    # via -r requirements.in
 mccabe==0.6.1
     # via pylint
 minio==7.1.2
@@ -112,7 +108,7 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pylint==2.12.1
+pylint==2.12.2
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
@@ -128,12 +124,12 @@ python-editor==1.0.4
     # via alembic
 python-http-client==3.3.3
     # via sendgrid
-pytz-deprecation-shim==0.1.0.post0
-    # via tzlocal
 pytz==2021.1
     # via
     #   apscheduler
     #   pandas
+pytz-deprecation-shim==0.1.0.post0
+    # via tzlocal
 regex==2021.4.4
     # via black
 requests==2.26.0
@@ -160,10 +156,7 @@ toml==0.10.2
 tomli==1.1.0
     # via black
 typing-extensions==3.10.0.2
-    # via
-    #   astroid
-    #   black
-    #   pylint
+    # via black
 tzdata==2021.5
     # via pytz-deprecation-shim
 tzlocal==4.1
