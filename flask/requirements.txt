@@ -10,10 +10,6 @@ apscheduler==3.8.1
     # via -r requirements.in
 authlib==0.15.5
     # via -r requirements.in
-backports.zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
 certifi==2020.12.5
     # via
     #   minio
@@ -28,6 +24,14 @@ cryptography==3.4.7
     # via
     #   authlib
     #   pymysql
+flask==2.0.2
+    # via
+    #   -r requirements.in
+    #   flask-login
+    #   flask-marshmallow
+    #   flask-migrate
+    #   flask-sqlalchemy
+    #   prometheus-flask-exporter
 flask-login==0.5.0
     # via -r requirements.in
 flask-marshmallow==0.14.0
@@ -38,14 +42,6 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
     #   flask-migrate
-flask==2.0.2
-    # via
-    #   -r requirements.in
-    #   flask-login
-    #   flask-marshmallow
-    #   flask-migrate
-    #   flask-sqlalchemy
-    #   prometheus-flask-exporter
 greenlet==1.1.2
     # via sqlalchemy
 gunicorn==20.1.0
@@ -62,12 +58,12 @@ markupsafe==2.0.1
     # via
     #   jinja2
     #   mako
-marshmallow-sqlalchemy==0.26.1
-    # via -r requirements.in
 marshmallow==3.14.1
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
+marshmallow-sqlalchemy==0.26.1
+    # via -r requirements.in
 minio==7.1.2
     # via -r requirements.in
 numpy==1.21.4
@@ -90,15 +86,15 @@ python-editor==1.0.4
     # via alembic
 python-http-client==3.3.3
     # via sendgrid
-pytz-deprecation-shim==0.1.0.post0
-    # via tzlocal
 pytz==2021.1
     # via
     #   apscheduler
     #   pandas
+pytz-deprecation-shim==0.1.0.post0
+    # via tzlocal
 requests==2.26.0
     # via -r requirements.in
-sendgrid==6.9.2
+sendgrid==6.9.3
     # via -r requirements.in
 six==1.15.0
     # via
