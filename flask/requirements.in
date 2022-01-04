@@ -13,4 +13,5 @@ prometheus-flask-exporter
 pymysql[rsa]
 requests
 sendgrid
+slurm-rest
 sqlalchemy
