@@ -27,7 +27,14 @@ export function getActiveMinioEndpoint(): string | undefined {
  * Wrapper for fetch - injects currently selected endpoint url to the outgoing request
  */
 export function apiFetch(url: string, init?: RequestInit | undefined): Promise<Response> {
-    const endpoint = getActiveEndpoint();
+    // const endpoint = getActiveEndpoint();
+    const endpoint="http://localhost:3000";
+    return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
+}
+
+export function apiFetch1(url: string, init?: RequestInit | undefined): Promise<Response> {
+    // const endpoint = getActiveEndpoint();
+    const endpoint="http://localhost:5000";
     return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
 }
 
