@@ -6,22 +6,16 @@ http:
       middlewares:
         - singlePageApplication
         - routeToBucket
-        #- headers
       service: minio
-      rule: Host(`localhost`)
+      rule: Host(`stager.ccm.sickkids.ca`)
       # This must be lower priority than the backend /api if on the same domain
       tls: {}
   services:
     minio:
       loadBalancer:
         servers:
-          #- url: https://minio.genomics4rd.ca
           - url: https://minio.ccm.sickkids.ca
   middlewares:
-    # headers:
-    #   headers:
-    #     customRequestHeaders:
-    #       Host: minio.genomics4rd.ca
     routeToBucket:
       addPrefix:
         prefix: /www-stager

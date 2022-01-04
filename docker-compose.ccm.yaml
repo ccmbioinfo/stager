@@ -28,6 +28,16 @@ services:
       MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+      - traefik.http.routers.app.entrypoints=https
+      # Assume this works for now, need to confirm with domains
+      - traefik.http.middlewares.app.headers.accessControlAllowOriginList=https://stager.ccm.sickkids.ca
+      - traefik.http.middlewares.app.headers.accessControlAllowMethods=GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
+      - traefik.http.middlewares.app.headers.accessControlAllowHeaders=Accept,Content-Type
+      - traefik.http.middlewares.app.headers.accessControlAllowCredentials=true
+      - traefik.http.middlewares.app.headers.frameDeny=true
   # app-hawkins:
   #   <<: *app
   #   environment:
@@ -37,12 +47,28 @@ services:
   #     MINIO_ENDPOINT: "${HAWKINS_MINIO_ENDPOINT}"
   #     MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
   #     MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
-  nginx:
-    image: nginx:alpine
+  proxy:
+    image: traefik:2.5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "${PROJECT_ROOT:-.}/traefik:/etc/traefik"
+    command:
+      - --api.insecure
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/etc/traefik
+      - --providers.file.watch=false
+      - --accesslog
+      - --log
+      - --metrics.prometheus
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
+      - --entrypoints.http.address=:80
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.https.http.tls
+      - --entrypoints.https.address=:443
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - "${PROJECT_ROOT:-.}/nginx/conf.d:/etc/nginx/conf.d"
-      - "${PROJECT_ROOT:-.}/nginx/certs:/etc/nginx/certs"
+      - "8080:8080" # Traefik and Prometheus endpoint
     <<: *common
