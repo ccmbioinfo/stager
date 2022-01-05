@@ -23,7 +23,7 @@ Then install dependencies through pip in the virtualenv.
 
 ```bash
 . venv/bin/activate  # Activates the virtualenv. Run in a shell before dev work
-pip3 install -r requirements-dev.txt
+pip3 install -r requirements.txt
 ```
 
 ## Launching Locust
