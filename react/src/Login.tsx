@@ -113,31 +113,35 @@ function OIDCRedirectHandler(props: LoginProps) {
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                const response = await apiFetch(`/api/authorize${location.search}`, {
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                    },
-                });
-                if (response.ok) {
-                    const user = await response.json();
-                    setIsLoading(false);
-                    if (user.username) {
-                        setMessage(user.username);
-                        setCurrentUser(user);
-                        setAuthenticated(true);
-                        history.push("/");
+                try {
+                    const response = await apiFetch(`/api/authorize${location.search}`, {
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                        },
+                    });
+                    if (response.ok) {
+                        const user = await response.json();
+                        setIsLoading(false);
+                        if (user.username) {
+                            setMessage(user.username);
+                            setCurrentUser(user);
+                            setAuthenticated(true);
+                            history.push("/");
+                        } else {
+                            setError("Failed to authorize. Please try again.");
+                        }
                     } else {
-                        setError("Failed to authorize. Please try again.");
+                        setIsLoading(false);
+                        if (response.status === 404) {
+                            setError(
+                                "You do not have permission to access Stager. Please contact an administrator to request access."
+                            );
+                        } else {
+                            setError("Failed to authorize. Please try again.");
+                        }
                     }
-                } else {
-                    setIsLoading(false);
-                    if (response.status === 404) {
-                        setError(
-                            "You do not have permission to access Stager. Please contact an administrator to request access."
-                        );
-                    } else {
-                        setError("Failed to authorize. Please try again.");
-                    }
+                } catch (error){
+                    setError("Network Error!");
                 }
             }
         })();
@@ -204,7 +208,7 @@ function LoginForm({
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    const [error, setError] = useState(disableSignIn ? "Network Error!" : "");
     const [showForm, setShowForm] = useState(false);
     function bind(set: typeof setUsername) {
         // @ts-ignore
@@ -212,19 +216,23 @@ function LoginForm({
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        const result = await apiFetch(`/api/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
-        if (result.ok) {
-            const data = await result.json();
-            setCurrentUser(data);
-            setError("");
-        } else {
-            setError(await result.text());
+        try {
+            const result = await apiFetch(`/api/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+            if (result.ok) {
+                const data = await result.json();
+                setCurrentUser(data);
+                setError("");
+            } else {
+                setError(await result.text());
+            }
+            setAuthenticated(result.ok);
+        } catch(error) {
+            setError("Network Error!");
         }
-        setAuthenticated(result.ok);
     }
 
     const handleLabSelect = (lab: LabSelection) => {

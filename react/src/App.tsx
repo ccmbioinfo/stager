@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
 });
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
-    const [disableSignIn, setDisableSignIn] = useState<boolean> (false);
+    const [networkError, setNetworkError] = useState<boolean> (false);
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
     const [availableEndpoints, setAvailableEndpoints] = useState<LabSelection[]>([]);
@@ -75,7 +75,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setAuthenticated(false);
             }
         } catch (error){
-            console.log("signout catch error", error);
+            console.log("Network Error: ", error);
+            setNetworkError(true);
         }
 
     }
@@ -100,7 +101,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                     const loginInfo = await response.json();
                     setCurrentUser(loginInfo);
                 }
-                setDisableSignIn(false);
+                setNetworkError(false);
                 setAuthenticated(response.ok);
                 if (endpoints.length > 0) {
                     setAvailableEndpoints(endpoints);
@@ -114,48 +115,22 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
 
                 if (endpoints.length > 0) {
                     setAvailableEndpoints(endpoints);
-                    return;
                 }
-                setDisableSignIn(true);
+                setNetworkError(true);
                 setAuthenticated(false);
-                // throw(error);
-
             }
-            // fetch(`${endpoint}`, { method: "POST" }).then(
-            //     async (response) => {
-            //         console.log("apiFetch is successful");
-            //         if (response.ok) {
-            //             const loginInfo = await response.json();
-            //             setCurrentUser(loginInfo);
-            //         }
-            //         setDisableSignIn(false);
-            //         setAuthenticated(response.ok);
-            //         if (endpoints.length > 0) {
-            //             setAvailableEndpoints(endpoints);
-            //             return;
-            //         }
-            //         localStorage.removeItem("endpoint");
-            //         localStorage.removeItem("minio");
-            //         fetchAPIInfo();
-            //     }).catch(()=>{
-            //         console.log("catch clause is executed");
-            //         if (endpoints.length > 0) {
-            //             setAvailableEndpoints(endpoints);
-            //             return;
-            //         }
-            //         setDisableSignIn(true);
-            //         setAuthenticated(false);
-
-            //     });
-
         })();
     }, []);
 
     const fetchAPIInfo = async () => {
-        const apiInfoResult = await apiFetch(`/api`);
-        if (apiInfoResult.ok) {
-            let apiInfo = { ...(await apiInfoResult.json()) };
-            setApiInfo(apiInfo as APIInfo);
+        try {
+            const apiInfoResult = await apiFetch(`/api`);
+            if (apiInfoResult.ok) {
+                let apiInfo = { ...(await apiInfoResult.json()) };
+                setApiInfo(apiInfo as APIInfo);
+            }
+        } catch (error) {
+            throw error;
         }
     };
 
@@ -183,6 +158,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                             hideIconVariant={true}
                         >
                             <Navigation
+                                networkError={networkError}
                                 signout={signout}
                                 darkMode={props.darkMode}
                                 toggleDarkMode={props.toggleDarkMode}
@@ -193,7 +169,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 </APIInfoContext.Provider>
             </UserContext.Provider>
         );
-    } else if (apiInfo || availableEndpoints.length > 0 || disableSignIn) {
+    } else if (apiInfo || availableEndpoints.length > 0 || networkError) {
         return (
             <LoginPage
                 signout={signout}
@@ -202,7 +178,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 onEndpointSelected={fetchAPIInfo}
                 oauth={apiInfo ? apiInfo.oauth : false}
                 labs={availableEndpoints}
-                disableSignIn={disableSignIn}
+                disableSignIn={networkError}
             />
         );
     } else {
