@@ -48,4 +48,4 @@ python3 launch.py --workers=0
 ## Simulating Users and Viewing Statistics
 The master instance runs Locust’s web interface, and tells the workers when to spawn/stop Users. The workers run your Users and send back statistics to the master. The master instance doesn’t run any Users itself.
 
-To view the statistics retrieved by the master instance, you can visit `http://0.0.0.0:8089`. The web interface will require you to enter the host domain for load testing, the number users you want to simulate, and the hatch rate of users. 
+To view the statistics retrieved by the master instance, you can visit `http://localhost:8089`. The web interface will require you to enter the host domain for load testing, the number users you want to simulate, and the hatch rate of users. 
