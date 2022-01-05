@@ -6,8 +6,6 @@ updates:
       prefix: Flask
     labels:
       - dependencies
-    assignees:
-      - cklamann
     schedule:
       interval: monthly
       time: "07:00"
@@ -18,8 +16,6 @@ updates:
       prefix: React
     labels:
       - dependencies
-    assignees:
-      - cklamann
     schedule:
       interval: monthly
       time: "07:00"
@@ -30,8 +26,6 @@ updates:
       prefix: Docker
     labels:
       - dependencies
-    assignees:
-      - cklamann
     schedule:
       interval: monthly
       time: "07:00"
@@ -42,8 +36,6 @@ updates:
       prefix: CI
     labels:
       - dependencies
-    assignees:
-      - cklamann
     schedule:
       interval: monthly
       time: "07:00"
