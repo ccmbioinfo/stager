@@ -55,14 +55,12 @@ jobs:
       with:
         path: |
           ${{ steps.yarn-cache-path.outputs.dir }}
-          react/node_modules
         key: ${{ runner.os }}-yarn-${{ hashFiles('react/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-yarn-
     - run: yarn install
       if: steps.restore.outputs.cache-hit != 'true'
     # End setup
-    - run: rm -rf node_modules/.cache
     - run: yarn build
       env:
         REACT_APP_NAME: Stager
