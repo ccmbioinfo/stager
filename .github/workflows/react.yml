@@ -62,8 +62,7 @@ jobs:
     - run: yarn install
       if: steps.restore.outputs.cache-hit != 'true'
     # End setup
-    - run: ls node_modules/babel-preset-react-app
-    - run: ls node_modules/@babel
+    - run: grep '@babel/runtime/regenerator' node_modules/.cache/babel-loader/*
     - run: yarn build
       env:
         REACT_APP_NAME: Stager
