@@ -18,7 +18,7 @@ ABORT_ON_FAILURE = False
 def on_locust_init(environment, **_kwargs):
     if isinstance(environment.runner, MasterRunner):
         print(
-            f"\nFollowing credentials will be used for load testing\n{LOGIN_CREDENTIALS}\n\n"
+            "Initializing Locust for load testing..."
         )
 
 
