@@ -48,13 +48,17 @@ export async function basicFetch(
     options: RequestInit | undefined = undefined
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await apiFetch(`${url}${paramString}`, options);
-    if (response.ok) {
-        if (response.headers.get("Content-Type") === "text/csv") {
-            return response.text();
-        } else return response.json();
-    } else {
-        throw response;
+    try{
+        const response = await apiFetch1(`${url}${paramString}`, options);
+        if (response.ok) {
+            if (response.headers.get("Content-Type") === "text/csv") {
+                return response.text();
+            } else return response.json();
+        } else {
+            throw response;
+        }
+    } catch (error){
+        throw error;
     }
 }
 
@@ -73,17 +77,20 @@ export async function fetchCsv(
     }
 
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await apiFetch(`${url}${paramString}`, { ...options, headers });
-
-    if (response.ok) {
-        return {
-            blob: await response.blob(),
-            filename: (
-                response.headers.get("content-disposition") || "filename=report.csv"
-            ).replace(/.+=/, ""),
-        };
-    } else {
-        throw response;
+    try{
+        const response = await apiFetch1(`${url}${paramString}`, { ...options, headers });
+        if (response.ok) {
+            return {
+                blob: await response.blob(),
+                filename: (
+                    response.headers.get("content-disposition") || "filename=report.csv"
+                ).replace(/.+=/, ""),
+            };
+        } else {
+            throw response;
+        }
+    } catch (error) {
+        throw error;
     }
 }
 
@@ -99,16 +106,20 @@ export async function queryTableData<RowData extends object>(
     url: string
 ): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
-    const response = await apiFetch(url + "?" + searchParams.toString());
-    if (response.ok) {
-        const result = await response.json();
-        return {
-            data: result.data,
-            page: result.page,
-            totalCount: result.total_count,
-        };
-    } else {
-        throw response;
+    try{
+        const response = await apiFetch1(url + "?" + searchParams.toString());
+        if (response.ok) {
+            const result = await response.json();
+            return {
+                data: result.data,
+                page: result.page,
+                totalCount: result.total_count,
+            };
+        } else {
+            throw response;
+        }
+    } catch (error) {
+        throw error;
     }
 }
 
@@ -193,17 +204,21 @@ export async function changeFetch<
         onError?: (res: Response) => Promise<TError>;
     }
 ) {
-    const response = await apiFetch(url, {
-        method: method,
-        headers: body ? { "Content-Type": "application/json" } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
-    });
-    if (response.ok) {
-        if (overrides?.onSuccess) return await overrides.onSuccess(response);
-        return response.json();
-    } else {
-        if (overrides?.onError) throw await overrides.onError(response);
-        throw response;
+    try{
+        const response = await apiFetch(url, {
+            method: method,
+            headers: body ? { "Content-Type": "application/json" } : undefined,
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        if (response.ok) {
+            if (overrides?.onSuccess) return await overrides.onSuccess(response);
+            return response.json();
+        } else {
+            if (overrides?.onError) throw await overrides.onError(response);
+            throw response;
+        }
+    } catch (error) {
+        throw error;
     }
 }
 
