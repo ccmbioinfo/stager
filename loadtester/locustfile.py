@@ -3,10 +3,13 @@ from typing import Tuple, Union
 from locust import FastHttpUser, task, events
 from locust.user.wait_time import between
 from locust.runners import MasterRunner
+from dotenv import load_dotenv
+
+load_dotenv()
 
 LOGIN_CREDENTIALS = {
-    "username": os.environ.get("USERNAME", "admin"),
-    "password": os.environ.get("PASSWORD", "eternity"),
+    "username": os.getenv("USERNAME", "admin"),
+    "password": os.getenv("PASSWORD", "eternity"),
 }
 ABORT_ON_FAILURE = False
 
@@ -43,5 +46,5 @@ class TestUser(FastHttpUser):
         self.client.get("/api")
 
     @task
-    def get_home_page(self):
+    def get_participants(self):
         self.client.get("/api/participants")
