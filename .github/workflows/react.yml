@@ -62,7 +62,7 @@ jobs:
     - run: yarn install
       if: steps.restore.outputs.cache-hit != 'true'
     # End setup
-    - run: ls -la node_modules/.cache/babel-loader
+    - run: rm -rf node_modules/.cache
     - run: yarn build
       env:
         REACT_APP_NAME: Stager
