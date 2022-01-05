@@ -6,7 +6,7 @@ Locust is a framework for load testing in Python. Locust also supports distribut
 ## Setting up in a virtualenv
 
 First, you will need Python 3.7, pip, and virtualenv. To create a virtualenv,
-switch to the `flask` directory and run one of the following commands,
+switch to the `locust` directory and run one of the following commands,
 depending on how your Python installation is set up.
 
 A virtualenv changes your PATH so Python modules resolve to dependencies
