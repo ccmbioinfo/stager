@@ -4,6 +4,7 @@ http:
       entryPoints:
         - https
       middlewares:
+        - security
         - singlePageApplication
         - routeToBucket
       service: minio
@@ -23,3 +24,7 @@ http:
       replacePathRegex:
         regex: ^(/|[^.]*)$ # Either match / or a path without an extension (determined by .)
         replacement: /index.html
+    security:
+      headers:
+        frameDeny: true
+        browserXssFilter: true

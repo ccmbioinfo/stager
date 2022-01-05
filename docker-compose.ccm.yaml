@@ -30,14 +30,15 @@ services:
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.app.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
-      - traefik.http.routers.app.entrypoints=https
-      # Assume this works for now, need to confirm with domains
+      - traefik.http.routers.app-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+      - traefik.http.routers.app-hiraki.entrypoints=https
+      - traefik.http.routers.app-hiraki.middlewares=app
       - traefik.http.middlewares.app.headers.accessControlAllowOriginList=https://stager.ccm.sickkids.ca
       - traefik.http.middlewares.app.headers.accessControlAllowMethods=GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
       - traefik.http.middlewares.app.headers.accessControlAllowHeaders=Accept,Content-Type
       - traefik.http.middlewares.app.headers.accessControlAllowCredentials=true
       - traefik.http.middlewares.app.headers.frameDeny=true
+      - traefik.http.middlewares.app.headers.browserXssFilter=true
   # app-hawkins:
   #   <<: *app
   #   environment:
@@ -47,6 +48,11 @@ services:
   #     MINIO_ENDPOINT: "${HAWKINS_MINIO_ENDPOINT}"
   #     MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
   #     MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.app-hawkins.rule=Host(`stager-hawkins.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+  #     - traefik.http.routers.app-hawkins.entrypoints=https
+  #     - traefik.http.routers.app-hawkins.middlewares=app
   proxy:
     image: traefik:2.5
     volumes:
