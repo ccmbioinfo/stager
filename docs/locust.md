@@ -1,4 +1,4 @@
-# [Locust](https://locust.io/) for Application Load Testing
+# [Locust](https://locust.io/) for application load testing
 
 Locust is a framework for load testing in Python. Locust also supports distributed load testing, where multiple workers can be created on multiple cores on a single machine or multiple machines, therefore allowing for several users and requests to be simulated simultaneously. 
 
@@ -45,7 +45,7 @@ To run Locust in non-distributed mode, you can pass in the `workers` argument in
 python3 launch.py --workers=0
 ```
 
-## Simulating Users and Viewing Statistics
+## Simulating users and viewing statistics
 The master instance runs Locust’s web interface, and tells the workers when to spawn/stop Users. The workers run your Users and send back statistics to the master. The master instance doesn’t run any Users itself.
 
 To view the statistics retrieved by the master instance, you can visit `http://localhost:8089`. The web interface will require you to enter the host domain for load testing, the number users you want to simulate, and the hatch rate of users. 
