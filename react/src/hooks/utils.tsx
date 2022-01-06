@@ -34,7 +34,7 @@ export function apiFetch(url: string, init?: RequestInit | undefined): Promise<R
 
 export function apiFetch1(url: string, init?: RequestInit | undefined): Promise<Response> {
     // const endpoint = getActiveEndpoint();
-    const endpoint="http://localhost:5000";
+    const endpoint="http://localhost:8000";
     return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
 }
 
@@ -48,17 +48,29 @@ export async function basicFetch(
     options: RequestInit | undefined = undefined
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    try{
-        const response = await apiFetch1(`${url}${paramString}`, options);
-        if (response.ok) {
-            if (response.headers.get("Content-Type") === "text/csv") {
-                return response.text();
-            } else return response.json();
-        } else {
-            throw response;
-        }
-    } catch (error){
-        throw error;
+    const response = await apiFetch(`${url}${paramString}`, options);
+    if (response.ok) {
+        if (response.headers.get("Content-Type") === "text/csv") {
+            return response.text();
+        } else return response.json();
+    } else {
+        throw response;
+    }
+}
+
+export async function basicFetch1(
+    url: string,
+    params: Record<string, any> = {},
+    options: RequestInit | undefined = undefined
+) {
+    const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
+    const response = await apiFetch1(`${url}${paramString}`, options);
+    if (response.ok) {
+        if (response.headers.get("Content-Type") === "text/csv") {
+            return response.text();
+        } else return response.json();
+    } else {
+        throw response;
     }
 }
 
@@ -77,20 +89,16 @@ export async function fetchCsv(
     }
 
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    try{
-        const response = await apiFetch1(`${url}${paramString}`, { ...options, headers });
-        if (response.ok) {
-            return {
-                blob: await response.blob(),
-                filename: (
-                    response.headers.get("content-disposition") || "filename=report.csv"
-                ).replace(/.+=/, ""),
-            };
-        } else {
-            throw response;
-        }
-    } catch (error) {
-        throw error;
+    const response = await apiFetch1(`${url}${paramString}`, { ...options, headers });
+    if (response.ok) {
+        return {
+            blob: await response.blob(),
+            filename: (
+                response.headers.get("content-disposition") || "filename=report.csv"
+            ).replace(/.+=/, ""),
+        };
+    } else {
+        throw response;
     }
 }
 
@@ -106,20 +114,16 @@ export async function queryTableData<RowData extends object>(
     url: string
 ): Promise<QueryResult<RowData>> {
     const searchParams = new URLSearchParams(getSearchParamsFromMaterialTableQuery(query));
-    try{
-        const response = await apiFetch1(url + "?" + searchParams.toString());
-        if (response.ok) {
-            const result = await response.json();
-            return {
-                data: result.data,
-                page: result.page,
-                totalCount: result.total_count,
-            };
-        } else {
-            throw response;
-        }
-    } catch (error) {
-        throw error;
+    const response = await apiFetch(url + "?" + searchParams.toString());
+    if (response.ok) {
+        const result = await response.json();
+        return {
+            data: result.data,
+            page: result.page,
+            totalCount: result.total_count,
+        };
+    } else {
+        throw response;
     }
 }
 
@@ -204,21 +208,17 @@ export async function changeFetch<
         onError?: (res: Response) => Promise<TError>;
     }
 ) {
-    try{
-        const response = await apiFetch(url, {
-            method: method,
-            headers: body ? { "Content-Type": "application/json" } : undefined,
-            body: body ? JSON.stringify(body) : undefined,
-        });
-        if (response.ok) {
-            if (overrides?.onSuccess) return await overrides.onSuccess(response);
-            return response.json();
-        } else {
-            if (overrides?.onError) throw await overrides.onError(response);
-            throw response;
-        }
-    } catch (error) {
-        throw error;
+    const response = await apiFetch(url, {
+        method: method,
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    if (response.ok) {
+        if (overrides?.onSuccess) return await overrides.onSuccess(response);
+        return response.json();
+    } else {
+        if (overrides?.onError) throw await overrides.onError(response);
+        throw response;
     }
 }
 
