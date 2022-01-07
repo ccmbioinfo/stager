@@ -106,12 +106,11 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 localStorage.removeItem("minio");
                 fetchAPIInfo();
             } catch (error) {
+                setNetworkError(true);
+                setAuthenticated(false);
                 if (endpoints.length > 0) {
                     setAvailableEndpoints(endpoints);
                 }
-                console.log("Network Error: ", error);
-                setNetworkError(true);
-                setAuthenticated(false);
             }
         })();
     }, []);
@@ -124,7 +123,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 setApiInfo(apiInfo as APIInfo);
             }
         } catch (error) {
-            throw error;
+            console.log(error);
         }
     };
 
