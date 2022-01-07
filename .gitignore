@@ -3,7 +3,7 @@
 minio*/
 mysql*/
 nginx/certs/
-nginx/logs
+traefik/certs/
 .env
 .DS_Store
 *.log

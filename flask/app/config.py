@@ -25,6 +25,9 @@ class Config(object):
     )
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "AKIAIOSFODNN7EXAMPLE")
     MINIO_REGION_NAME = os.getenv("MINIO_REGION_NAME", "hpc4health")
+    SLURM_ENDPOINT = os.getenv("SLURM_ENDPOINT")
+    SLURM_USER = os.getenv("SLURM_USER")
+    SLURM_JWT = os.getenv("SLURM_JWT")
     TESTING = False
     ENABLE_OIDC = os.getenv("ENABLE_OIDC", "") != ""
     OIDC_PROVIDER = os.getenv("OIDC_PROVIDER", "keycloak")

@@ -1,0 +1,30 @@
+http:
+  routers:
+    frontend:
+      entryPoints:
+        - https
+      middlewares:
+        - security
+        - singlePageApplication
+        - routeToBucket
+      service: minio
+      rule: Host(`stager.ccm.sickkids.ca`)
+      # This must be lower priority than the backend /api if on the same domain
+      tls: {}
+  services:
+    minio:
+      loadBalancer:
+        servers:
+          - url: https://minio.ccm.sickkids.ca
+  middlewares:
+    routeToBucket:
+      addPrefix:
+        prefix: /www-stager
+    singlePageApplication:
+      replacePathRegex:
+        regex: ^(/|[^.]*)$ # Either match / or a path without an extension (determined by .)
+        replacement: /index.html
+    security:
+      headers:
+        frameDeny: true
+        browserXssFilter: true

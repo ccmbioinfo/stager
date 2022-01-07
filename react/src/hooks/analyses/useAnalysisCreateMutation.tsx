@@ -22,7 +22,7 @@ async function createAnalysis(params: CreateAnalysisParams) {
     if (params.type === "reanalysis")
         return changeFetch(`/api/analyses/${params.analysis_id}`, "POST");
 
-    return changeFetch("/api/analyses", "POST", params);
+    return changeFetch("/api/analyses", "POST", { ...params, type: undefined });
 }
 
 /**
