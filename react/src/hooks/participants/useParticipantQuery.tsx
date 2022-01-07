@@ -1,5 +1,5 @@
 import { useSnackbar } from "notistack";
-import { useQuery, UseQueryOptions } from "react-query";
+import { useQuery } from "react-query";
 import { Participant } from "../../typings";
 import { basicFetch } from "../utils";
 
@@ -20,17 +20,12 @@ async function fetchDataset(id: string) {
  */
 export function useParticipantQuery(id: string) {
     const { enqueueSnackbar } = useSnackbar();
-    const options: UseQueryOptions<Participant, Response> = {
-        onError: (error) =>{
-            enqueueSnackbar(`Error: failed to load detailed information for the participant.`,{
+    const result = useQuery<Participant, Response>(["participants", id], () => fetchDataset(id), {
+        onError: () => {
+            enqueueSnackbar(`Error: failed to load detailed information for the participant.`, {
                 variant: "error",
             });
-        }
-    };
-    const result = useQuery<Participant, Response>(
-        ["participants", id],
-        () => fetchDataset(id),
-        { ...options}
-    );
+        },
+    });
     return result;
 }

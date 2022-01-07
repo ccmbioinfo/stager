@@ -140,7 +140,7 @@ function OIDCRedirectHandler(props: LoginProps) {
                             setError("Failed to authorize. Please try again.");
                         }
                     }
-                } catch (error){
+                } catch (error) {
                     setError("Network Error!");
                 }
             }
@@ -204,7 +204,7 @@ function LoginForm({
     setCurrentUser = (user: CurrentUser) => {},
     onEndpointSelected = () => {},
     labs = [] as LabSelection[],
-    disableSignIn = false
+    disableSignIn = false,
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -230,7 +230,7 @@ function LoginForm({
                 setError(await result.text());
             }
             setAuthenticated(result.ok);
-        } catch(error) {
+        } catch (error) {
             setError("Network Error!");
         }
     }

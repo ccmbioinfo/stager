@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 import { APIInfoContext, emptyUser, UserClient, UserContext } from "./contexts";
-import { apiFetch, apiFetch1, clearQueryCache } from "./hooks/utils";
+import { apiFetch, clearQueryCache } from "./hooks/utils";
 import LoginPage from "./Login";
 import Navigation from "./Navigation";
 import { APIInfo, CurrentUser, LabSelection } from "./typings";
@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
 });
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
-    const [networkError, setNetworkError] = useState<boolean> (false);
+    const [networkError, setNetworkError] = useState<boolean>(false);
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
     const [availableEndpoints, setAvailableEndpoints] = useState<LabSelection[]>([]);
@@ -56,8 +56,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
-        try{
-            const result = await apiFetch1(`/api/logout`, {
+        try {
+            const result = await apiFetch(`/api/logout`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
@@ -74,13 +74,11 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 }
                 setAuthenticated(false);
             }
-        } catch (error){
+        } catch (error) {
             console.log("Network Error: ", error);
             setNetworkError(true);
         }
-
     }
-
 
     // Check if already signed in
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
@@ -92,11 +90,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 endpoints = await availibleEndpoints.json();
             }
 
-
-            try{
-                console.log("useEffect() is called");
+            try {
                 const response = await apiFetch(`/api/login`, { method: "POST" });
-                console.log("apiFetch is successful");
                 if (response.ok) {
                     const loginInfo = await response.json();
                     setCurrentUser(loginInfo);
@@ -111,11 +106,10 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 localStorage.removeItem("minio");
                 fetchAPIInfo();
             } catch (error) {
-                console.log("catch clause is executed", error);
-
                 if (endpoints.length > 0) {
                     setAvailableEndpoints(endpoints);
                 }
+                console.log("Network Error: ", error);
                 setNetworkError(true);
                 setAuthenticated(false);
             }
@@ -182,9 +176,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
             />
         );
     } else {
-        return (
-                <></>
-        );
+        return <></>;
     }
 }
 

@@ -25,11 +25,11 @@ export const useDownloadCsv = <P extends Record<string, string>>(
         retry: false,
         refetchInterval: false,
         refetchOnMount: false,
-        onError: (error) =>{
-            enqueueSnackbar(`Error, unable to download csv file.`,{
+        onError: error => {
+            enqueueSnackbar(`Error, unable to download csv file.`, {
                 variant: "error",
             });
-        }
+        },
     };
 
     const { data: csvBlob } = useQuery<BlobResponse, Response>(

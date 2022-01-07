@@ -1,5 +1,5 @@
 import { useSnackbar } from "notistack";
-import { useQuery, UseQueryOptions } from "react-query";
+import { useQuery } from "react-query";
 import { AnalysisDetailed } from "../../typings";
 import { basicFetch } from "../utils";
 
@@ -16,18 +16,16 @@ async function fetchAnalysis(analysis_id: string) {
 export function useAnalysisQuery(analysis_id: string) {
     const { enqueueSnackbar } = useSnackbar();
 
-    const options: UseQueryOptions<string, Response, AnalysisDetailed> = {
-        onError: () =>{
-            enqueueSnackbar(`Error: failed to load detailed information for the analysis.`,{
-                variant: "error",
-            });
-        }
-    };
-
     const result = useQuery<string, Response, AnalysisDetailed>(
-        ["analyses", analysis_id], () =>
-        fetchAnalysis(analysis_id),
-        { ...options }
+        ["analyses", analysis_id],
+        () => fetchAnalysis(analysis_id),
+        {
+            onError: () => {
+                enqueueSnackbar(`Error: failed to load detailed information for the analysis.`, {
+                    variant: "error",
+                });
+            },
+        }
     );
     return result;
 }

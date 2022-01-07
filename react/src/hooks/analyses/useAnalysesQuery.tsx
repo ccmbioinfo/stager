@@ -1,7 +1,7 @@
 import { QueryResult } from "@material-table/core";
 import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
-import { QueryObserverResult, useQuery, UseQueryOptions } from "react-query";
+import { QueryObserverResult, useQuery } from "react-query";
 import { jsonToAnalyses } from "../../functions";
 import { Analysis } from "../../typings";
 import { basicFetch } from "../utils";
@@ -31,18 +31,13 @@ export function useAnalysesQuery(params: Record<string, any> = {}) {
     }
     if (queryKey.length === 1) queryKey = queryKey[0];
 
-    const options: UseQueryOptions<QueryResult<Analysis>, Response> = {
-        onError: () =>{
-            enqueueSnackbar(`Error: failed to load analysis notification.`,{
+    const result = useQuery<QueryResult<Analysis>, Response>(queryKey, () => fetchAnalyses(rest), {
+        onError: () => {
+            enqueueSnackbar(`Error: failed to load analysis notification.`, {
                 variant: "error",
             });
-        }
-    };
-
-    const result = useQuery<QueryResult<Analysis>, Response>(queryKey,
-        () => fetchAnalyses(rest),
-        { ...options }
-    );
+        },
+    });
     if (result.isSuccess)
         result.data = {
             ...result.data,

@@ -27,14 +27,7 @@ export function getActiveMinioEndpoint(): string | undefined {
  * Wrapper for fetch - injects currently selected endpoint url to the outgoing request
  */
 export function apiFetch(url: string, init?: RequestInit | undefined): Promise<Response> {
-    // const endpoint = getActiveEndpoint();
-    const endpoint="http://localhost:3000";
-    return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
-}
-
-export function apiFetch1(url: string, init?: RequestInit | undefined): Promise<Response> {
-    // const endpoint = getActiveEndpoint();
-    const endpoint="http://localhost:8000";
+    const endpoint = getActiveEndpoint();
     return fetch(`${endpoint}${url}`, { credentials: "include", ...init });
 }
 
@@ -49,22 +42,6 @@ export async function basicFetch(
 ) {
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
     const response = await apiFetch(`${url}${paramString}`, options);
-    if (response.ok) {
-        if (response.headers.get("Content-Type") === "text/csv") {
-            return response.text();
-        } else return response.json();
-    } else {
-        throw response;
-    }
-}
-
-export async function basicFetch1(
-    url: string,
-    params: Record<string, any> = {},
-    options: RequestInit | undefined = undefined
-) {
-    const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await apiFetch1(`${url}${paramString}`, options);
     if (response.ok) {
         if (response.headers.get("Content-Type") === "text/csv") {
             return response.text();
@@ -89,7 +66,7 @@ export async function fetchCsv(
     }
 
     const paramString = Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    const response = await apiFetch1(`${url}${paramString}`, { ...options, headers });
+    const response = await apiFetch(`${url}${paramString}`, { ...options, headers });
     if (response.ok) {
         return {
             blob: await response.blob(),

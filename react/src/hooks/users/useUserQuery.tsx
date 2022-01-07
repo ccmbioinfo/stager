@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery, UseQueryOptions } from "react-query";
 import { User } from "../../typings";
 import { basicFetch } from "../utils";
 
@@ -12,7 +12,9 @@ async function fetchUser(username: string) {
  * That is, return all details about a particular user,
  * including MinIO credentials.
  */
-export function useUserQuery(username: string) {
-    const result = useQuery<User, Response>(["users", username], () => fetchUser(username));
+export function useUserQuery(username: string, options: UseQueryOptions<User, Response> = {}) {
+    const result = useQuery<User, Response>(["users", username], () => fetchUser(username), {
+        ...options,
+    });
     return result;
 }

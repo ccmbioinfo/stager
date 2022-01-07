@@ -15,11 +15,14 @@ export function useDatasetQueries(dataset_ids: string[]) {
         dataset_ids.map(id => ({
             queryKey: ["datasets", id],
             queryFn: () => fetchDataset(id),
-            onError: () =>{
-                enqueueSnackbar(`Error: failed to load detailed datasets information for the participant.`,{
-                    variant: "error",
-                });
-            }
+            onError: () => {
+                enqueueSnackbar(
+                    `Error: failed to load detailed datasets information for the participant.`,
+                    {
+                        variant: "error",
+                    }
+                );
+            },
         }))
     );
     return results;
