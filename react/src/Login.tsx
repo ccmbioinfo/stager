@@ -208,7 +208,9 @@ function LoginForm({
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(disableSignIn ? "The backend server seems to be unavailable. Please try again later." : "");
+    const [error, setError] = useState(
+        disableSignIn ? "The backend server seems to be unavailable. Please try again later." : ""
+    );
     const [showForm, setShowForm] = useState(false);
     function bind(set: typeof setUsername) {
         // @ts-ignore
