@@ -141,7 +141,7 @@ function OIDCRedirectHandler(props: LoginProps) {
                         }
                     }
                 } catch (error) {
-                    setError("Network Error!");
+                    setError("The backend server seems to be unavailable. Please try again later.");
                 }
             }
         })();
@@ -208,7 +208,7 @@ function LoginForm({
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(disableSignIn ? "Network Error!" : "");
+    const [error, setError] = useState(disableSignIn ? "The backend server seems to be unavailable. Please try again later." : "");
     const [showForm, setShowForm] = useState(false);
     function bind(set: typeof setUsername) {
         // @ts-ignore
@@ -231,7 +231,7 @@ function LoginForm({
             }
             setAuthenticated(result.ok);
         } catch (error) {
-            setError("Network Error!");
+            setError("The backend server seems to be unavailable. Please try again later.");
         }
     }
 

@@ -281,7 +281,7 @@ export default function Navigation({
                         </Tooltip>
                         {networkError && (
                             <Typography component="h2" color="error">
-                                Network Error!
+                                The backend server seems to be unavailable. Please try again later.
                             </Typography>
                         )}
                     </Toolbar>
