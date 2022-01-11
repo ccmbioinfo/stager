@@ -13,6 +13,6 @@ async function fetchGroups() {
  */
 export function useGroupsQuery(options: UseQueryOptions<Group[], Response> = {}) {
     // all groups
-    const result = useQuery<Group[], Response>("groups", fetchGroups, { ...options });
+    const result = useQuery<Group[], Response>("groups", fetchGroups, options);
     return result;
 }

@@ -13,8 +13,10 @@ async function fetchUser(username: string) {
  * including MinIO credentials.
  */
 export function useUserQuery(username: string, options: UseQueryOptions<User, Response> = {}) {
-    const result = useQuery<User, Response>(["users", username], () => fetchUser(username), {
-        ...options,
-    });
+    const result = useQuery<User, Response>(
+        ["users", username],
+        () => fetchUser(username),
+        options
+    );
     return result;
 }
