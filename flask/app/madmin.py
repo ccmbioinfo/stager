@@ -165,7 +165,7 @@ def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
                     "s3:GetObjectTagging",
                     "s3:AbortMultipartUpload",
                     "s3:ListMultipartUploadParts",
-                    "s3:ListBucketMultipartUploads"
+                    "s3:ListBucketMultipartUploads",
                 ],
                 "Resource": arns,
             },
