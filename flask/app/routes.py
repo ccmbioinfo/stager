@@ -12,6 +12,7 @@ from sqlalchemy.orm import joinedload
 from werkzeug.exceptions import BadRequest  # 400
 from . import models
 from .extensions import db, oauth
+from .schemas import FamilySchema, DatasetSchema, ParticipantSchema, TissueSampleSchema
 from .utils import (
     validate_enums,
     get_current_user,
@@ -24,6 +25,11 @@ from .utils import (
 import numpy as np
 
 routes = Blueprint("routes", __name__)
+
+family_schema = FamilySchema()
+participant_schema = ParticipantSchema()
+dataset_schema = DatasetSchema()
+tissue_sample_schema = TissueSampleSchema()
 
 
 @routes.route("/api", strict_slashes=False)
@@ -357,6 +363,12 @@ def bulk_update():
                 .all()
             )
 
+        #############################
+        if not groups:
+            app.logger.error("User passed in a nonexistant group.")
+            abort(404, description="Invalid group code provided")
+        #############################
+
         if len(requested_groups) != len(groups) and not user.is_admin:
             app.logger.error("User supplied groups they don't belong to.")
             abort(
@@ -364,9 +376,6 @@ def bulk_update():
                 description="User does not belong to one or more of the provided groups",
             )
 
-        if not groups:
-            app.logger.error("User passed in a nonexistant group.")
-            abort(404, description="Invalid group code provided")
     else:
         app.logger.debug("User did not provide groups, checking permissions..")
         groups = (
@@ -394,13 +403,11 @@ def bulk_update():
     app.logger.info("Begin processing and inserting records into the database..")
     for i, row in enumerate(dat):
         app.logger.info("Start Record: %s", i)
-        app.logger.debug("\tChecking sequencing date is provided")
-        sequencing_date = row.get("sequencing_date")
-        if not sequencing_date:
-            app.logger.error("\tNo sequencing date provided.")
-            abort(400, description="A sequencing date must be provided")
-        else:
-            app.logger.debug("\tSequencing date provided: '%s'", sequencing_date)
+
+        error_family = family_schema.validate(row, session=db.session)
+        if error_family:
+            app.logger.error(jsonify(error_family))
+            abort(400, description=error_family)
 
         # Find the family by codename or create it if it doesn't exist
 
@@ -427,29 +434,10 @@ def bulk_update():
             app.logger.debug("\tInserting instance into database..")
             transaction_or_abort(db.session.flush)
             family_id = family.family_id
+            row["family_id"] = family_id
         else:
             app.logger.debug(
                 "\tFamily ID '%s' already exists and won't be created.", family_id
-            )
-
-        # Fail if we have any invalid values
-        app.logger.debug("\tValidating enums for participants..")
-
-        try:
-            validate_enums(models.Participant, row, editable_dict["participant"])
-            app.logger.debug("\tAll enums supplied are valid.")
-        except BadRequest as e:
-            app.logger.error(
-                "\tRolling back session because of invalid enum: {}".format(
-                    e.description
-                )
-            )
-            db.session.rollback()
-            abort(
-                400,
-                "Rolling back session because of invalid enum: {} on line {}".format(
-                    e.description, str(i + 1)
-                ),
             )
 
         # get institution id
@@ -475,6 +463,11 @@ def bulk_update():
                 institution_id = institution_obj.institution_id
         else:
             app.logger.debug("\tNo institution supplied")
+
+        error_participant = participant_schema.validate(row, session=db.session)
+        if error_participant:
+            app.logger.error(jsonify(error_participant))
+            abort(400, description=error_participant)
 
         # Find the participant by codename or create it if it doesn't exist
         app.logger.debug(
@@ -508,29 +501,10 @@ def bulk_update():
             db.session.add(participant)
             transaction_or_abort(db.session.flush)
             participant_id = participant.participant_id
+            row["participant_id"] = participant_id
         else:
             app.logger.debug(
                 "\tParticipant already exists and will not be added to the database"
-            )
-
-        # Fail if we have any invalid values
-        app.logger.debug("\tValidating enums for tissue samples..")
-
-        try:
-            validate_enums(models.TissueSample, row, editable_dict["tissue_sample"])
-            app.logger.debug("\tAll enums supplied are valid.")
-        except BadRequest as e:
-            app.logger.error(
-                "\tRolling back session because of invalid enum: {}".format(
-                    e.description
-                )
-            )
-            db.session.rollback()
-            abort(
-                400,
-                "Rolling back session because of invalid enum: {} on line {}".format(
-                    e.description, str(i + 1)
-                ),
             )
 
         app.logger.debug("\tChecking duplicate dataset..")
@@ -543,7 +517,7 @@ def bulk_update():
                 models.Dataset.dataset_type == row.get("dataset_type"),
                 models.Participant.family_id == family_id,
                 models.Participant.participant_id == participant_id,
-                models.Dataset.sequencing_date == sequencing_date,
+                models.Dataset.sequencing_date == row.get("sequencing_date"),
                 models.TissueSample.tissue_sample_type == row.get("tissue_sample_type"),
             )
             .count()
@@ -557,6 +531,11 @@ def bulk_update():
                 "One of the added datasets is a duplicate of an existing or added dataset.",
             )
 
+        error_tissue_sample = tissue_sample_schema.validate(row, session=db.session)
+        if error_tissue_sample:
+            app.logger.error(jsonify(error_tissue_sample))
+            abort(400, description=error_tissue_sample)
+
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
         tissue_sample = models.TissueSample(
@@ -569,25 +548,14 @@ def bulk_update():
         app.logger.debug("\tCreating tissue sample entry in the database..")
         db.session.add(tissue_sample)
         transaction_or_abort(db.session.flush)
+        row["tissue_sample_id"] = tissue_sample.tissue_sample_id
         app.logger.debug("\tDone")
-        # Fail if we have any invalid values
-        app.logger.debug("\tValidating enums for datasets..")
-        try:
-            validate_enums(models.Dataset, row, editable_dict["dataset"])
-            app.logger.debug("\tAll enums supplied are valid.")
-        except BadRequest as e:
-            app.logger.error(
-                "\tRolling back session because of invalid enum: {}".format(
-                    e.description
-                )
-            )
-            db.session.rollback()
-            abort(
-                400,
-                "Rolling back session because of invalid enum: {} on line {}".format(
-                    e.description, str(i + 1)
-                ),
-            )
+
+        error_dataset = dataset_schema.validate(row, session=db.session)
+        if error_dataset:
+            app.logger.error(jsonify(error_dataset))
+            abort(400, description=error_dataset)
+
         # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
 

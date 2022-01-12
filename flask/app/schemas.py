@@ -14,6 +14,7 @@ class FamilySchema(SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = False
         exclude = ("created_by_id", "updated_by_id")
+        unknown = "EXCLUDE"
 
 
 class ParticipantSchema(SQLAlchemyAutoSchema):
@@ -26,6 +27,7 @@ class ParticipantSchema(SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = False
         exclude = ("created_by_id", "updated_by_id")
+        unknown = "EXCLUDE"
 
 
 class TissueSampleSchema(SQLAlchemyAutoSchema):
@@ -38,6 +40,7 @@ class TissueSampleSchema(SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = False
         exclude = ("created_by_id", "updated_by_id")
+        unknown = "EXCLUDE"
 
 
 class DatasetSchema(SQLAlchemyAutoSchema):
@@ -54,11 +57,12 @@ class DatasetSchema(SQLAlchemyAutoSchema):
         include_fk = True
         load_instance = False
         exclude = ("created_by_id", "updated_by_id")
+        unknown = "EXCLUDE"
 
     # may have to customize this line if it needs to be used outside of POST /api/datasets
-    tissue_sample_id = fields.Integer(
-        strict=True, required=True, validate=[Range(min=1)]
-    )
+    # tissue_sample_id = fields.Integer(
+    #     strict=True, required=True, validate=[Range(min=1)]
+    # )
     linked_files = fields.List(fields.String(), required=False)
 
 
@@ -80,5 +84,6 @@ class AnalysisSchema(SQLAlchemyAutoSchema):
             "requested",
             "updated_by_id",
         )
+        unknown = "EXCLUDE"
 
     datasets = fields.List(fields.Integer(), required=True, validate=Length(min=1))
