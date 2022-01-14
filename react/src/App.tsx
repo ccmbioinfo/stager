@@ -73,6 +73,8 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                     }
                 }
                 setAuthenticated(false);
+            } else {
+                setNetworkError(true);
             }
         } catch (error) {
             console.log("Network Error: ", error);
@@ -85,9 +87,19 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     useEffect(() => {
         (async () => {
             let endpoints: LabSelection[] = [];
-            const availibleEndpoints = await fetch("/labs.json");
-            if (availibleEndpoints.ok) {
-                endpoints = await availibleEndpoints.json();
+            try {
+                const availibleEndpoints = await fetch("/labs.json");
+                if (availibleEndpoints.ok) {
+                    endpoints = await availibleEndpoints.json();
+                } else if (availibleEndpoints.status !== 404) {
+                    setNetworkError(true);
+                    setAuthenticated(false);
+                    return;
+                }
+            } catch (error) {
+                setNetworkError(true);
+                setAuthenticated(false);
+                return;
             }
 
             try {
@@ -95,6 +107,10 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 if (response.ok) {
                     const loginInfo = await response.json();
                     setCurrentUser(loginInfo);
+                } else {
+                    setNetworkError(true);
+                    setAuthenticated(false);
+                    return;
                 }
                 setNetworkError(false);
                 setAuthenticated(response.ok);
