@@ -15,7 +15,6 @@ from .extensions import db, oauth
 from .schemas import (
     FamilySchema,
     DatasetSchema,
-    InstitutionSchema,
     ParticipantSchema,
     TissueSampleSchema,
 )
@@ -36,7 +35,6 @@ family_schema = FamilySchema()
 participant_schema = ParticipantSchema()
 dataset_schema = DatasetSchema()
 tissue_sample_schema = TissueSampleSchema()
-institution_schema = InstitutionSchema()
 
 
 @routes.route("/api", strict_slashes=False)
@@ -376,15 +374,14 @@ def bulk_update():
     for i, row in enumerate(dat):
         app.logger.info("Start Record: %s", i)
 
-        ############## Input Validation Family
         error_family = family_schema.validate(row, session=db.session)
         if error_family:
             app.logger.error(jsonify(error_family))
+            db.session.rollback()
             abort(400, description=error_family)
 
         # Find the family by codename or create it if it doesn't exist
 
-        ############# Create new Family if needed.
         app.logger.debug(
             "\tChecking whether family already exists through codename '%s'..",
             row.get("family_codename"),
@@ -414,15 +411,6 @@ def bulk_update():
             )
         row["family_id"] = family_id
 
-        ############ Input validation for Institution
-
-        error_institution = institution_schema.validate(row, session=db.session)
-        if error_institution:
-            app.logger.error(jsonify(error_institution))
-            abort(400, description=error_institution)
-
-        ########### Create new institution if needed
-
         app.logger.debug("\tRetrieving institution")
         institution = row.get("institution")
         if institution:
@@ -446,14 +434,11 @@ def bulk_update():
         else:
             app.logger.debug("\tNo institution supplied")
 
-        ############# Input validation for Participant
-
         error_participant = participant_schema.validate(row, session=db.session)
         if error_participant:
             app.logger.error(jsonify(error_participant))
+            db.session.rollback()
             abort(400, description=error_participant)
-
-        ############## Add new Participant if needed
 
         # Find the participant by codename or create it if it doesn't exist
         app.logger.debug(
@@ -494,8 +479,6 @@ def bulk_update():
             )
         row["participant_id"] = participant_id
 
-        #################### Duplicate dataset?
-
         app.logger.debug("\tChecking duplicate dataset..")
         db_datasets_number = (
             db.session.query(models.Dataset)
@@ -520,14 +503,11 @@ def bulk_update():
                 "One of the added datasets is a duplicate of an existing or added dataset.",
             )
 
-        ############### Input validation tissue_sample
-
         error_tissue_sample = tissue_sample_schema.validate(row, session=db.session)
         if error_tissue_sample:
             app.logger.error(jsonify(error_tissue_sample))
+            db.session.rollback()
             abort(400, description=error_tissue_sample)
-
-        ########## Create new tissue sample if needed
 
         # Create a new tissue sample under this participant
         app.logger.debug("\tCreating a new tissue sample..")
@@ -544,14 +524,12 @@ def bulk_update():
         row["tissue_sample_id"] = tissue_sample.tissue_sample_id
         app.logger.debug("\tDone")
 
-        ##################   Input validation Dataset
-
         error_dataset = dataset_schema.validate(row, session=db.session)
         if error_dataset:
             app.logger.error(jsonify(error_dataset))
+            db.session.rollback()
             abort(400, description=error_dataset)
 
-        # Create a new dataset under the new tissue sample
         app.logger.debug("\tCreating a new dataset..")
 
         base_fields = {

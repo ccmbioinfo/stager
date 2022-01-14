@@ -1,3 +1,4 @@
+from typing_extensions import Required
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import fields, ValidationError
 from marshmallow.validate import And, Length, Range, Regexp
@@ -63,7 +64,7 @@ class DatasetSchema(SQLAlchemyAutoSchema):
     tissue_sample_id = fields.Integer(
         strict=True, required=True, validate=[Range(min=1)]
     )
-    linked_files = fields.List(fields.String(), required=False)
+    # linked_files = fields.List(fields.String(), required=False)
 
 
 class AnalysisSchema(SQLAlchemyAutoSchema):
@@ -89,14 +90,6 @@ class AnalysisSchema(SQLAlchemyAutoSchema):
     datasets = fields.List(fields.Integer(), required=True, validate=Length(min=1))
 
 
-class InstitutionSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Institution
-        include_fk = True
-        load_instance = False
-        unknown = "EXCLUDE"
-
-
 class GroupSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Group
@@ -114,7 +107,12 @@ class GroupSchema(SQLAlchemyAutoSchema):
                 # madmin.py::stager_buckets_policy
             ),
             Length(min=3),
+            Length(max=50),
         ),
+    )
+
+    group_name = fields.String(
+        required=True, validate=And(Length(min=1), Length(max=250))
     )
 
 
@@ -133,4 +131,7 @@ class UserSchema(SQLAlchemyAutoSchema):
         if not (space == -1 and at > 0 and dot > at + 1):
             raise ValidationError("Invalid email")
 
-    email = fields.String(required=True, validate=And(verify_email, Length(max=150)))
+    username = fields.String(required=True, validate=And(Length(min=1), Length(max=30)))
+    email = fields.String(
+        required=True, validate=And(verify_email, Length(min=1), Length(max=150))
+    )

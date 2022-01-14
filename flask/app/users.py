@@ -196,22 +196,19 @@ def create_user() -> Response:
     Creates a new user and assigns them to any permission groups specified.
     Administrator-only.
     """
-    # app.logger.debug(
-    #     "Validating username: '%s', email: '%s', and password: '%s'",
-    #     request.json.get("username"),
-    #     request.json.get("email"),
-    #     request.json.get("password"),
-    # )
+
+    if not (
+        "password" in request.json
+        and len(request.json["password"])
+        and isinstance(request.json["password"], str)
+    ):
+        abort(400, description="Missing password")
 
     result = user_schema.validate(request.json, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))
         abort(400, description=result)
-
-    # if not verify_email(request.json["email"]):
-    #     app.logger.error("Email is not valid")
-    #     abort(400, description="Bad email")
 
     app.logger.debug(
         "Checking whether supplied username or email is found in the database."
