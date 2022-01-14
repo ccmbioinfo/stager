@@ -197,11 +197,7 @@ def create_user() -> Response:
     Administrator-only.
     """
 
-    if not (
-        "password" in request.json
-        and len(request.json["password"])
-        and isinstance(request.json["password"], str)
-    ):
+    if not valid_strings(request.json, "password"):
         abort(400, description="Missing password")
 
     result = user_schema.validate(request.json, session=db.session)
