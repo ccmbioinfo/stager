@@ -64,7 +64,6 @@ class DatasetSchema(SQLAlchemyAutoSchema):
     tissue_sample_id = fields.Integer(
         strict=True, required=True, validate=[Range(min=1)]
     )
-    # linked_files = fields.List(fields.String(), required=False)
 
 
 class AnalysisSchema(SQLAlchemyAutoSchema):

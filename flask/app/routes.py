@@ -13,13 +13,12 @@ from werkzeug.exceptions import BadRequest  # 400
 from . import models
 from .extensions import db, oauth
 from .schemas import (
-    FamilySchema,
     DatasetSchema,
+    FamilySchema,
     ParticipantSchema,
     TissueSampleSchema,
 )
 from .utils import (
-    validate_enums,
     get_current_user,
     transaction_or_abort,
     validate_json,
