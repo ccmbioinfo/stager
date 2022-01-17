@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useSnackbar } from "notistack";
 import { useQuery, UseQueryOptions } from "react-query";
 import { downloadCsv } from "../functions";
 import { BlobResponse } from "../typings";
 import { fetchCsv } from "./utils";
+
 /**
  * Hook that returns a function for fetching and downloading a csv from an api endpoint
  *
@@ -18,18 +18,12 @@ export const useDownloadCsv = <P extends Record<string, string>>(
 ) => {
     const [params, setParams] = useState<P>();
     const [enabled, setEnabled] = useState(false);
-    const { enqueueSnackbar } = useSnackbar();
 
     const options: UseQueryOptions<BlobResponse, Response> = {
         staleTime: Infinity,
         retry: false,
         refetchInterval: false,
         refetchOnMount: false,
-        onError: error => {
-            enqueueSnackbar(`Error, unable to download csv file.`, {
-                variant: "error",
-            });
-        },
     };
 
     const { data: csvBlob } = useQuery<BlobResponse, Response>(

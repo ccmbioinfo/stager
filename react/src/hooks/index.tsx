@@ -37,6 +37,7 @@ export { useParticipantQuery } from "./participants/useParticipantQuery";
 export { useParticipantUpdateMutation } from "./participants/useParticipantUpdateMutation";
 
 export { useDatasetQuery } from "./datasets/useDatasetQuery";
+export { useDatasetsQuery } from "./datasets/useDatasetsQuery";
 export { useDatasetQueries } from "./datasets/useDatasetQueries";
 export * from "./datasets/useDatasetsPage";
 export { useDatasetCreateMutation } from "./datasets/useDatasetCreateMutation";

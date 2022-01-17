@@ -30,18 +30,12 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function Groups() {
     const classes = useStyles();
-    const { enqueueSnackbar } = useSnackbar();
-    const enqueueErrorSnackbar = useErrorSnackbar();
-    const { data: groups } = useGroupsQuery({
-        onError: () => {
-            enqueueSnackbar(`Error: failed to load groups.`, {
-                variant: "error",
-            });
-        },
-    });
+    const { data: groups } = useGroupsQuery();
     const groupPatch = useGroupUpdateMutation();
     const groupDelete = useGroupDeleteMutation();
     const [openNewGroup, setOpenNewGroup] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     useEffect(() => {
         document.title = `Groups | ${process.env.REACT_APP_NAME}`;

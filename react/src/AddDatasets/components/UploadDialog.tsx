@@ -53,28 +53,22 @@ export default function UploadDialog({ open, onClose, groups }: UploadDialogProp
         if (file !== null) {
             // Upload
             const groupsParam = new URLSearchParams({ groups: groups.join(",") });
-            try {
-                const response = await apiFetch(`/api/_bulk?` + groupsParam.toString(), {
-                    method: "POST",
-                    body: file,
-                    headers: new Headers({
-                        "Content-Type": "text/csv",
-                    }),
+            const response = await apiFetch(`/api/_bulk?` + groupsParam.toString(), {
+                method: "POST",
+                body: file,
+                headers: new Headers({
+                    "Content-Type": "text/csv",
+                }),
+            });
+            if (response.ok) {
+                enqueueSnackbar(`File ${file.name} uploaded successfully`, {
+                    variant: "success",
                 });
-                if (response.ok) {
-                    enqueueSnackbar(`File ${file.name} uploaded successfully`, {
-                        variant: "success",
-                    });
-                } else {
-                    console.error(
-                        `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
-                    );
-                    enqueueErrorSnackbar(response, `Failed to upload file ${file.name}.`);
-                }
-            } catch {
-                enqueueSnackbar(`Network Error: Failed to upload file ${file.name}.`, {
-                    variant: "error",
-                });
+            } else {
+                console.error(
+                    `POST /api/_bulk failed with ${response.status}: ${response.statusText}`
+                );
+                enqueueErrorSnackbar(response, `Failed to upload file ${file.name}.`);
             }
         }
     }

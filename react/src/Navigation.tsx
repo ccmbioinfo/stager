@@ -201,15 +201,9 @@ export interface NavigationProps {
     signout: () => void;
     darkMode: boolean;
     toggleDarkMode: () => void;
-    networkError: boolean;
 }
 
-export default function Navigation({
-    signout,
-    darkMode,
-    toggleDarkMode,
-    networkError,
-}: NavigationProps) {
+export default function Navigation({ signout, darkMode, toggleDarkMode }: NavigationProps) {
     const classes = useStyles(darkMode)();
     const [open, setOpen] = useState(localStorage.getItem("drawerOpen") === "true");
     const { user: currentUser } = useUserContext();
@@ -279,11 +273,6 @@ export default function Navigation({
                                 <MeetingRoomIcon fontSize="large" />
                             </IconButton>
                         </Tooltip>
-                        {networkError && (
-                            <Typography component="h2" color="error">
-                                The backend server seems to be unavailable. Please try again later.
-                            </Typography>
-                        )}
                     </Toolbar>
                 </AppBar>
                 <Drawer
