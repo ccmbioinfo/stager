@@ -162,16 +162,21 @@ jobs:
         env:
           COMPOSE_FILE: docker-compose.ccm.yaml
           ST_VERSION: latest
+          MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
+          PROJECT_ROOT: /opt/stager
           HIRAKI_ST_SECRET_KEY: ${{ secrets.HIRAKI_ST_SECRET_KEY }}
           HIRAKI_MYSQL_CONNECTION_STRING: ${{ secrets.HIRAKI_MYSQL_CONNECTION_STRING }}
           HIRAKI_MINIO_ENDPOINT: ${{ secrets.HIRAKI_MINIO_ENDPOINT }}
           HIRAKI_MINIO_ACCESS_KEY: ${{ secrets.HIRAKI_MINIO_ACCESS_KEY }}
           HIRAKI_MINIO_SECRET_KEY: ${{ secrets.HIRAKI_MINIO_SECRET_KEY }}
-          MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
-          PROJECT_ROOT: /opt/stager
+          MUISE_ST_SECRET_KEY: ${{ secrets.MUISE_ST_SECRET_KEY }}
+          MUISE_MYSQL_CONNECTION_STRING: ${{ secrets.MUISE_MYSQL_CONNECTION_STRING }}
+          MUISE_MINIO_ENDPOINT: ${{ secrets.MUISE_MINIO_ENDPOINT }}
+          MUISE_MINIO_ACCESS_KEY: ${{ secrets.MUISE_MINIO_ACCESS_KEY }}
+          MUISE_MINIO_SECRET_KEY: ${{ secrets.MUISE_MINIO_SECRET_KEY }}
         run: |
           eval "${{ steps.configure.outputs.ssh-agent-eval }}"
-          export GUNICORN_WORKERS=$( ssh ${{ secrets.DEPLOY_SSH_HOST }} 'echo $(( $(nproc) * 2 + 1 ))' )
+          export GUNICORN_WORKERS=$( ssh ${{ secrets.DEPLOY_SSH_HOST }} 'echo $(( $(nproc) + 1 ))' )
           docker-compose pull
           docker-compose up -d --remove-orphans
       - name: Clean up
