@@ -1,6 +1,5 @@
 import { QueryResult } from "@material-table/core";
 import dayjs from "dayjs";
-import { useSnackbar } from "notistack";
 import { QueryObserverResult, useQuery } from "react-query";
 import { jsonToAnalyses } from "../../functions";
 import { Analysis } from "../../typings";
@@ -20,7 +19,6 @@ async function fetchAnalyses(params: Record<string, string> = {}) {
  */
 export function useAnalysesQuery(params: Record<string, any> = {}) {
     // Construct the query key based on whether 'since' is defined
-    const { enqueueSnackbar } = useSnackbar();
     let queryKey: any[] | string = ["analyses"];
     let dateString: string | undefined;
     const { since, ...rest } = params;
@@ -31,13 +29,7 @@ export function useAnalysesQuery(params: Record<string, any> = {}) {
     }
     if (queryKey.length === 1) queryKey = queryKey[0];
 
-    const result = useQuery<QueryResult<Analysis>, Response>(queryKey, () => fetchAnalyses(rest), {
-        onError: () => {
-            enqueueSnackbar(`Error: failed to load analysis notification.`, {
-                variant: "error",
-            });
-        },
-    });
+    const result = useQuery<QueryResult<Analysis>, Response>(queryKey, () => fetchAnalyses(rest));
     if (result.isSuccess)
         result.data = {
             ...result.data,

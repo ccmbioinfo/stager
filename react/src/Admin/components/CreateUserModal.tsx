@@ -95,19 +95,13 @@ function ErrorText(props: ErrorTextProps) {
 
 export default function CreateUserModal(props: CreateUserModalProps) {
     const classes = useStyles();
-    const { enqueueSnackbar } = useSnackbar();
     const apiInfo = useAPIInfoContext();
     const [state, dispatch] = useReducer(reducer, initState);
     const [errorCode, setErrorCode] = useState(0);
     const [errorDetails, setErrorDetails] = useState({ error: "", message: "" });
-    const { data: groups } = useGroupsQuery({
-        onError: () => {
-            enqueueSnackbar(`Error: failed to load groups.`, {
-                variant: "error",
-            });
-        },
-    });
+    const { data: groups } = useGroupsQuery();
     const userCreateMutation = useUsersCreateMutation();
+    const { enqueueSnackbar } = useSnackbar();
 
     const submitting = userCreateMutation.status === "loading";
 

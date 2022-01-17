@@ -1,4 +1,3 @@
-import { useSnackbar } from "notistack";
 import { useQuery } from "react-query";
 import { AnalysisDetailed } from "../../typings";
 import { basicFetch } from "../utils";
@@ -14,18 +13,8 @@ async function fetchAnalysis(analysis_id: string) {
  * an array of datasets associated to it, and pipeline metadata.
  */
 export function useAnalysisQuery(analysis_id: string) {
-    const { enqueueSnackbar } = useSnackbar();
-
-    const result = useQuery<string, Response, AnalysisDetailed>(
-        ["analyses", analysis_id],
-        () => fetchAnalysis(analysis_id),
-        {
-            onError: () => {
-                enqueueSnackbar(`Error: failed to load detailed information for the analysis.`, {
-                    variant: "error",
-                });
-            },
-        }
+    const result = useQuery<string, Response, AnalysisDetailed>(["analyses", analysis_id], () =>
+        fetchAnalysis(analysis_id)
     );
     return result;
 }

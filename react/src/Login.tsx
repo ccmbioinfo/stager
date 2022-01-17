@@ -23,10 +23,9 @@ interface LoginProps {
     signout: () => void;
     setAuthenticated: (auth: boolean) => void;
     setCurrentUser: (user: CurrentUser) => void;
-    onEndpointSelected?: () => void;
-    oauth?: boolean;
-    labs?: LabSelection[];
-    disableSignIn: boolean;
+    onEndpointSelected: () => void;
+    oauth: boolean;
+    labs: LabSelection[];
 }
 
 const useStyles = makeStyles(theme => ({
@@ -113,35 +112,31 @@ function OIDCRedirectHandler(props: LoginProps) {
     useEffect(() => {
         (async () => {
             if (location.search && history.location.pathname.includes("/oidc_callback")) {
-                try {
-                    const response = await apiFetch(`/api/authorize${location.search}`, {
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                        },
-                    });
-                    if (response.ok) {
-                        const user = await response.json();
-                        setIsLoading(false);
-                        if (user.username) {
-                            setMessage(user.username);
-                            setCurrentUser(user);
-                            setAuthenticated(true);
-                            history.push("/");
-                        } else {
-                            setError("Failed to authorize. Please try again.");
-                        }
+                const response = await apiFetch(`/api/authorize${location.search}`, {
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                    },
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    setIsLoading(false);
+                    if (user.username) {
+                        setMessage(user.username);
+                        setCurrentUser(user);
+                        setAuthenticated(true);
+                        history.push("/");
                     } else {
-                        setIsLoading(false);
-                        if (response.status === 404) {
-                            setError(
-                                "You do not have permission to access Stager. Please contact an administrator to request access."
-                            );
-                        } else {
-                            setError("Failed to authorize. Please try again.");
-                        }
+                        setError("Failed to authorize. Please try again.");
                     }
-                } catch (error) {
-                    setError("The backend server seems to be unavailable. Please try again later.");
+                } else {
+                    setIsLoading(false);
+                    if (response.status === 404) {
+                        setError(
+                            "You do not have permission to access Stager. Please contact an administrator to request access."
+                        );
+                    } else {
+                        setError("Failed to authorize. Please try again.");
+                    }
                 }
             }
         })();
@@ -204,13 +199,10 @@ function LoginForm({
     setCurrentUser = (user: CurrentUser) => {},
     onEndpointSelected = () => {},
     labs = [] as LabSelection[],
-    disableSignIn = false,
 }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(
-        disableSignIn ? "The backend server seems to be unavailable. Please try again later." : ""
-    );
+    const [error, setError] = useState("");
     const [showForm, setShowForm] = useState(false);
     function bind(set: typeof setUsername) {
         // @ts-ignore
@@ -218,23 +210,19 @@ function LoginForm({
     }
     async function authenticate(e: React.MouseEvent) {
         e.preventDefault();
-        try {
-            const result = await apiFetch(`/api/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
-            if (result.ok) {
-                const data = await result.json();
-                setCurrentUser(data);
-                setError("");
-            } else {
-                setError(await result.text());
-            }
-            setAuthenticated(result.ok);
-        } catch (error) {
-            setError("The backend server seems to be unavailable. Please try again later.");
+        const result = await apiFetch(`/api/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+        if (result.ok) {
+            const data = await result.json();
+            setCurrentUser(data);
+            setError("");
+        } else {
+            setError(await result.text());
         }
+        setAuthenticated(result.ok);
     }
 
     const handleLabSelect = (lab: LabSelection) => {
@@ -303,7 +291,6 @@ function LoginForm({
                                     className={classes.button}
                                     type="submit"
                                     onClick={authenticate}
-                                    disabled={disableSignIn}
                                 >
                                     Sign in
                                 </Button>

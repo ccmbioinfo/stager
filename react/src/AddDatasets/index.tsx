@@ -6,7 +6,7 @@ import { useHistory } from "react-router";
 import { ConfirmModal } from "../components";
 import { useUserContext } from "../contexts";
 import { getKeys, groupBy, snakeCaseToTitle, strIsEmpty } from "../functions";
-import { useBulkCreateMutation } from "../hooks";
+import { useBulkCreateMutation, useErrorSnackbar } from "../hooks";
 import {
     DataEntryColumnConfig,
     DataEntryField,
@@ -172,6 +172,7 @@ export default function AddDatasets() {
     const { user: currentUser } = useUserContext();
     const datasetsMutation = useBulkCreateMutation();
     const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
 
     const [asGroups, setAsGroups] = useState<string[]>([]); // "submitting as these groups"
     const [columns, setColumns] = useState<DataEntryColumnConfig[]>();
@@ -368,11 +369,7 @@ export default function AddDatasets() {
                         setData([createEmptyRow()]);
                         history.push("/datasets");
                     },
-                    onError: () => {
-                        enqueueSnackbar(`Error: failed to submit new datasets`, {
-                            variant: "error",
-                        });
-                    },
+                    onError: (response: Response) => enqueueErrorSnackbar(response),
                 }
             );
         }
