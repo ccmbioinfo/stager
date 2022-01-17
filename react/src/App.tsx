@@ -102,31 +102,26 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 return;
             }
 
+            if (endpoints.length > 0) {
+                setAvailableEndpoints(endpoints);
+                return;
+            } else {
+                localStorage.removeItem("endpoint");
+                localStorage.removeItem("minio");
+                fetchAPIInfo();
+            }
+
             try {
                 const response = await apiFetch(`/api/login`, { method: "POST" });
                 if (response.ok) {
                     const loginInfo = await response.json();
                     setCurrentUser(loginInfo);
-                } else {
-                    setNetworkError(true);
-                    setAuthenticated(false);
-                    return;
                 }
                 setNetworkError(false);
                 setAuthenticated(response.ok);
-                if (endpoints.length > 0) {
-                    setAvailableEndpoints(endpoints);
-                    return;
-                }
-                localStorage.removeItem("endpoint");
-                localStorage.removeItem("minio");
-                fetchAPIInfo();
             } catch (error) {
                 setNetworkError(true);
                 setAuthenticated(false);
-                if (endpoints.length > 0) {
-                    setAvailableEndpoints(endpoints);
-                }
             }
         })();
     }, []);
