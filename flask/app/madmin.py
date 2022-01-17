@@ -154,16 +154,18 @@ def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
         "Statement": [
             {
                 "Effect": "Allow",
-                "Action": ["s3:*"],
-                "Resource": arns,
-            },
-            {
-                "Effect": "Deny",
                 "Action": [
-                    "s3:DeleteBucket",
-                    "s3:ForceDeleteBucket",
-                    "s3:DeleteObject",
-                    "s3:DeleteObjectVersion",
+                    "s3:CreateBucket",
+                    "s3:GetBucketLocation",
+                    "s3:ListAllMyBuckets",
+                    "s3:GetObject",
+                    "s3:ListBucket",
+                    "s3:PutObject",
+                    "s3:PutObjectTagging",
+                    "s3:GetObjectTagging",
+                    "s3:AbortMultipartUpload",
+                    "s3:ListMultipartUploadParts",
+                    "s3:ListBucketMultipartUploads",
                 ],
                 "Resource": arns,
             },
