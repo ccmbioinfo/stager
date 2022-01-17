@@ -1,3 +1,4 @@
+import { useSnackbar } from "notistack";
 import { useQuery } from "react-query";
 import { DatasetDetailed } from "../../typings";
 import { basicFetch } from "../utils";
@@ -15,6 +16,14 @@ async function fetchDataset(id: string) {
  * participant and family.
  */
 export function useDatasetQuery(id: string) {
-    const result = useQuery<DatasetDetailed, Response>(["datasets", id], () => fetchDataset(id));
+    const { enqueueSnackbar } = useSnackbar();
+
+    const result = useQuery<DatasetDetailed, Response>(["datasets", id], () => fetchDataset(id), {
+        onError: () => {
+            enqueueSnackbar(`Error: failed to load detailed information for the dataset.`, {
+                variant: "error",
+            });
+        },
+    });
     return result;
 }

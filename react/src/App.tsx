@@ -26,6 +26,7 @@ const queryClient = new QueryClient({
 });
 
 function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
+    const [networkError, setNetworkError] = useState<boolean>(false);
     const [authenticated, setAuthenticated] = useState<boolean | null>(null);
     const [apiInfo, setApiInfo] = useState<APIInfo | null>(null);
     const [availableEndpoints, setAvailableEndpoints] = useState<LabSelection[]>([]);
@@ -55,22 +56,29 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         if (apiInfo?.oauth) {
             body = { redirect_uri: window.location.origin };
         }
-        const result = await apiFetch(`/api/logout`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-        });
-        if (result.ok) {
-            clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
-            if (result.status !== 204) {
-                const redirectUrl = (await result.json())?.["redirect_uri"];
-                if (redirectUrl) {
-                    console.log(redirectUrl);
-                    window.location.replace(redirectUrl);
-                    return;
+        try {
+            const result = await apiFetch(`/api/logout`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            if (result.ok) {
+                clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
+                if (result.status !== 204) {
+                    const redirectUrl = (await result.json())?.["redirect_uri"];
+                    if (redirectUrl) {
+                        console.log(redirectUrl);
+                        window.location.replace(redirectUrl);
+                        return;
+                    }
                 }
+                setAuthenticated(false);
+            } else {
+                setNetworkError(true);
             }
-            setAuthenticated(false);
+        } catch (error) {
+            console.log("Network Error: ", error);
+            setNetworkError(true);
         }
     }
 
@@ -78,35 +86,60 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
     // Since both apiInfo and a loggedin status are required to render main app, we'll query both in sequence to prevent unnecessary rerenders/reroutes
     useEffect(() => {
         (async () => {
-            const loginResult = await apiFetch(`/api/login`, { method: "POST" });
-            if (loginResult.ok) {
-                const loginInfo = await loginResult.json();
-                setCurrentUser(loginInfo);
-            }
-            setAuthenticated(loginResult.ok);
-
             let endpoints: LabSelection[] = [];
-            const availibleEndpoints = await fetch("/labs.json");
-            if (availibleEndpoints.ok) {
-                endpoints = await availibleEndpoints.json();
-            }
-
-            if (endpoints.length > 0) {
-                setAvailableEndpoints(endpoints);
+            try {
+                const availibleEndpoints = await fetch("/labs.json");
+                if (availibleEndpoints.ok) {
+                    endpoints = await availibleEndpoints.json();
+                } else if (availibleEndpoints.status !== 404) {
+                    setNetworkError(true);
+                    setAuthenticated(false);
+                    return;
+                }
+            } catch (error) {
+                setNetworkError(true);
+                setAuthenticated(false);
                 return;
             }
-            localStorage.removeItem("endpoint");
-            localStorage.removeItem("minio");
 
-            fetchAPIInfo();
+            try {
+                const response = await apiFetch(`/api/login`, { method: "POST" });
+                if (response.ok) {
+                    const loginInfo = await response.json();
+                    setCurrentUser(loginInfo);
+                } else {
+                    setNetworkError(true);
+                    setAuthenticated(false);
+                    return;
+                }
+                setNetworkError(false);
+                setAuthenticated(response.ok);
+                if (endpoints.length > 0) {
+                    setAvailableEndpoints(endpoints);
+                    return;
+                }
+                localStorage.removeItem("endpoint");
+                localStorage.removeItem("minio");
+                fetchAPIInfo();
+            } catch (error) {
+                setNetworkError(true);
+                setAuthenticated(false);
+                if (endpoints.length > 0) {
+                    setAvailableEndpoints(endpoints);
+                }
+            }
         })();
     }, []);
 
     const fetchAPIInfo = async () => {
-        const apiInfoResult = await apiFetch(`/api`);
-        if (apiInfoResult.ok) {
-            let apiInfo = { ...(await apiInfoResult.json()) };
-            setApiInfo(apiInfo as APIInfo);
+        try {
+            const apiInfoResult = await apiFetch(`/api`);
+            if (apiInfoResult.ok) {
+                let apiInfo = { ...(await apiInfoResult.json()) };
+                setApiInfo(apiInfo as APIInfo);
+            }
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -134,6 +167,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                             hideIconVariant={true}
                         >
                             <Navigation
+                                networkError={networkError}
                                 signout={signout}
                                 darkMode={props.darkMode}
                                 toggleDarkMode={props.toggleDarkMode}
@@ -144,7 +178,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 </APIInfoContext.Provider>
             </UserContext.Provider>
         );
-    } else if (apiInfo || availableEndpoints.length > 0) {
+    } else if (apiInfo || availableEndpoints.length > 0 || networkError) {
         return (
             <LoginPage
                 signout={signout}
@@ -153,6 +187,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 onEndpointSelected={fetchAPIInfo}
                 oauth={apiInfo ? apiInfo.oauth : false}
                 labs={availableEndpoints}
+                disableSignIn={networkError}
             />
         );
     } else {
