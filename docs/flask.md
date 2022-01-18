@@ -145,7 +145,7 @@ instance. Docker facilitates spinning these up really conveniently, but you can 
 a new database and a separate MinIO listening on a different port.
 
 All endpoints should ideally have a set of comprehensive tests so we maintain confidence in
-dependency updates, refactors, and new features implemented.
+dependency updates, refactors, and new features implemented. Pytest-cov can be used to get code coverage of the test suite.
 Each `test_*.py` file in the `tests` directory tests to a set of endpoints implemented by the
 corresponding Blueprint in the `app` directory.
 
@@ -186,6 +186,9 @@ particular test but has since been [resolved](https://github.com/minio/mc/issues
 To run a specific test file or function instead of the entire test suite, append `pytest ARGUMENTS`
 to the command above. For example, `pytest tests/test_users.py` will only run the integration tests
 in the specified file. For more information, see [pytest usage](https://docs.pytest.org/en/stable/usage.html).
+
+To run Pytest-cov for the test suite or a specific test file, append argument `--cov=app`. To also report missing line numbers,
+append `--cov-report term-missing`. For example, `pytest --cov=app --cov-report term-missing tests` will generate a report of statement coverage to the terminal.
 
 To run tests outside Docker, assuming the test services are accessible from the host
 and configured in your environment variables, run
