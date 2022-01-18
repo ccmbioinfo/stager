@@ -1,3 +1,4 @@
+import { useSnackbar } from "notistack";
 import { useQuery } from "react-query";
 import { Participant } from "../../typings";
 import { basicFetch } from "../utils";
@@ -18,6 +19,13 @@ async function fetchDataset(id: string) {
  * metadata for the participant and tissue sample.
  */
 export function useParticipantQuery(id: string) {
-    const result = useQuery<Participant, Response>(["participants", id], () => fetchDataset(id));
+    const { enqueueSnackbar } = useSnackbar();
+    const result = useQuery<Participant, Response>(["participants", id], () => fetchDataset(id), {
+        onError: () => {
+            enqueueSnackbar(`Error: failed to load detailed information for the participant.`, {
+                variant: "error",
+            });
+        },
+    });
     return result;
 }
