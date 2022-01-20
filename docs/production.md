@@ -58,9 +58,9 @@ each lab's data separated. This is achieved by running one backend container per
 to use a different database and MinIO server. The frontend is shared because the code for that stays
 largely the same, but it is configured to be aware of multiple backend domains and route the API calls
 appropriately. At the login page, the user selects their lab first, which configures the backend domain
-for the app. An nginx reverse proxy handles all the domains and is responsible for serving the uploaded
+for the app. A Traefik reverse proxy handles all the domains and is responsible for serving the uploaded
 frontend and routing to each backend, including enabling Cross-Origin Resource Sharing.
 
 The Compose configuration is at [docker-compose.ccm.yaml](/docker-compose.ccm.yaml). For the time being,
-we must clone the repository to the production host in order to have the nginx configuration there, and
-we must place the needed TLS certificates in `nginx/certs`.
+we must clone the repository to the production host in order to have the Traefik configuration and
+TLS certificates mounted in `traefik/certs`.
