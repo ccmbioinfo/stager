@@ -63,8 +63,9 @@ def get_unlinked_files():
         app.logger.debug("Getting all files in user minio buckets..")
         all_files = []
         objs = minio_client.list_objects(bucket_name, prefix=file_name, recursive=True)
+
         for obj in objs:
-            if obj.object_name == file_name:
+            if file_name in obj.object_name:
                 all_files.append(bucket_name + "/" + obj.object_name)
 
         app.logger.debug("Getting all linked files..")

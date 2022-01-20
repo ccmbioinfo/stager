@@ -1,15 +1,16 @@
 from dataclasses import asdict
 from datetime import datetime
 
+from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import login_required
 from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
-
-from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from sqlalchemy.sql.expression import cast
+
 from . import models
 from .extensions import db
 from .schemas import AnalysisSchema
+from .slurm import run_pipeline
 from .utils import (
     check_admin,
     clone_entity,
@@ -454,7 +455,7 @@ def create_analysis():
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
-    app.logger.debug("Analysis created successfully, returning JSON..")
+    run_pipeline(analysis)
 
     return (
         jsonify(
@@ -537,7 +538,7 @@ def create_reanalysis(id: int):
     db.session.add(new_analysis)
     transaction_or_abort(db.session.commit)
 
-    app.logger.debug("Analysis creation successful, returning JSON..")
+    run_pipeline(analysis)
 
     return (
         jsonify(

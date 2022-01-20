@@ -1,5 +1,17 @@
 version: "3.9"
 
+# Shared environment variable configuration between the app service profiles
+x-env: &env
+  ST_SECRET_KEY:
+  ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+  MINIO_ENDPOINT: minio:9000
+  MINIO_ACCESS_KEY:
+  MINIO_SECRET_KEY:
+  MINIO_REGION_NAME:
+  SLURM_ENDPOINT:
+  SLURM_USER:
+  SLURM_JWT:
+
 services:
   mysql:
     image: mysql:8.0
@@ -31,12 +43,7 @@ services:
     build: flask
     image: ghcr.io/ccmbioinfo/stager:dev
     environment:
-      ST_SECRET_KEY:
-      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY:
-      MINIO_SECRET_KEY:
-      MINIO_REGION_NAME:
+      <<: *env
     ports:
       - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
     depends_on:
@@ -50,12 +57,7 @@ services:
     profiles:
       - debug
     environment:
-      ST_SECRET_KEY:
-      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY:
-      MINIO_SECRET_KEY:
-      MINIO_REGION_NAME:
+      <<: *env
       FLASK_DEBUG: 1
       PYTHONDONTWRITEBYTECODE: 1
       DEBUG_METRICS: 1
@@ -79,12 +81,7 @@ services:
     profiles:
       - gunicorn
     environment:
-      ST_SECRET_KEY:
-      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY:
-      MINIO_SECRET_KEY:
-      MINIO_REGION_NAME:
+      <<: *env
     ports:
       - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
       - "${METRICS_HOST_PORT:-127.0.0.1:8080}:8080"

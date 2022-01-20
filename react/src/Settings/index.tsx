@@ -64,7 +64,15 @@ const useStyles = makeStyles(theme => ({
 export default function Settings() {
     const classes = useStyles();
     const { user: currentUser } = useUserContext();
-    const { data: user, isFetching: loading } = useUserQuery(currentUser.username);
+    const { enqueueSnackbar } = useSnackbar();
+    const enqueueErrorSnackbar = useErrorSnackbar();
+    const { data: user, isFetching: loading } = useUserQuery(currentUser.username, {
+        onError: () => {
+            enqueueSnackbar(`Error: failed to load credentials for the user.`, {
+                variant: "error",
+            });
+        },
+    });
     const passwordMutation = useUsersUpdateMutation();
 
     const [currentPassword, setCurrentPassword] = useState("");
@@ -72,8 +80,6 @@ export default function Settings() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [groups, setGroups] = useState<string[]>([]);
     const [updating, setUpdating] = useState(false);
-    const { enqueueSnackbar } = useSnackbar();
-    const enqueueErrorSnackbar = useErrorSnackbar();
 
     async function changePassword(e: React.MouseEvent) {
         e.preventDefault();

@@ -15,6 +15,7 @@ x-app: &app
 
 x-env: &env
   MINIO_REGION_NAME: hpc4health
+  MINIO_TLS: "true"
   MSTEAMS_WEBHOOK_URL:
 
 services:
@@ -27,7 +28,31 @@ services:
       MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
-      MINIO_TLS: "true"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+      - traefik.http.routers.app-hiraki.entrypoints=https
+      - traefik.http.routers.app-hiraki.middlewares=app
+      - traefik.http.middlewares.app.headers.accessControlAllowOriginList=https://stager.ccm.sickkids.ca
+      - traefik.http.middlewares.app.headers.accessControlAllowMethods=GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
+      - traefik.http.middlewares.app.headers.accessControlAllowHeaders=Accept,Content-Type
+      - traefik.http.middlewares.app.headers.accessControlAllowCredentials=true
+      - traefik.http.middlewares.app.headers.frameDeny=true
+      - traefik.http.middlewares.app.headers.browserXssFilter=true
+  app-muise:
+    <<: *app
+    environment:
+      <<: *env
+      ST_SECRET_KEY: "${MUISE_ST_SECRET_KEY}"
+      ST_DATABASE_URI: "mysql+pymysql://${MUISE_MYSQL_CONNECTION_STRING}"
+      MINIO_ENDPOINT: "${MUISE_MINIO_ENDPOINT}"
+      MINIO_ACCESS_KEY: "${MUISE_MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MUISE_MINIO_SECRET_KEY}"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app-muise.rule=Host(`stager-muise.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+      - traefik.http.routers.app-muise.entrypoints=https
+      - traefik.http.routers.app-muise.middlewares=app
   # app-hawkins:
   #   <<: *app
   #   environment:
@@ -37,12 +62,33 @@ services:
   #     MINIO_ENDPOINT: "${HAWKINS_MINIO_ENDPOINT}"
   #     MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
   #     MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
-  nginx:
-    image: nginx:alpine
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.app-hawkins.rule=Host(`stager-hawkins.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+  #     - traefik.http.routers.app-hawkins.entrypoints=https
+  #     - traefik.http.routers.app-hawkins.middlewares=app
+  proxy:
+    image: traefik:2.5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "${PROJECT_ROOT:-.}/traefik:/etc/traefik"
+    command:
+      - --api.insecure
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/etc/traefik
+      - --providers.file.watch=false
+      - --accesslog
+      - --log
+      - --metrics.prometheus
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
+      - --entrypoints.http.address=:80
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.https.http.tls
+      - --entrypoints.https.address=:443
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - "${PROJECT_ROOT:-.}/nginx/conf.d:/etc/nginx/conf.d"
-      - "${PROJECT_ROOT:-.}/nginx/certs:/etc/nginx/certs"
+      - "8080:8080" # Traefik and Prometheus endpoint
     <<: *common
