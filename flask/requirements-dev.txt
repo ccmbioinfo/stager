@@ -14,10 +14,6 @@ attrs==21.2.0
     # via pytest
 authlib==0.15.5
     # via -r requirements.in
-backports.zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
 black==21.12b0
     # via -r requirements-dev.in
 certifi==2021.10.8
@@ -38,6 +34,14 @@ cryptography==36.0.1
     #   pymysql
 debugpy==1.5.1
     # via -r requirements-dev.in
+flask==2.0.2
+    # via
+    #   -r requirements.in
+    #   flask-login
+    #   flask-marshmallow
+    #   flask-migrate
+    #   flask-sqlalchemy
+    #   prometheus-flask-exporter
 flask-login==0.5.0
     # via -r requirements.in
 flask-marshmallow==0.14.0
@@ -48,24 +52,12 @@ flask-sqlalchemy==2.5.1
     # via
     #   -r requirements.in
     #   flask-migrate
-flask==2.0.2
-    # via
-    #   -r requirements.in
-    #   flask-login
-    #   flask-marshmallow
-    #   flask-migrate
-    #   flask-sqlalchemy
-    #   prometheus-flask-exporter
 greenlet==1.1.2
     # via sqlalchemy
 gunicorn==20.1.0
     # via -r requirements.in
 idna==3.3
     # via requests
-importlib-metadata==4.10.0
-    # via alembic
-importlib-resources==5.4.0
-    # via alembic
 iniconfig==1.1.1
     # via pytest
 isort==5.10.1
@@ -82,12 +74,12 @@ markupsafe==2.0.1
     # via
     #   jinja2
     #   mako
-marshmallow-sqlalchemy==0.27.0
-    # via -r requirements.in
 marshmallow==3.14.1
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
+marshmallow-sqlalchemy==0.27.0
+    # via -r requirements.in
 mccabe==0.6.1
     # via pylint
 minio==7.1.2
@@ -130,13 +122,13 @@ python-dateutil==2.8.2
     #   slurm-rest
 python-http-client==3.3.4
     # via sendgrid
-pytz-deprecation-shim==0.1.0.post0
-    # via tzlocal
 pytz==2021.3
     # via
     #   apscheduler
     #   pandas
-requests==2.26.0
+pytz-deprecation-shim==0.1.0.post0
+    # via tzlocal
+requests==2.27.1
     # via -r requirements.in
 sendgrid==6.9.3
     # via -r requirements.in
@@ -162,10 +154,7 @@ toml==0.10.2
 tomli==1.2.3
     # via black
 typing-extensions==4.0.1
-    # via
-    #   astroid
-    #   black
-    #   pylint
+    # via black
 tzdata==2021.5
     # via pytz-deprecation-shim
 tzlocal==4.1
@@ -179,10 +168,6 @@ werkzeug==2.0.2
     # via flask
 wrapt==1.13.3
     # via astroid
-zipp==3.6.0
-    # via
-    #   importlib-metadata
-    #   importlib-resources
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
