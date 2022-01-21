@@ -1,8 +1,13 @@
 __pycache__/
-.pytest_cache/
-tests/
 venv/
 *.pyc
+.devcontainer.json
+migration/
+pyvenv.cfg
+.coverage
+coverage.*
+.pytest_cache/
+tests/
 .dockerignore
 .gitignore
 Dockerfile

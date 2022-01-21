@@ -4,3 +4,5 @@ venv/
 .devcontainer.json
 migration/
 pyvenv.cfg
+.coverage
+coverage.*

@@ -4,3 +4,4 @@ black
 debugpy
 pylint
 pytest
+pytest-cov
