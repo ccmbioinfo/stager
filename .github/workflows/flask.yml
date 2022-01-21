@@ -55,7 +55,12 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
       - run: cp sample.env .env
       - name: Pytest
-        run: docker-compose run --rm app
+        run: docker-compose run --rm app pytest --cov=app --cov-report term-missing --cov-report xml
+      - uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+          files: ./flask/coverage.xml
+          flags: pytest
       - name: Black
         run: docker-compose run --rm app black --check
       - name: Stop services
