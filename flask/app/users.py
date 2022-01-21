@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from . import models
 from .extensions import db
 from .madmin import MinioAdmin
-from .schemas import UserSchema
+from .schemas import exclude_user, UserSchema
 from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
 
 
@@ -200,7 +200,13 @@ def create_user() -> Response:
     if not valid_strings(request.json, "password"):
         abort(400, description="Missing password")
 
-    result = user_schema.validate(request.json, session=db.session)
+    new_user = dict(
+        filter(
+            lambda x: hasattr(models.User(), x[0]) and x[0] not in exclude_user,
+            request.json.items(),
+        )
+    )
+    result = user_schema.validate(new_user, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

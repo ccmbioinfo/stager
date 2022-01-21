@@ -15,7 +15,7 @@ from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
-from .schemas import DatasetSchema
+from .schemas import exclude_dataset, RNASeqDatasetSchema
 from .utils import (
     check_admin,
     csv_response,
@@ -55,7 +55,7 @@ datasets_blueprint = Blueprint(
     __name__,
 )
 
-dataset_schema = DatasetSchema()
+dataset_schema = RNASeqDatasetSchema()
 
 
 @datasets_blueprint.route("/api/datasets", methods=["GET"], strict_slashes=False)
@@ -422,7 +422,14 @@ def delete_dataset(id: int):
 @validate_json
 def create_dataset():
 
-    result = dataset_schema.validate(request.json, session=db.session)
+    new_dataset = dict(
+        filter(
+            lambda x: hasattr(models.RNASeqDataset(), x[0])
+            and x[0] not in exclude_dataset,
+            request.json.items(),
+        )
+    )
+    result = dataset_schema.validate(new_dataset, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from .extensions import db
 from . import models
-from .schemas import FamilySchema
+from .schemas import exclude_family, FamilySchema
 from .utils import (
     check_admin,
     filter_datasets_by_user_groups,
@@ -254,7 +254,13 @@ def create_family():
         updated_by_id = 1
         created_by_id = 1
 
-    result = family_schema.validate(request.json, session=db.session)
+    row_family = dict(
+        filter(
+            lambda x: hasattr(models.Family(), x[0]) and not x[0] in exclude_family,
+            request.json.items(),
+        )
+    )
+    result = family_schema.validate(row_family, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

@@ -7,7 +7,7 @@ from minio import Minio
 from . import models
 from .extensions import db
 from .madmin import stager_buckets_policy
-from .schemas import GroupSchema
+from .schemas import exclude_group, GroupSchema
 from .utils import (
     check_admin,
     get_current_user,
@@ -177,7 +177,13 @@ def create_group():
     if type(request.json) is not dict:
         abort(400, description="Expected object")
 
-    result = group_schema.validate(request.json, session=db.session)
+    new_group = dict(
+        filter(
+            lambda x: hasattr(models.Group(), x[0]) and x[0] not in exclude_group,
+            request.json.items(),
+        )
+    )
+    result = group_schema.validate(new_group, session=db.session)
     if result:
         app.logger.error(jsonify(result))
         abort(400, description=result)

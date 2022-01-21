@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from .extensions import db
 from . import models
 from sqlalchemy.orm import contains_eager, joinedload
-from .schemas import TissueSampleSchema
+from .schemas import exclude_tissue_sample, TissueSampleSchema
 from .utils import (
     check_admin,
     filter_datasets_by_user_groups,
@@ -131,7 +131,15 @@ def delete_tissue_sample(id: int):
 @validate_json
 def create_tissue_sample():
 
-    result = tissue_sample_schema.validate(request.json, session=db.session)
+    row_tissue_sample = dict(
+        filter(
+            lambda x: hasattr(models.TissueSample(), x[0])
+            and x[0] not in exclude_tissue_sample,
+            request.json.items(),
+        )
+    )
+
+    result = tissue_sample_schema.validate(row_tissue_sample, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

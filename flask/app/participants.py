@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import models
 from .extensions import db
-from .schemas import ParticipantSchema
+from .schemas import exclude_participant, ParticipantSchema
 from .utils import (
     check_admin,
     csv_response,
@@ -384,7 +384,15 @@ def update_participant(id: int):
 @validate_json
 def create_participant():
 
-    result = participant_schema.validate(request.json, session=db.session)
+    row_participant = dict(
+        filter(
+            lambda x: hasattr(models.Participant(), x[0])
+            and not x[0] in exclude_participant,
+            request.json.items(),
+        )
+    )
+
+    result = participant_schema.validate(row_participant, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

@@ -10,14 +10,8 @@ from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
 from werkzeug.exceptions import BadRequest  # 400
-from . import models
+from . import models, schemas
 from .extensions import db, oauth
-from .schemas import (
-    DatasetSchema,
-    FamilySchema,
-    ParticipantSchema,
-    TissueSampleSchema,
-)
 from .utils import (
     get_current_user,
     transaction_or_abort,
@@ -30,10 +24,10 @@ import numpy as np
 
 routes = Blueprint("routes", __name__)
 
-family_schema = FamilySchema()
-participant_schema = ParticipantSchema()
-dataset_schema = DatasetSchema()
-tissue_sample_schema = TissueSampleSchema()
+family_schema = schemas.FamilySchema()
+participant_schema = schemas.ParticipantSchema()
+dataset_schema = schemas.RNASeqDatasetSchema()
+tissue_sample_schema = schemas.TissueSampleSchema()
 
 
 @routes.route("/api", strict_slashes=False)
@@ -373,7 +367,15 @@ def bulk_update():
     for i, row in enumerate(dat):
         app.logger.info("Start Record: %s", i)
 
-        error_family = family_schema.validate(row, session=db.session)
+        row_family = dict(
+            filter(
+                lambda x: hasattr(models.Family(), x[0])
+                and not x[0] in schemas.exclude_family,
+                row.items(),
+            )
+        )
+        error_family = family_schema.validate(row_family, session=db.session)
+
         if error_family:
             app.logger.error(jsonify(error_family))
             db.session.rollback()
@@ -433,7 +435,17 @@ def bulk_update():
         else:
             app.logger.debug("\tNo institution supplied")
 
-        error_participant = participant_schema.validate(row, session=db.session)
+        row_participant = dict(
+            filter(
+                lambda x: hasattr(models.Participant(), x[0])
+                and not x[0] in schemas.exclude_participant,
+                row.items(),
+            )
+        )
+
+        error_participant = participant_schema.validate(
+            row_participant, session=db.session
+        )
         if error_participant:
             app.logger.error(jsonify(error_participant))
             db.session.rollback()
@@ -501,8 +513,17 @@ def bulk_update():
                 400,
                 "One of the added datasets is a duplicate of an existing or added dataset.",
             )
+        row_tissue_sample = dict(
+            filter(
+                lambda x: hasattr(models.TissueSample(), x[0])
+                and x[0] not in schemas.exclude_tissue_sample,
+                row.items(),
+            )
+        )
 
-        error_tissue_sample = tissue_sample_schema.validate(row, session=db.session)
+        error_tissue_sample = tissue_sample_schema.validate(
+            row_tissue_sample, session=db.session
+        )
         if error_tissue_sample:
             app.logger.error(jsonify(error_tissue_sample))
             db.session.rollback()
@@ -523,7 +544,15 @@ def bulk_update():
         row["tissue_sample_id"] = tissue_sample.tissue_sample_id
         app.logger.debug("\tDone")
 
-        error_dataset = dataset_schema.validate(row, session=db.session)
+        row_dataset = dict(
+            filter(
+                lambda x: hasattr(models.RNASeqDataset(), x[0])
+                and not x[0] in schemas.exclude_dataset,
+                row.items(),
+            )
+        )
+
+        error_dataset = dataset_schema.validate(row_dataset, session=db.session)
         if error_dataset:
             app.logger.error(jsonify(error_dataset))
             db.session.rollback()
