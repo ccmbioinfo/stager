@@ -1,5 +1,7 @@
 # ![Stager](/react/src/assets/brand.png)
 
+[![codecov](https://codecov.io/gh/ccmbioinfo/stager/branch/master/graph/badge.svg?token=SQT23JSX3J)](https://codecov.io/gh/ccmbioinfo/stager)
+
 For more developer documentation, see [`docs/`](https://github.com/ccmbioinfo/stager/tree/master/docs/)
 
 ## Tech stack
