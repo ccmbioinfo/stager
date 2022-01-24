@@ -95,9 +95,7 @@ class MinioAdmin:
     def add_policy(self, name: str, policy: Union[str, Dict[str, Any]]) -> None:
         if not isinstance(policy, str):
             policy = json.dumps(policy)
-        file_name = os.path.normpath(os.path.join("/tmp/", "{name}.json"))
-        if not file_name.startswith("/tmp/"):
-            abort(400, description="Invalid file path.")
+        file_name = f"/tmp/{name}.json"
         with open(file_name, mode="w") as policy_file:
             policy_file.write(policy)
         self._exec(["policy", "add"], [name, file_name])
