@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import cast
 
 from . import models
 from .extensions import db
-from .schemas import AnalysisSchema, exclude_analysis
+from .schemas import AnalysisSchema
 from .slurm import run_pipeline
 from .utils import (
     check_admin,
@@ -25,6 +25,7 @@ from .utils import (
     paged,
     paginated_response,
     transaction_or_abort,
+    validate_filter_input,
     validate_json,
 )
 
@@ -378,14 +379,9 @@ analysis_schema = AnalysisSchema()
 @validate_json
 def create_analysis():
 
-    row_family = dict(
-        filter(
-            lambda x: hasattr(models.Analysis(), x[0]) and not x[0] in exclude_analysis,
-            request.json.items(),
-        )
-    )
+    new_analysis = validate_filter_input(request.json, models.Analysis)
 
-    result = analysis_schema.validate(row_family, session=db.session)
+    result = analysis_schema.validate(new_analysis, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

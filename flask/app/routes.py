@@ -9,13 +9,13 @@ from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import pandas as pd
 from sqlalchemy.orm import joinedload
-from werkzeug.exceptions import BadRequest  # 400
 from . import models, schemas
 from .extensions import db, oauth
 from .utils import (
     get_current_user,
     transaction_or_abort,
     validate_json,
+    validate_filter_input,
     update_last_login,
     find,
 )
@@ -367,13 +367,7 @@ def bulk_update():
     for i, row in enumerate(dat):
         app.logger.info("Start Record: %s", i)
 
-        row_family = dict(
-            filter(
-                lambda x: hasattr(models.Family(), x[0])
-                and not x[0] in schemas.exclude_family,
-                row.items(),
-            )
-        )
+        row_family = validate_filter_input(row, models.Family)
         error_family = family_schema.validate(row_family, session=db.session)
 
         if error_family:
@@ -435,13 +429,7 @@ def bulk_update():
         else:
             app.logger.debug("\tNo institution supplied")
 
-        row_participant = dict(
-            filter(
-                lambda x: hasattr(models.Participant(), x[0])
-                and not x[0] in schemas.exclude_participant,
-                row.items(),
-            )
-        )
+        row_participant = validate_filter_input(row, models.Participant)
 
         error_participant = participant_schema.validate(
             row_participant, session=db.session
@@ -513,13 +501,7 @@ def bulk_update():
                 400,
                 "One of the added datasets is a duplicate of an existing or added dataset.",
             )
-        row_tissue_sample = dict(
-            filter(
-                lambda x: hasattr(models.TissueSample(), x[0])
-                and x[0] not in schemas.exclude_tissue_sample,
-                row.items(),
-            )
-        )
+        row_tissue_sample = validate_filter_input(row, models.TissueSample)
 
         error_tissue_sample = tissue_sample_schema.validate(
             row_tissue_sample, session=db.session
@@ -544,12 +526,8 @@ def bulk_update():
         row["tissue_sample_id"] = tissue_sample.tissue_sample_id
         app.logger.debug("\tDone")
 
-        row_dataset = dict(
-            filter(
-                lambda x: hasattr(models.RNASeqDataset(), x[0])
-                and not x[0] in schemas.exclude_dataset,
-                row.items(),
-            )
+        row_dataset = validate_filter_input(
+            row, models.RNASeqDataset, ["discriminator", "linked_files"]
         )
 
         error_dataset = dataset_schema.validate(row_dataset, session=db.session)

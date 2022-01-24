@@ -7,7 +7,7 @@ from minio import Minio
 from . import models
 from .extensions import db
 from .madmin import stager_buckets_policy
-from .schemas import exclude_group, GroupSchema
+from .schemas import GroupSchema
 from .utils import (
     check_admin,
     get_current_user,
@@ -15,6 +15,7 @@ from .utils import (
     get_minio_client,
     transaction_or_abort,
     validate_json,
+    validate_filter_input,
 )
 
 
@@ -177,12 +178,7 @@ def create_group():
     if type(request.json) is not dict:
         abort(400, description="Expected object")
 
-    new_group = dict(
-        filter(
-            lambda x: hasattr(models.Group(), x[0]) and x[0] not in exclude_group,
-            request.json.items(),
-        )
-    )
+    new_group = validate_filter_input(request.json, models.Group)
     result = group_schema.validate(new_group, session=db.session)
     if result:
         app.logger.error(jsonify(result))

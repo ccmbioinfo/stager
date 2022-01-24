@@ -47,6 +47,17 @@ def get_mapper(entity: db.Model):
     return _mapper if isinstance(entity, DefaultMeta) else _mapper.mapper
 
 
+def validate_filter_input(
+    raw_input: Dict[str, Any], entity: db.Model, exclude: List[str] = []
+):
+    return dict(
+        filter(
+            lambda x: hasattr(entity(), x[0]) and not x[0] in exclude,
+            raw_input.items(),
+        )
+    )
+
+
 def validate_enums_and_set_fields(
     entity: db.Model,
     json_mixin: Dict[str, Any],

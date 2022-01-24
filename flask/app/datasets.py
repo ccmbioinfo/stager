@@ -15,7 +15,7 @@ from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
-from .schemas import exclude_dataset, RNASeqDatasetSchema
+from .schemas import RNASeqDatasetSchema
 from .utils import (
     check_admin,
     csv_response,
@@ -31,6 +31,7 @@ from .utils import (
     transaction_or_abort,
     str_to_bool,
     validate_enums_and_set_fields,
+    validate_filter_input,
     validate_json,
 )
 
@@ -422,12 +423,8 @@ def delete_dataset(id: int):
 @validate_json
 def create_dataset():
 
-    new_dataset = dict(
-        filter(
-            lambda x: hasattr(models.RNASeqDataset(), x[0])
-            and x[0] not in exclude_dataset,
-            request.json.items(),
-        )
+    new_dataset = validate_filter_input(
+        request.json, models.RNASeqDataset, ["discriminator", "linked_files"]
     )
     result = dataset_schema.validate(new_dataset, session=db.session)
 
@@ -466,6 +463,8 @@ def create_dataset():
     )
     # TODO: add stricter checks?
     if request.json.get("linked_files"):
+        if not type(request.json["linked_files"]) == List[str]:
+            abort(400, description="linked_files must be a list of paths.")
         for path in request.json["linked_files"]:
             dataset.linked_files.append(models.File(path=path))
     db.session.add(dataset)

@@ -5,12 +5,13 @@ from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from .extensions import db
 from . import models
-from .schemas import exclude_family, FamilySchema
+from .schemas import FamilySchema
 from .utils import (
     check_admin,
     filter_datasets_by_user_groups,
     get_current_user,
     validate_enums_and_set_fields,
+    validate_filter_input,
     validate_json,
     transaction_or_abort,
 )
@@ -254,12 +255,7 @@ def create_family():
         updated_by_id = 1
         created_by_id = 1
 
-    row_family = dict(
-        filter(
-            lambda x: hasattr(models.Family(), x[0]) and not x[0] in exclude_family,
-            request.json.items(),
-        )
-    )
+    row_family = validate_filter_input(request.json, models.Family)
     result = family_schema.validate(row_family, session=db.session)
 
     if result:
