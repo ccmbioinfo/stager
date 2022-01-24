@@ -49,6 +49,7 @@ class RNASeqDatasetSchema(SQLAlchemyAutoSchema):
     POST /api/datasets
     - created_by_id and updated_by_id is not given as part of the request body and should therefore be excluded from validation
     - discriminator field is populated automatically when a new dataset is inserted into the database.
+    - linked_files is excluded from validation because its validation needs to be handled differently in different endpoints.
     - valid tissue_sample_id is required for the dataset to be linked
     """
 
