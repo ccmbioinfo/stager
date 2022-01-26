@@ -51,6 +51,8 @@ class RNASeqDatasetSchema(SQLAlchemyAutoSchema):
     - discriminator field is populated automatically when a new dataset is inserted into the database.
     - linked_files is excluded from validation because its validation needs to be handled differently in different endpoints.
     - valid tissue_sample_id is required for the dataset to be linked
+    This schema is used to validate both Dataset model and RNASeqDataset model.
+    Since RNASeqDataset model extends from Dataset model, a separate DatasetSchema is not used.
     """
 
     class Meta:
