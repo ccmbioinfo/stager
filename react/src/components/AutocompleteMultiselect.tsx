@@ -34,7 +34,8 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
     noOptionsText,
 }: AutocompleteMultiselectProps<T>) {
     const [inputValue, setInputValue] = useState("");
-    const [removedOptions, setRemovedOptions] = useState<T[]>([]);
+
+    const isUnlinkedFileFolder = (path: string) => path.endsWith('/');
 
     return (
         <Autocomplete
@@ -53,21 +54,16 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
             disableClearable={true}
             disableCloseOnSelect
             onChange={(event, selectedOptions, reason, details) => {
-                if (reason === "remove-option") {
-                    removedOptions.push(details!.option);
-                    setRemovedOptions(removedOptions);
-                } else if (reason === "select-option") {
-                    setRemovedOptions(removedOptions.filter(v => v.path !== details!.option.path));
-                }
 
                 //prevent keypress events from propagating to parent listeners
                 event.stopPropagation();
                 if (selectedOptions && ["select-option", "remove-option"].includes(reason)) {
                     const latestOption = selectedOptions[selectedOptions.length - 1];
-                    if (latestOption && latestOption.path.endsWith("/")) {
+
+                    // If the option chosen is a folder, change the input value instead of selecting it as an option.
+                    if (latestOption && isUnlinkedFileFolder(latestOption.path)) {
                         setInputValue(latestOption.path);
                         if (onInputChange) {
-                            //if options are filtered dynamically
                             onInputChange(latestOption.path);
                         }
                     } else {
@@ -81,7 +77,7 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
             getOptionSelected={(option, value) =>
                 option[uniqueLabelPath] === value[uniqueLabelPath]
             }
-            options={[...new Set(options.concat(removedOptions))]}
+            options={options}
             filterOptions={createFilterOptions({
                 limit,
                 stringify: o => o[uniqueLabelPath],
