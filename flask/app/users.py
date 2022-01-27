@@ -9,13 +9,22 @@ from sqlalchemy.orm import joinedload
 from . import models
 from .extensions import db
 from .madmin import MinioAdmin
-from .utils import check_admin, get_minio_admin, transaction_or_abort, validate_json
+from .schemas import UserSchema
+from .utils import (
+    check_admin,
+    get_minio_admin,
+    transaction_or_abort,
+    validate_filter_input,
+    validate_json,
+)
 
 
 users_blueprint = Blueprint(
     "users",
     __name__,
 )
+
+user_schema = UserSchema()
 
 
 @users_blueprint.route("/api/users", methods=["GET"], strict_slashes=False)
@@ -193,29 +202,16 @@ def create_user() -> Response:
     Creates a new user and assigns them to any permission groups specified.
     Administrator-only.
     """
-    if type(request.json) is not dict:
-        abort(400, description="Expected object")
-    app.logger.debug(
-        "Validating username: '%s', email: '%s', and password: '%s'",
-        request.json.get("username"),
-        request.json.get("email"),
-        request.json.get("password"),
-    )
-    if not valid_strings(request.json, "username", "email", "password"):
-        abort(400, description="Missing fields")
-    if (
-        len(request.json["username"]) > models.User.username.type.length
-        or len(request.json["email"]) >= models.User.email.type.length
-    ):
-        app.logger.error(
-            "Username is longer than %s characters OR e-mail is longer than %s characters",
-            models.User.username.type.length,
-            models.User.email.type.length,
-        )
-        abort(400, description="Username or email too long")
-    if not verify_email(request.json["email"]):
-        app.logger.error("Email is not valid")
-        abort(400, description="Bad email")
+
+    if not valid_strings(request.json, "password"):
+        abort(400, description="Missing password")
+
+    new_user = validate_filter_input(request.json, models.User, ["password"])
+    result = user_schema.validate(new_user, session=db.session)
+
+    if result:
+        app.logger.error(jsonify(result))
+        abort(400, description=result)
 
     app.logger.debug(
         "Checking whether supplied username or email is found in the database."
@@ -235,31 +231,6 @@ def create_user() -> Response:
             {"location": f"/api/users/{quote(user.username)}"},
         )
 
-    # OAuth fields (optional)
-    subject = None
-    issuer = None
-    app.logger.info(
-        "Validating OAuth subject '%s', issuer '%s'",
-        request.json.get("subject"),
-        request.json.get("issuer"),
-    )
-    if (
-        valid_strings(request.json, "subject")
-        and len(request.json.get("subject")) <= models.User.subject.type.length
-    ):
-        subject = request.json.get("subject")
-    else:
-        app.logger.error("subject field is invalid, ignoring..")
-    if (
-        valid_strings(request.json, "issuer")
-        and len(request.json.get("issuer")) <= models.User.issuer.type.length
-    ):
-        issuer = request.json.get("issuer")
-    else:
-        app.logger.error(
-            "issuer field is invalid, ignoring..",
-        )
-
     app.logger.debug(
         "User is not found in database through username or email, begin adding user."
     )
@@ -267,8 +238,8 @@ def create_user() -> Response:
         username=request.json["username"],
         email=request.json["email"],
         is_admin=request.json.get("is_admin"),
-        subject=subject,
-        issuer=issuer,
+        subject=request.json.get("subject"),
+        issuer=request.json.get("issuer"),
     )
     app.logger.debug("Setting password to user..")
     user.set_password(request.json["password"])

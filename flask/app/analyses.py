@@ -25,6 +25,7 @@ from .utils import (
     paged,
     paginated_response,
     transaction_or_abort,
+    validate_filter_input,
     validate_json,
 )
 
@@ -378,7 +379,9 @@ analysis_schema = AnalysisSchema()
 @validate_json
 def create_analysis():
 
-    result = analysis_schema.validate(request.json, session=db.session)
+    new_analysis = validate_filter_input(request.json, models.Analysis)
+
+    result = analysis_schema.validate(new_analysis, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

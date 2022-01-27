@@ -11,6 +11,7 @@ from .utils import (
     filter_datasets_by_user_groups,
     get_current_user,
     validate_enums_and_set_fields,
+    validate_filter_input,
     validate_json,
     transaction_or_abort,
 )
@@ -254,7 +255,8 @@ def create_family():
         updated_by_id = 1
         created_by_id = 1
 
-    result = family_schema.validate(request.json, session=db.session)
+    row_family = validate_filter_input(request.json, models.Family)
+    result = family_schema.validate(row_family, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

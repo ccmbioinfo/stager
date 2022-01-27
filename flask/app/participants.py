@@ -26,6 +26,7 @@ from .utils import (
     str_to_bool,
     validate_enums_and_set_fields,
     validate_json,
+    validate_filter_input,
 )
 
 editable_columns = [
@@ -384,7 +385,8 @@ def update_participant(id: int):
 @validate_json
 def create_participant():
 
-    result = participant_schema.validate(request.json, session=db.session)
+    new_participant = validate_filter_input(request.json, models.Participant)
+    result = participant_schema.validate(new_participant, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))

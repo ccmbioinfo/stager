@@ -41,3 +41,5 @@ class Config(object):
     )
 
     MSTEAMS_WEBHOOK_URL = os.getenv("MSTEAMS_WEBHOOK_URL")
+
+    # LOGIN_DISABLED = True
