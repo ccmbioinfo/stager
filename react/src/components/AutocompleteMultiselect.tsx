@@ -35,7 +35,7 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
 }: AutocompleteMultiselectProps<T>) {
     const [inputValue, setInputValue] = useState("");
 
-    const isUnlinkedFileFolder = (path: string) => path.endsWith('/');
+    const isUnlinkedFileFolder = (path: string) => path.endsWith("/");
 
     return (
         <Autocomplete
@@ -54,7 +54,6 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
             disableClearable={true}
             disableCloseOnSelect
             onChange={(event, selectedOptions, reason, details) => {
-
                 //prevent keypress events from propagating to parent listeners
                 event.stopPropagation();
                 if (selectedOptions && ["select-option", "remove-option"].includes(reason)) {
