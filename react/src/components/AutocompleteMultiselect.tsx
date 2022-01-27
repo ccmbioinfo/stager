@@ -63,8 +63,17 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
                 //prevent keypress events from propagating to parent listeners
                 event.stopPropagation();
                 if (selectedOptions && ["select-option", "remove-option"].includes(reason)) {
-                    onSelect(selectedOptions);
-                    setInputValue("");
+                    const latestOption = selectedOptions[selectedOptions.length - 1];
+                    if (latestOption && latestOption.path.endsWith("/")) {
+                        setInputValue(latestOption.path);
+                        if (onInputChange) {
+                            //if options are filtered dynamically
+                            onInputChange(latestOption.path);
+                        }
+                    } else {
+                        onSelect(selectedOptions);
+                        setInputValue("");
+                    }
                 }
             }}
             renderOption={option => <span>{option[uniqueLabelPath]}</span>}
