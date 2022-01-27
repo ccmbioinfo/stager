@@ -9,13 +9,12 @@ from click.exceptions import ClickException
 
 from flask import Flask, current_app as app
 from flask.cli import with_appcontext
-from minio import Minio
 import pandas as pd
 from sqlalchemy import and_
 
 from app import models  # duplicated - how to best account for this
 from .extensions import db
-from .madmin import MinioAdmin, stager_buckets_policy
+from .madmin import stager_buckets_policy
 from .manage_keycloak import *
 
 # for report mapping and insertion
