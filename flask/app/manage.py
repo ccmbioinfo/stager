@@ -27,7 +27,7 @@ from .mapping_utils import (
     try_int,
 )
 from .models import *
-from .utils import get_minio_admin, stager_is_keycloak_admin
+from .utils import get_minio_admin, get_minio_client, stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
@@ -50,12 +50,7 @@ def register_commands(app: Flask) -> None:
 @click.command("migrate-minio-policies")
 @with_appcontext
 def migrate_minio_policies() -> None:
-    minio_client = Minio(
-        app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-        secure=False,
-    )
+    minio_client = get_minio_client()
     minio_admin = get_minio_admin()
     groups = models.Group.query.all()
     for group in groups:
@@ -571,17 +566,8 @@ def seed_pipelines(force: bool) -> None:
 
 def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
     if force or (Group.query.count() == 0 and User.query.count() == 1):  # default admin
-        minio_client = Minio(
-            app.config["MINIO_ENDPOINT"],
-            access_key=app.config["MINIO_ACCESS_KEY"],
-            secret_key=app.config["MINIO_SECRET_KEY"],
-            secure=False,
-        )
-        minio_admin = MinioAdmin(
-            endpoint=app.config["MINIO_ENDPOINT"],
-            access_key=app.config["MINIO_ACCESS_KEY"],
-            secret_key=app.config["MINIO_SECRET_KEY"],
-        )
+        minio_client = get_minio_client()
+        minio_admin = get_minio_admin()
         groups = {
             "c4r": "Care4Rare",
             "cheo": "Children's Hospital of Eastern Ontario",
@@ -733,17 +719,8 @@ def update_user(username, issuer, subject):
 def add_hiraki_group(force: bool) -> None:
     if len(db.session.query(Group).all()) != 0:
         return
-    minio_client = Minio(
-        app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-        secure=False,
-    )
-    minio_admin = MinioAdmin(
-        endpoint=app.config["MINIO_ENDPOINT"],
-        access_key=app.config["MINIO_ACCESS_KEY"],
-        secret_key=app.config["MINIO_SECRET_KEY"],
-    )
+    minio_client = get_minio_client()
+    minio_admin = get_minio_admin()
     # group code/name pairs
     code = "griid"
     name = "Genetic Research in Inflammatory and Immune Disorders"
