@@ -15,7 +15,7 @@ from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from . import models
 from .extensions import db
-from .schemas import DatasetSchema
+from .schemas import RNASeqDatasetSchema
 from .utils import (
     check_admin,
     csv_response,
@@ -31,6 +31,7 @@ from .utils import (
     transaction_or_abort,
     str_to_bool,
     validate_enums_and_set_fields,
+    validate_filter_input,
     validate_json,
 )
 
@@ -55,7 +56,7 @@ datasets_blueprint = Blueprint(
     __name__,
 )
 
-dataset_schema = DatasetSchema()
+dataset_schema = RNASeqDatasetSchema()
 
 
 @datasets_blueprint.route("/api/datasets", methods=["GET"], strict_slashes=False)
@@ -422,7 +423,10 @@ def delete_dataset(id: int):
 @validate_json
 def create_dataset():
 
-    result = dataset_schema.validate(request.json, session=db.session)
+    new_dataset = validate_filter_input(
+        request.json, models.RNASeqDataset, ["discriminator", "linked_files"]
+    )
+    result = dataset_schema.validate(new_dataset, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))
@@ -459,6 +463,8 @@ def create_dataset():
     )
     # TODO: add stricter checks?
     if request.json.get("linked_files"):
+        if not type(request.json["linked_files"]) == List[str]:
+            abort(400, description="linked_files must be a list of paths.")
         for path in request.json["linked_files"]:
             dataset.linked_files.append(models.File(path=path))
     db.session.add(dataset)

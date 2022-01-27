@@ -210,7 +210,7 @@ def test_create_group(test_database, client, login_as, minio_admin):
             "/api/groups",
             json={"group_code": "sk", "group_name": "Invalid s3 bucket name"},
         ).status_code
-        == 422
+        == 400
     )
 
     num_prev_policies = len(minio_admin.list_policies())

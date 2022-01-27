@@ -310,7 +310,7 @@ def test_post_bulk_user(test_database, client, login_as):
             "/api/_bulk?groups=ach",
             json=[DEFAULT_PAYLOAD],
         ).status_code
-        == 401
+        == 404
     )
     login_as("user_a")
     # Test multiple permission groups, none specified

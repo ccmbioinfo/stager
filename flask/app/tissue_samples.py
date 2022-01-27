@@ -13,6 +13,7 @@ from .utils import (
     transaction_or_abort,
     validate_enums_and_set_fields,
     validate_json,
+    validate_filter_input,
 )
 
 
@@ -131,7 +132,9 @@ def delete_tissue_sample(id: int):
 @validate_json
 def create_tissue_sample():
 
-    result = tissue_sample_schema.validate(request.json, session=db.session)
+    new_tissue_sample = validate_filter_input(request.json, models.TissueSample)
+
+    result = tissue_sample_schema.validate(new_tissue_sample, session=db.session)
 
     if result:
         app.logger.error(jsonify(result))
