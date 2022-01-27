@@ -1,10 +1,9 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from csv import DictReader
 from io import StringIO
 from pytest import raises
-
-from flask import current_app as app
 from flask.wrappers import Request
+from flask import request
 from sqlalchemy.orm import joinedload
 from werkzeug.exceptions import BadRequest
 
@@ -554,27 +553,22 @@ def test_filter_datasets_by_user_groups(test_database):
     assert len(filtered_query.all()) == 1
 
 
-@patch("app.utils.request")
-def test_must_pass_in_user_arguement_if_login_disabled(
-    mock_request, application, test_database
-):
+def test_must_pass_in_user_arguement_if_login_disabled(application, test_database):
     """do we get a 400 if log in is disabled and no user argument is passed in?"""
     application.config["LOGIN_DISABLED"] = True
 
     """ no user argument """
-    mock_request.args.get.return_value = None
-    with raises(BadRequest):
-        get_current_user()
-    """ sanity check that the mock actually got passed the `user` key """
-    assert mock_request.args.get.call_args == (("user",),)
+    with application.test_request_context("/api"):
+        with raises(BadRequest):
+            get_current_user()
 
     """ invalid user argument """
-    mock_request.args.get.return_value = 0
-    with raises(BadRequest):
-        get_current_user()
+    with application.test_request_context("/api/?user=0"):
+        with raises(BadRequest):
+            get_current_user()
 
     """ valid user argument """
-    mock_request.args.get.return_value = 1
-    assert get_current_user().user_id == 1
+    with application.test_request_context("/api/?user=1"):
+        assert get_current_user().user_id == 1
 
     application.config["LOGIN_DISABLED"] = False
