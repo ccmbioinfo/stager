@@ -1,6 +1,6 @@
 # Production image. Runs a Gunicorn WSGI server.
 FROM minio/mc:RELEASE.2021-12-10T00-14-28Z AS mc
-FROM python:3.8-slim
+FROM python:3.7-slim
 ARG GIT_SHA
 LABEL org.opencontainers.image.title Stager production
 LABEL org.opencontainers.image.authors https://ccm.sickkids.ca/
