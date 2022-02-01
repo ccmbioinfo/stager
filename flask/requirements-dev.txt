@@ -14,7 +14,7 @@ attrs==21.2.0
     # via pytest
 authlib==0.15.5
     # via -r requirements.in
-black==21.12b0
+black==22.1.0
     # via -r requirements-dev.in
 certifi==2021.10.8
     # via
@@ -28,6 +28,8 @@ click==8.0.3
     # via
     #   black
     #   flask
+coverage[toml]==6.3
+    # via pytest-cov
 cryptography==36.0.1
     # via
     #   authlib
@@ -115,7 +117,9 @@ pymysql[rsa]==1.0.2
 pyparsing==3.0.6
     # via packaging
 pytest==6.2.5
-    # via -r requirements-dev.in
+    # via
+    #   -r requirements-dev.in
+    #   pytest-cov
 pytest-cov==3.0.0
     # via -r requirements-dev.in
 python-dateutil==2.8.2
@@ -154,9 +158,9 @@ toml==0.10.2
     #   pylint
     #   pytest
 tomli==1.2.3
-    # via black
-typing-extensions==4.0.1
-    # via black
+    # via
+    #   black
+    #   coverage
 tzdata==2021.5
     # via pytz-deprecation-shim
 tzlocal==4.1
