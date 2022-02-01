@@ -170,7 +170,7 @@ def stager_buckets_policy(*buckets: str) -> Dict[str, Any]:
                     "s3:GetBucketNotification",
                     "s3:PutBucketNotification",
                     "s3:ListenNotification",
-                    "s3:ListenBucketNotification"
+                    "s3:ListenBucketNotification",
                 ],
                 "Resource": arns,
             },
