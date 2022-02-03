@@ -11,17 +11,17 @@ The [Centre for Computational Medicine](https://ccm.sickkids.ca/) at SickKids su
 
 Access to Stager is restricted to team members who provide data and metadata or perform data analysis. Key features of Stager are:
 
-- Viewing and editing metadata for participants and datasets
-- Uploading new metadata for participants and datasets
-- Uploading dataset files and linking them to the metadata
-- Requesting analyses for datasets
-- Viewing aggregated analysis reports in the variant viewer
+-   Viewing and editing metadata for participants and datasets
+-   Uploading new metadata for participants and datasets
+-   Uploading dataset files and linking them to the metadata
+-   Requesting analyses for datasets
+-   Viewing aggregated analysis reports in the variant viewer
 
 ## Tech stack
 
 The browser single-page application frontend is written in [TypeScript](https://www.typescriptlang.org/docs) with the [React](https://reactjs.org/docs/getting-started.html) library, bootstrapped via [Create React App](https://create-react-app.dev/docs/getting-started/), and uses [Material-UI](https://v4.mui.com/) for theming.
 
-The backend is containerized with Docker and written in Python 3.7 with the [Flask]((https://flask.palletsprojects.com/)) microframework and [SQLAlchemy](https://docs.sqlalchemy.org/) object-relational mapper, presenting a RESTful API to the frontend.
+The backend is containerized with Docker and written in Python 3.9 with the [Flask](<(https://flask.palletsprojects.com/)>) microframework and [SQLAlchemy](https://docs.sqlalchemy.org/) object-relational mapper, presenting a RESTful API to the frontend.
 
 A [MySQL 8.0](https://dev.mysql.com/doc/refman/8.0/en/) database stores the aforementioned dataset and analysis metadata
 
@@ -33,6 +33,6 @@ For more developer documentation, see [`docs/`](https://github.com/ccmbioinfo/st
 
 ### Required tools and editors
 
-- [Git](https://git-scm.com/doc)
-- [Docker](https://docs.docker.com/engine/install/) and [Compose](https://docs.docker.com/compose/install/)
-- [Visual Studio Code](https://code.visualstudio.com/) or [PyCharm](https://www.jetbrains.com/pycharm/)
+-   [Git](https://git-scm.com/doc)
+-   [Docker](https://docs.docker.com/engine/install/) and [Compose](https://docs.docker.com/compose/install/)
+-   [Visual Studio Code](https://code.visualstudio.com/) or [PyCharm](https://www.jetbrains.com/pycharm/)

@@ -1,8 +1,7 @@
 # [Flask](https://flask.palletsprojects.com/) application backend server
 
-Flask is a microframework for writing web applications in Python. At the time of
-project initialization, it did not support Python 3.8 yet, so we are using
-Python 3.7.
+Flask is a microframework for writing web applications in Python. We are using
+Python 3.9.
 
 Using [Docker](https://github.com/ccmbioinfo/stager/blob/master/docs/docker.md)
 will automatically set everything up for you and works well in general. For some
@@ -10,7 +9,7 @@ specific debugging and database purposes, you may need to set up a virtualenv.
 
 ## Setting up in a virtualenv
 
-First, you will need Python 3.7, pip, and virtualenv. To create a virtualenv,
+First, you will need Python 3.9, pip, and virtualenv. To create a virtualenv,
 switch to the `flask` directory and run one of the following commands,
 depending on how your Python installation is set up.
 
@@ -52,8 +51,8 @@ need the startup helper script. The module it should use is `wsgi`.
 
 The run script supports setting environment variables PYTHON and COMMAND to
 choose your Python interpreter. By default, it runs `python3 -m flask`, but you
-can set `COMMAND=flask` to have it call `flask` directly, or `PYTHON=python3.7`
-to have it run `python3.7 -m flask`, for example.
+can set `COMMAND=flask` to have it call `flask` directly, or `PYTHON=python3.9`
+to have it run `python3.9 -m flask`, for example.
 
 ## Adding or updating dependencies
 
