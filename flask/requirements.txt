@@ -92,7 +92,7 @@ pytz-deprecation-shim==0.1.0.post0
     # via tzlocal
 requests==2.27.1
     # via -r requirements.in
-sendgrid==6.9.3
+sendgrid==6.9.5
     # via -r requirements.in
 six==1.16.0
     # via
