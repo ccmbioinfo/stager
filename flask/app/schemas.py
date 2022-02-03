@@ -1,6 +1,5 @@
-from typing_extensions import Required
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import fields, ValidationError
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow.validate import And, Length, Range, Regexp
 from .models import *
 
