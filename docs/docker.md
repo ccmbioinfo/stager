@@ -6,7 +6,7 @@ Docker containers for easy setup and [cleanup](#resetting-bind-mounts). Follow t
 install Docker and Compose, and read their documentation to learn more about these tools.
 
 Copy `sample.env` to `.env` and edit it to add your choice of credentials for the local servers.
-Set ```ENABLE_OIDC=``` to blank (empty). These can be overridden by your environment variables and
+Set `ENABLE_OIDC=` to blank (empty). These can be overridden by your environment variables and
 are used by Compose when starting a stack of containers from any of the `docker-compose*.yaml` in the project root.
 
 To start the backend stack for development, run:
@@ -49,7 +49,7 @@ If you need to do this, you should instead use:
 docker-compose up --build
 ```
 
-If the base `python:3.7-slim` or `minio/mc` images are updated, this will not check for updates and
+If the base `python:3.9-slim` or `minio/mc` images are updated, this will not check for updates and
 will continue to use your local tags. To use the latest base image from Docker Hub, instead run:
 
 ```bash
