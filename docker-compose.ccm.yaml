@@ -106,4 +106,4 @@ services:
       - --entrypoints.https.http.tls
       - --entrypoints.traefik.address=:8443
       - --entrypoints.traefik.http.tls
-    #<<: *common
+    <<: *common
