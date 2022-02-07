@@ -1,0 +1,10 @@
+http:
+  routers:
+    api:
+      entrypoints:
+        - traefik
+      middlewares:
+        - security
+      service: api@internal
+      rule: Host(`stager.ccm.sickkids.ca`)
+      tls: {}
