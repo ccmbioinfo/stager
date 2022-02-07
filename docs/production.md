@@ -10,13 +10,23 @@ reverse proxy, rather than by the Create React App/Webpack development server. T
 
 ## [WSGI and Gunicorn](https://gunicorn.org/#docs)
 
-The Flask server is single-process and single-threaded. With the Python global interpreter lock,
-even with development mode disabled, this is unsuitable for most production loads. Flask conforms
-to a Python web server interface standard (WSGI), so we run a Gunicorn server in production, built
-off of the `Dockerfile` in the root directory instead of the `flask` directory. Note that the
-source code is no longer mounted but baked into the image.
+The Flask server is a single process and single-threaded. In development mode, it enables remote
+code execution for debugging. Even with development mode disabled, with Python's global
+interpreter lock, this is unsuitable for most production loads. Flask conforms to a standard Python
+[Web Server Gateway Interface (WSGI)](https://wsgi.readthedocs.io/en/latest/), so we can take the
+application code and run it with a Gunicorn server in production to have multiple processes handle
+incoming requests.
 
-There is no specific reason Gunicorn is being used over other WSGI implementations.
+The production Docker image is built using the `Dockerfile` in the root directory instead of the
+`flask` directory, to run a Gunicorn server instead. The source code is not mounted as in
+development, but baked into the image. Additional development dependencies are also not included.
+Since Gunicorn runs a master process that spawns a configurable number of worker processes, metrics
+cannot be tracked by each individual worker process. Instead, `prometheus-flask-exporter` aggregates
+the metrics for the master process to serve on a separate port 8080. See `gunicorn.conf.py`.
+
+There is no specific reason Gunicorn is being used over other WSGI implementations. You can test how
+the Gunicorn server works in development by starting the `app_gunicorn` container instead of the
+default `app` container.
 
 ## Static frontend
 
@@ -50,6 +60,7 @@ Other needed services like MySQL and MinIO are separately already running in the
 tenancy serves the uploaded frontend and routes `/api` on the same domain to the backend container.
 
 More information on the deployments in this tenancy are at https://github.com/ccmbioinfo/cheo-ri-infrastructure.
+The network diagram is in internal documentation.
 
 ## [CCM multitenant deployment](https://stager.ccm.sickkids.ca)
 
@@ -62,5 +73,8 @@ for the app. A Traefik reverse proxy handles all the domains and is responsible 
 frontend and routing to each backend, including enabling Cross-Origin Resource Sharing.
 
 The Compose configuration is at [docker-compose.ccm.yaml](/docker-compose.ccm.yaml). For the time being,
-we must clone the repository to the production host in order to have the Traefik configuration and
+we must clone the repository to the production host in order to have the Traefik dynamic configuration and
 TLS certificates mounted in `traefik/certs`.
+
+Traefik is also serves a separate dashboard and its own metrics on a custom port. It is configured
+to use this same port to reverse proxy the Prometheus metrics for the backend domains.
