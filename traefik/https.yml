@@ -15,14 +15,13 @@ tls:
         keyFile: /etc/traefik/certs/star_ccm_sickkids_ca.key
 http:
   routers:
-    redirect:
-      entryPoints:
-        - https
-      middlewares:
-        - redirect
+    # Redirect HTTPS requests on port 80 to the correct port
+    redirect-invalid-http:
+      entrypoints: http
+      middlewares: redirect
       rule: HostRegexp(`{host:.+}`)
       service: noop@internal
-      tls: false
+      tls: {}
   middlewares:
     redirect:
       redirectScheme:

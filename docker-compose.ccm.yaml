@@ -6,7 +6,7 @@ x-common: &common
     driver: journald
 
 x-app: &app
-  image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
+  image: "ghcr.io/ccmbioinfo/stager"
   user: www-data
   command: --preload --workers ${GUNICORN_WORKERS:-1}
   healthcheck:
@@ -23,27 +23,30 @@ services:
     <<: *app
     environment:
       <<: *env
-      ST_SECRET_KEY: "${HIRAKI_ST_SECRET_KEY}"
-      ST_DATABASE_URI: "mysql+pymysql://${HIRAKI_MYSQL_CONNECTION_STRING}"
-      MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
-      MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
-      MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"
+      ST_SECRET_KEY:
+      ST_DATABASE_URI: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY:
+      MINIO_SECRET_KEY:
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.app-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
-      - traefik.http.routers.app-hiraki.entrypoints=https
-      - traefik.http.routers.app-hiraki.middlewares=app,security@file
-      - traefik.http.routers.app-hiraki.service=app-hiraki
-      - traefik.http.services.app-hiraki.loadbalancer.server.port=5000
-      - traefik.http.routers.metrics-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/metrics`)
-      - traefik.http.routers.metrics-hiraki.entrypoints=traefik
-      - traefik.http.routers.metrics-hiraki.middlewares=security@file
-      - traefik.http.routers.metrics-hiraki.service=metrics-hiraki
-      - traefik.http.services.metrics-hiraki.loadbalancer.server.port=8080
-      - traefik.http.middlewares.app.headers.accessControlAllowOriginList=https://stager.ccm.sickkids.ca
-      - traefik.http.middlewares.app.headers.accessControlAllowMethods=GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
-      - traefik.http.middlewares.app.headers.accessControlAllowHeaders=Accept,Content-Type
-      - traefik.http.middlewares.app.headers.accessControlAllowCredentials=true
+      traefik.enable: true
+      # Routing for the main application server
+      traefik.http.routers.app-hiraki.rule: Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+      traefik.http.routers.app-hiraki.entrypoints: https
+      traefik.http.routers.app-hiraki.middlewares: app,security@file
+      traefik.http.routers.app-hiraki.service: app-hiraki
+      traefik.http.services.app-hiraki.loadbalancer.server.port: 5000
+      # Routing for the Prometheus metrics endpoint
+      traefik.http.routers.metrics-hiraki.rule: Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/metrics`)
+      traefik.http.routers.metrics-hiraki.entrypoints: traefik
+      traefik.http.routers.metrics-hiraki.middlewares: security@file
+      traefik.http.routers.metrics-hiraki.service: metrics-hiraki
+      traefik.http.services.metrics-hiraki.loadbalancer.server.port: 8080
+      # Shared CORS middleware between services
+      traefik.http.middlewares.app.headers.accessControlAllowOriginList: https://stager.ccm.sickkids.ca
+      traefik.http.middlewares.app.headers.accessControlAllowMethods: GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
+      traefik.http.middlewares.app.headers.accessControlAllowHeaders: Accept,Content-Type
+      traefik.http.middlewares.app.headers.accessControlAllowCredentials: true
   app-muise:
     <<: *app
     environment:
@@ -54,15 +57,19 @@ services:
       MINIO_ACCESS_KEY: "${MUISE_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MUISE_MINIO_SECRET_KEY}"
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.app-muise.rule=Host(`stager-muise.ccm.sickkids.ca`) # && PathPrefix(`/api`)
-      - traefik.http.routers.app-muise.entrypoints=https
-      - traefik.http.routers.app-muise.middlewares=app,security@file
-      - traefik.http.services.app-muise.loadbalancer.server.port=5000
-      - traefik.http.routers.metrics-muise.rule=Host(`stager-muise.ccm.sickkids.ca`)
-      - traefik.http.routers.metrics-muise.entrypoints=traefik
-      - traefik.http.routers.metrics-muise.middlewares=security@file
-      - traefik.http.services.metrics-muise.loadbalancer.server.port=8080
+      traefik.enable: true
+      # Routing for the main application server
+      traefik.http.routers.app-muise.rule: Host(`stager-muise.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+      traefik.http.routers.app-muise.entrypoints: https
+      traefik.http.routers.app-muise.middlewares: app,security@file
+      traefik.http.routers.app-muise.service: app-muise
+      traefik.http.services.app-muise.loadbalancer.server.port: 5000
+      # Routing for the Prometheus metrics endpoint
+      traefik.http.routers.metrics-muise.rule: Host(`stager-muise.ccm.sickkids.ca`) # && PathPrefix(`/metrics`)
+      traefik.http.routers.metrics-muise.entrypoints: traefik
+      traefik.http.routers.metrics-muise.middlewares: security@file
+      traefik.http.routers.metrics-muise.service: metrics-muise
+      traefik.http.services.metrics-muise.loadbalancer.server.port: 8080
   # app-hawkins:
   #   <<: *app
   #   environment:
@@ -73,15 +80,19 @@ services:
   #     MINIO_ACCESS_KEY: "${HAWKINS_MINIO_ACCESS_KEY}"
   #     MINIO_SECRET_KEY: "${HAWKINS_MINIO_SECRET_KEY}"
   #   labels:
-  #     - traefik.enable=true
-  #     - traefik.http.routers.app-hawkins.rule=Host(`stager-hawkins.ccm.sickkids.ca`) # && PathPrefix(`/api`)
-  #     - traefik.http.routers.app-hawkins.entrypoints=https
-  #     - traefik.http.routers.app-hawkins.middlewares=app,security
-  #     - traefik.http.routers.app-hawkins.middlewares=app,security
-  #     - traefik.http.routers.metrics-hawkins.rule=Host(`stager-hawkins.ccm.sickkids.ca`)
-  #     - traefik.http.routers.metrics-hawkins.entrypoints=traefik
-  #     - traefik.http.routers.metrics-hawkins.middlewares=security
-  #     - traefik.http.services.metrics-hawkins.loadbalancer.server.port=8080
+  #     traefik.enable: true
+  #     # Routing for the main application server
+  #     traefik.http.routers.app-hawkins.rule: Host(`stager-hawkins.ccm.sickkids.ca`) # && PathPrefix(`/api`)
+  #     traefik.http.routers.app-hawkins.entrypoints: https
+  #     traefik.http.routers.app-hawkins.middlewares: app,security@file
+  #     traefik.http.routers.app-hawkins.service: app-hawkins
+  #     traefik.http.services.app-hawkins.loadbalancer.server.port: 5000
+  #     # Routing for the Prometheus metrics endpoint
+  #     traefik.http.routers.metrics-hawkins.rule: Host(`stager-hawkins.ccm.sickkids.ca`) # && PathPrefix(`/metrics`)
+  #     traefik.http.routers.metrics-hawkins.entrypoints: traefik
+  #     traefik.http.routers.metrics-hawkins.middlewares: security@file
+  #     traefik.http.routers.metrics-hawkins.service: metrics-hawkins
+  #     traefik.http.services.metrics-hawkins.loadbalancer.server.port: 8080
   proxy:
     image: traefik:2.6
     volumes:
@@ -96,7 +107,7 @@ services:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --providers.file.directory=/etc/traefik
-      - --providers.file.watch=false
+      # - --providers.file.watch=false
       - --accesslog
       - --log
       - --metrics.prometheus

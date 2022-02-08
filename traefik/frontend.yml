@@ -1,8 +1,7 @@
 http:
   routers:
     frontend:
-      entryPoints:
-        - https
+      entrypoints: https
       middlewares:
         - security
         - singlePageApplication
