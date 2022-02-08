@@ -6,5 +6,15 @@ http:
       middlewares:
         - security
       service: api@internal
-      rule: Host(`stager.ccm.sickkids.ca`)
+      rule: PathPrefix(`/`)
+      tls: {}
+    # This is essentially identical to the automatic router, but the default one
+    # has higher priority than the other routers we want to bind for some reason
+    prometheus:
+      entrypoints:
+        - traefik
+      middlewares:
+        - security
+      service: prometheus@internal
+      rule: PathPrefix(`/metrics`)
       tls: {}

@@ -32,11 +32,13 @@ services:
       - traefik.enable=true
       - traefik.http.routers.app-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/api`)
       - traefik.http.routers.app-hiraki.entrypoints=https
-      - traefik.http.routers.app-hiraki.middlewares=app,security
+      - traefik.http.routers.app-hiraki.middlewares=app,security@file
+      - traefik.http.routers.app-hiraki.service=app-hiraki
       - traefik.http.services.app-hiraki.loadbalancer.server.port=5000
-      - traefik.http.routers.metrics-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`)
+      - traefik.http.routers.metrics-hiraki.rule=Host(`stager-hiraki.ccm.sickkids.ca`) # && PathPrefix(`/metrics`)
       - traefik.http.routers.metrics-hiraki.entrypoints=traefik
-      - traefik.http.routers.metrics-hiraki.middlewares=security
+      - traefik.http.routers.metrics-hiraki.middlewares=security@file
+      - traefik.http.routers.metrics-hiraki.service=metrics-hiraki
       - traefik.http.services.metrics-hiraki.loadbalancer.server.port=8080
       - traefik.http.middlewares.app.headers.accessControlAllowOriginList=https://stager.ccm.sickkids.ca
       - traefik.http.middlewares.app.headers.accessControlAllowMethods=GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
@@ -55,11 +57,11 @@ services:
       - traefik.enable=true
       - traefik.http.routers.app-muise.rule=Host(`stager-muise.ccm.sickkids.ca`) # && PathPrefix(`/api`)
       - traefik.http.routers.app-muise.entrypoints=https
-      - traefik.http.routers.app-muise.middlewares=app,security
+      - traefik.http.routers.app-muise.middlewares=app,security@file
       - traefik.http.services.app-muise.loadbalancer.server.port=5000
       - traefik.http.routers.metrics-muise.rule=Host(`stager-muise.ccm.sickkids.ca`)
       - traefik.http.routers.metrics-muise.entrypoints=traefik
-      - traefik.http.routers.metrics-muise.middlewares=security
+      - traefik.http.routers.metrics-muise.middlewares=security@file
       - traefik.http.services.metrics-muise.loadbalancer.server.port=8080
   # app-hawkins:
   #   <<: *app
@@ -81,7 +83,7 @@ services:
   #     - traefik.http.routers.metrics-hawkins.middlewares=security
   #     - traefik.http.services.metrics-hawkins.loadbalancer.server.port=8080
   proxy:
-    image: traefik:2.5
+    image: traefik:2.6
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "${PROJECT_ROOT:-.}/traefik:/etc/traefik"
@@ -98,6 +100,7 @@ services:
       - --accesslog
       - --log
       - --metrics.prometheus
+      - --metrics.prometheus.manualrouting
       - --global.checknewversion=false
       - --global.sendanonymoususage=false
       - --entrypoints.http.address=:80
