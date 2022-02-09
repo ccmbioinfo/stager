@@ -1,4 +1,4 @@
-name: Rollback backend
+name: Roll back backend
 on:
   workflow_dispatch:
     inputs:
