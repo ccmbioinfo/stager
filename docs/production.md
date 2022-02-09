@@ -76,5 +76,5 @@ The Compose configuration is at [docker-compose.ccm.yaml](/docker-compose.ccm.ya
 we must clone the repository to the production host in order to have the Traefik dynamic configuration and
 TLS certificates mounted in `traefik/certs`.
 
-Traefik is also serves a separate dashboard and its own metrics on a custom port. It is configured
+Traefik also serves a separate dashboard and its own metrics on a custom port. It is configured
 to use this same port to reverse proxy the Prometheus metrics for the backend domains.
