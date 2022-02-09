@@ -1,8 +1,7 @@
 http:
   routers:
     frontend:
-      entryPoints:
-        - https
+      entrypoints: https
       middlewares:
         - security
         - singlePageApplication
@@ -26,5 +25,8 @@ http:
         replacement: /index.html
     security:
       headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        contentSecurityPolicy: block-all-mixed-content
         frameDeny: true
         browserXssFilter: true
