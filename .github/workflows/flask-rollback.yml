@@ -2,8 +2,9 @@ name: Rollback backend
 on:
   workflow_dispatch:
     inputs:
-      revision: GitHub commit SHA
-      required: true
+      revision:
+        description: GitHub commit SHA
+        required: true
 jobs:
   # Largely identical to deploy step in flask.yml except prerequisites
   deploy:
