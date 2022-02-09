@@ -35,7 +35,6 @@ on:
     paths:
       - .github/workflows/react.yml
       - react/**/*
-
 defaults:
   run:
     working-directory: react
