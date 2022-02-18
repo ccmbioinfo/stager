@@ -19,6 +19,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Cancel in-progress build jobs for the current workflow so we're not wasting
+    # time on outdated builds. This isn't scoped to the entire workflow as cancelling
+    # an in-progress deploy could have unforeseen consequences.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-only-cancel-in-progress-jobs-or-runs-for-the-current-workflow
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     env:
       COMPOSE_FILE: docker-compose.test.yaml
     steps:
