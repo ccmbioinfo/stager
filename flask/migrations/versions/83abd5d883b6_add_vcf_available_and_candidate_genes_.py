@@ -8,10 +8,6 @@ Create Date: 2021-09-13 20:19:38.571891
 from alembic import op
 import sqlalchemy as sa
 
-from app.models import Pipeline
-from app.extensions import db
-
-
 # revision identifiers, used by Alembic.
 revision = "83abd5d883b6"
 down_revision = "b7e6ad115b13"
@@ -27,16 +23,7 @@ def upgrade():
         "rnaseq_dataset", sa.Column("vcf_available", sa.Boolean(), nullable=True)
     )
 
-    dig2 = Pipeline.query.filter_by(pipeline_name="dig2").first()
-    if dig2:
-        dig2.pipeline_name = "RNAseq"
-        db.session.commit()
-
 
 def downgrade():
     op.drop_column("rnaseq_dataset", "vcf_available")
     op.drop_column("rnaseq_dataset", "candidate_genes")
-    rnaSeq = Pipeline.query.filter_by(pipeline_name="RNAseq").first()
-    if rnaSeq:
-        rnaSeq.pipeline_name = "dig2"
-        db.session.commit()
