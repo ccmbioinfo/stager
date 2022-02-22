@@ -175,24 +175,6 @@ def test_database(client):
     db.session.add(user_c)
     db.session.flush()
 
-    pipeline_1 = Pipeline(pipeline_id=1, pipeline_name="CRG", pipeline_version="1.2")
-    db.session.add(pipeline_1)
-    pipeline_2 = Pipeline(pipeline_id=2, pipeline_name="CRE", pipeline_version="1.1")
-    db.session.add(pipeline_2)
-    db.session.flush()
-
-    db.session.add(
-        PipelineDatasets(
-            pipeline_id=pipeline_1.pipeline_id, supported_metadataset_type="Genome"
-        )
-    )
-    db.session.add(
-        PipelineDatasets(
-            pipeline_id=pipeline_2.pipeline_id, supported_metadataset_type="Exome"
-        )
-    )
-    db.session.flush()
-
     family_a = Family(
         family_id=1,
         family_codename="Aa",

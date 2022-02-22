@@ -387,12 +387,10 @@ def create_analysis():
         app.logger.error(jsonify(result))
         abort(400, description=result)
 
-    pipeline_id = request.json.get("pipeline_id")
     datasets = request.json.get("datasets")
     notes = request.json.get("notes")
 
-    if not models.Pipeline.query.get(pipeline_id):
-        abort(404, description="Pipeline not found")
+    # TODO: validate pipeline choice?
 
     user = get_current_user()
 
@@ -412,40 +410,9 @@ def create_analysis():
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
 
-    app.logger.debug(
-        "Verifying that requested datasets are compatible with requested pipeline.."
-    )
-
-    compatible_datasets_pipelines_query = (
-        db.session.query(
-            models.Dataset,
-            models.MetaDatasetType_DatasetType,
-            models.PipelineDatasets,
-        )
-        .filter(models.Dataset.dataset_id.in_(datasets))
-        .join(
-            models.MetaDatasetType_DatasetType,
-            models.Dataset.dataset_type
-            == models.MetaDatasetType_DatasetType.dataset_type,
-        )
-        .join(
-            models.PipelineDatasets,
-            models.PipelineDatasets.supported_metadataset_type
-            == models.MetaDatasetType_DatasetType.metadataset_type,
-        )
-        .filter(models.PipelineDatasets.pipeline_id == pipeline_id)
-        .all()
-    )
-
-    if len(compatible_datasets_pipelines_query) != len(datasets):
-        abort(404, description="Requested pipelines are incompatible with datasets")
-
-    app.logger.debug("Creating analysis..")
-
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
-        pipeline_id=pipeline_id,
         priority=request.json.get("priority"),
         requester_id=requester_id,
         requested=now,

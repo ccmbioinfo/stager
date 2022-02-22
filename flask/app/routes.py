@@ -186,19 +186,6 @@ def validate_user(request_user: dict):
     return False
 
 
-@routes.route("/api/pipelines", methods=["GET"], endpoint="pipelines_list")
-@login_required
-def pipelines_list():
-    app.logger.info("Retrieving all pipelines..")
-    db_pipelines = (
-        db.session.query(models.Pipeline)
-        .options(joinedload(models.Pipeline.supported))
-        .all()
-    )
-    app.logger.info("Returning pipelines as JSON..")
-    return jsonify(db_pipelines)
-
-
 @routes.route("/api/institutions", methods=["GET"])
 @login_required
 def get_institutions():

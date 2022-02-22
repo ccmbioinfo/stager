@@ -346,70 +346,6 @@ def map_insert_c4r_reports(report_root_path) -> None:
         pickle.dump(fam_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-@click.command("update-analysis-pipelines")
-@with_appcontext
-def update_analysis_pipelines() -> None:
-    """
-    A one-time command for associating analyses with the correct type of pipeline based on related dataset_type.
-    Fixes a transposition that occurred during the migration from SampleTracker
-    """
-    should_be_crg2 = (
-        Analysis.query.join(Dataset.analyses)
-        .join(Analysis.pipeline)
-        .filter(
-            and_(
-                Pipeline.pipeline_name == "cre",
-                Dataset.dataset_type.in_(["RGS", "CGS", "WGS"]),
-            )
-        )
-        .all()
-    )
-
-    should_be_cre = (
-        Analysis.query.join(Dataset.analyses)
-        .join(Analysis.pipeline)
-        .filter(
-            and_(
-                Pipeline.pipeline_name == "crg2",
-                Dataset.dataset_type.in_(["RES", "CES", "WES", "CPS", "RCS"]),
-            )
-        )
-        .all()
-    )
-
-    configs = [
-        ("cre", should_be_cre),
-        ("crg2", should_be_crg2),
-    ]
-
-    for config in configs:
-
-        new_pipeline_name, analyses = config
-
-        new_pipeline_id = (
-            Pipeline.query.filter(Pipeline.pipeline_name == new_pipeline_name)
-            .first()
-            .pipeline_id
-        )
-
-        """
-        This is not the fastest or nicest way to do this, but the only way to override the onupdate setting on models.Analysis
-        seems to be passing in the the model's own current `updated` value. Otherwise sqlalchemy would touch the `updated` timestamp for each analysis.
-        # https://docs.sqlalchemy.org/en/14/core/defaults.html#metadata-defaults
-        """
-        for analysis in analyses:
-            Analysis.query.filter(Analysis.analysis_id == analysis.analysis_id).update(
-                {"pipeline_id": new_pipeline_id, "updated": analysis.updated},
-                synchronize_session=False,
-            )
-
-        db.session.commit()
-
-        app.logger.info(
-            f"Updated analyses ids: {[a.analysis_id for a in analyses]} to {new_pipeline_name} pipeline"
-        )
-
-
 @click.command("db-seed")
 @click.option("--force", is_flag=True, default=False)
 @with_appcontext
@@ -417,7 +353,6 @@ def seed_database(force: bool) -> None:
     seed_default_admin(force)
     seed_institutions(force)
     seed_dataset_types(force)
-    seed_pipelines(force)
     db.session.commit()
 
 
@@ -430,7 +365,6 @@ def seed_database_for_development(force: bool) -> None:
     seed_default_admin(force)
     seed_institutions(force)
     seed_dataset_types(force)
-    seed_pipelines(force)
     db.session.flush()
     seed_dev_groups_and_users(force)
     seed_dev_data(force)
@@ -535,34 +469,6 @@ def seed_dataset_types(force: bool) -> None:
         app.logger.info("Inserted dataset types and meta-dataset types")
 
 
-def seed_pipelines(force: bool) -> None:
-    if force or Pipeline.query.count() == 0:
-        crg2 = Pipeline(pipeline_name="crg2", pipeline_version="latest")
-        db.session.add(crg2)
-        cre = Pipeline(pipeline_name="cre", pipeline_version="latest")
-        db.session.add(cre)
-        dig2 = Pipeline(pipeline_name="dig2", pipeline_version="latest")
-        db.session.add(dig2)
-        db.session.flush()
-        app.logger.info("Inserted pipelines")
-        db.session.add(
-            PipelineDatasets(
-                pipeline_id=crg2.pipeline_id, supported_metadataset_type="Genome"
-            )
-        )
-        db.session.add(
-            PipelineDatasets(
-                pipeline_id=cre.pipeline_id, supported_metadataset_type="Exome"
-            )
-        )
-        db.session.add(
-            PipelineDatasets(
-                pipeline_id=dig2.pipeline_id, supported_metadataset_type="RNA"
-            )
-        )
-        app.logger.info("Inserted supported meta-dataset types for pipelines")
-
-
 def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
     if force or (Group.query.count() == 0 and User.query.count() == 1):  # default admin
         minio_client = get_minio_client()
@@ -638,7 +544,6 @@ def seed_dev_data(force: bool) -> None:
         # one analysis per trio
         analysis = Analysis(
             analysis_state=AnalysisState.Requested,
-            pipeline_id=1,  # CRG
             assignee_id=1,
             requester_id=1,
             requested=datetime.now(),
@@ -788,7 +693,6 @@ def map_hiraki_datasets_analyses(hiraki_datasets, hiraki_analyses, force: bool) 
     add_hiraki_users()
     add_hiraki_institutions()
     seed_dataset_types(force)
-    seed_pipelines(force)
     db.session.commit()
 
     datasets = pd.read_csv(hiraki_datasets)

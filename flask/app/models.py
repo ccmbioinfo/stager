@@ -406,22 +406,14 @@ class PriorityType(str, Enum):
 class Analysis(db.Model):
     analysis_id: int = db.Column(db.Integer, primary_key=True)
     analysis_state: AnalysisState = db.Column(db.Enum(AnalysisState), nullable=False)
-    pipeline = db.relationship("Pipeline", lazy="joined")
-    pipeline_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("pipeline.pipeline_id", onupdate="cascade", ondelete="restrict"),
-        nullable=False,
-    )
-    qsub_id: int = db.Column(db.Integer)
+    scheduler_id: int = db.Column(db.Integer)
     result_path: str = db.Column(db.String(500))
     assignee_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade")
     )
-
     requester_id = db.Column(
         db.Integer, db.ForeignKey("user.user_id", onupdate="cascade"), nullable=False
     )
-
     requested: datetime = db.Column(db.DateTime, nullable=False)
     started: datetime = db.Column(db.DateTime)
     finished: datetime = db.Column(db.DateTime)
@@ -435,35 +427,6 @@ class Analysis(db.Model):
     requester = db.relationship("User", foreign_keys=[requester_id], lazy="joined")
     variants = db.relationship("Variant", backref="analysis")
     priority: PriorityType = db.Column(db.Enum(PriorityType))
-
-
-@dataclass
-class Pipeline(db.Model):
-    pipeline_id: int = db.Column(db.Integer, primary_key=True)
-    pipeline_name: str = db.Column(db.String(50), nullable=False)
-    pipeline_version: str = db.Column(db.String(50), nullable=False)
-    supported = db.relationship("PipelineDatasets", backref="pipeline", lazy="joined")
-
-    supported_types: List[MetaDatasetType]
-
-    @property
-    def supported_types(self) -> List[MetaDatasetType]:
-        return [x.supported_metadataset_type for x in self.supported]
-
-    __table_args__ = (db.UniqueConstraint("pipeline_name", "pipeline_version"),)
-
-
-class PipelineDatasets(db.Model):
-    pipeline_id: int = db.Column(
-        db.Integer,
-        db.ForeignKey("pipeline.pipeline_id", onupdate="cascade", ondelete="restrict"),
-        primary_key=True,
-    )
-    supported_metadataset_type: str = db.Column(
-        db.ForeignKey("metadataset_type.metadataset_type"),
-        primary_key=True,
-        nullable=False,
-    )
 
 
 @dataclass
