@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
-from typing import List
 from requests import get
 
 from flask_login import UserMixin
