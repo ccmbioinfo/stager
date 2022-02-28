@@ -20,8 +20,22 @@ services:
       - "5000:5000"
       - "9121:8080"
     command: --preload --workers ${GUNICORN_WORKERS:-1}
+    volumes:
+      - log-fifo:/var/log/stager
     healthcheck:
       test: ["CMD", "./healthcheck.py"]
     restart: unless-stopped
     logging:
       driver: journald
+  sidecar-sqlalchemy:
+    image: busybox
+    command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
+    volumes:
+      - log-fifo:/var/log/stager:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    logging:
+      driver: journald
+volumes:
+  log-fifo:
