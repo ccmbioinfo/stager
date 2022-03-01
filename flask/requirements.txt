@@ -6,7 +6,7 @@
 #
 alembic==1.7.5
     # via flask-migrate
-apscheduler==3.8.1
+apscheduler==3.9.1
     # via -r requirements.in
 authlib==0.15.5
     # via -r requirements.in
