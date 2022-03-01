@@ -24,7 +24,7 @@ cryptography==36.0.1
     # via
     #   authlib
     #   pymysql
-flask==2.0.2
+flask==2.0.3
     # via
     #   -r requirements.in
     #   flask-login
