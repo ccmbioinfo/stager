@@ -344,7 +344,9 @@ export default function AddDatasets() {
             currCols,
             RNA_ONLY_FIELDS.map(field => ({
                 field,
-                hidden: OPTIONAL_RNA_FIELDS.includes(field) && field !== "vcf_available",
+                hidden:
+                    OPTIONAL_RNA_FIELDS.includes(field) &&
+                    !["vcf_available", "candidate_genes"].includes(field),
                 required: REQUIRED_RNA_FIELDS.includes(field),
                 title: snakeCaseToTitle(field),
             }))
