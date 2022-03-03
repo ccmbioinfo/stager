@@ -167,7 +167,6 @@ export default function Analyses() {
     const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
-    console.log(activeRows);
     const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
     const [showModalLoading, setModalLoading] = useState(false);
 
@@ -193,6 +192,12 @@ export default function Analyses() {
         tableRef,
         "analysisTableSortOrder"
     );
+
+    const handleAnalysisDelete = () => {
+        setActiveRows([]);
+        setConfirmDelete(false);
+        setModalLoading(false);
+    };
 
     function changeAnalysisState(newState: PipelineStatus, rows = activeRows) {
         return _changeStateForSelectedRows(rows, analysisUpdateMutation, newState);
@@ -399,17 +404,16 @@ export default function Analyses() {
                     activeRows.forEach(row => {
                         analysisDeleteMutation.mutate(row.analysis_id, {
                             onSuccess: () => {
-                                //refresh data
-                                tableRef.current.onQueryChange();
+                                handleAnalysisDelete();
                                 enqueueSnackbar(`Deleted successfully.`, {
                                     variant: "success",
                                 });
-                                setConfirmDelete(false);
-                                setModalLoading(false);
+
+                                //refresh data
+                                tableRef.current.onQueryChange();
                             },
                             onError: error => {
-                                setConfirmDelete(false);
-                                setModalLoading(false);
+                                handleAnalysisDelete();
                                 enqueueErrorSnackbar(error);
                             },
                         });
@@ -429,7 +433,6 @@ export default function Analyses() {
                     onClose={() => {
                         setDetail(false);
                     }}
-                    refreshTable={tableRef.current.onQueryChange}
                 />
             )}
 
