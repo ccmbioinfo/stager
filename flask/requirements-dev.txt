@@ -84,7 +84,7 @@ marshmallow-sqlalchemy==0.27.0
     # via -r requirements.in
 mccabe==0.6.1
     # via pylint
-minio==7.1.2
+minio==7.1.4
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
