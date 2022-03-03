@@ -433,6 +433,7 @@ export default function Analyses() {
                     onClose={() => {
                         setDetail(false);
                     }}
+                    refreshTable={tableRef.current.onQueryChange}
                 />
             )}
 
