@@ -6,6 +6,7 @@ import {
     Add,
     AssignmentTurnedIn,
     Cancel,
+    Delete,
     Error,
     Info,
     PersonPin,
@@ -19,6 +20,7 @@ import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
     ChipGroup,
+    ConfirmModal,
     DateFilterComponent,
     DateTimeText,
     MaterialTablePrimary,
@@ -34,6 +36,7 @@ import {
     AnalysisOptions,
     GET_ANALYSES_URL,
     useAnalysesPage,
+    useAnalysisDeleteMutation,
     useAnalysisUpdateMutation,
     useColumnOrderCache,
     useDownloadCsv,
@@ -153,6 +156,8 @@ export default function Analyses() {
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
 
+    const analysisDeleteMutation = useAnalysisDeleteMutation();
+
     const enumsQuery = useEnumsQuery();
     const enums = enumsQuery.data;
 
@@ -162,6 +167,9 @@ export default function Analyses() {
     const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
+    console.log(activeRows);
+    const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
+    const [showModalLoading, setModalLoading] = useState(false);
 
     const history = useHistory();
 
@@ -377,6 +385,42 @@ export default function Analyses() {
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />
             )}
+
+            <ConfirmModal
+                id="confirm-modal-delete"
+                open={confirmDelete}
+                loading={showModalLoading}
+                onClose={() => {
+                    setConfirmDelete(false);
+                    setModalLoading(false);
+                }}
+                onConfirm={() => {
+                    setModalLoading(true);
+                    activeRows.forEach(row => {
+                        analysisDeleteMutation.mutate(row.analysis_id, {
+                            onSuccess: () => {
+                                //refresh data
+                                tableRef.current.onQueryChange();
+                                enqueueSnackbar(`Deleted successfully.`, {
+                                    variant: "success",
+                                });
+                                setConfirmDelete(false);
+                                setModalLoading(false);
+                            },
+                            onError: error => {
+                                setConfirmDelete(false);
+                                setModalLoading(false);
+                                enqueueErrorSnackbar(error);
+                            },
+                        });
+                    });
+                }}
+                title="Delete analysis"
+                colors={{ cancel: "secondary" }}
+            >
+                Are you sure you want to delete analysis{" "}
+                {activeRows.map(analysis => analysis.analysis_id).join(", ")}?
+            </ConfirmModal>
 
             {activeRows.length > 0 && (
                 <AnalysisInfoDialog
@@ -619,6 +663,14 @@ export default function Analyses() {
                                             { variant: "error" }
                                         );
                                 });
+                            },
+                        },
+                        {
+                            icon: Delete,
+                            tooltip: "Delete Analysis",
+                            onClick: (event, rowData) => {
+                                setActiveRows(rowData as Analysis[]);
+                                setConfirmDelete(true);
                             },
                         },
                         {
