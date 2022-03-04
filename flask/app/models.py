@@ -227,37 +227,6 @@ class TissueSample(db.Model):
     created_by = db.relationship("User", foreign_keys=[created_by_id])
 
 
-@dataclass
-class DatasetType(db.Model):
-    __tablename__ = "dataset_type"
-    dataset_type: str = db.Column(db.String(50), primary_key=True)
-
-
-@dataclass
-class MetaDatasetType(db.Model):
-    __tablename__ = "metadataset_type"
-    metadataset_type: str = db.Column(db.String(50), primary_key=True)
-
-
-@dataclass
-class MetaDatasetType_DatasetType(db.Model):
-    __tablename__ = "metadataset_type_dataset_type"
-    dataset_type: str = db.Column(
-        db.String(50),
-        db.ForeignKey("dataset_type.dataset_type"),
-        nullable=False,
-        unique=True,
-        primary_key=True,
-    )
-    metadataset_type: str = db.Column(
-        db.String(50),
-        db.ForeignKey("metadataset_type.metadataset_type"),
-        nullable=False,
-        primary_key=True,
-    )
-
-
-# Name TBD
 class DatasetCondition(str, Enum):
     Control = "Control"
     GermLine = "GermLine"  # e.g. rare diseases
@@ -303,6 +272,22 @@ datasets_files_table = db.Table(
     ),
 )
 
+DATASET_TYPES = {
+    "RES": { "name": "Research Exome Sequencing", "kind": "exomic" },
+    "CES": { "name": "Clinical Exome Sequencing", "kind": "exomic" },
+    "WES": { "name": "Whole Exome Sequencing", "kind": "exomic" },
+    "CPS": { "name": "Clinical Panel Sequencing", "kind": "exomic" },
+    "RCS": { "name": "Research Clinome Sequencing", "kind": "exomic" },
+    "RDC": { "name": "Research Deep Clinome Sequencing", "kind": "exomic" },
+    "RDE": { "name": "Research Deep Exome Sequencing", "kind": "exomic" },
+    "RGS": { "name": "Research Genome Sequencing", "kind": "short-read genomic" },
+    "CGS": { "name": "Clinical Genome Sequencing", "kind": "short-read genomic" },
+    "WGS": { "name": "Whole Genome Sequencing", "kind": "short-read genomic" },
+    "RRS": { "name": "Research RNA Sequencing", "kind": "short-read transcriptomic" },
+    "RLM": { "name": "Research Lipidomics Mass Spectrometry", "kind": "other" },
+    "RMM": { "name": "Research Metabolomics Mass Spectrometry", "kind": "other" },
+    "RTA": { "name": "Research DNA Methylation Array", "kind": "other" },
+}
 
 @dataclass
 class Dataset(db.Model):
@@ -311,9 +296,7 @@ class Dataset(db.Model):
         db.Integer, db.ForeignKey("tissue_sample.tissue_sample_id"), nullable=False
     )
     dataset_id: int = db.Column(db.Integer, primary_key=True)
-    dataset_type: str = db.Column(
-        db.String(50), db.ForeignKey("dataset_type.dataset_type"), nullable=False
-    )
+    dataset_type: str = db.Column(db.String(50), nullable=False)
     notes: str = db.Column(db.Text)
     condition: DatasetCondition = db.Column(db.Enum(DatasetCondition), nullable=False)
     extraction_protocol: str = db.Column(db.String(100))
@@ -405,6 +388,7 @@ class PriorityType(str, Enum):
 class Analysis(db.Model):
     analysis_id: int = db.Column(db.Integer, primary_key=True)
     analysis_state: AnalysisState = db.Column(db.Enum(AnalysisState), nullable=False)
+    kind: str = db.Column(db.String(50), nullable=False)
     scheduler_id: int = db.Column(db.Integer)
     result_path: str = db.Column(db.String(500))
     assignee_id = db.Column(

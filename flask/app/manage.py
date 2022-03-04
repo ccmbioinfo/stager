@@ -352,7 +352,6 @@ def map_insert_c4r_reports(report_root_path) -> None:
 def seed_database(force: bool) -> None:
     seed_default_admin(force)
     seed_institutions(force)
-    seed_dataset_types(force)
     db.session.commit()
 
 
@@ -364,7 +363,6 @@ def seed_database_for_development(force: bool) -> None:
         setup_keycloak()
     seed_default_admin(force)
     seed_institutions(force)
-    seed_dataset_types(force)
     db.session.flush()
     seed_dev_groups_and_users(force)
     seed_dev_data(force)
@@ -427,48 +425,6 @@ def seed_institutions(force: bool) -> None:
         app.logger.info("Inserted institutions")
 
 
-def seed_dataset_types(force: bool) -> None:
-    if force or (DatasetType.query.count() == 0 and MetaDatasetType.query.count() == 0):
-        for dataset_type in [
-            "RES",  # Research Exome Sequencing
-            "CES",  # Clinical Exome Sequencing
-            "WES",  # Whole Exome Sequencing
-            "CPS",  # Clinical Panel Sequencing
-            "RCS",  # Research Clinome Sequencing
-            "RDC",  # Research Deep Clinome Sequencing
-            "RDE",  # Research Deep Exome Sequencing
-            "RGS",  # Research Genome Sequencing
-            "CGS",  # Clinical Genome Sequencing
-            "WGS",  # Whole Genome Sequencing
-            "RRS",  # Research RNA Sequencing
-            "RLM",  # Research Lipidomics Mass Spectrometry
-            "RMM",  # Research Metabolomics Mass Spectrometry
-            "RTA",  # Research DNA Methylation array
-        ]:
-            db.session.add(DatasetType(dataset_type=dataset_type))
-
-        for metadataset_type in ["Genome", "Exome", "RNA", "Other"]:
-            db.session.add(MetaDatasetType(metadataset_type=metadataset_type))
-        db.session.flush()
-
-        for e in ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"]:
-            db.session.add(
-                MetaDatasetType_DatasetType(metadataset_type="Exome", dataset_type=e)
-            )
-        for g in ["RGS", "CGS", "WGS"]:
-            db.session.add(
-                MetaDatasetType_DatasetType(metadataset_type="Genome", dataset_type=g)
-            )
-        for o in ["RLM", "RMM", "RTA"]:
-            db.session.add(
-                MetaDatasetType_DatasetType(metadataset_type="Other", dataset_type=o)
-            )
-        db.session.add(
-            MetaDatasetType_DatasetType(metadataset_type="RNA", dataset_type="RRS")
-        )
-        app.logger.info("Inserted dataset types and meta-dataset types")
-
-
 def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
     if force or (Group.query.count() == 0 and User.query.count() == 1):  # default admin
         minio_client = get_minio_client()
@@ -478,7 +434,7 @@ def seed_dev_groups_and_users(force: bool, skip_users: bool = False) -> None:
             "cheo": "Children's Hospital of Eastern Ontario",
             "bcch": "BC Children's Hospital",
             "ach": "Alberta Children's Hospital",
-            "sch": "The Hospital for Sick Children",
+            "skh": "The Hospital for Sick Children",
         }
         for code, name in groups.items():
             policy = stager_buckets_policy(code)
@@ -692,7 +648,6 @@ def map_hiraki_datasets_analyses(hiraki_datasets, hiraki_analyses, force: bool) 
     add_hiraki_group(force)
     add_hiraki_users()
     add_hiraki_institutions()
-    seed_dataset_types(force)
     db.session.commit()
 
     datasets = pd.read_csv(hiraki_datasets)
