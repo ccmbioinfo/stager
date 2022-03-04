@@ -26,6 +26,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
+import { useUserContext } from "../contexts";
 import {
     checkPipelineStatusChange,
     isRowSelected,
@@ -142,6 +143,7 @@ const getHighlightColor = (theme: Theme, priority: AnalysisPriority, status: Pip
 
 export default function Analyses() {
     const classes = useStyles();
+    const { user: currentUser } = useUserContext(); //for user details
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
@@ -673,8 +675,17 @@ export default function Analyses() {
                             icon: Delete,
                             tooltip: "Delete Analysis",
                             onClick: (event, rowData) => {
-                                setActiveRows(rowData as Analysis[]);
-                                setConfirmDelete(true);
+                                if (currentUser.is_admin) {
+                                    setActiveRows(rowData as Analysis[]);
+                                    setConfirmDelete(true);
+                                } else {
+                                    enqueueSnackbar(
+                                        "You need to be an Admin to delete analyses. Please contact your administrator instead.",
+                                        {
+                                            variant: "error",
+                                        }
+                                    );
+                                }
                             },
                         },
                         {
