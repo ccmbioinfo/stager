@@ -33,7 +33,6 @@ def register_commands(app: Flask) -> None:
     app.cli.add_command(seed_database)
     app.cli.add_command(seed_database_for_development)
     app.cli.add_command(seed_database_minio_groups)
-    app.cli.add_command(update_analysis_pipelines)
     app.cli.add_command(map_insert_c4r_reports)
     app.cli.add_command(map_hiraki_datasets_analyses)
     app.cli.add_command(add_hiraki_reports)

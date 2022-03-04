@@ -273,21 +273,22 @@ datasets_files_table = db.Table(
 )
 
 DATASET_TYPES = {
-    "RES": { "name": "Research Exome Sequencing", "kind": "exomic" },
-    "CES": { "name": "Clinical Exome Sequencing", "kind": "exomic" },
-    "WES": { "name": "Whole Exome Sequencing", "kind": "exomic" },
-    "CPS": { "name": "Clinical Panel Sequencing", "kind": "exomic" },
-    "RCS": { "name": "Research Clinome Sequencing", "kind": "exomic" },
-    "RDC": { "name": "Research Deep Clinome Sequencing", "kind": "exomic" },
-    "RDE": { "name": "Research Deep Exome Sequencing", "kind": "exomic" },
-    "RGS": { "name": "Research Genome Sequencing", "kind": "short-read genomic" },
-    "CGS": { "name": "Clinical Genome Sequencing", "kind": "short-read genomic" },
-    "WGS": { "name": "Whole Genome Sequencing", "kind": "short-read genomic" },
-    "RRS": { "name": "Research RNA Sequencing", "kind": "short-read transcriptomic" },
-    "RLM": { "name": "Research Lipidomics Mass Spectrometry", "kind": "other" },
-    "RMM": { "name": "Research Metabolomics Mass Spectrometry", "kind": "other" },
-    "RTA": { "name": "Research DNA Methylation Array", "kind": "other" },
+    "RES": {"name": "Research Exome Sequencing", "kind": "exomic"},
+    "CES": {"name": "Clinical Exome Sequencing", "kind": "exomic"},
+    "WES": {"name": "Whole Exome Sequencing", "kind": "exomic"},
+    "CPS": {"name": "Clinical Panel Sequencing", "kind": "exomic"},
+    "RCS": {"name": "Research Clinome Sequencing", "kind": "exomic"},
+    "RDC": {"name": "Research Deep Clinome Sequencing", "kind": "exomic"},
+    "RDE": {"name": "Research Deep Exome Sequencing", "kind": "exomic"},
+    "RGS": {"name": "Research Genome Sequencing", "kind": "short-read genomic"},
+    "CGS": {"name": "Clinical Genome Sequencing", "kind": "short-read genomic"},
+    "WGS": {"name": "Whole Genome Sequencing", "kind": "short-read genomic"},
+    "RRS": {"name": "Research RNA Sequencing", "kind": "short-read transcriptomic"},
+    "RLM": {"name": "Research Lipidomics Mass Spectrometry", "kind": "other"},
+    "RMM": {"name": "Research Metabolomics Mass Spectrometry", "kind": "other"},
+    "RTA": {"name": "Research DNA Methylation Array", "kind": "other"},
 }
+
 
 @dataclass
 class Dataset(db.Model):
