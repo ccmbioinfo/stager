@@ -62,7 +62,9 @@ def get_unlinked_files():
         # Get files with prefix in the bucket user specifies
         app.logger.debug("Getting all files in user minio buckets..")
         all_files = []
-        objs = minio_client.list_objects(bucket_name, prefix=file_name, recursive=True)
+        objs = minio_client.list_objects(bucket_name, prefix=file_name, recursive=False)
+
+        app.logger.debug("all files", objs)
 
         for obj in objs:
             if file_name in obj.object_name:

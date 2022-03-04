@@ -20,7 +20,7 @@ export function useUnlinkedFilesQuery(
         ["unlinked", params],
         () => fetchFiles(params),
         {
-            staleTime: Infinity,
+            staleTime: 1000,
             retry: false,
             refetchInterval: false,
             refetchOnMount: false,
