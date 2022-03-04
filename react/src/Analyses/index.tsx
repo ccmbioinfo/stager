@@ -674,18 +674,10 @@ export default function Analyses() {
                         {
                             icon: Delete,
                             tooltip: "Delete Analysis",
+                            hidden: !currentUser.is_admin,
                             onClick: (event, rowData) => {
-                                if (currentUser.is_admin) {
-                                    setActiveRows(rowData as Analysis[]);
-                                    setConfirmDelete(true);
-                                } else {
-                                    enqueueSnackbar(
-                                        "You need to be an Admin to delete analyses. Please contact your administrator instead.",
-                                        {
-                                            variant: "error",
-                                        }
-                                    );
-                                }
+                                setActiveRows(rowData as Analysis[]);
+                                setConfirmDelete(true);
                             },
                         },
                         {
