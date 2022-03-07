@@ -7,6 +7,7 @@ from typing import Any, Dict
 from flask import Blueprint, abort, current_app as app, jsonify, request, Request
 from flask.helpers import url_for
 from flask_login import current_user, login_required, login_user, logout_user
+import numpy as np
 import pandas as pd
 from sqlalchemy.orm import joinedload
 from . import models, schemas
@@ -20,7 +21,6 @@ from .utils import (
     find,
 )
 
-import numpy as np
 
 routes = Blueprint("routes", __name__)
 
@@ -195,21 +195,6 @@ def get_institutions():
     return jsonify([x.institution for x in db_institutions])
 
 
-@routes.route("/api/metadatasettypes", methods=["GET"])
-@login_required
-def get_metadataset_types():
-    app.logger.info("Retrieving all metadataset types..")
-    metadataset_dataset_types = models.MetaDatasetType_DatasetType.query.all()
-    app.logger.debug("Creating a dictionary of unique metadataset types")
-    d = {e.metadataset_type: [] for e in metadataset_dataset_types}
-    app.logger.debug("Appending dataset types to each unique metadataset type")
-    for k in metadataset_dataset_types:
-        app.logger.debug("Appending '%s' to '%s'", k.dataset_type, k.metadataset_type)
-        d[k.metadataset_type].append(k.dataset_type)
-    app.logger.info("Returning JSON..")
-    return jsonify(d)
-
-
 @routes.route("/api/enums", methods=["GET"])
 @login_required
 def get_enums():
@@ -221,17 +206,6 @@ def get_enums():
             enums[name] = [e.value for e in getattr(models, name)]
         else:
             app.logger.debug("'%s' is NOT an enum", name)
-        # cheat to also return the DatasetType and MetaDatasetType
-        if name == "DatasetType":
-            enums[name] = [
-                e.dataset_type for e in db.session.query(getattr(models, name)).all()
-            ]
-        elif name == "MetaDatasetType":
-            enums[name] = [
-                e.metadataset_type
-                for e in db.session.query(getattr(models, name)).all()
-            ]
-    app.logger.info("Returning JSON..")
     return jsonify(enums)
 
 

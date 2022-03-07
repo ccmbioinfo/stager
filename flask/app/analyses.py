@@ -380,8 +380,6 @@ def create_analysis():
     datasets = request.json.get("datasets")
     notes = request.json.get("notes")
 
-    # TODO: validate pipeline choice?
-
     user = get_current_user()
 
     requester_id = updated_by_id = user.user_id
@@ -400,9 +398,14 @@ def create_analysis():
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
 
+    kinds = set(models.DATASET_TYPES[d.dataset_type]["kind"] for d in found_datasets)
+    if len(kinds) != 1:
+        abort(400, description="The dataset types must agree")
+
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
+        kind=kinds.pop(),
         priority=request.json.get("priority"),
         requester_id=requester_id,
         requested=now,

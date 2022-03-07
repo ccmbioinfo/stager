@@ -359,6 +359,15 @@ def update_dataset(id: int):
 
     dataset = query.first_or_404()
 
+    if (
+        request.json.get("dataset_type") is not None
+        and request.json.get("dataset_type") not in models.DATASET_TYPES
+    ):
+        abort(
+            400,
+            f"Invalid dataset type, must be one of: {','.join(models.DATASET_TYPES.keys())}",
+        )
+
     validate_enums_and_set_fields(dataset, request.json, EDITABLE_COLUMNS)
 
     if "linked_files" in request.json:
@@ -422,12 +431,10 @@ def delete_dataset(id: int):
 @login_required
 @validate_json
 def create_dataset():
-
     new_dataset = validate_filter_input(
         request.json, models.RNASeqDataset, ["discriminator", "linked_files"]
     )
     result = dataset_schema.validate(new_dataset, session=db.session)
-
     if result:
         app.logger.error(jsonify(result))
         abort(400, description=result)
@@ -469,8 +476,6 @@ def create_dataset():
             dataset.linked_files.append(models.File(path=path))
     db.session.add(dataset)
     transaction_or_abort(db.session.commit)
-    ds_id = dataset.dataset_id
-    location_header = "/api/datasets/{}".format(ds_id)
 
     return (
         jsonify(
@@ -481,7 +486,7 @@ def create_dataset():
             }
         ),
         201,
-        {"location": location_header},
+        {"location": f"/api/datasets/{dataset.dataset_id}"},
     )
 
 

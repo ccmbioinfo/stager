@@ -4,7 +4,6 @@ import pytest
 from app import create_app, db
 from app.config import Config
 from app.models import *
-from flask.testing import FlaskClient
 
 
 class TestConfig(Config):
@@ -89,48 +88,6 @@ def test_database(client):
     ]
     for i in institutions:
         db.session.add(Institution(institution=i))
-
-    db.session.flush()
-
-    dataset_types = [
-        "RES",
-        "CES",
-        "WES",
-        "CPS",
-        "RCS",
-        "RDC",
-        "RDE",
-        "RGS",
-        "CGS",
-        "WGS",
-        "RRS",
-        "RLM",
-        "RMM",
-        "RTA",
-    ]
-
-    for d in dataset_types:
-        db.session.add(DatasetType(dataset_type=d))
-    db.session.flush()
-
-    metadataset_types = ["Genome", "Exome", "RNA", "Other"]
-
-    for m in metadataset_types:
-        db.session.add(MetaDatasetType(metadataset_type=m))
-    db.session.flush()
-
-    md_d = {
-        "Exome": ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"],
-        "Genome": ["RGS", "CGS", "WGS"],
-        "Other": ["RLM", "RMM", "RTA"],
-        "RNA": ["RRS"],
-    }
-
-    for k in md_d:
-        for dataset in md_d[k]:
-            db.session.add(
-                MetaDatasetType_DatasetType(metadataset_type=k, dataset_type=dataset)
-            )
     db.session.flush()
 
     group = Group(group_code="ach", group_name="Alberta")
@@ -258,7 +215,7 @@ def test_database(client):
         requester_id=admin.user_id,
         assignee_id=admin.user_id,
         updated_by_id=admin.user_id,
-        pipeline_id=pipeline_2.pipeline_id,
+        kind="exomic",
         requested="2020-07-28",
         started="2020-08-04",
         updated="2020-08-04",
@@ -271,7 +228,7 @@ def test_database(client):
         requester_id=user_a.user_id,
         assignee_id=None,
         updated_by_id=admin.user_id,
-        pipeline_id=pipeline_1.pipeline_id,
+        kind="short-read genomic",
         requested="2020-07-28",
         started="2020-08-04",
         updated="2020-08-04",
@@ -324,7 +281,7 @@ def test_database(client):
         requester_id=admin.user_id,
         assignee_id=admin.user_id,
         updated_by_id=admin.user_id,
-        pipeline_id=pipeline_2.pipeline_id,
+        kind="exomic",
         requested="2020-07-28",
         started="2020-08-04",
         updated="2020-08-04",
