@@ -36,7 +36,7 @@ def upgrade():
     ).fetchall()
     for id, pipeline in pipelines:
         connection.execute(
-            sa.update("analysis")
+            sa.update(sa.table("analysis", sa.column("kind")))
             .where(sa.literal_column("analysis_id") == id)
             .values(kind=mapping[pipeline])
         )
