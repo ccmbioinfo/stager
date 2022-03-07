@@ -48,7 +48,7 @@ def list_analyses(page: int, limit: int) -> Response:
         "result_path",
         "notes",
         "analysis_state",
-        "pipeline_id",
+        "kind",
         "assignee",
         "requester",
         "priority",
@@ -136,17 +136,15 @@ def list_analyses(page: int, limit: int) -> Response:
                 analysis_state,
             )
         )
-    pipeline_id = request.args.get("pipeline_id", type=str)
-    if pipeline_id:
+    kind = request.args.get("kind", type=str)
+    if kind:
         try:
             filters.append(
-                models.Analysis.pipeline_id.in_(
-                    [int(pk) for pk in pipeline_id.split(",")]
-                )
+                models.Analysis.kind.in_([int(pk) for pk in kind.split(",")])
             )
         except ValueError as err:
             abort(400, description=err)
-        app.logger.debug("Filter by pipeline_id: '%s'", pipeline_id)
+        app.logger.debug("Filter by kind: '%s'", kind)
 
     user = get_current_user()
 
@@ -281,7 +279,6 @@ def list_analyses(page: int, limit: int) -> Response:
             "requester": analysis.requester.username,
             "updated_by": analysis.updated_by.username,
             "assignee": analysis.assignee_id and analysis.assignee.username,
-            "pipeline": analysis.pipeline,
         }
         for analysis in analyses
     ]
@@ -291,17 +288,11 @@ def list_analyses(page: int, limit: int) -> Response:
         return paginated_response(results, page, total_count, limit)
     elif expects_csv(request):
         app.logger.debug("Returning paginated response..")
-
-        results = [
-            {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
-            for result in results
-        ]
-
         return csv_response(
             results,
             filename="analyses_report.csv",
             colnames=[
-                "pipeline",
+                "kind",
                 "analysis_state",
                 "participant_codenames",
                 "family_codenames",
@@ -345,7 +336,6 @@ def get_analysis(id: int):
             "requester": analysis.requester_id and analysis.requester.username,
             "updated_by": analysis.updated_by_id and analysis.updated_by.username,
             "assignee": analysis.assignee_id and analysis.assignee.username,
-            "pipeline": analysis.pipeline,
             "datasets": [
                 {
                     **asdict(dataset),
@@ -434,7 +424,6 @@ def create_analysis():
                 "requester": analysis.requester_id and analysis.requester.username,
                 "updated_by": analysis.updated_by_id and analysis.updated_by.username,
                 "assignee": analysis.assignee_id and analysis.assignee.username,
-                "pipeline": analysis.pipeline,
                 "datasets": [
                     {
                         **asdict(dataset),
@@ -519,7 +508,6 @@ def create_reanalysis(id: int):
                 "updated_by": new_analysis.updated_by_id
                 and new_analysis.updated_by.username,
                 "assignee": new_analysis.assignee_id and new_analysis.assignee.username,
-                "pipeline": new_analysis.pipeline,
                 "datasets": [
                     {
                         **asdict(dataset),
@@ -591,8 +579,7 @@ def update_analysis(id: int):
 
     editable_columns = [
         "analysis_state",
-        "pipeline_id",
-        "qsub_id",
+        "scheduler_id",
         "result_path",
         "requested",
         "started",

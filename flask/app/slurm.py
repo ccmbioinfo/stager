@@ -32,7 +32,7 @@ echo Running Stager analysis {analysis.analysis_id}...
                     )
                 )
                 app.logger.info(submitted_job)
-                analysis.qsub_id = submitted_job.job_id
+                analysis.scheduler_id = submitted_job.job_id
                 # TODO: either commit only now or commit again, column should be renamed since this isn't Torque
             except ApiException as e:
                 app.logger.warn("Exception when calling slurmctld_submit_job: %s\n" % e)
