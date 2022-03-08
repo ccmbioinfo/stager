@@ -196,18 +196,8 @@ def test_create_analysis(test_database, client, login_as):
     )
 
     # # Test invalid dataset id given
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": "haha"}
-        ).status_code
-        == 400
-    )
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": []}
-        ).status_code
-        == 400
-    )
+    assert client.post("/api/analyses", json={"datasets": "haha"}).status_code == 400
+    assert client.post("/api/analyses", json={"datasets": []}).status_code == 400
     # Test invalid invalid priority given
     assert (
         client.post(
@@ -218,20 +208,10 @@ def test_create_analysis(test_database, client, login_as):
     )
 
     # test requesting a dataset that the user does not have access to
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": [1, 2]}
-        ).status_code
-        == 404
-    )
+    assert client.post("/api/analyses", json={"datasets": [1, 2]}).status_code == 404
 
     # Test success and check db
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": [3]}
-        ).status_code
-        == 201
-    )
+    assert client.post("/api/analyses", json={"datasets": [3]}).status_code == 201
     analysis = (
         models.Analysis.query.options(joinedload(models.Analysis.datasets))
         .filter(models.Analysis.analysis_id == 4)
