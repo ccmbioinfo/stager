@@ -23,7 +23,8 @@ import {
     Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import { useAnalysisCreateMutation, useEnumsQuery, useErrorSnackbar } from "../../hooks";
+import { useAPIInfoContext } from "../../contexts";
+import { useAnalysisCreateMutation, useErrorSnackbar } from "../../hooks";
 import { AnalysisPriority, Dataset } from "../../typings";
 
 interface AnalysisRunnerDialogProps {
@@ -49,7 +50,7 @@ export default function AnalysisRunnerDialog({
     const [analysisPriority, setAnalysisPriority] = useState<AnalysisPriority | "None" | "">("");
     const [notes, setNotes] = useState("");
     const mutation = useAnalysisCreateMutation();
-    const { data: enums } = useEnumsQuery();
+    const PriorityType = useAPIInfoContext()?.enums.PriorityType;
 
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
@@ -86,7 +87,7 @@ export default function AnalysisRunnerDialog({
                                     setAnalysisPriority(event.target.value as AnalysisPriority)
                                 }
                             >
-                                {enums?.PriorityType.concat("None").map(priorityName => (
+                                {PriorityType?.concat("None").map(priorityName => (
                                     <FormControlLabel
                                         key={priorityName}
                                         label={priorityName}
