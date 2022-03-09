@@ -8,7 +8,6 @@ import { getDatasetInfoList } from "../functions";
 import {
     useAnalysisCreateMutation,
     useAnalysisQuery,
-    useEnumsQuery,
     useErrorSnackbar,
 } from "../hooks";
 import { Analysis, Field } from "../typings";
@@ -87,7 +86,6 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
     );
     const { mutate: analysisUpdateMutate, isLoading: loadingUpdate } = useAnalysisCreateMutation();
     const labeledBy = "analysis-info-dialog-slide-title";
-    const { data: enums } = useEnumsQuery();
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
 
@@ -133,7 +131,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection fields={getAnalysisFields(props.analysis)} enums={enums} />
+                    <DetailSection fields={getAnalysisFields(props.analysis)} />
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
@@ -141,7 +139,6 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                         <InfoList
                             infoList={getDatasetInfoList(datasets)}
                             title="Associated Datasets"
-                            enums={enums}
                             icon={<Dns />}
                             linkPath="/datasets"
                         />

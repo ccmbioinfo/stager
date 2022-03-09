@@ -14,7 +14,6 @@ import {
 import {
     useDatasetQuery,
     useDatasetUpdateMutation,
-    useEnumsQuery,
     useErrorSnackbar,
 } from "../../hooks";
 import { Dataset, Field, Sample } from "../../typings";
@@ -90,7 +89,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
     const classes = useStyles();
     const labeledBy = "dataset-info-dialog-slide-title";
     const { data: dataset, isLoading: loadingOpen } = useDatasetQuery(dataset_id);
-    const { data: enums } = useEnumsQuery();
     const analyses = useMemo(() => dataset?.analyses, [dataset]);
     const sample = useMemo(() => dataset?.tissue_sample, [dataset]);
 
@@ -145,7 +143,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                     {dataset && (
                         <DetailSection
                             fields={getDatasetFields(dataset)}
-                            enums={enums}
                             editable={true}
                             columnWidth={4}
                             collapsibleFields={getSecDatasetFields(dataset)}
@@ -161,7 +158,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                             editable={false}
                             update={updateDataset}
                             fields={getSamplesFields(sample)}
-                            enums={enums}
                             title="Associated Tissue Sample"
                         />
                     )}
@@ -172,7 +168,6 @@ export default function DatasetInfoDialog({ dataset_id, onClose, open }: DialogP
                         <InfoList
                             infoList={getAnalysisInfoList(analyses)}
                             title="Analyses which use this dataset"
-                            enums={enums}
                             icon={<ShowChart />}
                             linkPath="/analysis"
                         />

@@ -130,8 +130,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         try {
             const apiInfoResult = await apiFetch(`/api`);
             if (apiInfoResult.ok) {
-                let apiInfo = { ...(await apiInfoResult.json()) };
-                setApiInfo(apiInfo as APIInfo);
+                setApiInfo(await apiInfoResult.json());
             }
         } catch (error) {
             console.log(error);

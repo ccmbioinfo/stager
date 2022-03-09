@@ -169,7 +169,7 @@ export default function AnalysisRunnerDialog({
                             {
                                 onSuccess: analysis => {
                                     enqueueSnackbar(
-                                        `Analysis ID ${analysis.analysis_id} created of ${datasets.length} datasets`,
+                                        `${analysis.kind} analysis (ID ${analysis.analysis_id}) requested with ${datasets.length} datasets`,
                                         { variant: "success" }
                                     );
                                 },

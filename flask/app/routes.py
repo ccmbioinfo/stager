@@ -30,11 +30,20 @@ dataset_schema = schemas.RNASeqDatasetSchema()
 tissue_sample_schema = schemas.TissueSampleSchema()
 
 
+enums = {
+    name: [e.value for e in getattr(models, name)]
+    for name, obj in inspect.getmembers(models, inspect.isclass)
+    if issubclass(obj, Enum) and name != "Enum"
+}
+
+
 @routes.route("/api", strict_slashes=False)
 def version():
     api_info = {
         "sha": app.config.get("GIT_SHA"),
         "oauth": app.config.get("ENABLE_OIDC"),
+        "enums": enums,
+        "dataset_types": models.DATASET_TYPES,
     }
     if app.config.get("ENABLE_OIDC"):
         api_info["oauth_provider"] = app.config.get("OIDC_PROVIDER")
@@ -193,20 +202,6 @@ def get_institutions():
     db_institutions = models.Institution.query.all()
     app.logger.info("Returning institutions as JSON..")
     return jsonify([x.institution for x in db_institutions])
-
-
-@routes.route("/api/enums", methods=["GET"])
-@login_required
-def get_enums():
-    enums = {}
-    app.logger.info("Retrieving all enums..")
-    for name, obj in inspect.getmembers(models, inspect.isclass):
-        if issubclass(obj, Enum) and name != "Enum":
-            app.logger.debug("'%s' is an enum", name)
-            enums[name] = [e.value for e in getattr(models, name)]
-        else:
-            app.logger.debug("'%s' is NOT an enum", name)
-    return jsonify(enums)
 
 
 @routes.route("/api/_bulk", methods=["POST"])

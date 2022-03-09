@@ -337,6 +337,8 @@ export interface GeneAlias {
 
 interface APIInfoBase {
     sha: string;
+    enums: Record<string, string[]>;
+    dataset_types: Record<string, { name: string; kind: string }>[];
 }
 
 interface APIInfoOAuth {
