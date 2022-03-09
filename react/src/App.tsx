@@ -63,7 +63,6 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 body: JSON.stringify(body),
             });
             if (result.ok) {
-                clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
                 if (result.status !== 204) {
                     const redirectUrl = (await result.json())?.["redirect_uri"];
                     if (redirectUrl) {
