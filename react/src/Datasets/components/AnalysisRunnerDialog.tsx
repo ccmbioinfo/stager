@@ -27,7 +27,6 @@ import {
     useAnalysisCreateMutation,
     useEnumsQuery,
     useErrorSnackbar,
-    usePipelinesQuery,
 } from "../../hooks";
 import { AnalysisPriority, Dataset } from "../../typings";
 
@@ -51,9 +50,6 @@ export default function AnalysisRunnerDialog({
     const classes = useStyles();
     const titleId = "analysis-runner-alert-dialog-slide-title";
     const descriptionId = "analysis-runner-alert-dialog-slide-description";
-    const pipelineQuery = usePipelinesQuery();
-    const pipelines = pipelineQuery.data || [];
-    const [pipeline, setPipeline] = useState(NaN);
     const [analysisPriority, setAnalysisPriority] = useState<AnalysisPriority | "None" | "">("");
     const [notes, setNotes] = useState("");
     const mutation = useAnalysisCreateMutation();
@@ -77,33 +73,9 @@ export default function AnalysisRunnerDialog({
                 <Typography id={descriptionId} variant="body1" className={classes.text}>
                     Run a pipeline using the selected datasets. A full analysis can take a day to
                     several days depending on the number of datasets and the requested pipeline.
+                    The selected datasets must have compatible types.
                 </Typography>
                 <Grid container direction="column">
-                    <Grid item>
-                        <FormControl component="fieldset">
-                            <FormLabel component="legend" className={classes.text}>
-                                Pipelines:
-                            </FormLabel>
-                            <RadioGroup
-                                row
-                                aria-label="Pipelines"
-                                name="pipelines"
-                                value={pipeline}
-                                onChange={event => setPipeline(parseInt(event.target.value))}
-                            >
-                                {pipelines.map(
-                                    ({ pipeline_id, pipeline_name, pipeline_version }) => (
-                                        <FormControlLabel
-                                            key={pipeline_id}
-                                            label={`${pipeline_name} ${pipeline_version}`}
-                                            value={pipeline_id}
-                                            control={<Radio color="primary" />}
-                                        />
-                                    )
-                                )}
-                            </RadioGroup>
-                        </FormControl>
-                    </Grid>
                     <Grid item>
                         <FormControl component="fieldset">
                             <FormLabel component="legend" className={classes.text}>
@@ -184,7 +156,6 @@ export default function AnalysisRunnerDialog({
                     Cancel
                 </Button>
                 <Button
-                    disabled={!pipeline}
                     variant="contained"
                     onClick={async () => {
                         onClose();
@@ -196,17 +167,13 @@ export default function AnalysisRunnerDialog({
                             {
                                 type: "new",
                                 datasets: datasets.map(d => d.dataset_id),
-                                pipeline_id: pipeline,
                                 ...priority,
                                 notes: notes,
                             },
                             {
                                 onSuccess: analysis => {
-                                    let p = pipelines.find(
-                                        p => p.pipeline_id === parseInt(analysis.pipeline_id)
-                                    );
                                     enqueueSnackbar(
-                                        `Analysis ID ${analysis.analysis_id} created of ${datasets.length} datasets with pipeline ${p?.pipeline_name} ${p?.pipeline_version}`,
+                                        `Analysis ID ${analysis.analysis_id} created of ${datasets.length} datasets`,
                                         { variant: "success" }
                                     );
                                 },
