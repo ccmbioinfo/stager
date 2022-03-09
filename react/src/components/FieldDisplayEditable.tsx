@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
+import { useAPIInfoContext } from "../contexts";
 import { formatDisplayValue } from "../functions";
 import { Field, LinkedFile, PseudoBooleanReadableMap, UnlinkedFile } from "../typings";
 import FieldDisplay from "./FieldDisplay";
 import FileLinkingComponent from "./FileLinkingComponent";
-import { useAPIInfoContext } from "../contexts";
 
 // Alias for really long type
 type TextFieldEvent = React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>;
@@ -181,10 +181,7 @@ export default function FieldDisplayEditable(props: {
             <Fade in={props.editMode}>
                 <Box hidden={!props.editMode}>
                     {props.editMode && (
-                        <EnhancedTextField
-                            field={props.field}
-                            onEdit={props.onEdit}
-                        />
+                        <EnhancedTextField field={props.field} onEdit={props.onEdit} />
                     )}
                 </Box>
             </Fade>

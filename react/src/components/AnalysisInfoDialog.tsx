@@ -5,11 +5,7 @@ import { Dns, Replay } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from ".";
 import { getDatasetInfoList } from "../functions";
-import {
-    useAnalysisCreateMutation,
-    useAnalysisQuery,
-    useErrorSnackbar,
-} from "../hooks";
+import { useAnalysisCreateMutation, useAnalysisQuery, useErrorSnackbar } from "../hooks";
 import { Analysis, Field } from "../typings";
 
 const useStyles = makeStyles(theme => ({

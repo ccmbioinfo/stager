@@ -24,6 +24,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
+import { useAPIInfoContext } from "../contexts";
 import {
     checkPipelineStatusChange,
     isRowSelected,
@@ -37,7 +38,6 @@ import {
     useAnalysisUpdateMutation,
     useColumnOrderCache,
     useDownloadCsv,
-    useEnumsQuery,
     useErrorSnackbar,
     useHiddenColumnCache,
     useSortOrderCache,
@@ -144,12 +144,13 @@ export default function Analyses() {
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
 
-    const enumsQuery = useEnumsQuery();
-    const enums = enumsQuery.data;
-
     const theme = useTheme();
 
-    const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
+    const apiInfo = useAPIInfoContext() ?? undefined;
+    const priorityLookup = useMemo(
+        () => apiInfo && toKeyValue(apiInfo.enums.PriorityType),
+        [apiInfo]
+    );
     const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
@@ -165,9 +166,7 @@ export default function Analyses() {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
     }, []);
 
-    const cacheDeps = [enumsQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
+    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", [!!apiInfo]);
 
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
         "analysisTableDefaultHidden"
@@ -214,7 +213,7 @@ export default function Analyses() {
                             }
                             fullWidth
                         >
-                            {enums?.PriorityType.map(p => (
+                            {apiInfo?.enums.PriorityType.map(p => (
                                 <MenuItem key={p} value={p}>
                                     {p}
                                 </MenuItem>
@@ -312,7 +311,7 @@ export default function Analyses() {
         setInitialSorting(columns);
         return columns;
     }, [
-        enums?.PriorityType,
+        apiInfo,
         paramID,
         pipelineStatusLookup,
         priorityLookup,

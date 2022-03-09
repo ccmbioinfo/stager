@@ -14,6 +14,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
+import { useAPIInfoContext } from "../../contexts";
 import { countArray, resetAllTableFilters, rowDiff, toKeyValue } from "../../functions";
 import {
     GET_PARTICIPANTS_URL,
@@ -30,7 +31,6 @@ import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
 import { Family, Participant } from "../../typings";
 import DatasetTypes from "./DatasetTypes";
 import ParticipantInfoDialog from "./ParticipantInfoDialog";
-import { useAPIInfoContext } from "../../contexts";
 
 export default function ParticipantTable() {
     const [detail, setDetail] = useState(false);

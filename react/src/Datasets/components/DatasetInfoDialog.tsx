@@ -11,11 +11,7 @@ import {
     getDatasetFields,
     getSecDatasetFields,
 } from "../../functions";
-import {
-    useDatasetQuery,
-    useDatasetUpdateMutation,
-    useErrorSnackbar,
-} from "../../hooks";
+import { useDatasetQuery, useDatasetUpdateMutation, useErrorSnackbar } from "../../hooks";
 import { Dataset, Field, Sample } from "../../typings";
 
 const useStyles = makeStyles(theme => ({
