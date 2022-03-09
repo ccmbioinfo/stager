@@ -23,11 +23,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { useSnackbar } from "notistack";
-import {
-    useAnalysisCreateMutation,
-    useEnumsQuery,
-    useErrorSnackbar,
-} from "../../hooks";
+import { useAnalysisCreateMutation, useEnumsQuery, useErrorSnackbar } from "../../hooks";
 import { AnalysisPriority, Dataset } from "../../typings";
 
 interface AnalysisRunnerDialogProps {
@@ -72,8 +68,8 @@ export default function AnalysisRunnerDialog({
             <DialogContent>
                 <Typography id={descriptionId} variant="body1" className={classes.text}>
                     Run a pipeline using the selected datasets. A full analysis can take a day to
-                    several days depending on the number of datasets and the requested pipeline.
-                    The selected datasets must have compatible types.
+                    several days depending on the number of datasets and the requested pipeline. The
+                    selected datasets must have compatible types.
                 </Typography>
                 <Grid container direction="column">
                     <Grid item>

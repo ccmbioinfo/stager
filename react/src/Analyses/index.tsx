@@ -47,7 +47,6 @@ import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import AnalysisNotes from "./components/AnalysisNotes";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
-import PipelineFilter from "./components/PipelineFilter";
 import SelectPipelineStatus from "./components/SelectPipelineStatus";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
@@ -63,14 +62,6 @@ const useStyles = makeStyles(theme => ({
         paddingBottom: theme.spacing(3),
     },
 }));
-
-function pipeName(row: Analysis) {
-    if (row.pipeline) {
-        return `${row.pipeline.pipeline_name} ${row.pipeline.pipeline_version}`;
-    } else {
-        return "";
-    }
-}
 
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
@@ -197,12 +188,10 @@ export default function Analyses() {
     const columns = useMemo(() => {
         const columns: Column<Analysis>[] = [
             {
-                title: "Pipeline",
-                field: "pipeline_id",
+                title: "Kind",
+                field: "kind",
                 type: "string",
                 editable: "never",
-                render: row => pipeName(row),
-                filterComponent: PipelineFilter,
             },
             {
                 title: "Status",

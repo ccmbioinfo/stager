@@ -138,10 +138,9 @@ export interface Analysis {
     finished: string;
     notes: string;
     participant_codenames: string[];
-    pipeline: Pipeline;
-    pipeline_id: string;
+    kind: string;
     priority: AnalysisPriority;
-    qsubID: string;
+    scheduler_id: string;
     requested: string;
     requester: string;
     result_path: string;
@@ -163,8 +162,7 @@ export type AnalysisChange = Pick<Analysis, "analysis_id"> &
             Analysis,
             | "analysis_state"
             | "priority"
-            | "pipeline_id"
-            | "qsubID"
+            | "scheduler_id"
             | "result_path"
             | "assignee"
             | "requested"
@@ -176,12 +174,7 @@ export interface BlobResponse {
     filename: string;
     blob: Blob;
 }
-export interface Pipeline {
-    pipeline_id: number;
-    pipeline_name: string;
-    pipeline_version: string;
-    supported_types: string[];
-}
+
 export interface Info {
     primaryListTitle: string;
     secondaryListTitle?: string;
