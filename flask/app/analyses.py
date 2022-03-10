@@ -139,9 +139,7 @@ def list_analyses(page: int, limit: int) -> Response:
     kind = request.args.get("kind", type=str)
     if kind:
         try:
-            filters.append(
-                models.Analysis.kind.in_(kind.split(","))
-            )
+            filters.append(models.Analysis.kind.in_(kind.split(",")))
         except ValueError as err:
             abort(400, description=err)
         app.logger.debug("Filter by kind: '%s'", kind)

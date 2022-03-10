@@ -152,6 +152,16 @@ export default function Analyses() {
     const theme = useTheme();
 
     const apiInfo = useAPIInfoContext() ?? undefined;
+    const kindLookup = useMemo(
+        () =>
+            apiInfo &&
+            toKeyValue(
+                [...new Set(Object.values(apiInfo.dataset_types).map(e => e.kind))].sort(
+                    ([a], [b]) => a.localeCompare(b)
+                )
+            ),
+        [apiInfo]
+    );
     const priorityLookup = useMemo(
         () => apiInfo && toKeyValue(apiInfo.enums.PriorityType),
         [apiInfo]
@@ -204,6 +214,7 @@ export default function Analyses() {
                 field: "kind",
                 type: "string",
                 editable: "never",
+                lookup: kindLookup,
             },
             {
                 title: "Status",
