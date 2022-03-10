@@ -23,20 +23,7 @@ DEFAULT_PAYLOAD = {
 }
 
 
-# GET /api/enums
-def test_get_enums(test_database, client, login_as):
-    # Test success
-    login_as("admin")
-    response = client.get("/api/enums")
-    assert response.status_code == 200
-    assert len(response.get_json()) == 8
-    for enumType, enums in response.get_json().items():
-        assert enumType is not None
-
-
 # GET api/institutions
-
-
 def test_get_institutions(test_database, client, login_as):
     login_as("admin")
     response = client.get("/api/institutions")
