@@ -6,6 +6,7 @@ import {
     Add,
     AssignmentTurnedIn,
     Cancel,
+    Delete,
     Error,
     Info,
     PersonPin,
@@ -19,12 +20,13 @@ import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
     ChipGroup,
+    ConfirmModal,
     DateFilterComponent,
     DateTimeText,
     MaterialTablePrimary,
     Note,
 } from "../components";
-import { useAPIInfoContext } from "../contexts";
+import { useAPIInfoContext, useUserContext } from "../contexts";
 import {
     checkPipelineStatusChange,
     isRowSelected,
@@ -35,6 +37,7 @@ import {
     AnalysisOptions,
     GET_ANALYSES_URL,
     useAnalysesPage,
+    useAnalysisDeleteMutation,
     useAnalysisUpdateMutation,
     useColumnOrderCache,
     useDownloadCsv,
@@ -130,6 +133,7 @@ const getHighlightColor = (theme: Theme, priority: AnalysisPriority, status: Pip
 
 export default function Analyses() {
     const classes = useStyles();
+    const { user: currentUser } = useUserContext(); //for user details
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
@@ -143,6 +147,7 @@ export default function Analyses() {
     const downloadCsv = useDownloadCsv(GET_ANALYSES_URL);
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
+    const analysisDeleteMutation = useAnalysisDeleteMutation();
 
     const theme = useTheme();
 
@@ -154,6 +159,8 @@ export default function Analyses() {
     const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
+    const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
+    const [showModalLoading, setModalLoading] = useState(false);
 
     const history = useHistory();
 
@@ -175,6 +182,12 @@ export default function Analyses() {
         tableRef,
         "analysisTableSortOrder"
     );
+
+    const handleAnalysisDelete = () => {
+        setActiveRows([]);
+        setConfirmDelete(false);
+        setModalLoading(false);
+    };
 
     function changeAnalysisState(newState: PipelineStatus, rows = activeRows) {
         return _changeStateForSelectedRows(rows, analysisUpdateMutation, newState);
@@ -365,6 +378,41 @@ export default function Analyses() {
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />
             )}
+
+            <ConfirmModal
+                id="confirm-modal-delete"
+                open={confirmDelete}
+                loading={showModalLoading}
+                onClose={() => {
+                    setConfirmDelete(false);
+                    setModalLoading(false);
+                }}
+                onConfirm={() => {
+                    setModalLoading(true);
+                    activeRows.forEach(row => {
+                        analysisDeleteMutation.mutate(row.analysis_id, {
+                            onSuccess: () => {
+                                handleAnalysisDelete();
+                                enqueueSnackbar(`Deleted successfully.`, {
+                                    variant: "success",
+                                });
+
+                                //refresh data
+                                tableRef.current.onQueryChange();
+                            },
+                            onError: error => {
+                                handleAnalysisDelete();
+                                enqueueErrorSnackbar(error);
+                            },
+                        });
+                    });
+                }}
+                title="Delete analysis"
+                colors={{ cancel: "secondary" }}
+            >
+                Are you sure you want to delete analysis{" "}
+                {activeRows.map(analysis => analysis.analysis_id).join(", ")}?
+            </ConfirmModal>
 
             {activeRows.length > 0 && (
                 <AnalysisInfoDialog
@@ -607,6 +655,15 @@ export default function Analyses() {
                                             { variant: "error" }
                                         );
                                 });
+                            },
+                        },
+                        {
+                            icon: Delete,
+                            tooltip: "Delete Analysis",
+                            hidden: !currentUser.is_admin,
+                            onClick: (event, rowData) => {
+                                setActiveRows(rowData as Analysis[]);
+                                setConfirmDelete(true);
                             },
                         },
                         {
