@@ -140,7 +140,7 @@ def list_analyses(page: int, limit: int) -> Response:
     if kind:
         try:
             filters.append(
-                models.Analysis.kind.in_([int(pk) for pk in kind.split(",")])
+                models.Analysis.kind.in_(kind.split(","))
             )
         except ValueError as err:
             abort(400, description=err)
