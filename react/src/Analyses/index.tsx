@@ -337,6 +337,7 @@ export default function Analyses() {
     }, [
         apiInfo,
         paramID,
+        kindLookup,
         pipelineStatusLookup,
         priorityLookup,
         setHiddenColumns,
