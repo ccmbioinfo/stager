@@ -1,4 +1,3 @@
-export { useEnumsQuery } from "./useEnumsQuery";
 export { useInstitutionsQuery } from "./useInstitutionsQuery";
 export { useUnlinkedFilesQuery } from "./unlinked/useUnlinkedFilesQuery";
 
