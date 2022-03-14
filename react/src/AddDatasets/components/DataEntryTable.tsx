@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
     Button,
     makeStyles,
@@ -13,7 +13,8 @@ import {
 import { Add } from "@material-ui/icons";
 import dayjs from "dayjs";
 import { ALL_OPTIONAL_FIELDS, createEmptyRow, makeFreshColumns } from "..";
-import { useEnumsQuery, useInstitutionsQuery } from "../../hooks";
+import { useAPIInfoContext } from "../../contexts";
+import { useInstitutionsQuery } from "../../hooks";
 import {
     DataEntryColumnConfig,
     DataEntryField,
@@ -67,7 +68,11 @@ export default function DataEntryTable({
     const classes = useTableStyles();
 
     const { data: institutions } = useInstitutionsQuery();
-    const { data: enums } = useEnumsQuery();
+    const apiInfo = useAPIInfoContext() ?? undefined;
+    const hackedTogetherEnums = useMemo(
+        () => apiInfo && { ...apiInfo.enums, DatasetType: Object.keys(apiInfo.dataset_types) },
+        [apiInfo]
+    );
 
     const onAddNewRow = useCallback(() => setData(data.concat(createEmptyRow())), [setData, data]);
     const onDelete = useCallback(
@@ -95,7 +100,7 @@ export default function DataEntryTable({
 
     // Return the options for a given cell based on row, column
     function getOptions(rowIndex: number, col: DataEntryColumnConfig, families: Family[]) {
-        return _getOptions(data, col, rowIndex, families, enums, institutions || []);
+        return _getOptions(data, col, rowIndex, families, hackedTogetherEnums, institutions || []);
     }
 
     function toggleHideColumn(field: DataEntryField) {
