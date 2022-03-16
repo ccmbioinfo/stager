@@ -6,7 +6,7 @@
 #
 alembic==1.7.5
     # via flask-migrate
-apscheduler==3.8.1
+apscheduler==3.9.1
     # via -r requirements.in
 authlib==0.15.5
     # via -r requirements.in
@@ -24,7 +24,7 @@ cryptography==36.0.1
     # via
     #   authlib
     #   pymysql
-flask==2.0.2
+flask==2.0.3
     # via
     #   -r requirements.in
     #   flask-login
@@ -64,11 +64,11 @@ marshmallow==3.14.1
     #   marshmallow-sqlalchemy
 marshmallow-sqlalchemy==0.27.0
     # via -r requirements.in
-minio==7.1.2
+minio==7.1.4
     # via -r requirements.in
 numpy==1.21.5
     # via pandas
-pandas==1.4.0
+pandas==1.4.1
     # via -r requirements.in
 prometheus-client==0.12.0
     # via prometheus-flask-exporter
@@ -92,7 +92,7 @@ pytz-deprecation-shim==0.1.0.post0
     # via tzlocal
 requests==2.27.1
     # via -r requirements.in
-sendgrid==6.9.5
+sendgrid==6.9.6
     # via -r requirements.in
 six==1.16.0
     # via
