@@ -429,7 +429,7 @@ def create_dataset():
     result = dataset_schema.validate(new_dataset, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
     tissue_sample_id = request.json.get("tissue_sample_id")
     models.TissueSample.query.filter_by(

@@ -137,7 +137,7 @@ def create_tissue_sample():
     result = tissue_sample_schema.validate(new_tissue_sample, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
 
     try:

@@ -210,7 +210,7 @@ def create_user() -> Response:
     result = user_schema.validate(new_user, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
 
     app.logger.debug(

@@ -384,7 +384,7 @@ def create_analysis():
     result = analysis_schema.validate(new_analysis, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
 
     pipeline_id = request.json.get("pipeline_id")

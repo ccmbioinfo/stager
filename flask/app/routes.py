@@ -507,7 +507,7 @@ def bulk_update():
             row_tissue_sample, session=db.session
         )
         if error_tissue_sample:
-            app.logger.error(jsonify(error_tissue_sample))
+            app.logger.error(error_tissue_sample)
             db.session.rollback()
             abort(400, description=error_tissue_sample)
 
@@ -532,7 +532,7 @@ def bulk_update():
 
         error_dataset = dataset_schema.validate(row_dataset, session=db.session)
         if error_dataset:
-            app.logger.error(jsonify(error_dataset))
+            app.logger.error(error_dataset)
             db.session.rollback()
             abort(400, description=error_dataset)
 
