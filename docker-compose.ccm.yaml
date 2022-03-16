@@ -30,6 +30,7 @@ services:
       <<: *env
       ST_SECRET_KEY: "${HIRAKI_ST_SECRET_KEY}"
       ST_DATABASE_URI: "mysql+pymysql://${HIRAKI_MYSQL_CONNECTION_STRING}"
+      SQLALCHEMY_SIDECAR: /var/log/stager/sqlalchemy.fifo
       MINIO_ENDPOINT: "${HIRAKI_MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${HIRAKI_MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${HIRAKI_MINIO_SECRET_KEY}"

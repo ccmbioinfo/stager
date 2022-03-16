@@ -7,6 +7,7 @@ services:
     environment:
       ST_SECRET_KEY:
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_CONNECTION_STRING}"
+      SQLALCHEMY_SIDECAR: /var/log/stager/sqlalchemy.fifo
       MINIO_ENDPOINT:
       MINIO_ACCESS_KEY:
       MINIO_SECRET_KEY:
