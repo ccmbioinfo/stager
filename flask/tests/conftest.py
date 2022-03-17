@@ -4,7 +4,6 @@ import pytest
 from app import create_app, db
 from app.config import Config
 from app.models import *
-from flask.testing import FlaskClient
 
 
 class TestConfig(Config):
@@ -89,48 +88,6 @@ def test_database(client):
     ]
     for i in institutions:
         db.session.add(Institution(institution=i))
-
-    db.session.flush()
-
-    dataset_types = [
-        "RES",
-        "CES",
-        "WES",
-        "CPS",
-        "RCS",
-        "RDC",
-        "RDE",
-        "RGS",
-        "CGS",
-        "WGS",
-        "RRS",
-        "RLM",
-        "RMM",
-        "RTA",
-    ]
-
-    for d in dataset_types:
-        db.session.add(DatasetType(dataset_type=d))
-    db.session.flush()
-
-    metadataset_types = ["Genome", "Exome", "RNA", "Other"]
-
-    for m in metadataset_types:
-        db.session.add(MetaDatasetType(metadataset_type=m))
-    db.session.flush()
-
-    md_d = {
-        "Exome": ["RES", "CES", "WES", "CPS", "RCS", "RDC", "RDE"],
-        "Genome": ["RGS", "CGS", "WGS"],
-        "Other": ["RLM", "RMM", "RTA"],
-        "RNA": ["RRS"],
-    }
-
-    for k in md_d:
-        for dataset in md_d[k]:
-            db.session.add(
-                MetaDatasetType_DatasetType(metadataset_type=k, dataset_type=dataset)
-            )
     db.session.flush()
 
     group = Group(group_code="ach", group_name="Alberta")
@@ -173,24 +130,6 @@ def test_database(client):
     user_c.minio_access_key = "user_c"
     user_c.groups.append(group_bcch)
     db.session.add(user_c)
-    db.session.flush()
-
-    pipeline_1 = Pipeline(pipeline_id=1, pipeline_name="CRG", pipeline_version="1.2")
-    db.session.add(pipeline_1)
-    pipeline_2 = Pipeline(pipeline_id=2, pipeline_name="CRE", pipeline_version="1.1")
-    db.session.add(pipeline_2)
-    db.session.flush()
-
-    db.session.add(
-        PipelineDatasets(
-            pipeline_id=pipeline_1.pipeline_id, supported_metadataset_type="Genome"
-        )
-    )
-    db.session.add(
-        PipelineDatasets(
-            pipeline_id=pipeline_2.pipeline_id, supported_metadataset_type="Exome"
-        )
-    )
     db.session.flush()
 
     family_a = Family(
@@ -276,7 +215,7 @@ def test_database(client):
         requester_id=admin.user_id,
         assignee_id=admin.user_id,
         updated_by_id=admin.user_id,
-        pipeline_id=pipeline_2.pipeline_id,
+        kind="exomic",
         requested="2020-07-28",
         started="2020-08-04",
         updated="2020-08-04",
@@ -289,7 +228,7 @@ def test_database(client):
         requester_id=user_a.user_id,
         assignee_id=None,
         updated_by_id=admin.user_id,
-        pipeline_id=pipeline_1.pipeline_id,
+        kind="short-read genomic",
         requested="2020-07-28",
         started="2020-08-04",
         updated="2020-08-04",
@@ -342,7 +281,7 @@ def test_database(client):
         requester_id=admin.user_id,
         assignee_id=admin.user_id,
         updated_by_id=admin.user_id,
-        pipeline_id=pipeline_2.pipeline_id,
+        kind="exomic",
         requested="2020-07-28",
         started="2020-08-04",
         updated="2020-08-04",

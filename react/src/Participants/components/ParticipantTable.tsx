@@ -14,16 +14,15 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
+import { useAPIInfoContext } from "../../contexts";
 import { countArray, resetAllTableFilters, rowDiff, toKeyValue } from "../../functions";
 import {
     GET_PARTICIPANTS_URL,
     useColumnOrderCache,
     useDownloadCsv,
-    useEnumsQuery,
     useErrorSnackbar,
     useFamilyUpdateMutation,
     useHiddenColumnCache,
-    useMetadatasetTypesQuery,
     useParticipantsPage,
     useParticipantUpdateMutation,
     useSortOrderCache,
@@ -36,32 +35,23 @@ import ParticipantInfoDialog from "./ParticipantInfoDialog";
 export default function ParticipantTable() {
     const [detail, setDetail] = useState(false);
     const [activeRow, setActiveRow] = useState<Participant | undefined>(undefined);
-    const enumsQuery = useEnumsQuery();
-    const sexTypes = useMemo(
-        () => enumsQuery.data && toKeyValue(enumsQuery.data.Sex),
-        [enumsQuery.data]
-    );
-    const participantTypes = useMemo(
-        () => enumsQuery.data && toKeyValue(enumsQuery.data.ParticipantType),
-        [enumsQuery.data]
-    );
     const { id: paramID } = useParams<{ id?: string }>();
-    const metadatasetTypesQuery = useMetadatasetTypesQuery();
-    const datasetTypes = useMemo(
-        () =>
-            metadatasetTypesQuery.data &&
-            toKeyValue(Object.values(metadatasetTypesQuery.data).flat()),
-        [metadatasetTypesQuery.data]
-    );
     const tableRef = useRef<any>();
 
-    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(
-        tableRef,
-        "participantTableColumnOrder",
-        cacheDeps
+    const apiInfo = useAPIInfoContext() ?? undefined; // map null to undefined for material-table lookup field
+    const sexTypes = useMemo(() => apiInfo && toKeyValue(apiInfo.enums.Sex), [apiInfo]);
+    const participantTypes = useMemo(
+        () => apiInfo && toKeyValue(apiInfo.enums.ParticipantType),
+        [apiInfo]
     );
+    const datasetTypes = useMemo(
+        () => apiInfo && toKeyValue(Object.keys(apiInfo.dataset_types)),
+        [apiInfo]
+    );
+
+    const handleColumnDrag = useColumnOrderCache(tableRef, "participantTableColumnOrder", [
+        !!apiInfo,
+    ]);
     const { handleOrderChange, setInitialSorting } = useSortOrderCache<Participant>(
         tableRef,
         "participantTableSortOrder"

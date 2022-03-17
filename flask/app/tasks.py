@@ -45,7 +45,6 @@ def send_email_notification(app):
                 **asdict(analysis),
                 "requested": analysis.requested.strftime("%Y-%m-%d"),
                 "requester": analysis.requester.username,
-                "pipeline": analysis.pipeline,
                 "priority": analysis.priority,
                 "datasets": [
                     {

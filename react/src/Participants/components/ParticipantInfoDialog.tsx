@@ -8,7 +8,6 @@ import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from "../../c
 import { formatDateString, formatSubmitValue, getAnalysisInfoList } from "../../functions";
 import {
     useDatasetQueries,
-    useEnumsQuery,
     useErrorSnackbar,
     useFamilyUpdateMutation,
     useParticipantQuery,
@@ -163,7 +162,6 @@ export default function ParticipantInfoDialog({
     const enqueueErrorSnackbar = useErrorSnackbar();
 
     const labeledBy = "participant-info-dialog-slide-title";
-    const { data: enums } = useEnumsQuery();
 
     const updateParticipant = async (fields: Field[]) => {
         const newFamilyData = fields
@@ -245,7 +243,6 @@ export default function ParticipantInfoDialog({
                     {participant && (
                         <DetailSection
                             fields={getParticipantFields(participant)}
-                            enums={enums}
                             columnWidth={3}
                             editable={true}
                             update={updateParticipant}
@@ -256,7 +253,7 @@ export default function ParticipantInfoDialog({
                     <>
                         <Divider />
                         <div>
-                            <SampleTable samples={participant.tissue_samples} enums={enums} />
+                            <SampleTable samples={participant.tissue_samples} />
                         </div>
                     </>
                 )}
@@ -268,7 +265,6 @@ export default function ParticipantInfoDialog({
                             <InfoList
                                 infoList={getAnalysisInfoList(analyses)}
                                 title="Analyses"
-                                enums={enums}
                                 icon={<ShowChart />}
                                 linkPath="/analysis"
                             />
