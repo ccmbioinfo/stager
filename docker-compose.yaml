@@ -95,10 +95,12 @@ services:
     image: busybox
     profiles:
       - gunicorn
+    init: true
     command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
     volumes:
       - log-fifo:/var/log/stager:ro
     depends_on:
       - app_gunicorn
+    restart: unless-stopped
 volumes:
   log-fifo:
