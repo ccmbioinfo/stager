@@ -26,7 +26,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../components";
-import { useUserContext } from "../contexts";
+import { useAPIInfoContext, useUserContext } from "../contexts";
 import {
     checkPipelineStatusChange,
     isRowSelected,
@@ -41,7 +41,6 @@ import {
     useAnalysisUpdateMutation,
     useColumnOrderCache,
     useDownloadCsv,
-    useEnumsQuery,
     useErrorSnackbar,
     useHiddenColumnCache,
     useSortOrderCache,
@@ -51,7 +50,6 @@ import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import AnalysisNotes from "./components/AnalysisNotes";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
-import PipelineFilter from "./components/PipelineFilter";
 import SelectPipelineStatus from "./components/SelectPipelineStatus";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
@@ -67,14 +65,6 @@ const useStyles = makeStyles(theme => ({
         paddingBottom: theme.spacing(3),
     },
 }));
-
-function pipeName(row: Analysis) {
-    if (row.pipeline) {
-        return `${row.pipeline.pipeline_name} ${row.pipeline.pipeline_version}`;
-    } else {
-        return "";
-    }
-}
 
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
@@ -157,15 +147,25 @@ export default function Analyses() {
     const downloadCsv = useDownloadCsv(GET_ANALYSES_URL);
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
-
     const analysisDeleteMutation = useAnalysisDeleteMutation();
-
-    const enumsQuery = useEnumsQuery();
-    const enums = enumsQuery.data;
 
     const theme = useTheme();
 
-    const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
+    const apiInfo = useAPIInfoContext() ?? undefined;
+    const kindLookup = useMemo(
+        () =>
+            apiInfo &&
+            toKeyValue(
+                [...new Set(Object.values(apiInfo.dataset_types).map(e => e.kind))].sort(
+                    ([a], [b]) => a.localeCompare(b)
+                )
+            ),
+        [apiInfo]
+    );
+    const priorityLookup = useMemo(
+        () => apiInfo && toKeyValue(apiInfo.enums.PriorityType),
+        [apiInfo]
+    );
     const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
@@ -183,9 +183,7 @@ export default function Analyses() {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
     }, []);
 
-    const cacheDeps = [enumsQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
+    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", [!!apiInfo]);
 
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
         "analysisTableDefaultHidden"
@@ -212,12 +210,11 @@ export default function Analyses() {
     const columns = useMemo(() => {
         const columns: Column<Analysis>[] = [
             {
-                title: "Pipeline",
-                field: "pipeline_id",
+                title: "Kind",
+                field: "kind",
                 type: "string",
                 editable: "never",
-                render: row => pipeName(row),
-                filterComponent: PipelineFilter,
+                lookup: kindLookup,
             },
             {
                 title: "Status",
@@ -240,7 +237,7 @@ export default function Analyses() {
                             }
                             fullWidth
                         >
-                            {enums?.PriorityType.map(p => (
+                            {apiInfo?.enums.PriorityType.map(p => (
                                 <MenuItem key={p} value={p}>
                                     {p}
                                 </MenuItem>
@@ -338,8 +335,9 @@ export default function Analyses() {
         setInitialSorting(columns);
         return columns;
     }, [
-        enums?.PriorityType,
+        apiInfo,
         paramID,
+        kindLookup,
         pipelineStatusLookup,
         priorityLookup,
         setHiddenColumns,

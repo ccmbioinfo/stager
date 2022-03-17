@@ -63,7 +63,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
                 body: JSON.stringify(body),
             });
             if (result.ok) {
-                clearQueryCache(queryClient, ["enums", "metadatasettypes"]);
+                clearQueryCache(queryClient);
                 if (result.status !== 204) {
                     const redirectUrl = (await result.json())?.["redirect_uri"];
                     if (redirectUrl) {
@@ -130,8 +130,7 @@ function BaseApp(props: { darkMode: boolean; toggleDarkMode: () => void }) {
         try {
             const apiInfoResult = await apiFetch(`/api`);
             if (apiInfoResult.ok) {
-                let apiInfo = { ...(await apiInfoResult.json()) };
-                setApiInfo(apiInfo as APIInfo);
+                setApiInfo(await apiInfoResult.json());
             }
         } catch (error) {
             console.log(error);

@@ -33,7 +33,6 @@ const useStyles = makeStyles(theme => ({
 
 interface DetailSectionProps {
     fields: Field[];
-    enums?: Record<string, string[]>;
     editable?: boolean;
     columnWidth?: Width;
     collapsibleFields?: Field[];
@@ -116,7 +115,6 @@ export default function DetailSection(props: DetailSectionProps) {
                         fields={primaryFields}
                         editMode={editMode}
                         onEdit={OnEditData}
-                        enums={props.enums}
                         columnWidth={props.columnWidth}
                     />
                 </Grid>
@@ -150,7 +148,6 @@ export default function DetailSection(props: DetailSectionProps) {
                                 columnWidth={props.columnWidth}
                                 editMode={editMode}
                                 onEdit={OnEditData}
-                                enums={props.enums}
                             />
                         </Grid>
                     </Collapse>

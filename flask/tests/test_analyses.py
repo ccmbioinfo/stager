@@ -186,69 +186,32 @@ def test_update_analysis(test_database, client, login_as):
 
 def test_create_analysis(test_database, client, login_as):
     login_as("user")
-    # Test no pipeline id given
-    assert (
-        client.post(
-            "/api/analyses",
-            json={"datasets": "haha"},
-        ).status_code
-        == 400
-    )
     # Test no dataset id given
     assert (
         client.post(
             "/api/analyses",
-            json={"pipeline_id": "haha"},
+            json={},
         ).status_code
         == 400
     )
 
     # # Test invalid dataset id given
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": "haha", "pipeline_id": 1}
-        ).status_code
-        == 400
-    )
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": [], "pipeline_id": 1}
-        ).status_code
-        == 400
-    )
-
-    # Test invalid pipeline id given,
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": [1, 2], "pipeline_id": "lol nah"}
-        ).status_code
-        == 400
-    )
-
+    assert client.post("/api/analyses", json={"datasets": "haha"}).status_code == 400
+    assert client.post("/api/analyses", json={"datasets": []}).status_code == 400
     # Test invalid invalid priority given
     assert (
         client.post(
             "/api/analyses",
-            json={"datasets": [3], "pipeline_id": 2, "priority": "FOO"},
+            json={"datasets": [3], "priority": "FOO"},
         ).status_code
         == 400
     )
 
     # test requesting a dataset that the user does not have access to
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": [1, 2], "pipeline_id": 1}
-        ).status_code
-        == 404
-    )
+    assert client.post("/api/analyses", json={"datasets": [1, 2]}).status_code == 404
 
-    # Test success and check db (dataset 3 is compatible with pipeline 1)
-    assert (
-        client.post(
-            "/api/analyses", json={"datasets": [3], "pipeline_id": 1}
-        ).status_code
-        == 201
-    )
+    # Test success and check db
+    assert client.post("/api/analyses", json={"datasets": [3]}).status_code == 201
     analysis = (
         models.Analysis.query.options(joinedload(models.Analysis.datasets))
         .filter(models.Analysis.analysis_id == 4)
@@ -260,33 +223,29 @@ def test_create_analysis(test_database, client, login_as):
         .one_or_none()
     )
     assert analysis is not None
+    assert analysis.kind == "short-read genomic"
     assert len(analysis.datasets) == 1
     assert len(dataset_3.analyses) == 2
 
     login_as("admin")
     assert len(client.get("/api/analyses").get_json()["data"]) == 4
 
-    # test compatible metadataset types - may need to expand on these after more pipelines are introduced
+    # test compatible datasets
 
     test_compatible_dict = {
-        "wes_crg_1": ([4], 1, 404),  # Fail
-        "wes_cre_1": ([4], 2, 201),  # Pass
-        "wes_crg_2": ([1], 1, 404),  # Fail
-        "wes_cre_2": ([1], 2, 201),  # Pass
-        "wgs_crg": ([3], 1, 201),  # Pass
-        "wgs_cre": ([3], 2, 404),  # Fail
-        "wgs_crg_2": ([2], 1, 201),  # Pass
-        "wgs_cre_2": ([2], 2, 404),  # Fail
-        "multi_crg_bad": ([3, 4], 1, 404),  # Fail
-        "multi_cre_good": ([1, 4], 2, 201),  # Pass
+        "one exome": ([4], 201),
+        "multiple exomes": ([1, 4], 201),
+        "multiple genomes": ([2, 3], 201),
+        "bad mix 1": ([1, 2], 400),
+        "bad mix 2": ([3, 4], 400),
     }
 
     for key in test_compatible_dict:
-        dataset_ids, pipeline_id, expected_error_code = test_compatible_dict[key]
+        dataset_ids, expected_error_code = test_compatible_dict[key]
         assert (
             client.post(
                 "/api/analyses",
-                json={"datasets": dataset_ids, "pipeline_id": pipeline_id},
+                json={"datasets": dataset_ids},
             ).status_code
             == expected_error_code
         )

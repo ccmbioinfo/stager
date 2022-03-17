@@ -259,7 +259,7 @@ def create_family():
     result = family_schema.validate(row_family, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
     fam_codename = request.json.get("family_codename")
     app.logger.debug(

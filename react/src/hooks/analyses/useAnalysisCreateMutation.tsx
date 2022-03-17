@@ -1,11 +1,10 @@
 import { useMutation, useQueryClient } from "react-query";
-import { Analysis, AnalysisPriority, Dataset, Pipeline } from "../../typings";
+import { Analysis, AnalysisPriority, Dataset } from "../../typings";
 import { changeFetch, invalidateAnalysisPredicate } from "../utils";
 
 interface NewAnalysisParams {
     type: "new";
     datasets: Dataset["dataset_id"][];
-    pipeline_id: Pipeline["pipeline_id"];
     priority?: AnalysisPriority;
     notes?: string;
 }

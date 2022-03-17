@@ -15,7 +15,7 @@ import {
     MaterialTablePrimary,
     Note,
 } from "../../components";
-import { useUserContext } from "../../contexts";
+import { useAPIInfoContext, useUserContext } from "../../contexts";
 import { resetAllTableFilters, rowDiff, toKeyValue, updateTableFilter } from "../../functions";
 import {
     GET_DATASETS_URL,
@@ -24,10 +24,8 @@ import {
     useDatasetsPage,
     useDatasetUpdateMutation,
     useDownloadCsv,
-    useEnumsQuery,
     useErrorSnackbar,
     useHiddenColumnCache,
-    useMetadatasetTypesQuery,
     useSortOrderCache,
 } from "../../hooks";
 import { transformMTQueryToCsvDownloadParams } from "../../hooks/utils";
@@ -90,16 +88,31 @@ export default function DatasetTable() {
     const dataFetch = useDatasetsPage();
     const datasetUpdateMutation = useDatasetUpdateMutation();
     const datasetDeleteMutation = useDatasetDeleteMutation();
-    const enumsQuery = useEnumsQuery();
-    const enums = enumsQuery.data;
-    const metadatasetTypesQuery = useMetadatasetTypesQuery();
-    const metadatasetTypes = metadatasetTypesQuery.data;
-    const datasetTypes = useMemo(
-        () => metadatasetTypes && toKeyValue(Object.values(metadatasetTypes).flat()),
-        [metadatasetTypes]
+
+    const apiInfo = useAPIInfoContext() ?? undefined;
+    const tissueSampleTypes = useMemo(
+        () => apiInfo && toKeyValue(apiInfo.enums.TissueSampleType),
+        [apiInfo]
     );
-    const tissueSampleTypes = useMemo(() => enums && toKeyValue(enums.TissueSampleType), [enums]);
-    const conditions = useMemo(() => enums && toKeyValue(enums.DatasetCondition), [enums]);
+    const conditions = useMemo(
+        () => apiInfo && toKeyValue(apiInfo.enums.DatasetCondition),
+        [apiInfo]
+    );
+    const datasetTypes = useMemo(
+        () => apiInfo && toKeyValue(Object.keys(apiInfo.dataset_types)),
+        [apiInfo]
+    );
+    // Construct a mapping from kind to dataset types in alphabetical order, once
+    const metadatasetTypes = useMemo(() => {
+        if (apiInfo) {
+            const o = new Map<string, string[]>();
+            for (const type in apiInfo.dataset_types) {
+                const { kind } = apiInfo.dataset_types[type];
+                o.set(kind, o.get(kind)?.concat(type) ?? [type]);
+            }
+            return [...o].sort(([a], [b]) => a.localeCompare(b));
+        }
+    }, [apiInfo]);
 
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
@@ -119,9 +132,7 @@ export default function DatasetTable() {
     //setting to `any` b/c MTable typing doesn't include dataManager
     const MTRef = useRef<any>();
 
-    const cacheDeps = [enumsQuery.isFetched, metadatasetTypesQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", cacheDeps);
+    const handleColumnDrag = useColumnOrderCache(MTRef, "datasetTableColumnOrder", [!!apiInfo]);
 
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<DatasetDetailed>(
         "datasetTableDefaultHidden"
@@ -155,7 +166,7 @@ export default function DatasetTable() {
                 title: "Type",
                 field: "dataset_type",
                 lookup: datasetTypes,
-                editable: (columnDef, row) => (row.analyses.length > 0 ? false : true),
+                editable: (columnDef, row) => !row.analyses.length,
             },
             {
                 title: "Condition",
@@ -352,23 +363,21 @@ export default function DatasetTable() {
                             <MTableToolbar {...props} />
                             <div className={classes.chipBar}>
                                 {metadatasetTypes &&
-                                    Object.entries(metadatasetTypes).map(
-                                        ([metatype, datasetTypes]) => (
-                                            <Chip
-                                                key={metatype}
-                                                label={metatype}
-                                                onClick={() => {
-                                                    updateTableFilter(
-                                                        MTRef,
-                                                        "dataset_type",
-                                                        datasetTypes
-                                                    );
-                                                }}
-                                                clickable
-                                                className={classes.chip}
-                                            />
-                                        )
-                                    )}
+                                    metadatasetTypes.map(([metatype, datasetTypes]) => (
+                                        <Chip
+                                            key={metatype}
+                                            label={metatype}
+                                            onClick={() => {
+                                                updateTableFilter(
+                                                    MTRef,
+                                                    "dataset_type",
+                                                    datasetTypes
+                                                );
+                                            }}
+                                            clickable
+                                            className={classes.chip}
+                                        />
+                                    ))}
                                 <IconButton
                                     onClick={() => updateTableFilter(MTRef, "dataset_type", "")}
                                     className={classes.chip}

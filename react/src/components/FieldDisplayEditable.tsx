@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
+import { useAPIInfoContext } from "../contexts";
 import { formatDisplayValue } from "../functions";
 import { Field, LinkedFile, PseudoBooleanReadableMap, UnlinkedFile } from "../typings";
 import FieldDisplay from "./FieldDisplay";
@@ -43,21 +44,15 @@ const useTextStyles = makeStyles(theme => ({
  */
 function EnhancedTextField({
     field,
-    enums,
     onEdit,
 }: {
     field: Field;
-    enums?: Record<string, string[]>;
     onEdit: (fieldName: string, value: boolean | string | null | UnlinkedFile[]) => void;
 }) {
     const [filePrefix, setFilePrefix] = useState<string>("");
-
+    const enums = useAPIInfoContext()?.enums;
     const classes = useTextStyles();
-    const nullOption = (
-        <MenuItem value="" key="">
-            <em>None</em>
-        </MenuItem>
-    );
+
     if (!field.fieldName || !enums) return <></>;
 
     let children: React.ReactNode = [];
@@ -98,7 +93,11 @@ function EnhancedTextField({
                         {option}
                     </MenuItem>
                 )),
-                !nonNullableFields.includes(field.fieldName) && nullOption,
+                !nonNullableFields.includes(field.fieldName) && (
+                    <MenuItem value="" key="">
+                        <em>None</em>
+                    </MenuItem>
+                ),
             ];
         } else if (field.type === "boolean") {
             // Value is a boolean or null
@@ -175,7 +174,6 @@ export default function FieldDisplayEditable(props: {
     field: Field;
     editMode: boolean;
     onEdit: (fieldName: string, value: any) => void;
-    enums?: Record<string, string[]>;
 }) {
     const classes = useStyles();
     return (
@@ -183,11 +181,7 @@ export default function FieldDisplayEditable(props: {
             <Fade in={props.editMode}>
                 <Box hidden={!props.editMode}>
                     {props.editMode && (
-                        <EnhancedTextField
-                            field={props.field}
-                            enums={props.enums}
-                            onEdit={props.onEdit}
-                        />
+                        <EnhancedTextField field={props.field} onEdit={props.onEdit} />
                     )}
                 </Box>
             </Fade>

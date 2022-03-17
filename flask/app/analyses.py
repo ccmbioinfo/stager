@@ -48,7 +48,7 @@ def list_analyses(page: int, limit: int) -> Response:
         "result_path",
         "notes",
         "analysis_state",
-        "pipeline_id",
+        "kind",
         "assignee",
         "requester",
         "priority",
@@ -136,17 +136,13 @@ def list_analyses(page: int, limit: int) -> Response:
                 analysis_state,
             )
         )
-    pipeline_id = request.args.get("pipeline_id", type=str)
-    if pipeline_id:
+    kind = request.args.get("kind", type=str)
+    if kind:
         try:
-            filters.append(
-                models.Analysis.pipeline_id.in_(
-                    [int(pk) for pk in pipeline_id.split(",")]
-                )
-            )
+            filters.append(models.Analysis.kind.in_(kind.split(",")))
         except ValueError as err:
             abort(400, description=err)
-        app.logger.debug("Filter by pipeline_id: '%s'", pipeline_id)
+        app.logger.debug("Filter by kind: '%s'", kind)
 
     user = get_current_user()
 
@@ -281,7 +277,6 @@ def list_analyses(page: int, limit: int) -> Response:
             "requester": analysis.requester.username,
             "updated_by": analysis.updated_by.username,
             "assignee": analysis.assignee_id and analysis.assignee.username,
-            "pipeline": analysis.pipeline,
         }
         for analysis in analyses
     ]
@@ -291,17 +286,11 @@ def list_analyses(page: int, limit: int) -> Response:
         return paginated_response(results, page, total_count, limit)
     elif expects_csv(request):
         app.logger.debug("Returning paginated response..")
-
-        results = [
-            {k: v if k != "pipeline" else v.pipeline_name for k, v in result.items()}
-            for result in results
-        ]
-
         return csv_response(
             results,
             filename="analyses_report.csv",
             colnames=[
-                "pipeline",
+                "kind",
                 "analysis_state",
                 "participant_codenames",
                 "family_codenames",
@@ -345,7 +334,6 @@ def get_analysis(id: int):
             "requester": analysis.requester_id and analysis.requester.username,
             "updated_by": analysis.updated_by_id and analysis.updated_by.username,
             "assignee": analysis.assignee_id and analysis.assignee.username,
-            "pipeline": analysis.pipeline,
             "datasets": [
                 {
                     **asdict(dataset),
@@ -384,15 +372,11 @@ def create_analysis():
     result = analysis_schema.validate(new_analysis, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
 
-    pipeline_id = request.json.get("pipeline_id")
     datasets = request.json.get("datasets")
     notes = request.json.get("notes")
-
-    if not models.Pipeline.query.get(pipeline_id):
-        abort(404, description="Pipeline not found")
 
     user = get_current_user()
 
@@ -412,40 +396,14 @@ def create_analysis():
     if len(found_datasets) != len(datasets):
         abort(404, description="Some datasets were not found")
 
-    app.logger.debug(
-        "Verifying that requested datasets are compatible with requested pipeline.."
-    )
-
-    compatible_datasets_pipelines_query = (
-        db.session.query(
-            models.Dataset,
-            models.MetaDatasetType_DatasetType,
-            models.PipelineDatasets,
-        )
-        .filter(models.Dataset.dataset_id.in_(datasets))
-        .join(
-            models.MetaDatasetType_DatasetType,
-            models.Dataset.dataset_type
-            == models.MetaDatasetType_DatasetType.dataset_type,
-        )
-        .join(
-            models.PipelineDatasets,
-            models.PipelineDatasets.supported_metadataset_type
-            == models.MetaDatasetType_DatasetType.metadataset_type,
-        )
-        .filter(models.PipelineDatasets.pipeline_id == pipeline_id)
-        .all()
-    )
-
-    if len(compatible_datasets_pipelines_query) != len(datasets):
-        abort(404, description="Requested pipelines are incompatible with datasets")
-
-    app.logger.debug("Creating analysis..")
+    kinds = set(models.DATASET_TYPES[d.dataset_type]["kind"] for d in found_datasets)
+    if len(kinds) != 1:
+        abort(400, description="The dataset types must agree")
 
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
-        pipeline_id=pipeline_id,
+        kind=kinds.pop(),
         priority=request.json.get("priority"),
         requester_id=requester_id,
         requested=now,
@@ -467,7 +425,6 @@ def create_analysis():
                 "requester": analysis.requester_id and analysis.requester.username,
                 "updated_by": analysis.updated_by_id and analysis.updated_by.username,
                 "assignee": analysis.assignee_id and analysis.assignee.username,
-                "pipeline": analysis.pipeline,
                 "datasets": [
                     {
                         **asdict(dataset),
@@ -552,7 +509,6 @@ def create_reanalysis(id: int):
                 "updated_by": new_analysis.updated_by_id
                 and new_analysis.updated_by.username,
                 "assignee": new_analysis.assignee_id and new_analysis.assignee.username,
-                "pipeline": new_analysis.pipeline,
                 "datasets": [
                     {
                         **asdict(dataset),
@@ -624,8 +580,7 @@ def update_analysis(id: int):
 
     editable_columns = [
         "analysis_state",
-        "pipeline_id",
-        "qsub_id",
+        "scheduler_id",
         "result_path",
         "requested",
         "started",

@@ -97,10 +97,7 @@ function getFields(dataset: Dataset): Field[] {
     ];
 }
 
-export default function SampleTable(props: {
-    samples: Sample[];
-    enums?: Record<string, string[]>;
-}) {
+export default function SampleTable(props: { samples: Sample[] }) {
     const classes = useStyles();
 
     return (
@@ -140,12 +137,7 @@ export default function SampleTable(props: {
                 });
                 return (
                     <div className={classes.datasetList}>
-                        <InfoList
-                            infoList={infoList}
-                            icon={<Dns />}
-                            linkPath="/datasets"
-                            enums={props.enums}
-                        />
+                        <InfoList infoList={infoList} icon={<Dns />} linkPath="/datasets" />
                     </div>
                 );
             }}
