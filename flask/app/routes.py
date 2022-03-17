@@ -371,7 +371,7 @@ def bulk_update():
         error_family = family_schema.validate(row_family, session=db.session)
 
         if error_family:
-            app.logger.error(jsonify(error_family))
+            app.logger.error(error_family)
             db.session.rollback()
             abort(400, description=error_family)
 
@@ -435,7 +435,7 @@ def bulk_update():
             row_participant, session=db.session
         )
         if error_participant:
-            app.logger.error(jsonify(error_participant))
+            app.logger.error(error_participant)
             db.session.rollback()
             abort(400, description=error_participant)
 
@@ -507,7 +507,7 @@ def bulk_update():
             row_tissue_sample, session=db.session
         )
         if error_tissue_sample:
-            app.logger.error(jsonify(error_tissue_sample))
+            app.logger.error(error_tissue_sample)
             db.session.rollback()
             abort(400, description=error_tissue_sample)
 
@@ -532,7 +532,7 @@ def bulk_update():
 
         error_dataset = dataset_schema.validate(row_dataset, session=db.session)
         if error_dataset:
-            app.logger.error(jsonify(error_dataset))
+            app.logger.error(error_dataset)
             db.session.rollback()
             abort(400, description=error_dataset)
 

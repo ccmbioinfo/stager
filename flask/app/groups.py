@@ -181,7 +181,7 @@ def create_group():
     new_group = validate_filter_input(request.json, models.Group)
     result = group_schema.validate(new_group, session=db.session)
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
 
     group_name = request.json.get("group_name")

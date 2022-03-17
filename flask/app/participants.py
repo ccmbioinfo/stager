@@ -389,7 +389,7 @@ def create_participant():
     result = participant_schema.validate(new_participant, session=db.session)
 
     if result:
-        app.logger.error(jsonify(result))
+        app.logger.error(result)
         abort(400, description=result)
 
     try:
