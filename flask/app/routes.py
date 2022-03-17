@@ -371,7 +371,7 @@ def bulk_update():
         error_family = family_schema.validate(row_family, session=db.session)
 
         if error_family:
-            app.logger.error(jsonify(error_family))
+            app.logger.error(error_family)
             db.session.rollback()
             abort(400, description=error_family)
 
@@ -435,7 +435,7 @@ def bulk_update():
             row_participant, session=db.session
         )
         if error_participant:
-            app.logger.error(jsonify(error_participant))
+            app.logger.error(error_participant)
             db.session.rollback()
             abort(400, description=error_participant)
 
