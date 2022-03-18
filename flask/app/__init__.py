@@ -117,11 +117,15 @@ def config_logger(app):
                 if not S_ISFIFO(os.stat(sidecar).st_mode):
                     raise
             handler = logging.FileHandler(sidecar)
-            handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s"))
+            handler.setFormatter(
+                logging.Formatter("%(levelname)s [%(name)s] %(message)s")
+            )
             logging.getLogger("sqlalchemy").addHandler(handler)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
 
     flask_logging.create_logger(app)
     "%(asctime)s in development?"
-    flask_logging.default_handler.setFormatter(logging.Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s"))
+    flask_logging.default_handler.setFormatter(
+        logging.Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
+    )
