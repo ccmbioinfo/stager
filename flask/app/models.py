@@ -284,9 +284,15 @@ DATASET_TYPES = {
     "RGS": {"name": "Research Genome Sequencing", "kind": "short-read genomic"},
     "CGS": {"name": "Clinical Genome Sequencing", "kind": "short-read genomic"},
     "WGS": {"name": "Whole Genome Sequencing", "kind": "short-read genomic"},
-    "LGS": {"name": "Research Long-read Genome Sequencing", "kind": "long-read genomic"},
+    "LGS": {
+        "name": "Research Long-read Genome Sequencing",
+        "kind": "long-read genomic",
+    },
     "RRS": {"name": "Research RNA Sequencing", "kind": "short-read transcriptomic"},
-    "LRS": {"name": "Research Long-read RNA Sequencing", "kind": "long-read transcriptomic"},
+    "LRS": {
+        "name": "Research Long-read RNA Sequencing",
+        "kind": "long-read transcriptomic",
+    },
     "RLM": {"name": "Research Lipidomics Mass Spectrometry", "kind": "other"},
     "RMM": {"name": "Research Metabolomics Mass Spectrometry", "kind": "other"},
     "RTA": {"name": "Research DNA Methylation Array", "kind": "other"},
