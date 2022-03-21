@@ -146,7 +146,7 @@ def config_logger(app):
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
     # This configures Flask's logger and then we can customize it after
     flask_logging.create_logger(app)
-    "%(asctime)s in development?"
+    # %(asctime)s may be useful in development but redundant in production with journald
     flask_logging.default_handler.setFormatter(
         logging.Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
     )
