@@ -82,9 +82,26 @@ services:
       - gunicorn
     environment:
       <<: *env
+      SQLALCHEMY_SIDECAR: /var/log/stager/sqlalchemy.fifo
+    volumes:
+      - log-fifo:/var/log/stager
     ports:
       - "${FLASK_HOST_PORT:-127.0.0.1:5000}:5000"
       - "${METRICS_HOST_PORT:-127.0.0.1:8080}:8080"
     depends_on:
       - mysql
       - minio
+  # See __init__.py::config_logger for an explainer
+  sidecar-sqlalchemy:
+    image: busybox
+    profiles:
+      - gunicorn
+    init: true
+    command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
+    volumes:
+      - log-fifo:/var/log/stager:ro
+    depends_on:
+      - app_gunicorn
+    restart: unless-stopped
+volumes:
+  log-fifo:

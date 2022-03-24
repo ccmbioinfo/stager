@@ -14,9 +14,16 @@ x-app: &app
   <<: *common
 
 x-env: &env
+  SQLALCHEMY_SIDECAR: /var/log/stager/sqlalchemy.fifo
   MINIO_REGION_NAME: hpc4health
   MINIO_TLS: "true"
   MSTEAMS_WEBHOOK_URL:
+
+x-sidecar: &sidecar
+  image: busybox
+  init: true
+  command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
+  <<: *common
 
 services:
   app-hiraki:
@@ -47,6 +54,14 @@ services:
       traefik.http.middlewares.app.headers.accessControlAllowMethods: GET,HEAD,POST,PUT,DELETE,OPTIONS,PATCH
       traefik.http.middlewares.app.headers.accessControlAllowHeaders: Accept,Content-Type
       traefik.http.middlewares.app.headers.accessControlAllowCredentials: true
+    volumes:
+      - log-hiraki:/var/log/stager
+  sidecar-sqlalchemy-hiraki:
+    <<: *sidecar
+    volumes:
+      - log-hiraki:/var/log/stager:ro
+    depends_on:
+      - app-hiraki
   app-muise:
     <<: *app
     environment:
@@ -70,6 +85,12 @@ services:
       traefik.http.routers.metrics-muise.middlewares: security@file
       traefik.http.routers.metrics-muise.service: metrics-muise
       traefik.http.services.metrics-muise.loadbalancer.server.port: 8080
+    sidecar-sqlalchemy-muise:
+      <<: *sidecar
+      volumes:
+        - log-muise:/var/log/stager:ro
+      depends_on:
+        - app-muise
   # app-hawkins:
   #   <<: *app
   #   environment:
@@ -93,6 +114,12 @@ services:
   #     traefik.http.routers.metrics-hawkins.middlewares: security@file
   #     traefik.http.routers.metrics-hawkins.service: metrics-hawkins
   #     traefik.http.services.metrics-hawkins.loadbalancer.server.port: 8080
+  #   sidecar-sqlalchemy-hawkins:
+  #     <<: *sidecar
+  #     volumes:
+  #       - log-hawkins:/var/log/stager:ro
+  #     depends_on:
+  #       - app-hawkins
   proxy:
     image: traefik:2.6
     volumes:
@@ -121,3 +148,7 @@ services:
       - --entrypoints.traefik.address=:8443
       - --entrypoints.traefik.http.tls
     <<: *common
+volumes:
+  log-hiraki:
+  log-muise:
+  # log-hawkins:
