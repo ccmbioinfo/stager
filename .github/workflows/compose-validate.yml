@@ -1,0 +1,32 @@
+name: Validate Docker Compose files
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/compose-validate.yml
+      - docker-compose*.yaml
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - .github/workflows/compose-validate.yml
+      - docker-compose*.yaml
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    # Cancel in-progress build jobs for the current workflow so we're not wasting
+    # time on outdated builds. This isn't scoped to the entire workflow as cancelling
+    # an in-progress deploy could have unforeseen consequences.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-only-cancel-in-progress-jobs-or-runs-for-the-current-workflow
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+     steps:
+      - uses: actions/checkout@v2
+      - name: Validate
+        run: |
+          for COMPOSE_FILE in docker-compose*.yaml
+          do
+            docker-compose -f $COMPOSE_FILE config
+          done
