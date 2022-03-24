@@ -85,12 +85,12 @@ services:
       traefik.http.routers.metrics-muise.middlewares: security@file
       traefik.http.routers.metrics-muise.service: metrics-muise
       traefik.http.services.metrics-muise.loadbalancer.server.port: 8080
-    sidecar-sqlalchemy-muise:
-      <<: *sidecar
-      volumes:
-        - log-muise:/var/log/stager:ro
-      depends_on:
-        - app-muise
+  sidecar-sqlalchemy-muise:
+    <<: *sidecar
+    volumes:
+      - log-muise:/var/log/stager:ro
+    depends_on:
+      - app-muise
   # app-hawkins:
   #   <<: *app
   #   environment:
