@@ -22,7 +22,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-     steps:
+    steps:
       - uses: actions/checkout@v2
       - name: Validate
         run: |
