@@ -31,6 +31,7 @@ services:
   sidecar-sqlalchemy:
     image: busybox
     init: true
+    user: www-data
     command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
     volumes:
       - log-fifo:/var/log/stager:ro

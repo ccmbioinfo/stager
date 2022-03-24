@@ -22,6 +22,7 @@ x-env: &env
 x-sidecar: &sidecar
   image: busybox
   init: true
+  user: www-data
   command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
   <<: *common
 
