@@ -2,7 +2,7 @@ name: Validate Docker Compose files
 on:
   push:
     branches:
-      - master
+      - '*'
     paths:
       - .github/workflows/compose-validate.yml
       - docker-compose*.yaml
