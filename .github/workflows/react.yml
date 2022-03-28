@@ -54,16 +54,8 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 14
-    - name: Get yarn cache path
-      id: yarn-cache-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-    - uses: actions/cache@v2
-      with:
-        path: |
-          ${{ steps.yarn-cache-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('react/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+        cache: yarn
+        cache-dependency-path: react/yarn.lock
     - run: yarn install
     # End setup
     - run: yarn build
@@ -91,16 +83,8 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 14
-    - name: Get yarn cache path
-      id: yarn-cache-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-    - uses: actions/cache@v2
-      with:
-        path: |
-          ${{ steps.yarn-cache-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('react/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+        cache: yarn
+        cache-dependency-path: react/yarn.lock
     - run: yarn install
     # End setup
     - name: Write out endpoints JSON
