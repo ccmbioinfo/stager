@@ -118,7 +118,7 @@ services:
   #     traefik.http.routers.metrics-hawkins.service: metrics-hawkins
   #     traefik.http.services.metrics-hawkins.loadbalancer.server.port: 8080
   #   volumes:
-  #     - log-muise:/var/tmp
+  #     - log-hawkins:/var/tmp
   # sidecar-sqlalchemy-hawkins:
   #   <<: *sidecar
   #   volumes:
