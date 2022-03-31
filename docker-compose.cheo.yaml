@@ -7,7 +7,7 @@ services:
     environment:
       ST_SECRET_KEY:
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_CONNECTION_STRING}"
-      SQLALCHEMY_SIDECAR: /var/log/stager/sqlalchemy.fifo
+      SQLALCHEMY_SIDECAR: /var/tmp/sqlalchemy.fifo
       MINIO_ENDPOINT:
       MINIO_ACCESS_KEY:
       MINIO_SECRET_KEY:
@@ -22,7 +22,7 @@ services:
       - "9121:8080"
     command: --preload --workers ${GUNICORN_WORKERS:-1}
     volumes:
-      - log-fifo:/var/log/stager
+      - log-fifo:/var/tmp
     healthcheck:
       test: ["CMD", "./healthcheck.py"]
     restart: unless-stopped
@@ -31,6 +31,7 @@ services:
   sidecar-sqlalchemy:
     image: busybox
     init: true
+    user: www-data
     command: tail -f -n +1 /var/log/stager/sqlalchemy.fifo
     volumes:
       - log-fifo:/var/log/stager:ro
