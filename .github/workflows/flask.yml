@@ -29,7 +29,7 @@ jobs:
     env:
       COMPOSE_FILE: docker-compose.test.yaml
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v1
       - uses: actions/cache@v2
         with:
@@ -119,7 +119,7 @@ jobs:
     environment: ${{ matrix.environment }}
     concurrency: ${{ matrix.environment }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: docker/login-action@v1
         with:
           registry: ghcr.io
