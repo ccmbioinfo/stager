@@ -84,6 +84,8 @@ services:
     environment:
       <<: *env
       SQLALCHEMY_SIDECAR: /var/tmp/sqlalchemy.fifo
+    tmpfs:
+      - /tmp
     volumes:
       - log-fifo:/var/tmp
     ports:
