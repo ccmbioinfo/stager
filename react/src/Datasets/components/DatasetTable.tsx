@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
-import { Chip, IconButton, makeStyles } from "@material-ui/core";
+import { Chip, IconButton, makeStyles, Tooltip } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
@@ -167,6 +167,13 @@ export default function DatasetTable() {
                 field: "dataset_type",
                 lookup: datasetTypes,
                 editable: (columnDef, row) => !row.analyses.length,
+                render: rowData => (
+                    <>
+                        <Tooltip title={apiInfo?.dataset_types[rowData.dataset_type].name || " "}>
+                            <div>{rowData.dataset_type}</div>
+                        </Tooltip>
+                    </>
+                ),
             },
             {
                 title: "Condition",
@@ -245,6 +252,7 @@ export default function DatasetTable() {
         setHiddenColumns(columns);
         return columns;
     }, [
+        apiInfo?.dataset_types,
         conditions,
         currentUser,
         datasetTypes,
