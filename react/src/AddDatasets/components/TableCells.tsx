@@ -15,6 +15,7 @@ import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { Resizable } from "re-resizable";
 import { AutocompleteMultiselect } from "../../components";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
+import { useAPIInfoContext } from "../../contexts";
 import { strIsEmpty } from "../../functions";
 import { useGenesQuery } from "../../hooks/genes";
 import {
@@ -144,6 +145,7 @@ export function AutocompleteCell(
     // We control the inputValue so that we can query with it
     // with this pattern, we have to be careful that search state and selection state stay in sync
     const [search, setSearch] = useState(props.value.inputValue);
+    const apiInfo = useAPIInfoContext() ?? undefined;
 
     //selected value might change via autopopulate
     useEffect(() => {
@@ -242,7 +244,15 @@ export function AutocompleteCell(
                 getOptionDisabled={option => !!option.disabled}
                 getOptionLabel={option => option.title}
                 getOptionSelected={(option, value) => option.inputValue === value.inputValue}
-                renderOption={option => option.title}
+                renderOption={option => {
+                    return apiInfo && props.column.field === "dataset_type" ? (
+                        <Tooltip title={apiInfo.dataset_types[option.title].name}>
+                            <div>{option.title}</div>
+                        </Tooltip>
+                    ) : (
+                        option.title
+                    );
+                }}
             />
         </TableCell>
     );
