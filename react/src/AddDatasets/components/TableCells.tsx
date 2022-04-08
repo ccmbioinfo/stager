@@ -227,14 +227,25 @@ export function AutocompleteCell(
                 }}
                 options={props.options}
                 value={props.value}
-                renderInput={params => (
-                    <TextField
-                        {...params}
-                        variant="standard"
-                        error={isError}
-                        helperText={isError && "Field is required."}
-                    />
-                )}
+                renderInput={params => {
+                    return props.column.field === "dataset_type" && apiInfo && props.value.title ? (
+                        <Tooltip title={apiInfo.dataset_types[props.value.title].name}>
+                            <TextField
+                                {...params}
+                                variant="standard"
+                                error={isError}
+                                helperText={isError && "Field is required."}
+                            />
+                        </Tooltip>
+                    ) : (
+                        <TextField
+                            {...params}
+                            variant="standard"
+                            error={isError}
+                            helperText={isError && "Field is required."}
+                        />
+                    );
+                }}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
                 filterOptions={(options, params) =>
                     createFilterOptions<Option>({
