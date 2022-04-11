@@ -228,16 +228,18 @@ export function AutocompleteCell(
                 options={props.options}
                 value={props.value}
                 renderInput={params => {
-                    return props.column.field === "dataset_type" && apiInfo && props.value.title ? (
-                        <Tooltip title={apiInfo.dataset_types[props.value.title].name}>
-                            <TextField
-                                {...params}
-                                variant="standard"
-                                error={isError}
-                                helperText={isError && "Field is required."}
-                            />
-                        </Tooltip>
-                    ) : (
+                    if (props.column.field === "dataset_type" && apiInfo && props.value.title)
+                        return (
+                            <Tooltip title={apiInfo.dataset_types[props.value.title].name}>
+                                <TextField
+                                    {...params}
+                                    variant="standard"
+                                    error={isError}
+                                    helperText={isError && "Field is required."}
+                                />
+                            </Tooltip>
+                        );
+                    return (
                         <TextField
                             {...params}
                             variant="standard"
@@ -256,13 +258,13 @@ export function AutocompleteCell(
                 getOptionLabel={option => option.title}
                 getOptionSelected={(option, value) => option.inputValue === value.inputValue}
                 renderOption={option => {
-                    return apiInfo && props.column.field === "dataset_type" ? (
-                        <Tooltip title={apiInfo.dataset_types[option.title].name}>
-                            <div>{option.title}</div>
-                        </Tooltip>
-                    ) : (
-                        option.title
-                    );
+                    if (apiInfo && props.column.field === "dataset_type")
+                        return (
+                            <Tooltip title={apiInfo.dataset_types[option.title].name}>
+                                <div>{option.title}</div>
+                            </Tooltip>
+                        );
+                    return option.title;
                 }}
             />
         </TableCell>
