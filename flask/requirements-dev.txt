@@ -80,7 +80,7 @@ marshmallow==3.14.1
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
-marshmallow-sqlalchemy==0.27.0
+marshmallow-sqlalchemy==0.28.0
     # via -r requirements.in
 mccabe==0.6.1
     # via pylint
