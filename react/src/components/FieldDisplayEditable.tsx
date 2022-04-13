@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { useAPIInfoContext } from "../contexts";
 import { formatDisplayValue } from "../functions";
