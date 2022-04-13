@@ -27,7 +27,8 @@ export default function ExactMatchFilterToggle(props: ExactMatchFilterToggleProp
     const [exactMatch, setExactMatch] = useState<boolean>(false);
 
     useEffect(() => {
-        if (props.columnDef.field) {
+        // This component should never be used with a non-text field to begin with
+        if (props.columnDef.field && !Array.isArray(props.columnDef.field)) {
             updateSearchTypeAndRequery(props.MTRef, {
                 column: props.columnDef.field,
                 exact: exactMatch,

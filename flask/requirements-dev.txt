@@ -80,11 +80,11 @@ marshmallow==3.14.1
     # via
     #   flask-marshmallow
     #   marshmallow-sqlalchemy
-marshmallow-sqlalchemy==0.27.0
+marshmallow-sqlalchemy==0.28.0
     # via -r requirements.in
 mccabe==0.6.1
     # via pylint
-minio==7.1.4
+minio==7.1.5
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
@@ -116,7 +116,7 @@ pymysql[rsa]==1.0.2
     # via -r requirements.in
 pyparsing==3.0.6
     # via packaging
-pytest==6.2.5
+pytest==7.1.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -136,7 +136,7 @@ pytz-deprecation-shim==0.1.0.post0
     # via tzlocal
 requests==2.27.1
     # via -r requirements.in
-sendgrid==6.9.6
+sendgrid==6.9.7
     # via -r requirements.in
 six==1.16.0
     # via
@@ -154,13 +154,12 @@ sqlalchemy==1.4.28
 starkbank-ecdsa==2.0.3
     # via sendgrid
 toml==0.10.2
-    # via
-    #   pylint
-    #   pytest
+    # via pylint
 tomli==1.2.3
     # via
     #   black
     #   coverage
+    #   pytest
 tzdata==2021.5
     # via pytz-deprecation-shim
 tzlocal==4.1
