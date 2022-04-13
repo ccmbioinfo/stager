@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { useAPIInfoContext } from "../contexts";
 import { formatDisplayValue } from "../functions";
@@ -51,11 +51,10 @@ function EnhancedTextField({
 }) {
     const [filePrefix, setFilePrefix] = useState<string>("");
     const apiInfo = useAPIInfoContext() ?? undefined;
-    var enums;
-    if (apiInfo) {
-        enums = apiInfo.enums;
-        enums["DatasetType"] = Object.keys(apiInfo.dataset_types);
-    }
+    const enums: Record<string, string[]> | undefined = useMemo(
+        () => apiInfo && { ...apiInfo.enums, DatasetType: Object.keys(apiInfo.dataset_types) },
+        [apiInfo]
+    );
 
     const classes = useTextStyles();
 
