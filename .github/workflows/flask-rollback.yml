@@ -19,7 +19,7 @@ jobs:
     environment: ${{ matrix.environment }}
     concurrency: ${{ matrix.environment }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         # Modified from regular deploy step
         with:
           ref: ${{ github.event.inputs.revision }}
