@@ -64,7 +64,7 @@ marshmallow==3.14.1
     #   marshmallow-sqlalchemy
 marshmallow-sqlalchemy==0.27.0
     # via -r requirements.in
-minio==7.1.4
+minio==7.1.6
     # via -r requirements.in
 numpy==1.21.5
     # via pandas
@@ -92,7 +92,7 @@ pytz-deprecation-shim==0.1.0.post0
     # via tzlocal
 requests==2.27.1
     # via -r requirements.in
-sendgrid==6.9.6
+sendgrid==6.9.7
     # via -r requirements.in
 six==1.16.0
     # via
