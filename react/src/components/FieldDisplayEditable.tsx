@@ -94,7 +94,7 @@ function EnhancedTextField({
             };
 
             children = [
-                enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
+                ...enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
                     <MenuItem key={option} value={option}>
                         {option}
                     </MenuItem>
