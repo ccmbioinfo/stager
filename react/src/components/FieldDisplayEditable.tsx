@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Box, Fade, makeStyles, MenuItem, TextField, TextFieldProps } from "@material-ui/core";
 import { useAPIInfoContext } from "../contexts";
 import { formatDisplayValue } from "../functions";
@@ -50,7 +50,13 @@ function EnhancedTextField({
     onEdit: (fieldName: string, value: boolean | string | null | UnlinkedFile[]) => void;
 }) {
     const [filePrefix, setFilePrefix] = useState<string>("");
-    const enums = useAPIInfoContext()?.enums;
+    const apiInfo = useAPIInfoContext() ?? undefined;
+    var enums;
+    if (apiInfo) {
+        enums = apiInfo.enums;
+        enums["DatasetType"] = Object.keys(apiInfo.dataset_types);
+    }
+
     const classes = useTextStyles();
 
     if (!field.fieldName || !enums) return <></>;
@@ -87,8 +93,9 @@ function EnhancedTextField({
             textFieldProps.onChange = (e: TextFieldEvent) => {
                 onEdit(field.fieldName, e.target.value === "" ? null : e.target.value);
             };
+
             children = [
-                ...enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
+                enums[getFieldInEnums(field.fieldName)]?.map((option: string) => (
                     <MenuItem key={option} value={option}>
                         {option}
                     </MenuItem>
