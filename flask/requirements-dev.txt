@@ -116,7 +116,7 @@ pymysql[rsa]==1.0.2
     # via -r requirements.in
 pyparsing==3.0.6
     # via packaging
-pytest==6.2.5
+pytest==7.1.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -154,13 +154,12 @@ sqlalchemy==1.4.28
 starkbank-ecdsa==2.0.3
     # via sendgrid
 toml==0.10.2
-    # via
-    #   pylint
-    #   pytest
+    # via pylint
 tomli==1.2.3
     # via
     #   black
     #   coverage
+    #   pytest
 tzdata==2021.5
     # via pytz-deprecation-shim
 tzlocal==4.1
