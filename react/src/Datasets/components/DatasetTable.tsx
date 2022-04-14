@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
-import { Chip, IconButton, makeStyles, Tooltip } from "@material-ui/core";
+import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
@@ -14,6 +14,7 @@ import {
     FileLinkingComponent,
     MaterialTablePrimary,
     Note,
+    TooltipDatasetType,
 } from "../../components";
 import { useAPIInfoContext, useUserContext } from "../../contexts";
 import { resetAllTableFilters, rowDiff, toKeyValue, updateTableFilter } from "../../functions";
@@ -115,11 +116,12 @@ export default function DatasetTable() {
     }, [apiInfo]);
 
     const RenderDatasetType = useCallback(
-        (rowData: Dataset) => (
-            <Tooltip title={apiInfo?.dataset_types[rowData.dataset_type].name || " "}>
-                <div>{rowData.dataset_type}</div>
-            </Tooltip>
-        ),
+        (rowData: Dataset) =>
+            apiInfo && (
+                <TooltipDatasetType dataset_type={rowData.dataset_type}>
+                    <div>{rowData.dataset_type}</div>
+                </TooltipDatasetType>
+            ),
         [apiInfo]
     );
 

@@ -13,9 +13,8 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { Resizable } from "re-resizable";
-import { AutocompleteMultiselect } from "../../components";
+import { AutocompleteMultiselect, TooltipDatasetType } from "../../components";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
-import { useAPIInfoContext } from "../../contexts";
 import { strIsEmpty } from "../../functions";
 import { useGenesQuery } from "../../hooks/genes";
 import {
@@ -145,7 +144,6 @@ export function AutocompleteCell(
     // We control the inputValue so that we can query with it
     // with this pattern, we have to be careful that search state and selection state stay in sync
     const [search, setSearch] = useState(props.value.inputValue);
-    const apiInfo = useAPIInfoContext() ?? undefined;
 
     //selected value might change via autopopulate
     useEffect(() => {
@@ -228,16 +226,16 @@ export function AutocompleteCell(
                 options={props.options}
                 value={props.value}
                 renderInput={params => {
-                    if (props.column.field === "dataset_type" && apiInfo && props.value.title)
+                    if (props.column.field === "dataset_type" && props.value.title)
                         return (
-                            <Tooltip title={apiInfo.dataset_types[props.value.title].name}>
+                            <TooltipDatasetType dataset_type={props.value.title}>
                                 <TextField
                                     {...params}
                                     variant="standard"
                                     error={isError}
                                     helperText={isError && "Field is required."}
                                 />
-                            </Tooltip>
+                            </TooltipDatasetType>
                         );
                     return (
                         <TextField
@@ -258,11 +256,11 @@ export function AutocompleteCell(
                 getOptionLabel={option => option.title}
                 getOptionSelected={(option, value) => option.inputValue === value.inputValue}
                 renderOption={option => {
-                    if (apiInfo && props.column.field === "dataset_type")
+                    if (props.column.field === "dataset_type")
                         return (
-                            <Tooltip title={apiInfo.dataset_types[option.title].name}>
+                            <TooltipDatasetType dataset_type={option.title}>
                                 <div>{option.title}</div>
-                            </Tooltip>
+                            </TooltipDatasetType>
                         );
                     return option.title;
                 }}
