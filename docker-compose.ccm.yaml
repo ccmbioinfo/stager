@@ -9,6 +9,8 @@ x-app: &app
   image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
   user: www-data
   command: --preload --workers ${GUNICORN_WORKERS:-1}
+  tmpfs:
+    - /tmp
   healthcheck:
     test: ["CMD", "./healthcheck.py"]
   <<: *common
