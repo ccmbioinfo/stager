@@ -14,6 +14,7 @@ import {
     FileLinkingComponent,
     MaterialTablePrimary,
     Note,
+    TooltipDatasetType,
 } from "../../components";
 import { useAPIInfoContext, useUserContext } from "../../contexts";
 import { resetAllTableFilters, rowDiff, toKeyValue, updateTableFilter } from "../../functions";
@@ -167,6 +168,11 @@ export default function DatasetTable() {
                 field: "dataset_type",
                 lookup: datasetTypes,
                 editable: (columnDef, row) => !row.analyses.length,
+                render: rowData => (
+                    <TooltipDatasetType dataset_type={rowData.dataset_type}>
+                        <div>{rowData.dataset_type}</div>
+                    </TooltipDatasetType>
+                ),
             },
             {
                 title: "Condition",

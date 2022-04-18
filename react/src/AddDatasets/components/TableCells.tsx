@@ -13,7 +13,7 @@ import {
 } from "@material-ui/core";
 import { Autocomplete, createFilterOptions } from "@material-ui/lab";
 import { Resizable } from "re-resizable";
-import { AutocompleteMultiselect } from "../../components";
+import { AutocompleteMultiselect, TooltipDatasetType } from "../../components";
 import FileLinkingComponent from "../../components/FileLinkingComponent";
 import { strIsEmpty } from "../../functions";
 import { useGenesQuery } from "../../hooks/genes";
@@ -225,14 +225,27 @@ export function AutocompleteCell(
                 }}
                 options={props.options}
                 value={props.value}
-                renderInput={params => (
-                    <TextField
-                        {...params}
-                        variant="standard"
-                        error={isError}
-                        helperText={isError && "Field is required."}
-                    />
-                )}
+                renderInput={params => {
+                    if (props.column.field === "dataset_type" && props.value.title)
+                        return (
+                            <TooltipDatasetType dataset_type={props.value.title}>
+                                <TextField
+                                    {...params}
+                                    variant="standard"
+                                    error={isError}
+                                    helperText={isError && "Field is required."}
+                                />
+                            </TooltipDatasetType>
+                        );
+                    return (
+                        <TextField
+                            {...params}
+                            variant="standard"
+                            error={isError}
+                            helperText={isError && "Field is required."}
+                        />
+                    );
+                }}
                 groupBy={option => (option.origin ? option.origin : "Unknown")}
                 filterOptions={(options, params) =>
                     createFilterOptions<Option>({
@@ -242,7 +255,15 @@ export function AutocompleteCell(
                 getOptionDisabled={option => !!option.disabled}
                 getOptionLabel={option => option.title}
                 getOptionSelected={(option, value) => option.inputValue === value.inputValue}
-                renderOption={option => option.title}
+                renderOption={option => {
+                    if (props.column.field === "dataset_type")
+                        return (
+                            <TooltipDatasetType dataset_type={option.title}>
+                                <div>{option.title}</div>
+                            </TooltipDatasetType>
+                        );
+                    return option.title;
+                }}
             />
         </TableCell>
     );
