@@ -28,6 +28,10 @@ There is no specific reason Gunicorn is being used over other WSGI implementatio
 the Gunicorn server works in development by starting the `app_gunicorn` container instead of the
 default `app` container.
 
+## Sidecar SQLAlchemy logs
+
+See [`__init__.py::config_logger`](/flask/app/__init__.py).
+
 ## Static frontend
 
 You can build the static bundles for production by running `yarn build` in the `react/` directory.

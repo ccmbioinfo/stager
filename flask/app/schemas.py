@@ -1,6 +1,6 @@
 from marshmallow import fields, ValidationError
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from marshmallow.validate import And, Length, Range, Regexp
+from marshmallow.validate import And, Length, OneOf, Range, Regexp
 from .models import *
 
 
@@ -71,6 +71,7 @@ class RNASeqDatasetSchema(SQLAlchemyAutoSchema):
     tissue_sample_id = fields.Integer(
         strict=True, required=True, validate=[Range(min=1)]
     )
+    dataset_type = fields.Str(required=True, validate=OneOf(DATASET_TYPES.keys()))
 
 
 class AnalysisSchema(SQLAlchemyAutoSchema):
@@ -91,6 +92,7 @@ class AnalysisSchema(SQLAlchemyAutoSchema):
             "analysis_state",
             "requested",
             "updated_by_id",
+            "kind",
         )
 
     datasets = fields.List(fields.Integer(), required=True, validate=Length(min=1))

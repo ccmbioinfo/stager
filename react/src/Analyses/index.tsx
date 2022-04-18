@@ -6,6 +6,7 @@ import {
     Add,
     AssignmentTurnedIn,
     Cancel,
+    Delete,
     Error,
     Info,
     PersonPin,
@@ -19,11 +20,13 @@ import { useHistory, useParams } from "react-router";
 import {
     AnalysisInfoDialog,
     ChipGroup,
+    ConfirmModal,
     DateFilterComponent,
     DateTimeText,
     MaterialTablePrimary,
     Note,
 } from "../components";
+import { useAPIInfoContext, useUserContext } from "../contexts";
 import {
     checkPipelineStatusChange,
     isRowSelected,
@@ -34,10 +37,10 @@ import {
     AnalysisOptions,
     GET_ANALYSES_URL,
     useAnalysesPage,
+    useAnalysisDeleteMutation,
     useAnalysisUpdateMutation,
     useColumnOrderCache,
     useDownloadCsv,
-    useEnumsQuery,
     useErrorSnackbar,
     useHiddenColumnCache,
     useSortOrderCache,
@@ -47,7 +50,6 @@ import { Analysis, AnalysisPriority, PipelineStatus } from "../typings";
 import AddAnalysisAlert from "./components/AddAnalysisAlert";
 import AnalysisNotes from "./components/AnalysisNotes";
 import CancelAnalysisDialog from "./components/CancelAnalysisDialog";
-import PipelineFilter from "./components/PipelineFilter";
 import SelectPipelineStatus from "./components/SelectPipelineStatus";
 import SetAssigneeDialog from "./components/SetAssigneeDialog";
 
@@ -63,14 +65,6 @@ const useStyles = makeStyles(theme => ({
         paddingBottom: theme.spacing(3),
     },
 }));
-
-function pipeName(row: Analysis) {
-    if (row.pipeline) {
-        return `${row.pipeline.pipeline_name} ${row.pipeline.pipeline_version}`;
-    } else {
-        return "";
-    }
-}
 
 // Returns the analysis IDs of the provided rows, optionally delimited with delim
 function rowsToString(rows: Analysis[], delim?: string) {
@@ -139,6 +133,7 @@ const getHighlightColor = (theme: Theme, priority: AnalysisPriority, status: Pip
 
 export default function Analyses() {
     const classes = useStyles();
+    const { user: currentUser } = useUserContext(); //for user details
     const [detail, setDetail] = useState(false); // for detail dialog
     const [cancel, setCancel] = useState(false); // for cancel dialog
     const [direct, setDirect] = useState(false); // for add analysis dialog (re-direct)
@@ -152,16 +147,30 @@ export default function Analyses() {
     const downloadCsv = useDownloadCsv(GET_ANALYSES_URL);
 
     const analysisUpdateMutation = useAnalysisUpdateMutation();
-
-    const enumsQuery = useEnumsQuery();
-    const enums = enumsQuery.data;
+    const analysisDeleteMutation = useAnalysisDeleteMutation();
 
     const theme = useTheme();
 
-    const priorityLookup = useMemo(() => toKeyValue(enums?.PriorityType || []), [enums]);
+    const apiInfo = useAPIInfoContext() ?? undefined;
+    const kindLookup = useMemo(
+        () =>
+            apiInfo &&
+            toKeyValue(
+                [...new Set(Object.values(apiInfo.dataset_types).map(e => e.kind))].sort(
+                    ([a], [b]) => a.localeCompare(b)
+                )
+            ),
+        [apiInfo]
+    );
+    const priorityLookup = useMemo(
+        () => apiInfo && toKeyValue(apiInfo.enums.PriorityType),
+        [apiInfo]
+    );
     const pipelineStatusLookup = useMemo(() => toKeyValue(Object.values(PipelineStatus)), []);
 
     const [activeRows, setActiveRows] = useState<Analysis[]>([]);
+    const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
+    const [showModalLoading, setModalLoading] = useState(false);
 
     const history = useHistory();
 
@@ -174,9 +183,7 @@ export default function Analyses() {
         document.title = `Analyses | ${process.env.REACT_APP_NAME}`;
     }, []);
 
-    const cacheDeps = [enumsQuery.isFetched];
-
-    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", cacheDeps);
+    const handleColumnDrag = useColumnOrderCache(tableRef, "analysisTableColumnOrder", [!!apiInfo]);
 
     const { handleChangeColumnHidden, setHiddenColumns } = useHiddenColumnCache<Analysis>(
         "analysisTableDefaultHidden"
@@ -185,6 +192,12 @@ export default function Analyses() {
         tableRef,
         "analysisTableSortOrder"
     );
+
+    const handleAnalysisDelete = () => {
+        setActiveRows([]);
+        setConfirmDelete(false);
+        setModalLoading(false);
+    };
 
     function changeAnalysisState(newState: PipelineStatus, rows = activeRows) {
         return _changeStateForSelectedRows(rows, analysisUpdateMutation, newState);
@@ -197,12 +210,11 @@ export default function Analyses() {
     const columns = useMemo(() => {
         const columns: Column<Analysis>[] = [
             {
-                title: "Pipeline",
-                field: "pipeline_id",
+                title: "Kind",
+                field: "kind",
                 type: "string",
                 editable: "never",
-                render: row => pipeName(row),
-                filterComponent: PipelineFilter,
+                lookup: kindLookup,
             },
             {
                 title: "Status",
@@ -225,7 +237,7 @@ export default function Analyses() {
                             }
                             fullWidth
                         >
-                            {enums?.PriorityType.map(p => (
+                            {apiInfo?.enums.PriorityType.map(p => (
                                 <MenuItem key={p} value={p}>
                                     {p}
                                 </MenuItem>
@@ -323,8 +335,9 @@ export default function Analyses() {
         setInitialSorting(columns);
         return columns;
     }, [
-        enums?.PriorityType,
+        apiInfo,
         paramID,
+        kindLookup,
         pipelineStatusLookup,
         priorityLookup,
         setHiddenColumns,
@@ -377,6 +390,41 @@ export default function Analyses() {
                     describedByPrefix={`${rowsToString(activeRows, "-")}`}
                 />
             )}
+
+            <ConfirmModal
+                id="confirm-modal-delete"
+                open={confirmDelete}
+                loading={showModalLoading}
+                onClose={() => {
+                    setConfirmDelete(false);
+                    setModalLoading(false);
+                }}
+                onConfirm={() => {
+                    setModalLoading(true);
+                    activeRows.forEach(row => {
+                        analysisDeleteMutation.mutate(row.analysis_id, {
+                            onSuccess: () => {
+                                handleAnalysisDelete();
+                                enqueueSnackbar(`Deleted successfully.`, {
+                                    variant: "success",
+                                });
+
+                                //refresh data
+                                tableRef.current.onQueryChange();
+                            },
+                            onError: error => {
+                                handleAnalysisDelete();
+                                enqueueErrorSnackbar(error);
+                            },
+                        });
+                    });
+                }}
+                title="Delete analysis"
+                colors={{ cancel: "secondary" }}
+            >
+                Are you sure you want to delete analysis{" "}
+                {activeRows.map(analysis => analysis.analysis_id).join(", ")}?
+            </ConfirmModal>
 
             {activeRows.length > 0 && (
                 <AnalysisInfoDialog
@@ -619,6 +667,15 @@ export default function Analyses() {
                                             { variant: "error" }
                                         );
                                 });
+                            },
+                        },
+                        {
+                            icon: Delete,
+                            tooltip: "Delete Analysis",
+                            hidden: !currentUser.is_admin,
+                            onClick: (event, rowData) => {
+                                setActiveRows(rowData as Analysis[]);
+                                setConfirmDelete(true);
                             },
                         },
                         {

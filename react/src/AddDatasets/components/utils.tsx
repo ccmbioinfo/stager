@@ -79,6 +79,10 @@ export function getOptions(
     const familyCodenames: string[] = families.map(value => value.family_codename);
     const booleans = ["true", "false"];
 
+    function enumToOption(type: string, origin: string) {
+        return enums?.[type].map(value => toOption(value, origin)) ?? rowOptions;
+    }
+
     switch (col.field) {
         case "family_codename":
             const familyOptions = families.map(value =>
@@ -107,37 +111,16 @@ export function getOptions(
             }
 
         case "participant_type":
-            if (enums) {
-                const participantTypeOptions = (enums.ParticipantType as string[]).map(value =>
-                    toOption(value, "Participant Types")
-                );
-                return participantTypeOptions;
-            }
-            return rowOptions;
+            return enumToOption("ParticipantType", "Participant Types");
 
         case "tissue_sample_type":
-            if (enums) {
-                const tissueTypeOptions = (enums.TissueSampleType as string[]).map(value =>
-                    toOption(value, "Tissue Types")
-                );
-                return tissueTypeOptions;
-            }
-            return rowOptions;
+            return enumToOption("TissueSampleType", "Tissue Types");
 
         case "dataset_type":
-            if (enums) {
-                return (enums.DatasetType as string[]).map(value =>
-                    toOption(value, "Dataset Types")
-                );
-            }
-            return rowOptions;
+            return enumToOption("DatasetType", "Dataset Types");
 
         case "sex":
-            if (enums) {
-                const sexOptions = (enums.Sex as string[]).map(value => toOption(value, "Sexes"));
-                return sexOptions;
-            }
-            return rowOptions;
+            return enumToOption("Sex", "Sexes");
 
         case "affected":
             return booleans.map(b => toOption(b, "Is Affected"));
@@ -146,12 +129,7 @@ export function getOptions(
             return booleans.map(b => toOption(b, "Is Solved"));
 
         case "condition":
-            if (enums) {
-                return (enums.DatasetCondition as string[]).map(value =>
-                    toOption(value, "Dataset Conditions")
-                );
-            }
-            return rowOptions;
+            return enumToOption("DatasetCondition", "Dataset Conditions");
 
         case "institution":
             return institutions.map(i => toOption(i, "Institutions"));

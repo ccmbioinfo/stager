@@ -1,113 +1,13 @@
-name: Build, test, and deploy backend
+name: Roll back backend
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - .github/workflows/flask.yml
-      - flask/**/*
-      - Dockerfile
-      - docker-compose*.yaml
-  pull_request:
-    branches:
-      - '*'
-    paths:
-      - .github/workflows/flask.yml
-      - flask/**/*
-      - Dockerfile
-      - docker-compose*.yaml
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: GitHub commit SHA
+        required: true
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    # Cancel in-progress build jobs for the current workflow so we're not wasting
-    # time on outdated builds. This isn't scoped to the entire workflow as cancelling
-    # an in-progress deploy could have unforeseen consequences.
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-only-cancel-in-progress-jobs-or-runs-for-the-current-workflow
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
-    env:
-      COMPOSE_FILE: docker-compose.test.yaml
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v1
-      - uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      - name: Infer metadata (development image)
-        uses: docker/metadata-action@v3
-        id: meta-dev
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            dev
-      - uses: docker/login-action@v1
-        if: github.event_name == 'push'
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build development image
-        uses: docker/build-push-action@v2
-        with:
-          tags: ${{ steps.meta-dev.outputs.tags }}
-          labels: ${{ steps.meta-dev.outputs.labels }}
-          context: flask
-          pull: true
-          load: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-      - run: cp sample.env .env
-      - name: Pytest
-        run: docker-compose run --rm app pytest --cov=app --cov-report term-missing --cov-report xml
-      - uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          files: ./flask/coverage.xml
-          flags: pytest
-      - name: Black
-        run: docker-compose run --rm app black --check
-      - name: Stop services
-        run: docker-compose down
-      - name: Push development image
-        uses: docker/build-push-action@v2
-        if: github.event_name == 'push'
-        with:
-          push: true
-          tags: ${{ steps.meta-dev.outputs.tags }}
-          labels: ${{ steps.meta-dev.outputs.labels }}
-          context: flask
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-      - name: Infer metadata (production image)
-        uses: docker/metadata-action@v3
-        if: github.event_name == 'push'
-        id: meta-prod
-        with:
-          images: ghcr.io/${{ github.repository }}
-          flavor: latest=${{ github.ref == 'refs/heads/master' }}
-          tags: |
-            type=ref,event=tag
-            type=sha,format=long
-      - name: Build production image
-        uses: docker/build-push-action@v2
-        if: github.event_name == 'push'
-        with:
-          push: true
-          tags: ${{ steps.meta-prod.outputs.tags }}
-          labels: ${{ steps.meta-prod.outputs.labels }}
-          context: flask
-          file: "{context}/../Dockerfile"
-          build-args: GIT_SHA=${{ github.sha }}
-          pull: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+  # Largely identical to deploy step in flask.yml except prerequisites
   deploy:
-    needs: build
-    if: github.event_name == 'push'
     strategy:
       matrix:
         include:
@@ -120,6 +20,10 @@ jobs:
     concurrency: ${{ matrix.environment }}
     steps:
       - uses: actions/checkout@v3
+        # Modified from regular deploy step
+        with:
+          ref: ${{ github.event.inputs.revision }}
+        # end
       - uses: docker/login-action@v1
         with:
           registry: ghcr.io
@@ -151,7 +55,7 @@ jobs:
         # Compose uses the registry credentials of the client
         env:
           COMPOSE_FILE: docker-compose.cheo.yaml
-          ST_VERSION: latest
+          ST_VERSION: sha-${{ github.event.inputs.revision }} # Modified from regular deploy step
           ST_SECRET_KEY: ${{ secrets.ST_SECRET_KEY }}
           MYSQL_CONNECTION_STRING: ${{ secrets.MYSQL_CONNECTION_STRING }}
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
@@ -173,7 +77,7 @@ jobs:
         # Compose uses the registry credentials of the client
         env:
           COMPOSE_FILE: docker-compose.ccm.yaml
-          ST_VERSION: latest
+          ST_VERSION: sha-${{ github.event.inputs.revision }} # Modified from regular deploy step
           MSTEAMS_WEBHOOK_URL: ${{ secrets.MSTEAMS_WEBHOOK }}
           PROJECT_ROOT: /opt/stager
           HIRAKI_ST_SECRET_KEY: ${{ secrets.HIRAKI_ST_SECRET_KEY }}

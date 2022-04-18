@@ -11,7 +11,6 @@ from app import models, db
 from app.routes import link_files_to_dataset
 from app.utils import filter_datasets_by_user_groups, get_current_user
 
-# GET /api/pipelines
 
 DEFAULT_PAYLOAD = {
     "family_codename": "1001",
@@ -24,41 +23,7 @@ DEFAULT_PAYLOAD = {
 }
 
 
-def test_get_pipelines(test_database, client, login_as):
-    # Not much to test here, if the endpoint is updated please add more tests
-    # Test success
-    login_as("admin")
-    response = client.get("/api/pipelines")
-    assert response.status_code == 200
-    assert len(response.get_json()) == 2
-
-
-# GET /api/enums
-
-
-def test_get_enums(test_database, client, login_as):
-    # Test success
-    login_as("admin")
-    response = client.get("/api/enums")
-    assert response.status_code == 200
-    assert len(response.get_json()) == 10
-    for enumType, enums in response.get_json().items():
-        assert enumType is not None
-
-
-# GET /api/metadatasettypes
-def test_get_metadatasettypes(test_database, client, login_as):
-    login_as("admin")
-    response = client.get("/api/metadatasettypes")
-    assert response.status_code == 200
-    assert len(response.get_json()) == 4
-    for _, dataset_types in response.get_json().items():
-        assert dataset_types is not None and isinstance(dataset_types, list)
-
-
 # GET api/institutions
-
-
 def test_get_institutions(test_database, client, login_as):
     login_as("admin")
     response = client.get("/api/institutions")

@@ -5,13 +5,8 @@ import { Dns, Replay } from "@material-ui/icons";
 import { useSnackbar } from "notistack";
 import { DetailSection, DialogHeader, InfoList, LoadingIndicator } from ".";
 import { getDatasetInfoList } from "../functions";
-import {
-    useAnalysisCreateMutation,
-    useAnalysisQuery,
-    useEnumsQuery,
-    useErrorSnackbar,
-} from "../hooks";
-import { Analysis, Field, Pipeline } from "../typings";
+import { useAnalysisCreateMutation, useAnalysisQuery, useErrorSnackbar } from "../hooks";
+import { Analysis, Field } from "../typings";
 
 const useStyles = makeStyles(theme => ({
     dialogContent: {
@@ -26,8 +21,14 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined): Field[] {
+function getAnalysisFields(analysis: Analysis): Field[] {
     return [
+        {
+            title: "Kind",
+            editable: false,
+            value: analysis.kind,
+            fieldName: "kind",
+        },
         { title: "Assigned to", editable: false, value: analysis.assignee, fieldName: "assignee" },
         {
             title: "Requested by",
@@ -42,31 +43,25 @@ function getAnalysisFields(analysis: Analysis, pipeline: Pipeline | undefined): 
             fieldName: "analysis_state",
         },
         {
-            title: "Path Prefix",
-            editable: false,
-            value: analysis.result_path,
-            fieldName: "result_path",
-        },
-        {
             title: "Last Updated",
             editable: false,
             type: "timestamp",
             value: analysis.updated,
             fieldName: "updated",
         },
+        {
+            title: "Scheduler ID",
+            editable: false,
+            value: analysis.scheduler_id,
+            fieldName: "scheduler_id",
+        },
+        {
+            title: "Path Prefix",
+            editable: false,
+            value: analysis.result_path,
+            fieldName: "result_path",
+        },
         { title: "Notes", editable: false, value: analysis.notes, fieldName: "notes" },
-        {
-            title: "Pipeline",
-            editable: false,
-            value: `${pipeline?.pipeline_name} ${pipeline?.pipeline_version}`,
-            fieldName: "pipeline",
-        },
-        {
-            title: "Supported Types",
-            editable: false,
-            value: pipeline?.supported_types,
-            fieldName: "supported_types",
-        },
     ];
 }
 
@@ -85,13 +80,8 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
         () => (analysisQuery.isSuccess ? analysisQuery.data.datasets || [] : []),
         [analysisQuery]
     );
-    const pipeline = useMemo(
-        () => (analysisQuery.isSuccess ? analysisQuery.data.pipeline : undefined),
-        [analysisQuery]
-    );
     const { mutate: analysisUpdateMutate, isLoading: loadingUpdate } = useAnalysisCreateMutation();
     const labeledBy = "analysis-info-dialog-slide-title";
-    const { data: enums } = useEnumsQuery();
     const { enqueueSnackbar } = useSnackbar();
     const enqueueErrorSnackbar = useErrorSnackbar();
 
@@ -137,10 +127,7 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
             </DialogHeader>
             <DialogContent className={classes.dialogContent} dividers>
                 <div className={classes.infoSection}>
-                    <DetailSection
-                        fields={getAnalysisFields(props.analysis, pipeline)}
-                        enums={enums}
-                    />
+                    <DetailSection fields={getAnalysisFields(props.analysis)} />
                 </div>
                 <Divider />
                 <div className={classes.infoSection}>
@@ -148,7 +135,6 @@ export default function AnalysisInfoDialog(props: AlertInfoDialogProp) {
                         <InfoList
                             infoList={getDatasetInfoList(datasets)}
                             title="Associated Datasets"
-                            enums={enums}
                             icon={<Dns />}
                             linkPath="/datasets"
                         />
