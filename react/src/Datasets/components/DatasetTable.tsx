@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Column, EditComponentProps, MTableToolbar } from "@material-table/core";
 import { Chip, IconButton, makeStyles } from "@material-ui/core";
 import { Cancel, Delete, PlayArrow, Refresh, Visibility } from "@material-ui/icons";
@@ -115,16 +115,6 @@ export default function DatasetTable() {
         }
     }, [apiInfo]);
 
-    const RenderDatasetType = useCallback(
-        (rowData: Dataset) =>
-            apiInfo && (
-                <TooltipDatasetType dataset_type={rowData.dataset_type}>
-                    <div>{rowData.dataset_type}</div>
-                </TooltipDatasetType>
-            ),
-        [apiInfo]
-    );
-
     const [showInfo, setShowInfo] = useState(false);
     const [infoDataset, setInfoDataset] = useState<Dataset>();
 
@@ -178,7 +168,11 @@ export default function DatasetTable() {
                 field: "dataset_type",
                 lookup: datasetTypes,
                 editable: (columnDef, row) => !row.analyses.length,
-                render: RenderDatasetType,
+                render: rowData => (
+                    <TooltipDatasetType dataset_type={rowData.dataset_type}>
+                        <div>{rowData.dataset_type}</div>
+                    </TooltipDatasetType>
+                ),
             },
             {
                 title: "Condition",
@@ -261,7 +255,6 @@ export default function DatasetTable() {
         currentUser,
         datasetTypes,
         paramID,
-        RenderDatasetType,
         tissueSampleTypes,
         setInitialSorting,
         setHiddenColumns,
