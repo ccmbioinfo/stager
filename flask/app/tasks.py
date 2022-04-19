@@ -12,7 +12,7 @@ def send_email_notification(app):
 
         app.logger.info("Sending email notification...")
 
-        yesterday = (datetime.now() - timedelta(5)).strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
 
         analyses = db.session.query(models.Analysis).filter(
             models.Analysis.requested >= yesterday,
