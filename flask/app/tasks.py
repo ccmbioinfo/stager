@@ -1,50 +1,34 @@
 import os
 from datetime import datetime, timedelta
+from itertools import chain
+
 from . import models
 from .email import send_email
 from .extensions import db
-from sqlalchemy import text
 
 
 def send_email_notification(app):
-    app.logger.info("hello")
     with app.app_context():
-
-        app.logger.info("Sending email notification...")
-
         yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
 
-        analyses = db.session.query(models.Analysis).filter(
-            models.Analysis.requested >= yesterday,
+        datasets = (
+            db.session.query(models.Dataset)
+            .join(models.Dataset.analyses)
+            .filter(models.Analysis.requested >= yesterday)
+            .all()
         )
 
-        app.logger.info("Available analyses...")
-        app.logger.debug(analyses)
+        analyses = list(chain(*[d.analyses for d in datasets]))
 
-        dynamic_object = {"analyses": []}
+        email_object = {"analyses": []}
 
         for analysis in analyses:
-            mapped_dataset_ids_gen = (
-                db.session.query(models.datasets_analyses_table)
-                .filter(
-                    models.datasets_analyses_table.c.analysis_id == analysis.analysis_id
-                )
-                .values(text("dataset_id"))
-            )
-
-            mapped_dataset_ids = [x for x, in mapped_dataset_ids_gen]
-
-            datasets = (
-                db.session.query(models.Dataset)
-                .filter(models.Dataset.dataset_id.in_(mapped_dataset_ids))
-                .all()
-            )
-
-            dynamic_object["analyses"].append(
+            email_object["analyses"].append(
                 {
+                    "analysis_id": analysis.analysis_id,
                     "requested": analysis.requested.strftime("%Y-%m-%d"),
                     "requester": analysis.requester.username,
-                    "pipeline": analysis.pipeline.pipeline_name,
+                    "pipeline": analysis.kind,
                     "priority": analysis.priority,
                     "datasets": [
                         {
@@ -68,16 +52,18 @@ def send_email_notification(app):
                             "created_by": dataset.tissue_sample.created_by.username,
                             "participant_notes": dataset.tissue_sample.participant.notes,
                         }
-                        for dataset in datasets
+                        for dataset in analysis.datasets
                     ],
                 }
             )
 
-        app.logger.debug("Dynamic object template...", dynamic_object)
-
-        if os.getenv("SENDGRID_API_KEY") and len(dynamic_object["analyses"]) > 0:
+        if len(email_object["analyses"]) > 0:
             send_email(
                 to_emails=os.getenv("SENDGRID_TO_EMAIL"),
                 from_email=os.getenv("SENDGRID_FROM_EMAIL"),
-                dynamic_template_object=dynamic_object,
+                dynamic_template_object=email_object,
             )
+
+        app.logger.debug(
+            f'{len(email_object["analyses"])} analysis requests found...', email_object
+        )
