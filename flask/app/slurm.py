@@ -4,7 +4,11 @@ from typing import Optional
 from flask import current_app as app
 from slurm_rest import ApiClient, ApiException
 from slurm_rest.apis import SlurmApi
-from slurm_rest.models import V0037JobSubmission, V0037JobProperties, V0037JobSubmissionResponse
+from slurm_rest.models import (
+    V0037JobSubmission,
+    V0037JobProperties,
+    V0037JobSubmissionResponse,
+)
 
 from .models import Analysis
 
@@ -47,7 +51,12 @@ exec ./dnaseq_slurm_api.sh {analysis.analysis_id} '{family_codename}' '{json.dum
                         ),
                     )
                 )
-                app.logger.info(f"Submitted Slurm job for analysis {analysis.analysis_id}: f{submitted_job}")
+                app.logger.info(
+                    f"Submitted analysis {analysis.analysis_id} to scheduler: {submitted_job}"
+                )
                 return submitted_job
             except ApiException as e:
-                app.logger.warn(f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}", exc_info=e)
+                app.logger.warn(
+                    f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}",
+                    exc_info=e,
+                )

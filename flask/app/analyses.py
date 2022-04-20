@@ -441,7 +441,10 @@ def create_analysis():
                             db.session.commit()
                         except Exception as e:
                             db.session.rollback()
-                            app.logger.warn(f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}", exc_info=e)
+                            app.logger.warn(
+                                f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}",
+                                exc_info=e,
+                            )
 
     # TODO: inspect this response payload; it is causing several additional queries
     return (
