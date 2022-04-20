@@ -32,7 +32,7 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
                 submitted_job = api_instance.slurmctld_submit_job(
                     V0037JobSubmission(
                         script=f"""#!/bin/bash
-exec /path/to/dnaseq_slurm_api.sh {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
+exec ~/dnaseq_slurm_api.sh {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
                         job=V0037JobProperties(
                             environment={},

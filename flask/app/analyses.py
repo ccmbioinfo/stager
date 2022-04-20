@@ -404,11 +404,12 @@ def create_analysis():
     kinds = set(models.DATASET_TYPES[d.dataset_type]["kind"] for d in found_datasets)
     if len(kinds) != 1:
         abort(400, description="The dataset types must agree")
+    kind = kinds.pop()
 
     now = datetime.now()
     analysis = models.Analysis(
         analysis_state="Requested",
-        kind=kinds.pop(),
+        kind=kind,
         priority=request.json.get("priority"),
         requester_id=requester_id,
         requested=now,
@@ -423,7 +424,7 @@ def create_analysis():
 
     # Only automatically run pipeline if this is an exomic analysis on a trio or similar
     # This could be in one if conjunction but it is more clear when written out
-    if kinds.pop() == "exomic":  # For a list of kinds, see models.DATASET_TYPES
+    if kind == "exomic":  # For a list of kinds, see models.DATASET_TYPES
         # and if all datasets have files
         if all(len(dataset.linked_files) for dataset in found_datasets):
             # and if each dataset is for a different participant

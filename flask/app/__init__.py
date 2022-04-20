@@ -138,10 +138,11 @@ def config_logger(app):
                 if not S_ISFIFO(os.stat(sidecar).st_mode):
                     raise
             handler = logging.FileHandler(sidecar)
-            handler.setFormatter(
-                logging.Formatter("%(levelname)s [%(name)s] %(message)s")
-            )
-            logging.getLogger("sqlalchemy").addHandler(handler)
+        else:
+            handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s")
+        )
+        logging.getLogger("sqlalchemy").addHandler(handler)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
     # This configures Flask's logger and then we can customize it after
