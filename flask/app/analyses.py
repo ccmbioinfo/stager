@@ -4,13 +4,13 @@ from datetime import datetime
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import login_required
 from sqlalchemy import distinct, func, or_, select
-from sqlalchemy.orm import aliased, selectinload
+from sqlalchemy.orm import aliased, joinedload, selectinload
 from sqlalchemy.sql.expression import cast
 
 from . import models
 from .extensions import db
 from .schemas import AnalysisSchema
-from .slurm import run_pipeline
+from .slurm import run_crg2_on_family
 from .utils import (
     check_admin,
     clone_entity,
@@ -384,6 +384,11 @@ def create_analysis():
 
     found_datasets_query = models.Dataset.query.filter(
         models.Dataset.dataset_id.in_(datasets)
+    ).options(  # These are only used after the transaction but it's more convenient to query for them at once
+        joinedload(models.Dataset.linked_files),
+        joinedload(models.Dataset.tissue_sample)
+        .joinedload(models.TissueSample.participant)
+        .joinedload(models.Participant.family),
     )
 
     if not user.is_admin:
@@ -416,7 +421,29 @@ def create_analysis():
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
-    run_pipeline(analysis)
+    # Only automatically run pipeline if this is an exomic analysis on a trio or similar
+    # This could be in one if conjunction but it is more clear when written out
+    if kinds.pop() == "exomic":  # For a list of kinds, see models.DATASET_TYPES
+        # and if all datasets have files
+        if all(len(dataset.linked_files) for dataset in found_datasets):
+            # and if each dataset is for a different participant
+            distinct_participants = set(
+                dataset.tissue_sample.participant_id for dataset in found_datasets
+            )
+            if len(distinct_participants) == len(found_datasets):
+                distinct_families = set(
+                    dataset.tissue_sample.participant.family_id
+                    for dataset in found_datasets
+                )
+                if len(distinct_families) == 1:
+                    job = run_crg2_on_family(analysis)
+                    if job:
+                        analysis.scheduler_id = job.job_id
+                        try:
+                            db.session.commit()
+                        except Exception as e:
+                            db.session.rollback()
+                            app.logger.warn(f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}", exc_info=e)
 
     return (
         jsonify(
@@ -497,8 +524,6 @@ def create_reanalysis(id: int):
 
     db.session.add(new_analysis)
     transaction_or_abort(db.session.commit)
-
-    run_pipeline(analysis)
 
     return (
         jsonify(

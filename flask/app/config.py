@@ -34,12 +34,9 @@ class Config(object):
     # needed for authlib (dynamically named keys)
     OIDC_CLIENT_ID = os.getenv("OIDC_CLIENT_ID", "ccm-stager")
     OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET", "$not_a_secret!")
-
     OIDC_WELL_KNOWN = os.getenv(
         "OIDC_WELL_KNOWN",
         "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration",
     )
-
     MSTEAMS_WEBHOOK_URL = os.getenv("MSTEAMS_WEBHOOK_URL")
-
     # LOGIN_DISABLED = True
