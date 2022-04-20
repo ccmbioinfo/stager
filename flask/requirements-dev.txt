@@ -8,7 +8,7 @@ alembic==1.7.5
     # via flask-migrate
 apscheduler==3.9.1
     # via -r requirements.in
-astroid==2.9.0
+astroid==2.11.3
     # via pylint
 attrs==21.2.0
     # via pytest
@@ -36,6 +36,8 @@ cryptography==36.0.1
     #   pymysql
 debugpy==1.5.1
     # via -r requirements-dev.in
+dill==0.3.4
+    # via pylint
 flask==2.0.3
     # via
     #   -r requirements.in
@@ -110,7 +112,7 @@ py==1.11.0
     # via pytest
 pycparser==2.21
     # via cffi
-pylint==2.12.2
+pylint==2.13.7
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
@@ -153,12 +155,11 @@ sqlalchemy==1.4.28
     #   marshmallow-sqlalchemy
 starkbank-ecdsa==2.0.3
     # via sendgrid
-toml==0.10.2
-    # via pylint
 tomli==1.2.3
     # via
     #   black
     #   coverage
+    #   pylint
     #   pytest
 tzdata==2021.5
     # via pytz-deprecation-shim
