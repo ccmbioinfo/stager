@@ -140,8 +140,7 @@ def config_logger(app):
             handler = logging.FileHandler(sidecar)
         else:
             handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s")
-        )
+        handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s"))
         logging.getLogger("sqlalchemy").addHandler(handler)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)

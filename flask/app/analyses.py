@@ -39,9 +39,6 @@ analyses_blueprint = Blueprint(
 @login_required
 @paged
 def list_analyses(page: int, limit: int) -> Response:
-
-    app.logger.debug("Parsing query parameters..")
-
     order_by = request.args.get("order_by", type=str)
     allowed_columns = [
         "updated",
@@ -446,6 +443,7 @@ def create_analysis():
                             db.session.rollback()
                             app.logger.warn(f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}", exc_info=e)
 
+    # TODO: inspect this response payload; it is causing several additional queries
     return (
         jsonify(
             {

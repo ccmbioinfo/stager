@@ -9,6 +9,13 @@ from slurm_rest.models import V0037JobSubmission, V0037JobProperties, V0037JobSu
 from .models import Analysis
 
 
+# Slurm notes:
+#   environment and cwd are required job properties at minimum
+#   by default, stdout is captured and written to {cwd}/slurm-{id}.out as the executing user
+#   "~" in job script expands to /var/run/slurmrest
+#   job script itself is written to /var/spool/slurm/d/job{id}/slurm_script
+
+
 def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionResponse]:
     """
     Precondition: this analysis is a valid trio-ish analysis and has relevant relationships loaded
@@ -18,7 +25,7 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
     family_codename = datasets[0].tissue_sample.participant.family.family_codename
     family_codename = family_codename.replace("'", "\\'")  # escape quotes for shell
     files = {
-        dataset.tissue_sample.participant_codename: [
+        dataset.tissue_sample.participant.participant_codename: [
             file.path for file in dataset.linked_files
         ]
         for dataset in datasets
@@ -32,7 +39,7 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
                 submitted_job = api_instance.slurmctld_submit_job(
                     V0037JobSubmission(
                         script=f"""#!/bin/bash
-exec ~/dnaseq_slurm_api.sh {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
+exec ./dnaseq_slurm_api.sh {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
                         job=V0037JobProperties(
                             environment={},
@@ -40,7 +47,7 @@ exec ~/dnaseq_slurm_api.sh {analysis.analysis_id} '{family_codename}' '{json.dum
                         ),
                     )
                 )
-                app.logger.info(submitted_job)
+                app.logger.info(f"Submitted Slurm job for analysis {analysis.analysis_id}: f{submitted_job}")
                 return submitted_job
             except ApiException as e:
                 app.logger.warn(f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}", exc_info=e)
