@@ -66,7 +66,7 @@ marshmallow==3.15.0
     #   marshmallow-sqlalchemy
 marshmallow-sqlalchemy==0.28.0
     # via -r requirements.in
-minio==7.1.6
+minio==7.1.7
     # via -r requirements.in
 numpy==1.22.3
     # via pandas
