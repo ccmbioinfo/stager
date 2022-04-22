@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-table/core": "4.3.39",
+    "@material-table/core": "^4.3.42",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "^4.0.0-alpha.61",
@@ -29,7 +29,8 @@
   "resolutions": {
     "@types/eslint": "^8.4.1",
     "@types/estree": "^0.0.51",
-    "@types/node": "^16.11.27"
+    "@types/node": "^16.11.27",
+    "@types/react": "^17.0.44"
   },
   "scripts": {
     "start": "react-scripts start",
