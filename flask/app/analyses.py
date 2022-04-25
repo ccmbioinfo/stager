@@ -438,8 +438,10 @@ def create_analysis():
                     if job:
                         analysis.scheduler_id = job.job_id
                         analysis.analysis_state = models.AnalysisState.Running
-                        analysis.assignee_id = 1  # Automated jobs can be assigned to default admin
-                        analysis.started = datetime.now()  # Use a slightly different timestamp
+                        # Automated jobs can be assigned to default admin
+                        analysis.assignee_id = 1
+                        # Use a slightly different timestamp
+                        analysis.started = datetime.now()
                         try:
                             db.session.commit()
                         except Exception as e:

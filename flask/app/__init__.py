@@ -42,9 +42,14 @@ def create_app(config):
         app.logger.info(
             "Configuring with Slurm REST API %s", app.config["SLURM_ENDPOINT"]
         )
-        app.config["slurm"] = Configuration(host=app.config["SLURM_ENDPOINT"])
-        app.config["slurm"].api_key["user"] = app.config["SLURM_USER"]
-        app.config["slurm"].api_key["token"] = app.config["SLURM_JWT"]
+        # Could instead use one environment variable and urllib.parse.urlsplit for this
+        app.config["slurm"] = Configuration(
+            host=app.config["SLURM_ENDPOINT"],
+            api_key={
+                "user": app.config["SLURM_USER"],
+                "token": app.config["SLURM_JWT"],
+            },
+        )
     else:
         app.config["slurm"] = None
 
