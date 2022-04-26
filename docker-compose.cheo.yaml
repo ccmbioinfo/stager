@@ -17,6 +17,10 @@ services:
       SENDGRID_EMAIL_TEMPLATE_ID:
       SENDGRID_TO_EMAIL:
       SENDGRID_FROM_EMAIL:
+      SLURM_ENDPOINT:
+      SLURM_USER:
+      SLURM_JWT:
+      CRG2_ENTRYPOINT: /home/slurm/crg2/dnaseq_slurm_api.sh
     ports:
       - "5000:5000"
       - "9121:8080"

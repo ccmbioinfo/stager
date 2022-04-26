@@ -28,6 +28,7 @@ class Config(object):
     SLURM_ENDPOINT = os.getenv("SLURM_ENDPOINT")
     SLURM_USER = os.getenv("SLURM_USER")
     SLURM_JWT = os.getenv("SLURM_JWT")
+    CRG2_ENTRYPOINT = os.getenv("CRG2_ENTRYPOINT", "./dnaseq_slurm_api.sh")
     TESTING = False
     ENABLE_OIDC = os.getenv("ENABLE_OIDC", "") != ""
     OIDC_PROVIDER = os.getenv("OIDC_PROVIDER", "keycloak")
