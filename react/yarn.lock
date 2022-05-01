@@ -1380,10 +1380,10 @@
   resolved "https://registry.yarnpkg.com/@leichtgewicht/ip-codec/-/ip-codec-2.0.3.tgz#0300943770e04231041a51bd39f0439b5c7ab4f0"
   integrity sha512-nkalE/f1RvRGChwBnEIoBfSEYOXnCRdleKuv6+lePbMDrMZXeDQnqak5XDOeBgrPPyPfAdcCu/B5z+v3VhplGg==
 
-"@material-table/core@^4.3.42":
-  version "4.3.42"
-  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-4.3.42.tgz#800dfa3ce595eca2eb7ffa195e7a2b7d62bb8250"
-  integrity sha512-Wdc/CTrkV52bjD57yWlKrmUkj4vhqyczmwc8S0w7bUYQ5PBzeyHUHLpsqmSlC7X4ZfFEKAKOACPy7q9pp1s08Q==
+"@material-table/core@^4.3.43":
+  version "4.3.43"
+  resolved "https://registry.yarnpkg.com/@material-table/core/-/core-4.3.43.tgz#5211175c088653e066b6dd90f4563e00105c7136"
+  integrity sha512-rBP8gT9D0GJNMo+6kSgFgvYQCVQZK1u5HGOikifKrO9dYpASvccZiEeDttQ92CFFGW0qGnOdfGpBtZqS3cARrg==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@date-io/date-fns" "^1.3.13"
