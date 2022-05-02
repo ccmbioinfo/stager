@@ -421,7 +421,8 @@ def create_analysis():
 
     # Only automatically run pipeline if this is an exomic analysis on a trio or similar
     # This could be in one if conjunction but it is more clear when written out
-    if kind == "exomic":  # For a list of kinds, see models.DATASET_TYPES
+    # For a list of kinds, see models.DATASET_TYPES
+    if app.config["slurm"] and kind == "exomic":
         # and if all datasets have files
         if all(len(dataset.linked_files) for dataset in found_datasets):
             # and if each dataset is for a different participant

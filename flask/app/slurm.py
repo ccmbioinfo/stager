@@ -34,29 +34,28 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
         ]
         for dataset in datasets
     }
-    if app.config["slurm"]:
-        with ApiClient(app.config["slurm"]) as api_client:
-            api_instance = SlurmApi(api_client)
-            try:
-                # This should already be safely shell-escaped so there's no arbitrary code execution
-                # but if there are further issues then pass the user inputs in through the environment
-                submitted_job = api_instance.slurmctld_submit_job(
-                    V0037JobSubmission(
-                        script=f"""#!/bin/bash
+    with ApiClient(app.config["slurm"]) as api_client:
+        api_instance = SlurmApi(api_client)
+        try:
+            # This should already be safely shell-escaped so there's no arbitrary code execution
+            # but if there are further issues then pass the user inputs in through the environment
+            submitted_job = api_instance.slurmctld_submit_job(
+                V0037JobSubmission(
+                    script=f"""#!/bin/bash
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
-                        job=V0037JobProperties(
-                            environment={},
-                            current_working_directory=f"/home/{app.config['slurm'].api_key['user']}",
-                        ),
-                    )
+                    job=V0037JobProperties(
+                        environment={},
+                        current_working_directory=f"/home/{app.config['slurm'].api_key['user']}",
+                    ),
                 )
-                app.logger.info(
-                    f"Submitted analysis {analysis.analysis_id} to scheduler: {submitted_job}"
-                )
-                return submitted_job
-            except ApiException as e:
-                app.logger.warn(
-                    f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}",
-                    exc_info=e,
-                )
+            )
+            app.logger.info(
+                f"Submitted analysis {analysis.analysis_id} to scheduler: {submitted_job}"
+            )
+            return submitted_job
+        except ApiException as e:
+            app.logger.warn(
+                f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}",
+                exc_info=e,
+            )
