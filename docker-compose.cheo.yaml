@@ -20,6 +20,7 @@ services:
       SLURM_ENDPOINT:
       SLURM_USER:
       SLURM_JWT:
+      SLURM_PWD: /srv/shared/analyses/logs
       CRG2_ENTRYPOINT: /home/slurm/crg2/dnaseq_slurm_api.sh
     ports:
       - "5000:5000"
