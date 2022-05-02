@@ -18,6 +18,7 @@ from .models import Analysis
 #   by default, stdout is captured and written to {cwd}/slurm-{id}.out as the executing user
 #   "~" in job script expands to /var/run/slurmrest
 #   job script itself is written to /var/spool/slurm/d/job{id}/slurm_script
+#   job script runs in a login shell
 
 
 def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionResponse]:
@@ -47,9 +48,9 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
                     job=V0037JobProperties(
-                        environment={"PATH": "/sbin:/bin:/usr/sbin:/usr/bin"},
+                        environment={},
                         current_working_directory=cwd,
-                        name=f"Stager-CRG2 ({analysis.analysis_id}) {family_codename}",
+                        name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
                     ),
                 )
             )
