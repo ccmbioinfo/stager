@@ -63,7 +63,7 @@ jobs:
       - run: cp sample.env .env
       - name: Pytest
         run: docker-compose run --rm app pytest --cov=app --cov-report term-missing --cov-report xml
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
           files: ./flask/coverage.xml

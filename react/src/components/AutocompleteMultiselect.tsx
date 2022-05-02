@@ -35,8 +35,6 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
 }: AutocompleteMultiselectProps<T>) {
     const [inputValue, setInputValue] = useState("");
 
-    const isUnlinkedFileFolder = (path: string) => path.endsWith("/");
-
     return (
         <Autocomplete
             autoComplete
@@ -58,9 +56,8 @@ export default function AutocompleteMultiselect<T extends Record<string, any>>({
                 event.stopPropagation();
                 if (selectedOptions && ["select-option", "remove-option"].includes(reason)) {
                     const latestOption = selectedOptions[selectedOptions.length - 1];
-
                     // If the option chosen is a folder, change the input value instead of selecting it as an option.
-                    if (latestOption && isUnlinkedFileFolder(latestOption.path)) {
+                    if (latestOption.path?.endsWith("/")) {
                         setInputValue(latestOption.path);
                         if (onInputChange) {
                             onInputChange(latestOption.path);
