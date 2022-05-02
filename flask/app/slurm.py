@@ -35,7 +35,7 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
         for dataset in datasets
     }
     # Will only be used for capturing stdout/stderr instead of explicitly for each
-    current_working_directory = app.config.get("SLURM_PWD", f"/home/{app.config['slurm'].api_key['user']}")
+    cwd = app.config.get("SLURM_PWD", f"/home/{app.config['slurm'].api_key['user']}")
     with ApiClient(app.config["slurm"]) as api_client:
         api_instance = SlurmApi(api_client)
         try:
@@ -47,9 +47,9 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
                     job=V0037JobProperties(
-                        environment={ "PATH": "/sbin:/bin:/usr/sbin:/usr/bin" },
-                        current_working_directory=current_working_directory,
-                        name=f"Stager-CRG2 ({analysis.analysis_id}) {family_codename}"
+                        environment={"PATH": "/sbin:/bin:/usr/sbin:/usr/bin"},
+                        current_working_directory=cwd,
+                        name=f"Stager-CRG2 ({analysis.analysis_id}) {family_codename}",
                     ),
                 )
             )
