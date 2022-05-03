@@ -217,7 +217,7 @@ def bulk_update():
             app.logger.debug("Reading in csv and converted to a dictionary..")
             dat = pd.read_csv(
                 StringIO(request.data.decode("utf-8")),
-                dtype={"family_codename": object, "participant_codename": object},
+                dtype={"family_codename": "string", "participant_codename": "string"},
             )
             if dat.shape[0] == 0:
                 abort(400, "CSV read in but has no rows.")
