@@ -5,9 +5,9 @@ from flask import current_app as app
 from slurm_rest import ApiClient, ApiException
 from slurm_rest.apis import SlurmApi
 from slurm_rest.models import (
-    V0037JobSubmission,
-    V0037JobProperties,
-    V0037JobSubmissionResponse,
+    V0036JobSubmission,
+    V0036JobProperties,
+    V0036JobSubmissionResponse,
 )
 
 from .models import Analysis
@@ -19,9 +19,10 @@ from .models import Analysis
 #   "~" in job script expands to /var/run/slurmrest
 #   job script itself is written to /var/spool/slurm/d/job{id}/slurm_script
 #   job script runs in a login shell
+#   CHEO-RI only supports v0.0.36 but HPF supports v0.0.37
 
 
-def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionResponse]:
+def run_crg2_on_family(analysis: Analysis) -> Optional[V0036JobSubmissionResponse]:
     """
     Precondition: this analysis is a valid trio-ish analysis and has relevant relationships loaded
     """
@@ -36,18 +37,18 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
         for dataset in datasets
     }
     # Will only be used for capturing stdout/stderr instead of explicitly for each
-    cwd = app.config.get("SLURM_PWD", f"/home/{app.config['slurm'].api_key['user']}")
+    cwd = app.config["SLURM_PWD"]
     with ApiClient(app.config["slurm"]) as api_client:
         api_instance = SlurmApi(api_client)
         try:
             # This should already be safely shell-escaped so there's no arbitrary code execution
             # but if there are further issues then pass the user inputs in through the environment
-            submitted_job = api_instance.slurmctld_submit_job(
-                V0037JobSubmission(
+            submitted_job = api_instance.slurmctld_submit_job_0(
+                V0036JobSubmission(
                     script=f"""#!/bin/bash
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
-                    job=V0037JobProperties(
+                    job=V0036JobProperties(
                         environment={},
                         current_working_directory=cwd,
                         name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
