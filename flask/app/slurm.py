@@ -49,9 +49,13 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0036JobSubmissionRespons
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
                     job=V0036JobProperties(
-                        environment={},
+                        # non-empty object required for Slurm 20.x as far as I can tell but not 21.x
+                        environment={"STAGER": True},
                         current_working_directory=cwd,
                         name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
+                        memory_per_node=4096,  # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
+                        time_limit=3000,  # minutes, 50 hours, equivalent to --time and SBATCH_TIMELIMIT
+                        # partition, nodes, and CPUs are left implied
                     ),
                 )
             )
