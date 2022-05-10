@@ -23,7 +23,7 @@ from app import (
     variants,
 )
 from .extensions import db, login, ma, metrics, migrate, oauth
-from .tasks import send_email_notification, hello_world
+from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 
 
@@ -102,7 +102,8 @@ def register_extensions(app):
         client_kwargs={"scope": "openid"},
     )
     metrics.init_app(app)
-    metrics.info("stager", "Stager process info", revision=app.config.get("GIT_SHA"))
+    metrics.info("stager", "Stager process info",
+                 revision=app.config.get("GIT_SHA"))
 
 
 def config_logger(app):
@@ -148,5 +149,6 @@ def config_logger(app):
     flask_logging.create_logger(app)
     # %(asctime)s may be useful in development but redundant in production with journald
     flask_logging.default_handler.setFormatter(
-        logging.Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
+        logging.Formatter(
+            "%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
     )
