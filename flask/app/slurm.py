@@ -5,9 +5,9 @@ from flask import current_app as app
 from slurm_rest import ApiClient, ApiException
 from slurm_rest.apis import SlurmApi
 from slurm_rest.models import (
-    V0036JobSubmission,
-    V0036JobProperties,
-    V0036JobSubmissionResponse,
+    V0037JobSubmission,
+    V0037JobProperties,
+    V0037JobSubmissionResponse,
 )
 
 from .models import Analysis
@@ -19,10 +19,9 @@ from .models import Analysis
 #   "~" in job script expands to /var/run/slurmrest
 #   job script itself is written to /var/spool/slurm/d/job{id}/slurm_script
 #   job script runs in a login shell
-#   CHEO-RI only supports v0.0.36 but HPF supports v0.0.37
 
 
-def run_crg2_on_family(analysis: Analysis) -> Optional[V0036JobSubmissionResponse]:
+def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionResponse]:
     """
     Precondition: this analysis is a valid trio-ish analysis and has relevant relationships loaded
     """
@@ -43,14 +42,13 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0036JobSubmissionRespons
         try:
             # This should already be safely shell-escaped so there's no arbitrary code execution
             # but if there are further issues then pass the user inputs in through the environment
-            submitted_job = api_instance.slurmctld_submit_job_0(
-                V0036JobSubmission(
+            submitted_job = api_instance.slurmctld_submit_job(
+                V0037JobSubmission(
                     script=f"""#!/bin/bash
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
-                    job=V0036JobProperties(
-                        # non-empty object required for Slurm 20.x as far as I can tell but not 21.x
-                        environment={"STAGER": True},
+                    job=V0037JobProperties(
+                        environment={},
                         current_working_directory=cwd,
                         name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
                         memory_per_node=4096,  # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
