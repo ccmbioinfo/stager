@@ -23,7 +23,7 @@ from app import (
     variants,
 )
 from .extensions import db, login, ma, metrics, migrate, oauth
-from .tasks import send_email_notification
+from .tasks import send_email_notification, hello_world
 from .utils import DateTimeEncoder
 
 

@@ -1,29 +1,24 @@
 import os
 from datetime import datetime, timedelta
-from itertools import chain
-
+from sqlalchemy.orm import joinedload
 from . import models
 from .email import send_email
-from .extensions import db
 
 
 def send_email_notification(app):
     with app.app_context():
         yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
 
-        datasets = (
-            db.session.query(models.Dataset)
-            .join(models.Dataset.analyses)
+        analyses = (
+            models.Analysis.query.options(joinedload(models.Analysis.datasets))
             .filter(models.Analysis.requested >= yesterday)
             .all()
         )
 
-        analyses = list(chain(*[d.analyses for d in datasets]))
-
-        email_object = {"analyses": []}
+        email_analyses = []
 
         for analysis in analyses:
-            email_object["analyses"].append(
+            email_analyses.append(
                 {
                     "analysis_id": analysis.analysis_id,
                     "requested": analysis.requested.strftime("%Y-%m-%d"),
@@ -34,7 +29,9 @@ def send_email_notification(app):
                         {
                             "dataset_id": dataset.dataset_id,
                             "notes": dataset.notes,
-                            "linked_files": ", ".join(dataset.linked_files),
+                            "linked_files": ", ".join(
+                                [file.path for file in dataset.linked_files]
+                            ),
                             "group_code": ", ".join(
                                 [group.group_code for group in dataset.groups]
                             ),
@@ -57,13 +54,13 @@ def send_email_notification(app):
                 }
             )
 
-        if len(email_object["analyses"]) > 0:
+        if len(email_analyses) > 0:
             send_email(
                 to_emails=os.getenv("SENDGRID_TO_EMAIL"),
                 from_email=os.getenv("SENDGRID_FROM_EMAIL"),
-                dynamic_template_object=email_object,
+                dynamic_template_object={"analyses": email_analyses},
             )
 
         app.logger.debug(
-            f'{len(email_object["analyses"])} analysis requests found...', email_object
+            f"{len(email_analyses)} analysis requests found...", email_analyses
         )
