@@ -1,6 +1,9 @@
+import json
 import os
 from datetime import datetime, timedelta
+
 from sqlalchemy.orm import joinedload
+
 from . import models
 from .email import send_email
 
@@ -8,9 +11,14 @@ from .email import send_email
 def send_email_notification(app):
     with app.app_context():
         yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
-
         analyses = (
-            models.Analysis.query.options(joinedload(models.Analysis.datasets))
+            models.Analysis.query.options(
+                joinedload(models.Analysis.requester),
+                joinedload(models.Analysis.datasets)
+                .joinedload(models.Dataset.tissue_sample)
+                .joinedload(models.TissueSample.participant)
+                .joinedload(models.Participant.family),
+            )
             .filter(models.Analysis.requested >= yesterday)
             .all()
         )
@@ -24,30 +32,20 @@ def send_email_notification(app):
                     "requested": analysis.requested.strftime("%Y-%m-%d"),
                     "requester": analysis.requester.username,
                     "pipeline": analysis.kind,
-                    "priority": analysis.priority,
+                    "priority": analysis.priority.value,
                     "datasets": [
                         {
                             "dataset_id": dataset.dataset_id,
-                            "notes": dataset.notes,
+                            "notes": dataset.notes or "",
                             "linked_files": ", ".join(
                                 [file.path for file in dataset.linked_files]
                             ),
-                            "group_code": ", ".join(
-                                [group.group_code for group in dataset.groups]
-                            ),
-                            "tissue_sample_type": dataset.tissue_sample.tissue_sample_type,
                             "participant_codename": dataset.tissue_sample.participant.participant_codename,
-                            "participant_type": dataset.tissue_sample.participant.participant_type,
-                            "participant_aliases": dataset.tissue_sample.participant.participant_aliases,
-                            "family_aliases": dataset.tissue_sample.participant.family.family_aliases,
-                            "institution": dataset.tissue_sample.participant.institution.institution
-                            if dataset.tissue_sample.participant.institution
-                            else None,
-                            "sex": dataset.tissue_sample.participant.sex,
+                            "participant_aliases": dataset.tissue_sample.participant.participant_aliases
+                            or "",
                             "family_codename": dataset.tissue_sample.participant.family.family_codename,
-                            "updated_by": dataset.tissue_sample.updated_by.username,
-                            "created_by": dataset.tissue_sample.created_by.username,
-                            "participant_notes": dataset.tissue_sample.participant.notes,
+                            "participant_notes": dataset.tissue_sample.participant.notes
+                            or "",
                         }
                         for dataset in analysis.datasets
                     ],
@@ -62,5 +60,5 @@ def send_email_notification(app):
             )
 
         app.logger.debug(
-            f"{len(email_analyses)} analysis requests found...", email_analyses
+            f"{len(email_analyses)} analysis requests found... {json.dumps(email_analyses)}"
         )
