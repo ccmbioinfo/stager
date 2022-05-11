@@ -5,6 +5,7 @@ services:
     image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
     user: www-data
     environment:
+      FORWARDED_ALLOW_IPS: "*" # equivalent to --forwarded-allow-ips, we are behind a reverse proxy
       ST_SECRET_KEY:
       ST_DATABASE_URI: "mysql+pymysql://${MYSQL_CONNECTION_STRING}"
       SQLALCHEMY_SIDECAR: /var/tmp/sqlalchemy.fifo

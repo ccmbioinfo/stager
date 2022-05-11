@@ -16,6 +16,7 @@ x-app: &app
   <<: *common
 
 x-env: &env
+  FORWARDED_ALLOW_IPS: "*" # equivalent to --forwarded-allow-ips, we are behind a reverse proxy
   SQLALCHEMY_SIDECAR: /var/tmp/sqlalchemy.fifo
   MINIO_REGION_NAME: hpc4health
   MINIO_TLS: "true"
