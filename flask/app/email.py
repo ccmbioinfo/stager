@@ -45,9 +45,7 @@ def send_email(
 
     try:
         sg.send(message)
-        app.logger.debug(
-            f"Email successfully sent from {from_email} to {to_emails}", message
-        )
+        app.logger.debug(f"Email successfully sent from {from_email} to {to_emails}")
     except Exception as e:
         app.logger.error("Failed to send email...")
         app.logger.error(e)
