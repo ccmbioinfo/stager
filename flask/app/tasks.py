@@ -13,6 +13,9 @@ def send_email_notification(app):
         yesterday = (datetime.now() - timedelta(1)).strftime("%Y-%m-%d")
         analyses = (
             models.Analysis.query.options(
+                joinedload(models.Analysis.datasets).joinedload(
+                    models.Dataset.linked_files
+                ),
                 joinedload(models.Analysis.requester),
                 joinedload(models.Analysis.datasets)
                 .joinedload(models.Dataset.tissue_sample)
