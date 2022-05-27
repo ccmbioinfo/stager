@@ -51,6 +51,7 @@ exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}
                         environment={},
                         current_working_directory=cwd,
                         name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
+                        standard_output=f"stager-crg2-{analysis.analysis_id}.out",
                         memory_per_node=4096,  # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
                         time_limit=3000,  # minutes, 50 hours, equivalent to --time and SBATCH_TIMELIMIT
                         # partition, nodes, and CPUs are left implied
