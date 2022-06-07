@@ -48,7 +48,7 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
                     job=V0037JobProperties(
-                        environment={},
+                        environment={"STAGER": True},
                         current_working_directory=cwd,
                         name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
                         standard_output=f"stager-crg2-{analysis.analysis_id}.out",
