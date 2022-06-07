@@ -609,8 +609,8 @@ def retroactively_run_pipeline(id: int):
         abort(400, description="The dataset types must agree")
     kind = kinds.pop()
     result = start_any_pipelines(kind, analysis, analysis.datasets)
-    if type(result) == int:
-        return jsonify({ "scheduler_id": result }), 202  # Accepted
+    if isinstance(result, int):
+        return jsonify({"scheduler_id": result}), 202  # Accepted
     abort(400, description=result)
 
 
