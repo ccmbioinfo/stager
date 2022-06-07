@@ -38,7 +38,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
       - name: Infer metadata (development image)
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         id: meta-dev
         with:
           images: ghcr.io/${{ github.repository }}
@@ -83,7 +83,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
       - name: Infer metadata (production image)
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         if: github.event_name == 'push'
         id: meta-prod
         with:
