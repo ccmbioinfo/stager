@@ -582,8 +582,9 @@ def retroactively_run_pipeline(id: int):
     analysis = (
         models.Analysis.query.filter(models.Analysis.analysis_id == id)
         .options(
-            joinedload(models.Analysis.datasets)
-            .joinedload(models.Dataset.linked_files),
+            joinedload(models.Analysis.datasets).joinedload(
+                models.Dataset.linked_files
+            ),
             joinedload(models.Analysis.datasets)
             .joinedload(models.Dataset.tissue_sample)
             .joinedload(models.TissueSample.participant)
