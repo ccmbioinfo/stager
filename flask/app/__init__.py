@@ -42,9 +42,14 @@ def create_app(config):
         app.logger.info(
             "Configuring with Slurm REST API %s", app.config["SLURM_ENDPOINT"]
         )
-        app.config["slurm"] = Configuration(host=app.config["SLURM_ENDPOINT"])
-        app.config["slurm"].api_key["user"] = app.config["SLURM_USER"]
-        app.config["slurm"].api_key["token"] = app.config["SLURM_JWT"]
+        # Could instead use one environment variable and urllib.parse.urlsplit for this
+        app.config["slurm"] = Configuration(
+            host=app.config["SLURM_ENDPOINT"],
+            api_key={
+                "user": app.config["SLURM_USER"],
+                "token": app.config["SLURM_JWT"],
+            },
+        )
     else:
         app.config["slurm"] = None
 
@@ -138,10 +143,10 @@ def config_logger(app):
                 if not S_ISFIFO(os.stat(sidecar).st_mode):
                     raise
             handler = logging.FileHandler(sidecar)
-            handler.setFormatter(
-                logging.Formatter("%(levelname)s [%(name)s] %(message)s")
-            )
-            logging.getLogger("sqlalchemy").addHandler(handler)
+        else:
+            handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s"))
+        logging.getLogger("sqlalchemy").addHandler(handler)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
     # This configures Flask's logger and then we can customize it after

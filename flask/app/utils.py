@@ -398,23 +398,16 @@ def find(collection: Iterable[Mapping[str, Any]], pred: Callable):
 
 def get_current_user():
     """if the user is an admin or login is disabled, a user's identity can be assumed by passing an id via the query string"""
-    app.logger.debug("Getting user")
-
     user_id = request.args.get("user")
-
     user = current_user
-
     if app.config.get("LOGIN_DISABLED") and not user_id:
         abort(400, description="A user ID must be provided when login is disabled!")
-
     if app.config.get("LOGIN_DISABLED") or current_user.is_admin:
         if user_id:
             user = User.query.filter(User.user_id == user_id).first()
             if not user:
                 abort(400, description="Provided user does not exist!")
-
     app.logger.debug("user_id: '%s'", getattr(user, "user_id", None))
-
     return user
 
 

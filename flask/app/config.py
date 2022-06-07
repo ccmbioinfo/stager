@@ -28,18 +28,17 @@ class Config(object):
     SLURM_ENDPOINT = os.getenv("SLURM_ENDPOINT")
     SLURM_USER = os.getenv("SLURM_USER")
     SLURM_JWT = os.getenv("SLURM_JWT")
+    SLURM_PWD = os.getenv("SLURM_PWD", f"/home/{os.getenv('SLURM_USER')}")
+    CRG2_ENTRYPOINT = os.getenv("CRG2_ENTRYPOINT", "./dnaseq_slurm_api.sh")
     TESTING = False
     ENABLE_OIDC = os.getenv("ENABLE_OIDC", "") != ""
     OIDC_PROVIDER = os.getenv("OIDC_PROVIDER", "keycloak")
     # needed for authlib (dynamically named keys)
     OIDC_CLIENT_ID = os.getenv("OIDC_CLIENT_ID", "ccm-stager")
     OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET", "$not_a_secret!")
-
     OIDC_WELL_KNOWN = os.getenv(
         "OIDC_WELL_KNOWN",
         "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration",
     )
-
     MSTEAMS_WEBHOOK_URL = os.getenv("MSTEAMS_WEBHOOK_URL")
-
     # LOGIN_DISABLED = True
