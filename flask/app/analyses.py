@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import login_required
@@ -362,7 +362,7 @@ analysis_schema = AnalysisSchema()
 
 def start_any_pipelines(
     kind: str, analysis: models.Analysis, found_datasets: List[models.Dataset]
-) -> bool:
+) -> Union[int, str]:
     # Only automatically run pipeline if this is an exomic analysis on a trio or similar
     # This could be in one if conjunction but it is more clear when written out
     # For a list of kinds, see models.DATASET_TYPES
@@ -389,14 +389,24 @@ def start_any_pipelines(
                         analysis.started = datetime.now()
                         try:
                             db.session.commit()
-                            return True
+                            return job.job_id
                         except Exception as e:
                             db.session.rollback()
                             app.logger.warn(
                                 f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}",
                                 exc_info=e,
                             )
-    return False
+                            return f"Failed to save scheduler_id {job.job_id}"
+                    else:
+                        return "Failed to submit job to Slurm"
+                else:
+                    return "Multiple families in analysis"
+            else:
+                return "Some participants have multiple datasets"
+        else:
+            return "Missing files for some datasets"
+    else:
+        return "Slurm not enabled or dataset kind not supported"
 
 
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
@@ -598,9 +608,10 @@ def retroactively_run_pipeline(id: int):
     if len(kinds) != 1:
         abort(400, description="The dataset types must agree")
     kind = kinds.pop()
-    if start_any_pipelines(kind, analysis, analysis.datasets):
-        return Response(status=202)  # Accepted
-    abort(400)
+    result = start_any_pipelines(kind, analysis, analysis.datasets)
+    if type(result) == int:
+        return jsonify({ "scheduler_id": result }), 202  # Accepted
+    abort(400, description=result)
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["DELETE"])
