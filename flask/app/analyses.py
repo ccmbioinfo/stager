@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from datetime import datetime
+from typing import List, Union
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import login_required
@@ -359,6 +360,55 @@ def get_analysis(id: int):
 analysis_schema = AnalysisSchema()
 
 
+def start_any_pipelines(
+    kind: str, analysis: models.Analysis, found_datasets: List[models.Dataset]
+) -> Union[int, str]:
+    # Only automatically run pipeline if this is an exomic analysis on a trio or similar
+    # This could be in one if conjunction but it is more clear when written out
+    # For a list of kinds, see models.DATASET_TYPES
+    if app.config["slurm"] and kind == "exomic":
+        # and if all datasets have files
+        if all(len(dataset.linked_files) for dataset in found_datasets):
+            # and if each dataset is for a different participant
+            distinct_participants = set(
+                dataset.tissue_sample.participant_id for dataset in found_datasets
+            )
+            if len(distinct_participants) == len(found_datasets):
+                distinct_families = set(
+                    dataset.tissue_sample.participant.family_id
+                    for dataset in found_datasets
+                )
+                if len(distinct_families) == 1:
+                    job = run_crg2_on_family(analysis)
+                    if job:
+                        analysis.scheduler_id = job.job_id
+                        analysis.analysis_state = models.AnalysisState.Running
+                        # Automated jobs can be assigned to default admin
+                        analysis.assignee_id = 1
+                        # Use a slightly different timestamp
+                        analysis.started = datetime.now()
+                        try:
+                            db.session.commit()
+                            return job.job_id
+                        except Exception as e:
+                            db.session.rollback()
+                            app.logger.warn(
+                                f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}",
+                                exc_info=e,
+                            )
+                            return f"Failed to save scheduler_id {job.job_id}"
+                    else:
+                        return "Failed to submit job to Slurm"
+                else:
+                    return "Multiple families in analysis"
+            else:
+                return "Some participants have multiple datasets"
+        else:
+            return "Missing files for some datasets"
+    else:
+        return "Slurm not enabled or dataset kind not supported"
+
+
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
 @login_required
 @validate_json
@@ -419,38 +469,7 @@ def create_analysis():
     db.session.add(analysis)
     transaction_or_abort(db.session.commit)
 
-    # Only automatically run pipeline if this is an exomic analysis on a trio or similar
-    # This could be in one if conjunction but it is more clear when written out
-    # For a list of kinds, see models.DATASET_TYPES
-    if app.config["slurm"] and kind == "exomic":
-        # and if all datasets have files
-        if all(len(dataset.linked_files) for dataset in found_datasets):
-            # and if each dataset is for a different participant
-            distinct_participants = set(
-                dataset.tissue_sample.participant_id for dataset in found_datasets
-            )
-            if len(distinct_participants) == len(found_datasets):
-                distinct_families = set(
-                    dataset.tissue_sample.participant.family_id
-                    for dataset in found_datasets
-                )
-                if len(distinct_families) == 1:
-                    job = run_crg2_on_family(analysis)
-                    if job:
-                        analysis.scheduler_id = job.job_id
-                        analysis.analysis_state = models.AnalysisState.Running
-                        # Automated jobs can be assigned to default admin
-                        analysis.assignee_id = 1
-                        # Use a slightly different timestamp
-                        analysis.started = datetime.now()
-                        try:
-                            db.session.commit()
-                        except Exception as e:
-                            db.session.rollback()
-                            app.logger.warn(
-                                f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}",
-                                exc_info=e,
-                            )
+    start_any_pipelines(kind, analysis, found_datasets)
 
     # TODO: inspect this response payload; it is causing several additional queries
     return (
@@ -563,6 +582,36 @@ def create_reanalysis(id: int):
         201,
         {"location": f"/api/analyses/{new_analysis.analysis_id}"},
     )
+
+
+@analyses_blueprint.route("/api/analyses/<int:id>/run", methods=["POST"])
+@login_required
+@check_admin
+@validate_json
+def retroactively_run_pipeline(id: int):
+    analysis = (
+        models.Analysis.query.filter(models.Analysis.analysis_id == id)
+        .options(
+            joinedload(models.Analysis.datasets).joinedload(
+                models.Dataset.linked_files
+            ),
+            joinedload(models.Analysis.datasets)
+            .joinedload(models.Dataset.tissue_sample)
+            .joinedload(models.TissueSample.participant)
+            .joinedload(models.Participant.family),
+        )
+        .first_or_404()
+    )
+    if analysis.analysis_state != models.AnalysisState.Requested:
+        abort(400, description=f"State: {analysis.analysis_state}")
+    kinds = set(models.DATASET_TYPES[d.dataset_type]["kind"] for d in analysis.datasets)
+    if len(kinds) != 1:
+        abort(400, description="The dataset types must agree")
+    kind = kinds.pop()
+    result = start_any_pipelines(kind, analysis, analysis.datasets)
+    if isinstance(result, int):
+        return jsonify({"scheduler_id": result}), 202  # Accepted
+    abort(400, description=result)
 
 
 @analyses_blueprint.route("/api/analyses/<int:id>", methods=["DELETE"])
