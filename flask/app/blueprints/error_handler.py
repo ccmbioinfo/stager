@@ -1,6 +1,7 @@
-import requests
 import traceback
+
 from flask import Blueprint, json, jsonify, request, current_app as app
+import requests
 from werkzeug.exceptions import HTTPException
 
 

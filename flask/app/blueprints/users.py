@@ -6,11 +6,11 @@ from flask import abort, Blueprint, current_app as app, jsonify, request, Respon
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
-from . import models
-from .extensions import db
-from .madmin import MinioAdmin
-from .schemas import UserSchema
-from .utils import (
+from .. import models
+from ..extensions import db
+from ..madmin import MinioAdmin
+from ..schemas import UserSchema
+from ..utils import (
     check_admin,
     get_minio_admin,
     transaction_or_abort,

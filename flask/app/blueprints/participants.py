@@ -5,12 +5,11 @@ from flask import current_app as app
 from flask_login import current_user, login_required
 from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import contains_eager, joinedload
-from sqlalchemy.orm.exc import NoResultFound
 
-from . import models
-from .extensions import db
-from .schemas import ParticipantSchema
-from .utils import (
+from .. import models
+from ..extensions import db
+from ..schemas import ParticipantSchema
+from ..utils import (
     check_admin,
     csv_response,
     expects_csv,
