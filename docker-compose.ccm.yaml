@@ -130,6 +130,8 @@ services:
   #     - app-hawkins
   proxy:
     image: traefik:2.6
+    environment:
+      TZ: America/Toronto
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "${PROJECT_ROOT:-.}/traefik:/etc/traefik"
