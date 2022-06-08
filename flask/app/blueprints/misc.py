@@ -10,9 +10,9 @@ from flask_login import current_user, login_required, login_user, logout_user
 import numpy as np
 import pandas as pd
 from sqlalchemy.orm import joinedload
-from . import models, schemas
-from .extensions import db, oauth
-from .utils import (
+from .. import models, schemas
+from ..extensions import db, oauth
+from ..utils import (
     get_current_user,
     transaction_or_abort,
     validate_json,

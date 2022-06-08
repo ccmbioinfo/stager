@@ -7,22 +7,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, logging as flask_logging
 from slurm_rest import Configuration
 
-from app import (
-    analyses,
-    buckets,
-    datasets,
-    error_handler,
-    families,
-    genes,
-    groups,
-    manage,
-    participants,
-    routes,
-    tissue_samples,
-    users,
-    variants,
-)
+from .blueprints import register_blueprints
 from .extensions import db, login, ma, metrics, migrate, oauth
+from .manage import register_commands
 from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 
@@ -54,7 +41,7 @@ def create_app(config):
         app.config["slurm"] = None
 
     register_extensions(app)
-    manage.register_commands(app)
+    register_commands(app)
     register_blueprints(app)
     if os.getenv("SENDGRID_API_KEY"):
         register_schedulers(app)
@@ -72,25 +59,6 @@ def register_schedulers(app):
 
     # Shut down the scheduler when exiting the app
     atexit.register(scheduler.shutdown)
-
-
-def register_blueprints(app):
-
-    app.register_blueprint(routes.routes)
-
-    app.register_blueprint(families.family_blueprint)
-    app.register_blueprint(datasets.datasets_blueprint)
-    app.register_blueprint(participants.participants_blueprint)
-    app.register_blueprint(tissue_samples.tissue_blueprint)
-    app.register_blueprint(analyses.analyses_blueprint)
-    app.register_blueprint(genes.genes_blueprint)
-    app.register_blueprint(variants.variants_blueprint)
-
-    app.register_blueprint(buckets.bucket_blueprint)
-    app.register_blueprint(groups.groups_blueprint)
-    app.register_blueprint(users.users_blueprint)
-
-    app.register_blueprint(error_handler.error_blueprint)
 
 
 def register_extensions(app):
