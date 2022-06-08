@@ -1,22 +1,16 @@
-# using SendGrid's Python Library
-# https://github.com/sendgrid/sendgrid-python
 import json
 import math
 import os
 from datetime import datetime, timedelta
-from typing import Any
-
-from pytz import timezone
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import From, Mail, ReplyTo, SendAt, To
-
-from flask import current_app as app
-
 from typing import Any, Dict
 
-sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+from flask import current_app as app
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import From, Mail, SendAt, To
 
-tz = timezone("EST")
+
+# https://github.com/sendgrid/sendgrid-python
+sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
 
 
 def send_email(
@@ -52,7 +46,7 @@ def send_email(
 
 
 def get_daily_stats():
-    today = datetime.now(tz).strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d")
     params = {
         "aggregated_by": "day",
         "start_date": today,
@@ -70,7 +64,7 @@ def get_daily_stats():
 
 def get_send_time(stats):
     limit_per_day = 100
-    send_at = datetime.now(tz)
+    send_at = datetime.now()
 
     for stat in stats:
 
