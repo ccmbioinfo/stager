@@ -4,7 +4,7 @@ from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
 from flask.app.slurm import poll_slurm
 
 
-scheduler = BackgroundScheduler(timezone="America/Toronto")
+scheduler = BackgroundScheduler()
 
 
 def when_ready(server):

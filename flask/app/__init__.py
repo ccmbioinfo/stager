@@ -63,7 +63,7 @@ def create_app(config):
 
 
 def register_schedulers(app):
-    scheduler = BackgroundScheduler(timezone="America/Toronto")
+    scheduler = BackgroundScheduler()
     scheduler.add_job(
         send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
     )
