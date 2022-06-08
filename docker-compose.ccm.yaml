@@ -8,7 +8,7 @@ x-common: &common
 x-app: &app
   image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
   user: www-data
-  command: --preload --workers ${GUNICORN_WORKERS:-1}
+  command: --workers ${GUNICORN_WORKERS:-1}
   tmpfs:
     - /tmp
   healthcheck:

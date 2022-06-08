@@ -26,7 +26,7 @@ services:
     ports:
       - "5000:5000"
       - "9121:8080"
-    command: --preload --workers ${GUNICORN_WORKERS:-1}
+    command: --workers ${GUNICORN_WORKERS:-1}
     tmpfs:
       - /tmp
     volumes:
