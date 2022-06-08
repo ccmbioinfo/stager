@@ -17,6 +17,7 @@ services:
     image: mysql:8.0
     restart: on-failure
     environment:
+      TZ: America/Toronto
       MYSQL_DATABASE:
       MYSQL_USER:
       MYSQL_PASSWORD:
@@ -29,6 +30,7 @@ services:
     image: minio/minio:RELEASE.2021-11-03T03-36-36Z
     restart: on-failure
     environment:
+      TZ: America/Toronto
       MINIO_ROOT_USER: "${MINIO_ACCESS_KEY}"
       MINIO_ROOT_PASSWORD: "${MINIO_SECRET_KEY}"
       MINIO_REGION_NAME:
