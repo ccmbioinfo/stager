@@ -4,7 +4,7 @@ from flask import abort, jsonify, request, Blueprint, current_app as app
 from flask_login import current_user, login_required
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from sqlalchemy.orm import contains_eager, joinedload
 from ..schemas import TissueSampleSchema
 from ..utils import (

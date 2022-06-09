@@ -7,8 +7,10 @@ Create Date: 2021-07-29 16:43:21.898351
 """
 from alembic import op
 import sqlalchemy as sa
+
+# NOTE: DO NOT DO THIS, STATIC MIGRATIONS CANNOT DEPEND ON A CHANGING MODEL FILE
 from app.models import File
-from app.extensions import db
+from app import db
 
 # revision identifiers, used by Alembic.
 revision = "b7e6ad115b13"

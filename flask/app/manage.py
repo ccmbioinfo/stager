@@ -9,9 +9,7 @@ from flask.cli import with_appcontext
 import pandas as pd
 from sqlalchemy import exc
 
-from . import models
 from .models import *
-from .extensions import db
 from .madmin import stager_buckets_policy
 from .utils import get_minio_admin, get_minio_client, stager_is_keycloak_admin
 from .manage_keycloak import *
@@ -43,7 +41,7 @@ def register_commands(app: Flask) -> None:
 def migrate_minio_policies() -> None:
     minio_client = get_minio_client()
     minio_admin = get_minio_admin()
-    groups = models.Group.query.all()
+    groups = Group.query.all()
     for group in groups:
         policy = stager_buckets_policy(group.group_code)
         # All adds are upserts
@@ -101,12 +99,12 @@ def map_insert_c4r_reports(report_root_path) -> None:
     conn = engine.connect()
 
     app.logger.info("Deleting Genotype table..")
-    models.Genotype.query.delete()
+    Genotype.query.delete()
     db.session.commit()
     app.logger.info("Done")
 
     app.logger.info("Deleting Variant table..")
-    models.Variant.query.delete()
+    Variant.query.delete()
     db.session.commit()
     app.logger.info("Done")
 
@@ -164,11 +162,11 @@ def map_insert_c4r_reports(report_root_path) -> None:
                 analysis_ptp_id = fam_dict[family_codename][ptp][0]
 
                 update_stmt = (
-                    models.datasets_analyses_table.update()
+                    datasets_analyses_table.update()
                     .where(
-                        (models.datasets_analyses_table.c.dataset_id == dataset_ptp_id)
+                        (datasets_analyses_table.c.dataset_id == dataset_ptp_id)
                         & (
-                            models.datasets_analyses_table.c.analysis_id
+                            datasets_analyses_table.c.analysis_id
                             == analysis_ptp_id
                         )
                     )
@@ -181,8 +179,8 @@ def map_insert_c4r_reports(report_root_path) -> None:
             # ---- updating the result path -----
             # only update if the paths don't already end in the family folder eg. .../2x/216/
             if not all(ends_in_fam_folder):
-                analysis_query = models.Analysis.query.filter(
-                    models.Analysis.analysis_id == family_analyses[0]
+                analysis_query = Analysis.query.filter(
+                    Analysis.analysis_id == family_analyses[0]
                 ).first()
                 if analysis_query.result_path is not None:
                     pprint(analysis_query.result_path)
@@ -205,7 +203,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
 
                 # ---- variant logic ----
 
-                variant_obj = models.Variant(
+                variant_obj = Variant(
                     analysis_id=family_analyses[0],
                     chromosome=row.get("chromosome"),
                     position=row.get("position"),
@@ -290,7 +288,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
                         row.get(col.lower()) for col in gt_cols
                     ]
 
-                    analyzed_variant_dataset = models.Genotype(
+                    analyzed_variant_dataset = Genotype(
                         variant_id=variant_obj.variant_id,
                         analysis_id=family_analyses[0],
                         dataset_id=dataset_ptp_id,

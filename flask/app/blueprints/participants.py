@@ -7,7 +7,7 @@ from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import contains_eager, joinedload
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..schemas import ParticipantSchema
 from ..utils import (
     check_admin,

@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased, joinedload, selectinload
 from sqlalchemy.sql.expression import cast
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..schemas import AnalysisSchema
 from ..slurm import run_crg2_on_family
 from ..utils import (
