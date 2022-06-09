@@ -1,8 +1,8 @@
 import json
 from typing import List, Optional
 
-from flask import current_app as app
-from slurm_rest import ApiClient, ApiException
+from flask import current_app as app, Flask
+from slurm_rest import ApiException
 from slurm_rest.apis import SlurmApi
 from slurm_rest.models import (
     V0037JobSubmission,
@@ -11,7 +11,7 @@ from slurm_rest.models import (
     V0037JobsResponse,
 )
 
-from .models import Analysis, AnalysisState
+from .models import db, Analysis, AnalysisState
 
 
 # Slurm notes:
@@ -38,41 +38,44 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
     }
     # Will only be used for capturing stdout/stderr instead of explicitly for each
     cwd = app.config["SLURM_PWD"]
-    with ApiClient(app.config["slurm"]) as api_client:
-        api_instance = SlurmApi(api_client)
-        try:
-            # This should already be safely shell-escaped so there's no arbitrary code execution
-            # but if there are further issues then pass the user inputs in through the environment
-            submitted_job = api_instance.slurmctld_submit_job(
-                V0037JobSubmission(
-                    script=f"""#!/bin/bash
+    api_instance: SlurmApi = app.extensions["slurm"]
+    try:
+        # This should already be safely shell-escaped so there's no arbitrary code execution
+        # but if there are further issues then pass the user inputs in through the environment
+        submitted_job = api_instance.slurmctld_submit_job(
+            V0037JobSubmission(
+                script=f"""#!/bin/bash
 exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}' '{json.dumps(files)}'
 """,
-                    job=V0037JobProperties(
-                        environment={"STAGER": True},
-                        current_working_directory=cwd,
-                        name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
-                        standard_output=f"stager-crg2-{analysis.analysis_id}.out",
-                        memory_per_node=4096,  # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
-                        time_limit=3000,  # minutes, 50 hours, equivalent to --time and SBATCH_TIMELIMIT
-                        # partition, nodes, and CPUs are left implied
-                    ),
-                )
+                job=V0037JobProperties(
+                    environment={"STAGER": True},
+                    current_working_directory=cwd,
+                    name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
+                    standard_output=f"stager-crg2-{analysis.analysis_id}.out",
+                    memory_per_node=4096,  # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
+                    time_limit=3000,  # minutes, 50 hours, equivalent to --time and SBATCH_TIMELIMIT
+                    # partition, nodes, and CPUs are left implied
+                ),
             )
-            app.logger.info(
-                f"Submitted analysis {analysis.analysis_id} to scheduler: {submitted_job}"
-            )
-            return submitted_job
-        except ApiException as e:
-            app.logger.warn(
-                f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}",
-                exc_info=e,
-            )
+        )
+        app.logger.info(
+            f"Submitted analysis {analysis.analysis_id} to scheduler: {submitted_job}"
+        )
+        return submitted_job
+    except ApiException as e:
+        app.logger.warn(
+            f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}",
+            exc_info=e,
+        )
 
 
-def poll_slurm() -> None:
-    with ApiClient(app.config["slurm"]) as api_client:
-        api_instance = SlurmApi(api_client)
+def poll_slurm(app: Flask) -> None:
+    """
+    This is a scheduled background task. Because it runs in a separate thread,
+    it pushes an app context for itself.
+    """
+    with app.app_context():
+        api_instance: SlurmApi = app.extensions["slurm"]
         running_analyses = Analysis.query.filter(
             Analysis.analysis_state == AnalysisState.Running,
             Analysis.scheduler_id != None,

@@ -9,10 +9,13 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
+from slurm_rest import Configuration, ApiClient
+from slurm_rest.apis import SlurmApi
 
 from .email import Mailer
 from .login import StagerLoginManager
 from .utils import DateTimeEncoder
+from .slurm import poll_slurm
 
 
 class Stager(Flask):
@@ -48,6 +51,25 @@ class Stager(Flask):
         )
         self.login = StagerLoginManager(self)
 
+        if self.config["SLURM_ENDPOINT"]:
+            self.logger.info(
+                "Configuring with Slurm REST API %s", self.config["SLURM_ENDPOINT"]
+            )
+            # Could instead use one environment variable and urllib.parse.urlsplit for this
+            self.config["slurm"] = Configuration(
+                host=self.config["SLURM_ENDPOINT"],
+                api_key={
+                    "user": self.config["SLURM_USER"],
+                    "token": self.config["SLURM_JWT"],
+                },
+            )
+            # The thread pool used for requests is not instantiated until first use, so it is
+            # safe to construct this object in the master process pre-fork.
+            self.extensions["slurm"] = SlurmApi(ApiClient(self.config["slurm"]))
+            # Access ApiClient if needed with .api_client
+        else:
+            self.config["slurm"] = self.extensions["slurm"] = None
+
         if self.env == "development":
             # Note that /metrics will not be live without DEBUG_METRICS set
             self.metrics = PrometheusMetrics(self)
@@ -70,7 +92,7 @@ class Stager(Flask):
         # or cumbersome, it can be separated to be started by a completely different
         # entrypoint in the same codebase and deployed as a separate container.
         self.scheduler = BackgroundScheduler()
-        if self.config.get("SENDGRID_API_KEY"):
+        if self.config["SENDGRID_API_KEY"]:
             self.logger.info(
                 "Configuring with SendGrid [%s] (from: %s) (to: %s)",
                 self.config["SENDGRID_EMAIL_TEMPLATE_ID"],
@@ -81,10 +103,11 @@ class Stager(Flask):
             self.scheduler.add_job(
                 self.mailer.send_notification,
                 "cron",
-                [self],
                 day_of_week="mon-fri",
                 hour="9",
             )
+        if self.config["SLURM_JWT"]:
+            self.scheduler.add_job(poll_slurm, "interval", [self], minutes=5)
         self.scheduler.start()
         if self.env == "development":
             # in production, a gunicorn exit hook will take care of this
