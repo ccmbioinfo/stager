@@ -41,4 +41,8 @@ class Config(object):
         "http://keycloak:8080/auth/realms/ccm/.well-known/openid-configuration",
     )
     MSTEAMS_WEBHOOK_URL = os.getenv("MSTEAMS_WEBHOOK_URL")
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    SENDGRID_EMAIL_TEMPLATE_ID = os.getenv("SENDGRID_EMAIL_TEMPLATE_ID")
+    SENDGRID_TO_EMAIL = os.getenv("SENDGRID_TO_EMAIL")
+    SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL")
     # LOGIN_DISABLED = True

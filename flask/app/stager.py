@@ -1,6 +1,5 @@
 import atexit
-from os import getenv
-from logging import INFO, Formatter
+from logging import Formatter
 
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -11,8 +10,8 @@ from flask_sqlalchemy import SQLAlchemy
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
 
+from .email import Mailer
 from .login import StagerLoginManager
-from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 
 
@@ -23,6 +22,7 @@ class Stager(Flask):
 
     json_encoder = DateTimeEncoder
     # Only available in master process
+    mailer: Mailer  # Only available if configured
     scheduler: BaseScheduler
 
     def __init__(self, config, db: SQLAlchemy, *args, **kwargs):
@@ -70,9 +70,20 @@ class Stager(Flask):
         # or cumbersome, it can be separated to be started by a completely different
         # entrypoint in the same codebase and deployed as a separate container.
         self.scheduler = BackgroundScheduler()
-        if getenv("SENDGRID_API_KEY"):
+        if self.config.get("SENDGRID_API_KEY"):
+            self.logger.info(
+                "Configuring with SendGrid [%s] (from: %s) (to: %s)",
+                self.config["SENDGRID_EMAIL_TEMPLATE_ID"],
+                self.config["SENDGRID_FROM_EMAIL"],
+                self.config["SENDGRID_TO_EMAIL"],
+            )
+            self.mailer = Mailer(self)
             self.scheduler.add_job(
-                send_email_notification, "cron", [self], day_of_week="mon-fri", hour="9"
+                self.mailer.send_notification,
+                "cron",
+                [self],
+                day_of_week="mon-fri",
+                hour="9",
             )
         self.scheduler.start()
         if self.env == "development":
