@@ -111,7 +111,7 @@ class Stager(Flask):
             # requests session used to bypass the SDK when Slurm doesn't respect
             # its own API Schema (e.g. job response properties .array_job_id)
             self.extensions["slurm-requests"] = Session()
-            self.scheduler.add_job(poll_slurm, "interval", [self], seconds=10)
+            self.scheduler.add_job(poll_slurm, "interval", [self], minutes=2)
         self.scheduler.start()
         if self.env == "development":
             # in production, a gunicorn exit hook will take care of this
