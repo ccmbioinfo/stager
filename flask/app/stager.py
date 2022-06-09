@@ -9,6 +9,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
+from requests import Session
 from slurm_rest import Configuration, ApiClient
 from slurm_rest.apis import SlurmApi
 
@@ -107,7 +108,10 @@ class Stager(Flask):
                 hour="9",
             )
         if self.config["SLURM_JWT"]:
-            self.scheduler.add_job(poll_slurm, "interval", [self], minutes=5)
+            # requests session used to bypass the SDK when Slurm doesn't respect
+            # its own API Schema (e.g. job response properties .array_job_id)
+            self.extensions["slurm-requests"] = Session()
+            self.scheduler.add_job(poll_slurm, "interval", [self], seconds=10)
         self.scheduler.start()
         if self.env == "development":
             # in production, a gunicorn exit hook will take care of this
