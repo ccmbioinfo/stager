@@ -4,7 +4,7 @@ from flask import abort, jsonify, request, Response, Blueprint, current_app as a
 from flask_login import login_required
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..madmin import stager_buckets_policy
 from ..schemas import GroupSchema
 from ..utils import (

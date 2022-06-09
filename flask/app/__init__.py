@@ -7,8 +7,8 @@ from slurm_rest import Configuration
 
 
 from .blueprints import register_blueprints
-from .extensions import db
 from .manage import register_commands
+from .models import db
 from .stager import Stager
 
 

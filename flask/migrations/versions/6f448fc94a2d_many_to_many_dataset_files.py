@@ -8,7 +8,8 @@ Create Date: 2021-06-23 13:30:06.701210
 from alembic import op
 import sqlalchemy as sa
 
-from app.extensions import db
+# NOTE: DO NOT DO THIS, STATIC MIGRATIONS CANNOT DEPEND ON A CHANGING MODEL FILE
+from app import db
 
 
 # revision identifiers, used by Alembic.

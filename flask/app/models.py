@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
-from requests import get
 
 from flask_login import UserMixin
-from flask import current_app as app, Request
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.exceptions import Unauthorized
 
-from .extensions import db
+
+db = SQLAlchemy()
+
 
 users_groups_table = db.Table(
     "users_groups",

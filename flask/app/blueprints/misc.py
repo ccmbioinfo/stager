@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy.orm import joinedload
 from .. import models, schemas
-from ..extensions import db
+from ..models import db
 from ..utils import (
     get_current_user,
     transaction_or_abort,

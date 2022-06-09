@@ -12,7 +12,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy import or_
 
 from . import models
-from .extensions import db
+from .models import db
 
 
 def try_int(value: str):

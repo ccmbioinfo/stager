@@ -15,7 +15,6 @@ from flask import (
     Request,
     send_file,
 )
-from flask.globals import current_app
 from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_sqlalchemy import Model
@@ -26,9 +25,8 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy.sql.sqltypes import Enum as SqlAlchemyEnum
 from werkzeug.exceptions import HTTPException
 
-from .extensions import db
 from .madmin import MinioAdmin
-from .models import User, Group, Dataset
+from .models import db, User, Group, Dataset
 
 
 def str_to_bool(param: str) -> bool:
