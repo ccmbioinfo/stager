@@ -1,13 +1,13 @@
-from app.users import reset_minio_credentials
 import json
 from io import BytesIO
 
 from minio import Minio
-
 import pytest
+
 from app import db
 from app.madmin import MinioAdmin, stager_buckets_policy
 from app.models import User, Group
+from app.blueprints.users import reset_minio_credentials
 from conftest import TestConfig
 
 # Common response values between list and individual get endpoints

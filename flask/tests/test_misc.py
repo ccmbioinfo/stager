@@ -3,12 +3,11 @@ from csv import DictReader
 from io import StringIO
 from pytest import raises
 from flask.wrappers import Request
-from flask import request
 from sqlalchemy.orm import joinedload
 from werkzeug.exceptions import BadRequest
 
 from app import models, db
-from app.routes import link_files_to_dataset
+from app.blueprints.misc import link_files_to_dataset
 from app.utils import filter_datasets_by_user_groups, get_current_user
 
 
