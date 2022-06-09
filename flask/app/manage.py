@@ -1,23 +1,20 @@
-from datetime import datetime, date
-
-from pprint import pprint
 import gzip, pickle, random
-from sqlalchemy import exc
+from datetime import datetime, date
+from pprint import pprint
 
 import click
 from click.exceptions import ClickException
-
 from flask import Flask, current_app as app
 from flask.cli import with_appcontext
 import pandas as pd
-from sqlalchemy import and_
+from sqlalchemy import exc
 
-from app import models  # duplicated - how to best account for this
+from . import models
+from .models import *
 from .extensions import db
 from .madmin import stager_buckets_policy
+from .utils import get_minio_admin, get_minio_client, stager_is_keycloak_admin
 from .manage_keycloak import *
-
-# for report mapping and insertion
 from .mapping_utils import (
     get_report_paths,
     preprocess_report,
@@ -25,8 +22,6 @@ from .mapping_utils import (
     check_result_paths,
     try_int,
 )
-from .models import *
-from .utils import get_minio_admin, get_minio_client, stager_is_keycloak_admin
 
 
 def register_commands(app: Flask) -> None:
