@@ -44,8 +44,6 @@ def create_app(config):
 
 def config_logger(app):
     """
-    Configure the main loggers: Flask application, SQLAlchemy, and werkzeug
-
     SQLAlchemy logs can be very noisy and hard to filter out with grep because
     the logged queries can span multiple lines. However, they are still useful
     for auditing query efficiency and performance. Therefore, instead of using
@@ -81,9 +79,3 @@ def config_logger(app):
         logging.getLogger("sqlalchemy").addHandler(handler)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
-    # This configures Flask's logger and then we can customize it after
-    flask_logging.create_logger(app)
-    # %(asctime)s may be useful in development but redundant in production with journald
-    flask_logging.default_handler.setFormatter(
-        logging.Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
-    )
