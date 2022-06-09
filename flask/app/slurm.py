@@ -78,7 +78,9 @@ def poll_slurm() -> None:
             Analysis.scheduler_id != None,
         ).all()
         if len(running_analyses):
-            analyses = { analysis.scheduler_id: analysis for analysis in running_analyses }
+            analyses = {
+                analysis.scheduler_id: analysis for analysis in running_analyses
+            }
             requests = [
                 api_instance.slurmctld_get_job(analysis.scheduler_id, async_req=True)
                 for analysis in running_analyses
@@ -101,8 +103,12 @@ def poll_slurm() -> None:
                 ]:
                     analyses[job.jobs[0].job_id].analysis_state = AnalysisState.Error
                     analyses[job.jobs[0].job_id].result_path = job.jobs[0].job_state
-                    analyses[job.jobs[0].job_id].finished = job.jobs[0].end_time # int64, convert to datetime?
+                    analyses[job.jobs[0].job_id].finished = job.jobs[
+                        0
+                    ].end_time  # int64, convert to datetime?
                 elif job.jobs[0].job_state == "COMPLETED":
                     analyses[job.jobs[0].job_id].analysis_state = AnalysisState.Done
-                    analyses[job.jobs[0].job_id].finished = job.jobs[0].end_time # int64, convert to datetime?
+                    analyses[job.jobs[0].job_id].finished = job.jobs[
+                        0
+                    ].end_time  # int64, convert to datetime?
             db.session.commit()

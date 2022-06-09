@@ -7,6 +7,7 @@ from .models import *
 # TODO: use flask_marshmallow's instance if we use these to serialize
 # https://flask-marshmallow.readthedocs.io/en/latest/
 
+
 class FamilySchema(SQLAlchemyAutoSchema):
     """
     POST /api/families

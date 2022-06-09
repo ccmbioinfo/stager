@@ -13,6 +13,7 @@ from .groups import groups_blueprint
 from .users import users_blueprint
 from .error_handler import error_blueprint
 
+
 def register_blueprints(app: Flask) -> None:
     app.register_blueprint(routes)
 
