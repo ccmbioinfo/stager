@@ -1,11 +1,11 @@
 import atexit
 from os import getenv
-import os
+from logging import INFO, Formatter
 
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from authlib.integrations.flask_client import OAuth
-from flask import Flask
+from flask import Flask, logging as flask_logging
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from prometheus_flask_exporter import PrometheusMetrics
@@ -28,9 +28,15 @@ class Stager(Flask):
     def __init__(self, config, db: SQLAlchemy, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config.from_object(config)
+        # Configures Flask's logger and customize. N.B.: logging modules conflict in name
+        flask_logging.create_logger(self)
+        # %(asctime)s may be useful is redundant with Docker timestamps and production journald
+        flask_logging.default_handler.setFormatter(
+            Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
+        )
+        # Initialize extensions
         db.init_app(self)
         self.migrate = Migrate(self, db, compare_type=True)
-
         # The rest are not required for Click commands, but required for routes, shell, tests, etc.
         self.oauth = OAuth(self)
         self.oauth.register(
@@ -64,12 +70,11 @@ class Stager(Flask):
         # or cumbersome, it can be separated to be started by a completely different
         # entrypoint in the same codebase and deployed as a separate container.
         self.scheduler = BackgroundScheduler()
-        self.scheduler.add_job(
-            lambda: self.logger.info(os.getpid()), "interval", seconds=5
-        )
         if getenv("SENDGRID_API_KEY"):
             self.scheduler.add_job(
                 send_email_notification, "cron", [self], day_of_week="mon-fri", hour="9"
             )
         self.scheduler.start()
-        atexit.register(self.scheduler.shutdown)
+        if self.env == "development":
+            # in production, a gunicorn exit hook will take care of this
+            atexit.register(self.scheduler.shutdown)
