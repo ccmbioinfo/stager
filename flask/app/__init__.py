@@ -1,17 +1,15 @@
-import atexit
 import logging
 import os
 from stat import S_ISFIFO
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, logging as flask_logging
+from flask import logging as flask_logging
 from slurm_rest import Configuration
 
+
 from .blueprints import register_blueprints
-from .extensions import db, login, ma, metrics, migrate, oauth
+from .extensions import db
 from .manage import register_commands
-from .tasks import send_email_notification
-from .utils import DateTimeEncoder
+from .stager import Stager
 
 
 def create_app(config):
@@ -19,9 +17,7 @@ def create_app(config):
     The application factory. Returns an instance of the app.
     """
     # Create the application object
-    app = Flask(__name__)
-    app.config.from_object(config)
-    app.json_encoder = DateTimeEncoder
+    app = Stager(config, db, __name__)
 
     config_logger(app)
 
@@ -40,42 +36,10 @@ def create_app(config):
     else:
         app.config["slurm"] = None
 
-    register_extensions(app)
     register_commands(app)
     register_blueprints(app)
-    if os.getenv("SENDGRID_API_KEY"):
-        register_schedulers(app)
 
     return app
-
-
-def register_schedulers(app):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(
-        send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
-    )
-
-    scheduler.start()
-
-    # Shut down the scheduler when exiting the app
-    atexit.register(scheduler.shutdown)
-
-
-def register_extensions(app):
-    db.init_app(app)
-    ma.init_app(app)
-    migrate.init_app(app, db)
-    login.init_app(app)
-    oauth.init_app(app)
-    oauth.register(
-        name=app.config["OIDC_PROVIDER"],
-        client_id=app.config["OIDC_CLIENT_ID"],
-        client_secret=app.config["OIDC_CLIENT_SECRET"],
-        server_metadata_url=app.config["OIDC_WELL_KNOWN"],
-        client_kwargs={"scope": "openid"},
-    )
-    metrics.init_app(app)
-    metrics.info("stager", "Stager process info", revision=app.config.get("GIT_SHA"))
 
 
 def config_logger(app):
