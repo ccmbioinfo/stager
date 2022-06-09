@@ -2,10 +2,6 @@ import logging
 import os
 from stat import S_ISFIFO
 
-from flask import logging as flask_logging
-from slurm_rest import Configuration
-
-
 from .blueprints import register_blueprints
 from .manage import register_commands
 from .models import db
@@ -18,27 +14,9 @@ def create_app(config):
     """
     # Create the application object
     app = Stager(config, db, __name__)
-
     config_logger(app)
-
-    if app.config["SLURM_ENDPOINT"]:
-        app.logger.info(
-            "Configuring with Slurm REST API %s", app.config["SLURM_ENDPOINT"]
-        )
-        # Could instead use one environment variable and urllib.parse.urlsplit for this
-        app.config["slurm"] = Configuration(
-            host=app.config["SLURM_ENDPOINT"],
-            api_key={
-                "user": app.config["SLURM_USER"],
-                "token": app.config["SLURM_JWT"],
-            },
-        )
-    else:
-        app.config["slurm"] = None
-
     register_commands(app)
     register_blueprints(app)
-
     return app
 
 
