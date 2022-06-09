@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy.orm import joinedload
 
 from app import db, models
-from app.datasets import update_dataset_linked_files
+from app.blueprints.datasets import update_dataset_linked_files
 
 # TODO: some tests do not precisely verify response structure
 
