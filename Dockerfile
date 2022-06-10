@@ -15,8 +15,9 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY --from=mc /usr/bin/mc /usr/bin/mc
 COPY . .
 ENV FLASK_ENV production
+ENV TZ America/Toronto
 ENV PROMETHEUS_MULTIPROC_DIR /tmp
 EXPOSE 5000 8080
 # Prevent accidentally using this image for development by adding the prod server arguments in the entrypoint
 # Automatically run migrations on startup
-ENTRYPOINT ["./utils/run.sh", "prod", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--log-file", "-"]
+ENTRYPOINT ["./utils/run.sh", "prod", "--bind", "0.0.0.0:5000"]

@@ -8,7 +8,7 @@ x-common: &common
 x-app: &app
   image: "ghcr.io/ccmbioinfo/stager:${ST_VERSION}"
   user: www-data
-  command: --preload --workers ${GUNICORN_WORKERS:-1}
+  command: --workers ${GUNICORN_WORKERS:-1}
   tmpfs:
     - /tmp
   healthcheck:
@@ -130,6 +130,8 @@ services:
   #     - app-hawkins
   proxy:
     image: traefik:2.6
+    environment:
+      TZ: America/Toronto
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "${PROJECT_ROOT:-.}/traefik:/etc/traefik"

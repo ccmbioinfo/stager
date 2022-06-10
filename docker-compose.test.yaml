@@ -4,6 +4,7 @@ services:
   mysql:
     image: mysql:8.0
     environment:
+      TZ: America/Toronto
       MYSQL_DATABASE: "${TEST_MYSQL_DATABASE}"
       MYSQL_USER: "${TEST_MYSQL_USER}"
       MYSQL_PASSWORD: "${TEST_MYSQL_PASSWORD}"
@@ -11,6 +12,7 @@ services:
   minio:
     image: minio/minio:RELEASE.2021-11-03T03-36-36Z
     environment:
+      TZ: America/Toronto
       MINIO_ROOT_USER: "${TEST_MINIO_ACCESS_KEY}"
       MINIO_ROOT_PASSWORD: "${TEST_MINIO_SECRET_KEY}"
       MINIO_REGION_NAME:
