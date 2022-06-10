@@ -70,7 +70,7 @@ class Stager(Flask):
         # or cumbersome, it can be separated to be started by a completely different
         # entrypoint in the same codebase and deployed as a separate container.
         self.scheduler = BackgroundScheduler()
-        if self.config.get("SENDGRID_API_KEY"):
+        if self.config["SENDGRID_API_KEY"]:
             self.logger.info(
                 "Configuring with SendGrid [%s] (from: %s) (to: %s)",
                 self.config["SENDGRID_EMAIL_TEMPLATE_ID"],
