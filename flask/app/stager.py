@@ -85,8 +85,7 @@ class Stager(Flask):
             # avoid starting additional threads for Click commands or
             # duplicating the scheduler in the dev server master process
             self.before_first_request(self.start_scheduler)
-        else:  # production, start in master process
-            self.start_scheduler()
+        # in production, a gunicorn hook will start the scheduler
 
     def start_scheduler(self):
         # If this setup of when the scheduler can be started becomes too confusing
