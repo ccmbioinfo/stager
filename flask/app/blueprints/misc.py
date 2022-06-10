@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy.orm import joinedload
 from .. import models, schemas
-from ..extensions import db, oauth
+from ..models import db
 from ..utils import (
     get_current_user,
     transaction_or_abort,
@@ -92,7 +92,7 @@ def oidc_login():
         abort(405)
     provider = app.config.get("OIDC_PROVIDER")
     app.logger.debug(f"Creating client with {provider}...")
-    client = oauth.create_client(provider)
+    client = app.oauth.create_client(provider)
     app.logger.debug("Building redirect url...")
     # It's safe to take redirect_uris from the client since
     # the OAuth provider maintains a list of valid redirect_uris
@@ -114,7 +114,7 @@ def authorize():
     """
     if not app.config.get("ENABLE_OIDC"):
         abort(404)
-    client = oauth.create_client(app.config.get("OIDC_PROVIDER"))
+    client = app.oauth.create_client(app.config.get("OIDC_PROVIDER"))
     # Exchange authorization code for token
     token = client.authorize_access_token()
     userinfo = client.parse_id_token(token)
@@ -161,7 +161,7 @@ def logout():
     if app.config.get("ENABLE_OIDC"):
         # Log out of OAuth session as well as Stager session
         provider = app.config.get("OIDC_PROVIDER")
-        client = oauth.create_client(provider)
+        client = app.oauth.create_client(provider)
         client_id = app.config.get("OIDC_CLIENT_ID")
         metadata = client.load_server_metadata()  # .well-known/openid-configuration
         if username:

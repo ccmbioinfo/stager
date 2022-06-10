@@ -14,8 +14,7 @@ import requests
 from flask import current_app as app, g
 from flask.cli import with_appcontext
 
-from .extensions import db
-from .models import User
+from .models import db, User
 from .utils import stager_is_keycloak_admin
 
 keycloak_host = os.getenv("KEYCLOAK_HOST", "http://keycloak:8080")

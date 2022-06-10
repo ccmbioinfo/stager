@@ -1,17 +1,15 @@
-import atexit
 import logging
 import os
 from stat import S_ISFIFO
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, logging as flask_logging
+from flask import logging as flask_logging
 from slurm_rest import Configuration
 
+
 from .blueprints import register_blueprints
-from .extensions import db, login, ma, metrics, migrate, oauth
 from .manage import register_commands
-from .tasks import send_email_notification
-from .utils import DateTimeEncoder
+from .models import db
+from .stager import Stager
 
 
 def create_app(config):
@@ -19,9 +17,7 @@ def create_app(config):
     The application factory. Returns an instance of the app.
     """
     # Create the application object
-    app = Flask(__name__)
-    app.config.from_object(config)
-    app.json_encoder = DateTimeEncoder
+    app = Stager(config, db, __name__)
 
     config_logger(app)
 
@@ -40,48 +36,14 @@ def create_app(config):
     else:
         app.config["slurm"] = None
 
-    register_extensions(app)
     register_commands(app)
     register_blueprints(app)
-    if os.getenv("SENDGRID_API_KEY"):
-        register_schedulers(app)
 
     return app
 
 
-def register_schedulers(app):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(
-        send_email_notification, "cron", [app], day_of_week="mon-fri", hour="9"
-    )
-
-    scheduler.start()
-
-    # Shut down the scheduler when exiting the app
-    atexit.register(scheduler.shutdown)
-
-
-def register_extensions(app):
-    db.init_app(app)
-    ma.init_app(app)
-    migrate.init_app(app, db)
-    login.init_app(app)
-    oauth.init_app(app)
-    oauth.register(
-        name=app.config["OIDC_PROVIDER"],
-        client_id=app.config["OIDC_CLIENT_ID"],
-        client_secret=app.config["OIDC_CLIENT_SECRET"],
-        server_metadata_url=app.config["OIDC_WELL_KNOWN"],
-        client_kwargs={"scope": "openid"},
-    )
-    metrics.init_app(app)
-    metrics.info("stager", "Stager process info", revision=app.config.get("GIT_SHA"))
-
-
 def config_logger(app):
     """
-    Configure the main loggers: Flask application, SQLAlchemy, and werkzeug
-
     SQLAlchemy logs can be very noisy and hard to filter out with grep because
     the logged queries can span multiple lines. However, they are still useful
     for auditing query efficiency and performance. Therefore, instead of using
@@ -117,9 +79,3 @@ def config_logger(app):
         logging.getLogger("sqlalchemy").addHandler(handler)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("sqlalchemy.pool").setLevel(logging.INFO)
-    # This configures Flask's logger and then we can customize it after
-    flask_logging.create_logger(app)
-    # %(asctime)s may be useful in development but redundant in production with journald
-    flask_logging.default_handler.setFormatter(
-        logging.Formatter("%(levelname)s [%(funcName)s, line %(lineno)s]: %(message)s")
-    )

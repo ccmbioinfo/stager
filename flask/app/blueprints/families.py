@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..schemas import FamilySchema
 from ..utils import (
     check_admin,

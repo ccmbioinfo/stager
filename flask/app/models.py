@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
-from requests import get
 
 from flask_login import UserMixin
-from flask import current_app as app, Request
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import CheckConstraint
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.exceptions import Unauthorized
 
-from .extensions import db, login, oauth
+
+db = SQLAlchemy()
+
 
 users_groups_table = db.Table(
     "users_groups",
@@ -49,47 +49,6 @@ class User(UserMixin, db.Model):
     def set_oidc_fields(self, issuer: str, subject: str):
         self.issuer = issuer
         self.subject = subject
-
-
-@login.user_loader
-def load_user(uid: int):
-    return User.query.get(uid)
-
-
-@login.request_loader
-def load_user_from_request(request: Request):
-    """if user session can't be found, this function will be called to look for it elsewhere"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not app.config.get("ENABLE_OIDC"):
-        return None
-    token = auth_header[7:]
-    try:
-        user_info = fetch_userinfo(token)
-    except Unauthorized:
-        app.logger.info("Invalid Token!")
-        return None
-    return get_user_identity_from_userinfo(user_info)
-
-
-def fetch_userinfo(token: str):
-    """get roles and other information from the userinfo endpoint"""
-    provider = app.config.get("OIDC_PROVIDER")
-    client = oauth.create_client(provider)
-    userinfo_endpoint = client.load_server_metadata().get("userinfo_endpoint")
-    userinfo_response = get(
-        userinfo_endpoint, headers={"Authorization": f"Bearer {token}"}
-    )
-
-    if userinfo_response.status_code == 401:
-        raise Unauthorized
-
-    return userinfo_response.json()
-
-
-def get_user_identity_from_userinfo(user_info: dict):
-    """find token user based on subject identifier"""
-    sub = user_info["sub"]
-    return User.query.filter(User.subject == sub).first()
 
 
 @dataclass

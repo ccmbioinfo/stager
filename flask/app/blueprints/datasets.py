@@ -14,7 +14,7 @@ from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import contains_eager, joinedload, selectinload
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..schemas import RNASeqDatasetSchema
 from ..utils import (
     check_admin,

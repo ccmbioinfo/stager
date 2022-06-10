@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..madmin import MinioAdmin
 from ..schemas import UserSchema
 from ..utils import (

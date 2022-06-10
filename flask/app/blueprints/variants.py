@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased, contains_eager
 from sqlalchemy.sql import and_, or_
 
 from .. import models
-from ..extensions import db
+from ..models import db
 from ..utils import (
     expects_csv,
     expects_json,
