@@ -1,7 +1,7 @@
 import json
 import math
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Dict
 
 from flask import Flask
 from sendgrid import SendGridAPIClient
