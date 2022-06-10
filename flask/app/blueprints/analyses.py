@@ -8,11 +8,11 @@ from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.orm import aliased, joinedload, selectinload
 from sqlalchemy.sql.expression import cast
 
-from . import models
-from .extensions import db
-from .schemas import AnalysisSchema
-from .slurm import run_crg2_on_family
-from .utils import (
+from .. import models
+from ..extensions import db
+from ..schemas import AnalysisSchema
+from ..slurm import run_crg2_on_family
+from ..utils import (
     check_admin,
     clone_entity,
     csv_response,

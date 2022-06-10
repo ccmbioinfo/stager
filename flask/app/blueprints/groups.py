@@ -2,13 +2,12 @@ from urllib.parse import quote
 
 from flask import abort, jsonify, request, Response, Blueprint, current_app as app
 from flask_login import login_required
-from minio import Minio
 
-from . import models
-from .extensions import db
-from .madmin import stager_buckets_policy
-from .schemas import GroupSchema
-from .utils import (
+from .. import models
+from ..extensions import db
+from ..madmin import stager_buckets_policy
+from ..schemas import GroupSchema
+from ..utils import (
     check_admin,
     get_current_user,
     get_minio_admin,
