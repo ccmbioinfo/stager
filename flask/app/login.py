@@ -52,6 +52,7 @@ class StagerLoginManager(LoginManager):
     """
     Flask-Login manager. Must be initialized with a Stager Flask instance as it depends on app.oauth
     """
+
     session_protection = "strong"
 
     def __init__(self, stager):

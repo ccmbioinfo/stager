@@ -50,6 +50,7 @@ class User(UserMixin, db.Model):
         self.issuer = issuer
         self.subject = subject
 
+
 @dataclass
 class Group(db.Model):
     group_id: int = db.Column(db.Integer, primary_key=True)

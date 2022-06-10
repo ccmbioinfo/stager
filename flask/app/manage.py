@@ -165,10 +165,7 @@ def map_insert_c4r_reports(report_root_path) -> None:
                     datasets_analyses_table.update()
                     .where(
                         (datasets_analyses_table.c.dataset_id == dataset_ptp_id)
-                        & (
-                            datasets_analyses_table.c.analysis_id
-                            == analysis_ptp_id
-                        )
+                        & (datasets_analyses_table.c.analysis_id == analysis_ptp_id)
                     )
                     .values(analysis_id=family_analyses[0])
                 )
