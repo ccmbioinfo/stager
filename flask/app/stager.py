@@ -1,6 +1,6 @@
 import atexit
 from os import getenv
-from logging import INFO, Formatter
+from logging import Formatter
 
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -93,12 +93,12 @@ class Stager(Flask):
         # or cumbersome, it can be separated to be started by a completely different
         # entrypoint in the same codebase and deployed as a separate container.
         self.scheduler = BackgroundScheduler()
-        if self.config["SENDGRID_API_KEY"]:
+        if getenv("SENDGRID_API_KEY"):
             self.logger.info(
                 "Configuring with SendGrid [%s] (from: %s) (to: %s)",
-                self.config["SENDGRID_EMAIL_TEMPLATE_ID"],
-                self.config["SENDGRID_FROM_EMAIL"],
-                self.config["SENDGRID_TO_EMAIL"],
+                getenv("SENDGRID_EMAIL_TEMPLATE_ID"),
+                getenv("SENDGRID_FROM_EMAIL"),
+                getenv("SENDGRID_TO_EMAIL"),
             )
             self.scheduler.add_job(
                 send_email_notification, "cron", [self], day_of_week="mon-fri", hour="9"
