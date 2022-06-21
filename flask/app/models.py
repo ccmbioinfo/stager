@@ -72,7 +72,7 @@ class Family(db.Model):
     family_id: int = db.Column(db.Integer, primary_key=True)
     family_codename: str = db.Column(
         db.String(50),
-        CheckConstraint("family_codename REGEXP '^[[:alnum:],-,_]+$'"),
+        CheckConstraint(r"family_codename REGEXP '^[[:alnum:]\-_]+$'"),
         nullable=False,
         unique=True,
     )
@@ -114,7 +114,7 @@ class Participant(db.Model):
     participant_codename: str = db.Column(
         db.String(50),
         CheckConstraint(
-            "participant_codename REGEXP '^[.,[:alnum:],-,_]+$' AND participant_codename NOT REGEXP '^[.]+$'"
+            r"participant_codename REGEXP '^[.[:alnum:]\-_]+$' AND participant_codename NOT REGEXP '^[.]+$'"
         ),
         nullable=False,
         unique=True,

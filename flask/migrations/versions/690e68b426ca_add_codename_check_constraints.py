@@ -17,10 +17,10 @@ depends_on = None
 
 def upgrade():
     op.execute(
-        "ALTER TABLE family ADD CONSTRAINT family_chk_codename CHECK (family_codename REGEXP '^[[:alnum:],-,_]+$')"
+        r"ALTER TABLE family ADD CONSTRAINT family_chk_codename CHECK (family_codename REGEXP '^[[:alnum:]\-_]+$')"
     )
     op.execute(
-        "ALTER TABLE participant ADD CONSTRAINT participant_chk_codename CHECK (participant_codename REGEXP '^[.,[:alnum:],-,_]+$' AND participant_codename NOT REGEXP '^[.]+$')"
+        r"ALTER TABLE participant ADD CONSTRAINT participant_chk_codename CHECK (participant_codename REGEXP '^[.[:alnum:]\-_]+$' AND participant_codename NOT REGEXP '^[.]+$')"
     )
 
 
