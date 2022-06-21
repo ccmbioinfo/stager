@@ -387,6 +387,8 @@ def start_any_pipelines(
                         analysis.assignee_id = 1
                         # Use a slightly different timestamp
                         analysis.started = datetime.now()
+                        # We know there is only one family; check constraint guarantees no illegal paths or ../
+                        analysis.result_path = f"/srv/shared/analyses/exomes/{found_datasets[0].tissue_sample.participant.family.family_codename}/{analysis.analysis_id}"
                         try:
                             db.session.commit()
                             return job.job_id
