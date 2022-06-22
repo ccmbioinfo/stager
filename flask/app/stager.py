@@ -103,7 +103,6 @@ class Stager(Flask):
             self.scheduler.add_job(
                 self.mailer.send_notification,
                 "cron",
-                [self],
                 day_of_week="mon-fri",
                 hour="9",
             )

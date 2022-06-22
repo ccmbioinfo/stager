@@ -115,7 +115,7 @@ class Mailer:
                         "requested": analysis.requested.strftime("%Y-%m-%d"),
                         "requester": analysis.requester.username,
                         "pipeline": analysis.kind,
-                        "priority": analysis.priority.value,
+                        "priority": analysis.priority,
                         "datasets": [
                             {
                                 "dataset_id": dataset.dataset_id,
