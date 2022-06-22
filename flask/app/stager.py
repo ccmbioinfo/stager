@@ -9,10 +9,14 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_flask_exporter.multiprocess import GunicornPrometheusMetrics
+from requests import Session
+from slurm_rest import Configuration, ApiClient
+from slurm_rest.apis import SlurmApi
 
 from .email import Mailer
 from .login import StagerLoginManager
 from .utils import DateTimeEncoder
+from .slurm import poll_slurm
 
 
 class Stager(Flask):
@@ -48,6 +52,25 @@ class Stager(Flask):
         )
         self.login = StagerLoginManager(self)
 
+        if self.config["SLURM_ENDPOINT"]:
+            self.logger.info(
+                "Configuring with Slurm REST API %s", self.config["SLURM_ENDPOINT"]
+            )
+            # Could instead use one environment variable and urllib.parse.urlsplit for this
+            self.config["slurm"] = Configuration(
+                host=self.config["SLURM_ENDPOINT"],
+                api_key={
+                    "user": self.config["SLURM_USER"],
+                    "token": self.config["SLURM_JWT"],
+                },
+            )
+            # The thread pool used for requests is not instantiated until first use, so it is
+            # safe to construct this object in the master process pre-fork.
+            self.extensions["slurm"] = SlurmApi(ApiClient(self.config["slurm"]))
+            # Access ApiClient if needed with .api_client
+        else:
+            self.config["slurm"] = self.extensions["slurm"] = None
+
         if self.env == "development":
             # Note that /metrics will not be live without DEBUG_METRICS set
             self.metrics = PrometheusMetrics(self)
@@ -62,8 +85,7 @@ class Stager(Flask):
             # avoid starting additional threads for Click commands or
             # duplicating the scheduler in the dev server master process
             self.before_first_request(self.start_scheduler)
-        else:  # production, start in master process
-            self.start_scheduler()
+        # in production, a gunicorn hook will start the scheduler
 
     def start_scheduler(self):
         # If this setup of when the scheduler can be started becomes too confusing
@@ -85,6 +107,11 @@ class Stager(Flask):
                 day_of_week="mon-fri",
                 hour="9",
             )
+        if self.config["SLURM_JWT"]:
+            # requests session used to bypass the SDK when Slurm doesn't respect
+            # its own API Schema (e.g. job response properties .array_job_id)
+            self.extensions["slurm-requests"] = Session()
+            self.scheduler.add_job(poll_slurm, "interval", [self], minutes=2)
         self.scheduler.start()
         if self.env == "development":
             # in production, a gunicorn exit hook will take care of this
