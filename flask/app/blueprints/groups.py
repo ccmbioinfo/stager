@@ -302,7 +302,6 @@ def delete_group(group_code):
     try:
         app.logger.debug(f"Deleting group {group_code} from MinIO..")
         minio_admin.group_remove(group_code)
-        minio_admin.remove_policy(group_code)
     except:
         app.logger.exception(f"Removing MinIO group {group_code}")
     finally:
