@@ -1,5 +1,5 @@
 # Development image only. Runs a Flask development server.
-FROM minio/mc:RELEASE.2021-12-10T00-14-28Z AS mc
+FROM minio/mc:RELEASE.2022-06-17T02-52-50Z AS mc
 FROM python:3.9-slim
 LABEL org.opencontainers.image.title Stager development
 LABEL org.opencontainers.image.authors https://ccm.sickkids.ca/
