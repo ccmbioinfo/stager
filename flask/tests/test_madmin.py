@@ -126,12 +126,14 @@ def test_apply_policy(mc: MinioAdmin):
     mc.set_policy("fullaccess", group="yeet")
     assert mc.get_group("yeet")["groupPolicy"] == "fullaccess"
 
-    mc.remove_policy("fullaccess")
+    mc.unset_policy("fullaccess", group="yeet")
     assert "groupPolicy" not in mc.get_group("yeet")
 
-    mc.remove_policy("reader")
+    mc.unset_policy("reader", user="foo")
     assert "policyName" not in mc.get_user("foo")
 
+    mc.remove_policy("fullaccess")
+    mc.remove_policy("reader")
     mc.remove_policy("rw")
     mc.remove_user("foo")
     mc.group_remove("yeet")
