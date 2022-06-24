@@ -110,6 +110,16 @@ class MinioAdmin:
         if group:
             self._exec(["policy", "set"], [policy, f"group={group}"])
 
+    def unset_policy(
+        self, policy: str, user: Optional[str] = None, group: Optional[str] = None
+    ) -> None:
+        if not user and not group or user and group:
+            raise ValueError("Must provide exactly one of user or group")
+        if user:
+            self._exec(["policy", "unset"], [policy, f"user={user}"])
+        if group:
+            self._exec(["policy", "unset"], [policy, f"group={group}"])
+
     def remove_policy(self, policy: str) -> None:
         self._exec(["policy", "remove"], [policy])
 

@@ -27,7 +27,7 @@ services:
     volumes:
       - ${MYSQL_VOLUME}:/var/lib/mysql
   minio:
-    image: minio/minio:RELEASE.2021-11-03T03-36-36Z
+    image: minio/minio:RELEASE.2022-06-20T23-13-45Z
     restart: on-failure
     environment:
       TZ: America/Toronto

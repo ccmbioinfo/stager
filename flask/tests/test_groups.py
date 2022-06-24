@@ -267,6 +267,6 @@ def test_create_group(test_database, client, login_as, minio_admin):
     # Clean up
     minio_client.remove_bucket("results-code2")
     minio_client.remove_bucket("code2")
-    minio_admin.remove_policy("code2")
     minio_admin.remove_user("user")
     minio_admin.group_remove("code2")
+    minio_admin.remove_policy("code2")
