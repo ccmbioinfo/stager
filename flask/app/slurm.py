@@ -70,6 +70,60 @@ exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}
         )
 
 
+def run_dig2_on_singleton(analysis: Analysis) -> Optional[V0037JobSubmissionResponse]:
+    """
+    Precondition: this analysis is a valid singleton and has relevant relationships loaded
+    """
+    # Similar structure as above
+    dataset = analysis.datasets[0]
+    participant_codename = dataset.tissue_sample.participant.participant_codename
+    family_codename = dataset.tissue_sample.participant.family.family_codename
+    name = f"{family_codename}_{participant_codename}"
+    params = {
+        "participant": name,
+        "tissue": dataset.tissue_sample.tissue_sample_type,
+        "genes": dataset.candidate_genes,
+        "vcffile": None,
+        "fastq": [file.path for file in dataset.linked_files],
+    }
+
+    cwd = app.config["SLURM_PWD"]
+    api_instance: SlurmApi = app.extensions["slurm"]
+    try:
+        # This should already be safely shell-escaped so there's no arbitrary code execution
+        # but if there are further issues then pass the user inputs in through the environment
+        submitted_job = api_instance.slurmctld_submit_job(
+            V0037JobSubmission(
+                # Use a login shell and source the entrypoint for the `module` alias.
+                # This also automatically sets the umask correctly to 0002.
+                script=f"""#!/bin/bash --login
+source '{app.config["DIG2_ENTRYPOINT"]}' {analysis.analysis_id} '{json.dumps(params)}'
+""",
+                job=V0037JobProperties(
+                    environment={"STAGER": True},
+                    current_working_directory=cwd,
+                    name=f"Stager-DIG2 (analysis {analysis.analysis_id} on {name})",
+                    standard_output=f"stager-dig2-{name}.out",
+                    cpus_per_task=6,  # equivalent to --cpus-per-task
+                    # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
+                    memory_per_node=20 * 1024,
+                    # minutes, equivalent to --time and SBATCH_TIMELIMIT
+                    time_limit=80 * 60,
+                    # partition and nodes are left implied
+                ),
+            )
+        )
+        app.logger.info(
+            f"Submitted analysis {analysis.analysis_id} to scheduler: {submitted_job}"
+        )
+        return submitted_job
+    except ApiException as e:
+        app.logger.warn(
+            f"Exception when calling slurmctld_submit_job for analysis {analysis.analysis_id}",
+            exc_info=e,
+        )
+
+
 def poll_slurm(app: Flask) -> None:
     """
     This is a scheduled background task. Because it runs in a separate thread,
