@@ -363,50 +363,54 @@ analysis_schema = AnalysisSchema()
 def start_any_pipelines(
     kind: str, analysis: models.Analysis, found_datasets: List[models.Dataset]
 ) -> Union[int, str]:
-    # Only automatically run pipeline if this is an exomic analysis on a trio or similar
+    if not app.config["slurm"]:
+        return "Slurm not enabled or dataset kind not supported"
+    # Only automatically run CRG2 if this is an exomic analysis on a trio
     # This could be in one if conjunction but it is more clear when written out
     # For a list of kinds, see models.DATASET_TYPES
-    if app.config["slurm"] and kind == "exomic":
+    if kind == "exomic":
         # and if all datasets have files
-        if all(len(dataset.linked_files) for dataset in found_datasets):
-            # and if each dataset is for a different participant
-            distinct_participants = set(
-                dataset.tissue_sample.participant_id for dataset in found_datasets
-            )
-            if len(distinct_participants) == len(found_datasets):
-                distinct_families = set(
-                    dataset.tissue_sample.participant.family_id
-                    for dataset in found_datasets
-                )
-                if len(distinct_families) == 1:
-                    job = run_crg2_on_family(analysis)
-                    if job:
-                        analysis.scheduler_id = job.job_id
-                        analysis.analysis_state = models.AnalysisState.Running
-                        # Automated jobs can be assigned to default admin
-                        analysis.assignee_id = 1
-                        # Use a slightly different timestamp
-                        analysis.started = datetime.now()
-                        # We know there is only one family; check constraint guarantees no illegal paths or ../
-                        analysis.result_path = f"/srv/shared/analyses/exomes/{found_datasets[0].tissue_sample.participant.family.family_codename}/{analysis.analysis_id}"
-                        try:
-                            db.session.commit()
-                            return job.job_id
-                        except Exception as e:
-                            db.session.rollback()
-                            app.logger.warn(
-                                f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}",
-                                exc_info=e,
-                            )
-                            return f"Failed to save scheduler_id {job.job_id}"
-                    else:
-                        return "Failed to submit job to Slurm"
-                else:
-                    return "Multiple families in analysis"
-            else:
-                return "Some participants have multiple datasets"
-        else:
+        if any(len(dataset.linked_files) == 0 for dataset in found_datasets):
             return "Missing files for some datasets"
+        # and if each dataset is for a different participant
+        distinct_participants = set(
+            dataset.tissue_sample.participant_id for dataset in found_datasets
+        )
+        if len(distinct_participants) != len(found_datasets):
+            return "Some participants have multiple datasets"
+        distinct_families = set(
+            dataset.tissue_sample.participant.family_id
+            for dataset in found_datasets
+        )
+        if len(distinct_families) > 1:
+            return "Multiple families in analysis"
+
+        job = run_crg2_on_family(analysis)
+        if job:
+            analysis.scheduler_id = job.job_id
+            analysis.analysis_state = models.AnalysisState.Running
+            # Automated jobs can be assigned to default admin
+            analysis.assignee_id = 1
+            # Use a slightly different timestamp
+            analysis.started = datetime.now()
+            # We know there is only one family; check constraint guarantees no illegal paths or ../
+            analysis.result_path = f"/srv/shared/analyses/exomes/{found_datasets[0].tissue_sample.participant.family.family_codename}/{analysis.analysis_id}"
+            try:
+                db.session.commit()
+                return job.job_id
+            except Exception as e:
+                db.session.rollback()
+                app.logger.warn(
+                    f"Failed to save scheduler_id {job.job_id} for analysis {analysis.analysis_id}",
+                    exc_info=e,
+                )
+                return f"Failed to save scheduler_id {job.job_id}"
+        else:
+            return "Failed to submit job to Slurm"
+
+    elif kind == "short-read transcriptomic":
+        pass
+
     else:
         return "Slurm not enabled or dataset kind not supported"
 
