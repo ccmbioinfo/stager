@@ -30,15 +30,13 @@ def run_crg2_on_family(analysis: Analysis) -> Optional[V0037JobSubmissionRespons
     # Move to a job queue if it blocks requests for too long
     datasets = analysis.datasets
     family_codename = datasets[0].tissue_sample.participant.family.family_codename
-    family_codename = family_codename.replace("'", "\\'")  # escape quotes for shell
     files = {
         dataset.tissue_sample.participant.participant_codename: [
             file.path for file in dataset.linked_files
         ]
         for dataset in datasets
     }
-    # Will only be used for capturing stdout/stderr instead of explicitly for each
-    cwd = app.config["SLURM_PWD"]
+    result_path = f"/srv/shared/analyses/exomes/{family_codename}/{analysis.analysis_id}"
     api_instance: SlurmApi = app.extensions["slurm"]
     try:
         # This should already be safely shell-escaped so there's no arbitrary code execution
@@ -50,7 +48,8 @@ exec '{app.config["CRG2_ENTRYPOINT"]}' {analysis.analysis_id} '{family_codename}
 """,
                 job=V0037JobProperties(
                     environment={"STAGER": True},
-                    current_working_directory=cwd,
+                    # Will only be used for capturing stdout/stderr instead of explicitly for each
+                    current_working_directory=app.config["SLURM_PWD"],
                     name=f"Stager-CRG2 (analysis {analysis.analysis_id}, family {family_codename})",
                     standard_output=f"stager-crg2-{analysis.analysis_id}.out",
                     memory_per_node=4096,  # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
@@ -86,8 +85,9 @@ def run_dig2_on_singleton(analysis: Analysis) -> Optional[V0037JobSubmissionResp
         "vcffile": None,
         "fastq": [file.path for file in dataset.linked_files],
     }
+    date.today().strftime("%Y_%m_%d")
 
-    cwd = app.config["SLURM_PWD"]
+
     api_instance: SlurmApi = app.extensions["slurm"]
     try:
         # This should already be safely shell-escaped so there's no arbitrary code execution
@@ -101,14 +101,13 @@ source '{app.config["DIG2_ENTRYPOINT"]}' {analysis.analysis_id} '{json.dumps(par
 """,
                 job=V0037JobProperties(
                     environment={"STAGER": True},
-                    current_working_directory=cwd,
+                    # Will only be used for capturing stdout/stderr instead of explicitly for each
+                    current_working_directory=app.config["SLURM_PWD"],
                     name=f"Stager-DIG2 (analysis {analysis.analysis_id} on {name})",
                     standard_output=f"stager-dig2-{name}.out",
                     cpus_per_task=6,  # equivalent to --cpus-per-task
-                    # MB, equivalent to --mem and SBATCH_MEM_PER_NODE
-                    memory_per_node=20 * 1024,
-                    # minutes, equivalent to --time and SBATCH_TIMELIMIT
-                    time_limit=80 * 60,
+                    memory_per_node=20 * 1024,  # MB
+                    time_limit=80 * 60,  # minutes
                     # partition and nodes are left implied
                 ),
             )

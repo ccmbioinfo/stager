@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from datetime import datetime
-from typing import List, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Union
 
 from flask import Blueprint, Response, abort, current_app as app, jsonify, request
 from flask_login import login_required
@@ -11,7 +11,7 @@ from sqlalchemy.sql.expression import cast
 from .. import models
 from ..models import db
 from ..schemas import AnalysisSchema
-from ..slurm import run_crg2_on_family
+from ..slurm import run_crg2_on_family, run_dig2_on_singleton
 from ..utils import (
     check_admin,
     clone_entity,
@@ -364,28 +364,19 @@ def start_any_pipelines(
     kind: str, analysis: models.Analysis, found_datasets: List[models.Dataset]
 ) -> Union[int, str]:
     if not app.config["slurm"]:
-        return "Slurm not enabled or dataset kind not supported"
-    # Only automatically run CRG2 if this is an exomic analysis on a trio
-    # This could be in one if conjunction but it is more clear when written out
-    # For a list of kinds, see models.DATASET_TYPES
-    if kind == "exomic":
-        # and if all datasets have files
-        if any(len(dataset.linked_files) == 0 for dataset in found_datasets):
-            return "Missing files for some datasets"
-        # and if each dataset is for a different participant
-        distinct_participants = set(
-            dataset.tissue_sample.participant_id for dataset in found_datasets
-        )
-        if len(distinct_participants) != len(found_datasets):
-            return "Some participants have multiple datasets"
-        distinct_families = set(
-            dataset.tissue_sample.participant.family_id
-            for dataset in found_datasets
-        )
-        if len(distinct_families) > 1:
-            return "Multiple families in analysis"
+        return "Slurm integration not enabled"
 
-        job = run_crg2_on_family(analysis)
+    if TYPE_CHECKING:
+        from slurm_rest.models import V0037JobSubmissionResponse
+
+    # Internal helper function
+    def start_pipeline(
+        run_pipeline: Callable[
+            [models.Analysis], Optional["V0037JobSubmissionResponse"]
+        ],
+        result_path: str,
+    ):
+        job = run_pipeline(analysis)
         if job:
             analysis.scheduler_id = job.job_id
             analysis.analysis_state = models.AnalysisState.Running
@@ -393,8 +384,7 @@ def start_any_pipelines(
             analysis.assignee_id = 1
             # Use a slightly different timestamp
             analysis.started = datetime.now()
-            # We know there is only one family; check constraint guarantees no illegal paths or ../
-            analysis.result_path = f"/srv/shared/analyses/exomes/{found_datasets[0].tissue_sample.participant.family.family_codename}/{analysis.analysis_id}"
+            analysis.result_path = result_path
             try:
                 db.session.commit()
                 return job.job_id
@@ -408,11 +398,47 @@ def start_any_pipelines(
         else:
             return "Failed to submit job to Slurm"
 
-    elif kind == "short-read transcriptomic":
-        pass
+    # Only automatically run CRG2 if this is an exomic analysis on a trio
+    # This could be in one if conjunction but it is more clear when written out
+    # For a list of kinds, see models.DATASET_TYPES
+    if kind == "exomic" and app.config["CRG2_ENTRYPOINT"]:
+        # and if all datasets have files
+        if any(len(dataset.linked_files) == 0 for dataset in found_datasets):
+            return "Missing files for some datasets"
+        # and if each dataset is for a different participant
+        distinct_participants = set(
+            dataset.tissue_sample.participant_id for dataset in found_datasets
+        )
+        if len(distinct_participants) != len(found_datasets):
+            return "Some participants have multiple datasets"
+        distinct_families = set(
+            dataset.tissue_sample.participant.family_id for dataset in found_datasets
+        )
+        if len(distinct_families) > 1:
+            return "Multiple families in analysis"
+
+        # We know there is only one family; check constraint guarantees no illegal paths or ../
+        result_path = f"/srv/shared/analyses/exomes/{found_datasets[0].tissue_sample.participant.family.family_codename}/{analysis.analysis_id}"
+        return start_pipeline(run_crg2_on_family, result_path)
+
+    elif kind == "short-read transcriptomic" and app.config["DIG2_ENTRYPOINT"]:
+        if len(found_datasets) > 1:
+            return "Multiple datasets in analysis"
+        if len(found_datasets[0].linked_files) == 0:
+            return "Dataset is missing files"
+        if found_datasets[0].tissue_sample.tissue_sample_type not in [
+            models.TissueSampleType.Blood,
+            models.TissueSampleType.Lymphocyte,
+            models.TissueSampleType.Fibroblast,
+            models.TissueSampleType.Muscle,
+        ]:
+            return "Unsupported tissue sample type"
+
+        result_path = f"/srv/shared/analyses/RNAseq/{name}_year_month_date_analysisID"
+        return start_pipeline(run_dig2_on_singleton, result_path)
 
     else:
-        return "Slurm not enabled or dataset kind not supported"
+        return "Dataset kind not supported"
 
 
 @analyses_blueprint.route("/api/analyses", methods=["POST"])
