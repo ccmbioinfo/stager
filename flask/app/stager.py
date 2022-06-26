@@ -1,5 +1,4 @@
 import atexit
-from os import getenv
 from logging import Formatter
 
 from apscheduler.schedulers.base import BaseScheduler
@@ -14,8 +13,8 @@ from requests import Session
 from slurm_rest import Configuration, ApiClient
 from slurm_rest.apis import SlurmApi
 
+from .email import Mailer
 from .login import StagerLoginManager
-from .tasks import send_email_notification
 from .utils import DateTimeEncoder
 from .slurm import poll_slurm
 
@@ -27,6 +26,7 @@ class Stager(Flask):
 
     json_encoder = DateTimeEncoder
     # Only available in master process
+    mailer: Mailer  # Only available if configured
     scheduler: BaseScheduler
 
     def __init__(self, config, db: SQLAlchemy, *args, **kwargs):
@@ -92,15 +92,19 @@ class Stager(Flask):
         # or cumbersome, it can be separated to be started by a completely different
         # entrypoint in the same codebase and deployed as a separate container.
         self.scheduler = BackgroundScheduler()
-        if getenv("SENDGRID_API_KEY"):
+        if self.config["SENDGRID_API_KEY"]:
             self.logger.info(
                 "Configuring with SendGrid [%s] (from: %s) (to: %s)",
-                getenv("SENDGRID_EMAIL_TEMPLATE_ID"),
-                getenv("SENDGRID_FROM_EMAIL"),
-                getenv("SENDGRID_TO_EMAIL"),
+                self.config["SENDGRID_EMAIL_TEMPLATE_ID"],
+                self.config["SENDGRID_FROM_EMAIL"],
+                self.config["SENDGRID_TO_EMAIL"],
             )
+            self.mailer = Mailer(self)
             self.scheduler.add_job(
-                send_email_notification, "cron", [self], day_of_week="mon-fri", hour="9"
+                self.mailer.send_notification,
+                "cron",
+                day_of_week="mon-fri",
+                hour="9",
             )
         if self.config["SLURM_JWT"]:
             # requests session used to bypass the SDK when Slurm doesn't respect
