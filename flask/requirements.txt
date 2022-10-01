@@ -48,8 +48,6 @@ gunicorn==20.1.0
     # via -r requirements.in
 idna==3.3
     # via requests
-importlib-metadata==4.11.4
-    # via flask
 itsdangerous==2.1.2
     # via flask
 jinja2==3.1.2
@@ -66,7 +64,7 @@ marshmallow==3.16.0
     #   marshmallow-sqlalchemy
 marshmallow-sqlalchemy==0.28.0
     # via -r requirements.in
-minio==7.1.8
+minio==7.1.12
     # via -r requirements.in
 numpy==1.22.4
     # via pandas
@@ -130,8 +128,6 @@ werkzeug==2.1.2
     # via
     #   flask
     #   flask-login
-zipp==3.8.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
