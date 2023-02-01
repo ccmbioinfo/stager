@@ -96,7 +96,7 @@ packaging==21.3
     # via
     #   marshmallow
     #   pytest
-pandas==1.4.2
+pandas==1.5.3
     # via -r requirements.in
 pathspec==0.9.0
     # via black
@@ -160,11 +160,7 @@ sqlalchemy==1.4.37
 starkbank-ecdsa==2.0.3
     # via sendgrid
 tomli==2.0.1
-    # via
-    #   black
-    #   coverage
-    #   pylint
-    #   pytest
+    # via pytest
 tomlkit==0.11.0
     # via pylint
 tzdata==2022.1
