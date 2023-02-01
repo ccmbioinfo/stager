@@ -94,7 +94,7 @@ pytz==2022.1
     #   pandas
 pytz-deprecation-shim==0.1.0.post0
     # via tzlocal
-requests==2.27.1
+requests==2.28.2
     # via -r requirements.in
 sendgrid==6.9.7
     # via -r requirements.in
