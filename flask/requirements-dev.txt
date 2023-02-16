@@ -78,6 +78,7 @@ markupsafe==2.1.1
     # via
     #   jinja2
     #   mako
+    #   werkzeug
 marshmallow==3.16.0
     # via
     #   flask-marshmallow
@@ -160,11 +161,7 @@ sqlalchemy==1.4.37
 starkbank-ecdsa==2.0.3
     # via sendgrid
 tomli==2.0.1
-    # via
-    #   black
-    #   coverage
-    #   pylint
-    #   pytest
+    # via pytest
 tomlkit==0.11.0
     # via pylint
 tzdata==2022.1
@@ -176,7 +173,7 @@ urllib3==1.26.9
     #   minio
     #   requests
     #   slurm-rest
-werkzeug==2.1.2
+werkzeug==2.2.3
     # via
     #   flask
     #   flask-login
