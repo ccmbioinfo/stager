@@ -14,7 +14,7 @@ attrs==21.4.0
     # via pytest
 authlib==1.0.1
     # via -r requirements.in
-black==22.3.0
+black==23.1.0
     # via -r requirements-dev.in
 certifi==2022.5.18.1
     # via
@@ -92,8 +92,9 @@ mypy-extensions==0.4.3
     # via black
 numpy==1.22.4
     # via pandas
-packaging==21.3
+packaging==23.0
     # via
+    #   black
     #   marshmallow
     #   pytest
 pandas==1.4.2
@@ -118,8 +119,6 @@ pylint==2.14.1
     # via -r requirements-dev.in
 pymysql[rsa]==1.0.2
     # via -r requirements.in
-pyparsing==3.0.9
-    # via packaging
 pytest==7.1.2
     # via
     #   -r requirements-dev.in
@@ -160,11 +159,7 @@ sqlalchemy==1.4.37
 starkbank-ecdsa==2.0.3
     # via sendgrid
 tomli==2.0.1
-    # via
-    #   black
-    #   coverage
-    #   pylint
-    #   pytest
+    # via pytest
 tomlkit==0.11.0
     # via pylint
 tzdata==2022.1
