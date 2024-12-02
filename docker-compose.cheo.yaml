@@ -26,7 +26,7 @@ services:
     ports:
       - "5000:5000"
       - "9121:8080"
-    command: --workers ${GUNICORN_WORKERS:-1}
+    command: --workers ${GUNICORN_WORKERS:-1} --timeout 600
     tmpfs:
       - /tmp
     volumes:
